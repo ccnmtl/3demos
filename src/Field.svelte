@@ -380,7 +380,6 @@
       </label>
       <!-- </div> -->
 
-      <!-- <div class="play-buttons"> -->
       <button
         on:click={() => {
           flowArrows.visible = true;
@@ -489,13 +488,6 @@
 
   button:active {
     color: gray;
-  }
-
-  .play-buttons {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    grid-template-rows: 1em;
-    place-items: center;
   }
 
   /* The switch - the box around the slider */

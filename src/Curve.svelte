@@ -1,6 +1,7 @@
 <script>
   import { onMount, onDestroy, createEventDispatcher } from "svelte";
   import { fly, fade } from "svelte/transition";
+  import katex from 'katex';
   import M from "./M.svelte";
 
   import * as THREE from "three";
@@ -167,7 +168,7 @@
       return (Math.round(100 * t) / 100).toString();
     } catch (e) {
       console.log(e);
-      return "";
+      return '';
     }
   }
 
@@ -353,6 +354,8 @@
     scene.remove(frame);
     render();
   });
+
+    const texString1 = `t = ${stringifyT(params)}`;
 </script>
 
 <div class="boxItem">
@@ -409,8 +412,7 @@
       />
 
       <span class="box-1">
-        <M>t = {{{stringifyT(params)}}}</M>
-        <!-- <M>t</M> -->
+        {@html katex.renderToString(texString1)}
       </span>
       <input
         type="range"
