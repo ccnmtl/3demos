@@ -1,4 +1,4 @@
-importScripts('./math.js');
+import * from 'mathjs';
 
 // console.log("I'm called!")
 
