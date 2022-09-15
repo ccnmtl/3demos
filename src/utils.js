@@ -104,7 +104,7 @@ function marchingSquare(a, b, c, d, e, lev) {
     const endPoints = [];
     let edges = [];
 
-    if (squaresTable.hasOwnProperty(code)) {
+    if (Object.hasOwn(squaresTable, code)) {
         edges = squaresTable[code];
     } else {
         if ((a < lev && e < lev) || (!(a < lev) && !(e < lev))) {
@@ -680,7 +680,7 @@ export function addColorBar(vMin = -1, vMax = 1) {
     container.style.display = "block";
 }
 
-export function thetaCoordinate(x, y, z) {
+export function thetaCoordinate(x, y) {
     let t;
     if (x > 0) {
         t = Math.atan(y / x);
@@ -766,7 +766,6 @@ class ArrowBufferGeometry extends THREE.BufferGeometry {
 
         let index = 0;
         const indexArray = [];
-        const halfHeight = height / 2;
         const tubeHeight = heightIncludesHead ? height - heightTop : height;
         let groupStart = 0;
 
@@ -795,9 +794,6 @@ class ArrowBufferGeometry extends THREE.BufferGeometry {
             const vertex = new THREE.Vector3();
 
             let groupCount = 0;
-
-            // this will be used to calculate the normal
-            const slope = 0;
 
             // generate vertices, normals and uvs
 
@@ -1064,15 +1060,15 @@ function drawGrid({
             for (let j = 0; j < 100; j++) {
                 points.push(
                     new THREE.Vector3(
-                        i * Math.cos((2 * pi * j) / 100),
-                        i * Math.sin((2 * pi * j) / 100),
+                        i * Math.cos((2 * Math.PI * j) / 100),
+                        i * Math.sin((2 * Math.PI * j) / 100),
                         0
                     )
                 );
                 points.push(
                     new THREE.Vector3(
-                        i * Math.cos((2 * pi * (j + 1)) / 100),
-                        i * Math.sin((2 * pi * (j + 1)) / 100),
+                        i * Math.cos((2 * Math.PI * (j + 1)) / 100),
+                        i * Math.sin((2 * Math.PI * (j + 1)) / 100),
                         0
                     )
                 );
@@ -1081,8 +1077,8 @@ function drawGrid({
         for (let i = 0; i < 16; i++) {
             points.push(
                 new THREE.Vector3(
-                    10 * gridMax * Math.cos((pi * i) / 8),
-                    10 * gridMax * Math.sin((pi * i) / 8),
+                    10 * gridMax * Math.cos((Math.PI * i) / 8),
+                    10 * gridMax * Math.sin((Math.PI * i) / 8),
                     0
                 )
             );
@@ -1227,7 +1223,7 @@ function labelAxes({
         },
 
         // onError callback
-        function (err) {
+        function () {
             console.log("An error happened");
         }
     );
@@ -1516,7 +1512,6 @@ function blockGeometry(f, a, b, c, d, M = 5, N = 5, s = 0.5, t = 0.5) {
     let normals = [];
     let dx = (b - a) / N;
     let dy = (d - c) / M;
-    let n = Math.max(b - a, d - c);
     let color = new THREE.Color();
 
     for (let i = 0; i < N; i++) {
@@ -1535,9 +1530,6 @@ function blockGeometry(f, a, b, c, d, M = 5, N = 5, s = 0.5, t = 0.5) {
                 zdown = z;
             }
 
-            let vx = x / n;
-            let vy = y / n;
-            let vz = z / 11 - 0.2;
             color.setHSL(z < 0 ? 0.05 : 0.6, 0.56, 0.36);
 
             // top
