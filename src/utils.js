@@ -1,6 +1,8 @@
 /* jshint esversion: 6 */
 
-import * as THREE from "three";
+import * as THREE from 'three';
+import {FontLoader} from 'three/examples/jsm/loaders/FontLoader.js';
+import {TextGeometry} from 'three/examples/jsm/geometries/TextGeometry.js';
 
 export function marchingSquares({
     f,
@@ -1152,7 +1154,7 @@ function labelAxes({
     axesText = [],
     render = undefined,
 } = {}) {
-    const loader = new THREE.FontLoader();
+    const loader = new FontLoader();
     const font = loader.load(
         // resource URL
         fontFile,
@@ -1178,7 +1180,7 @@ function labelAxes({
             const tickGeos = [];
             for (let i = 0; i <= 6; i++) {
                 if (i !== 3) {
-                    const textGeo = new THREE.TextGeometry(
+                    const textGeo = new TextGeometry(
                         (Math.round(100 * ((-3 / 2 + i / 2) * gridMax)) / 100).toString(),
                         textGeometryArguments
                     );
@@ -1200,7 +1202,7 @@ function labelAxes({
                     axesText.push(textHolder);
                     scene.add(textHolder);
                 }
-                const textGeo = new THREE.TextGeometry(xyz[i], textGeometryArguments);
+                const textGeo = new TextGeometry(xyz[i], textGeometryArguments);
                 // const textMaterial = new THREE.MeshBasicMaterial({color: axesMaterial})
                 const textHolder = new THREE.Object3D();
                 const text = new THREE.Mesh(textGeo, textMaterial);
