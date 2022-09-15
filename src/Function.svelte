@@ -207,12 +207,6 @@
     planeShard.geometry = tangentPlaneGeometry;
   }
 
-  const materialColors = new THREE.MeshPhongMaterial({
-    color: 0xffffff,
-    shininess: 70,
-    side: THREE.DoubleSide,
-    vertexColors: true,
-  });
   const whiteLineMaterial = new THREE.LineBasicMaterial({
     color: 0xffffff,
     linewidth: 2,
@@ -227,10 +221,6 @@
     linewidth: 4,
   });
 
-  const wireMaterial = new THREE.MeshBasicMaterial({
-    color: 0x333333,
-    wireframe: true,
-  });
   const plusMaterial = new THREE.MeshPhongMaterial({
     color: params.color,
     shininess: 80,
@@ -254,8 +244,6 @@
     plusMaterial.color.getHSL(hsl);
     minusMaterial.color.setHSL((hsl.h + 0.618033988749895) % 1, hsl.s, hsl.l);
   }
-
-  let colorFunc = false;
 
   let cMin, dMax; // make these globals as useful for tangents.
 
@@ -492,7 +480,7 @@
     }
   }
 
-  function updateColor(e, val) {
+  function updateColor() {
     plusMaterial.color.set(params.color);
     const col = new THREE.Color(params.color);
     const hsl = {};
@@ -645,7 +633,6 @@
   boxMesh.add(boxMeshEdges);
 
   function updateBoxes() {
-    const N = data.N;
     const { a, b, c, d, z } = params;
     const t = params.t0 + data.tau * (params.t1 - params.t0);
     const [A, B, C, D] = [
@@ -719,8 +706,6 @@
       point.position.y = intersect.point.y;
       point.position.z = intersect.point.z;
 
-      const u = intersect.uv.x,
-        v = intersect.uv.y;
       tangentVectors();
 
       // console.log(u, v, mouseVector);

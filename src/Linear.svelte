@@ -1,13 +1,7 @@
 <script>
-
-    import katex from 'katex';
     import M from './M.svelte';
     import Md from './Md.svelte';
     import { v4 as uuidv4 } from "uuid";
-    import { create, all } from "mathjs";
-
-    const config = {};
-    const math = create(all, config);
 
     export let boxes;
 

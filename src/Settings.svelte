@@ -1,21 +1,11 @@
 <script>
   import {
-    colorBufferVertices,
-    blueUpRedDown,
-    addColorBar,
-    marchingSegments,
     drawAxes,
     drawGrid,
     labelAxes,
-    ArrowBufferGeometry,
-    vMaxMin,
-    gaussLegendre,
-    freeChildren,
-    thetaCoordinate,
+    freeChildren
   } from "./utils";
   import { createEventDispatcher } from "svelte";
-
-  import M from "./M.svelte";
 
   const dispatch = createEventDispatcher();
 
@@ -78,7 +68,6 @@
   function rescale() {
     if (scala !== gridMax) {
       oldGridMax = scaleState;
-      let font;
       gridMax = scala;
       gridStep = gridMax / 10;
 
@@ -101,7 +90,7 @@
 
       // Fonts
 
-      [axesText, font] = labelAxes({
+      [axesText] = labelAxes({
         scene,
         gridMax,
         gridStep,

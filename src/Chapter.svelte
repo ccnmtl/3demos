@@ -1,8 +1,6 @@
 <script>
     import katex from 'katex';
-    import Curve from './Curve.svelte';
     import M from './M.svelte';
-    import Md from './Md.svelte';
     import { v4 as uuidv4 } from "uuid";
     import { create, all } from "mathjs";
 
@@ -80,12 +78,6 @@ const exampleCurveParams = [
     }
 ]
 
-function drawPolyPath() {
-    if (curveId) {
-        const dt = params
-    }
-}
-
 function addCurve(selection = 1) {
     if (boxes.filter((b) => curveId === b.id).length > 0) {
         boxes = boxes.filter((b) => curveId != b.id);
@@ -106,7 +98,7 @@ function addCurve(selection = 1) {
         texStrings.r = "\\left \\langle " + X.toTex() + ", " + Y.toTex()  + ", " + Z.toTex() + "\\right \\rangle";
         texStrings.a = A.toTex();
         texStrings.b = B.toTex();
-    };
+    }
 }
 
 </script>

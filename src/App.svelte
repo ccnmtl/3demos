@@ -6,7 +6,6 @@
 
   // import components
   import M from "./M.svelte";
-  import Md from "./Md.svelte";
   import Box from "./Box.svelte";
   import ParSurf from "./ParSurf.svelte";
   import Level from "./Level.svelte";
@@ -25,17 +24,9 @@
   import Intro from "./Intro.svelte";
 
   import {
-    colorBufferVertices,
-    blueUpRedDown,
-    addColorBar,
-    marchingSegments,
     drawAxes,
     drawGrid,
     labelAxes,
-    ArrowBufferGeometry,
-    vMaxMin,
-    gaussLegendre,
-    nextHue,
     makeHSLColor,
   } from "./utils";
 
@@ -57,9 +48,7 @@
 
   // import { dt } from './stores.js';
 
-  let canvas, kind;
-
-  let color = 0xffaadd;
+  let canvas;
 
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(
@@ -153,7 +142,7 @@
   scene.add(axesHolder);
 
   // Fonts
-  let [axesText, font] = labelAxes({
+  let [axesText] = labelAxes({
     scene,
     render: requestFrameIfNotRequested,
   });
@@ -374,7 +363,6 @@
   // changeColor(color);
 
   let currentChapter = "Intro";
-  let currentHue = 0.65;
 </script>
 
 <canvas bind:this={canvas} id="c" />

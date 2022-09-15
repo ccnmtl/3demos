@@ -1,15 +1,4 @@
 <script>
-  import katex from "katex";
-  import Curve from "./Curve.svelte";
-  import M from "./M.svelte";
-  import Md from "./Md.svelte";
-  import { v4 as uuidv4 } from "uuid";
-
-  //   export const boxes;
-  let curveId;
-
-  let formula = String.raw`\frac{n^k}{k!}`;
-
   // let s = String.raw`with some <M> \iint_{\partial{\Sigma }} \mathbb F \cdot d\vec S</M> in it.`
   // console.log(s.replace(/(<\s*M\s*>.*?){(.*<\s*\/\s*M\s*>)/g, '$1 &lbrace; $2'));
   // s.replace(/(<Md?>)(.*?)(<\/Md?>)/g,(match,p1,p2,p3) => {

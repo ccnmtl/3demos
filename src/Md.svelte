@@ -1,6 +1,6 @@
 <script>
     import katex from 'katex';
-    import { afterUpdate, beforeUpdate, onMount } from 'svelte';
+    import { afterUpdate, onMount } from 'svelte';
 
     let div,div2;
 
