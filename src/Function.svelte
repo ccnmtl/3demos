@@ -1,5 +1,7 @@
 <script>
   import { onMount, onDestroy, createEventDispatcher } from "svelte";
+  import {ParametricGeometry} from 'three/examples/jsm/geometries/ParametricGeometry.js';
+
   // import { fly, fade } from "svelte/transition";
   import M from "./M.svelte";
 
@@ -192,7 +194,7 @@
       planeShard.geometry.dispose();
     }
 
-    const tangentPlaneGeometry = new THREE.ParametricBufferGeometry(
+    const tangentPlaneGeometry = new ParametricGeometry(
       (u, v, vec) => {
         const U = -2 + 4 * u,
           V = -2 + 4 * v;
@@ -256,7 +258,7 @@
     const A = math.evaluate(a),
       B = math.evaluate(b);
     const [C, D, Z] = math.parse([c, d, z]);
-    const geometry = new THREE.ParametricBufferGeometry(
+    const geometry = new ParametricGeometry(
       (u, v, vec) => {
         const U = A + (B - A) * u;
         const V = (1 - v) * C.evaluate({ x: U }) + v * D.evaluate({ x: U });
