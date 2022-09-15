@@ -1,9 +1,6 @@
 <script>
-
     import katex from 'katex';
-    import Curve from './Curve.svelte';
     import M from './M.svelte';
-    import Md from './Md.svelte';
     import { v4 as uuidv4 } from "uuid";
     import { create, all } from "mathjs";
 
@@ -12,10 +9,24 @@
 
     export let boxes;
     let curveId, r = (t) => { return {x: t, y: t, z: t}};
-    const texStrings = {r: "\\langle t, t, t \\rangle",
-    a: "-1.5",
-    b: "-1.5"
-};
+    const texStrings = {
+        r: "\\langle t, t, t \\rangle",
+        a: "-1.5",
+        b: "-1.5"
+    };
+
+    const texString1 = `\\mathbf{r}(t) = ${texStrings.r}`;
+    const texString2 = `${texStrings.a} \\leq ${texStrings.b}`;
+
+    const texString3 = `
+            \\begin{align*}
+            t_0 &= a \\\\
+            t_1 &= a + \\Delta t \\\\
+            \ &\\vdots \\\\
+            t_i &= a + i \\Delta t \\\\
+            \ &\\vdots \\\\
+            t_n &= a + n \\Delta t = b
+            \\end{align*}`;
 
     let formula = String.raw`\frac{n^k}{k!}`;
 
@@ -32,14 +43,14 @@
     //             case '}':
     //                 return '&rbrace;';
     //                 break;
-            
+
     //             default:
     //                 return i;
     //                 break;
     //         }
     //     }).join('') + p3)
     // });
-    
+
     let hidden = false;
 
 function toggleHidden() {
@@ -67,12 +78,6 @@ const exampleCurveParams = [
     }
 ]
 
-function drawPolyPath() {
-    if (curveId) {
-        const dt = params
-    }
-}
-
 function addCurve(selection = 1) {
     if (boxes.filter((b) => curveId === b.id).length > 0) {
         boxes = boxes.filter((b) => curveId != b.id);
@@ -90,10 +95,10 @@ function addCurve(selection = 1) {
             y: Y.evaluate({t: t}),
             z: Z.evaluate({t: t}),
         }};
-        texStrings.r = "\\left \\langle " + X.toTex() + ", " + Y.toTex()  + ", " + Z.toTex() + "\\right \\rangle"; 
+        texStrings.r = "\\left \\langle " + X.toTex() + ", " + Y.toTex()  + ", " + Z.toTex() + "\\right \\rangle";
         texStrings.a = A.toTex();
         texStrings.b = B.toTex();
-    };
+    }
 }
 
 </script>
@@ -105,35 +110,22 @@ function addCurve(selection = 1) {
 
     <p>Select an example: <span on:click={() => addCurve(0)}>crown</span> | <span on:click={() => addCurve(1)}>twist</span> </p>
 
-    <p>
-        <Md>
-            \mathbf{r}(t) = {{{texStrings.r}}}
-        </Md>
-        <Md>
-            {{{texStrings.a}}} \leq {{{texStrings.b}}}
-        </Md>
-    </p>
+    <div>{@html katex.renderToString(texString1, {displayMode: true})}</div>
+    <div>{@html katex.renderToString(texString2, {displayMode: true})}</div>
 
     <p>
-        We can estimate the length by selecting a finite number <M>N</M> of positions along the curve and measuring the distance between them. To wit, we select a partition of <M>[a, b]</M>: 
-        <Md>
-            \begin{align*}
-            t_0 &= a \\
-            t_1 &= a + \Delta t \\
-            \ &\vdots \\
-            t_i &= a + i \Delta t \\
-            \ &\vdots \\
-            t_n &= a + n \Delta t = b
-            \end{align*}
-        </Md> where <M>\Delta t = \frac{b - a}{N}</M>
-    </p> 
+        We can estimate the length by selecting a finite
+        number <M>N</M> of positions along the curve and measuring the
+        distance between them. To wit, we select a partition of <M>[a, b]</M>:
+    </p>
+
+    <div>{@html katex.renderToString(texString3, {displayMode: true})}</div>
+
+    <p>
+        where <M>\Delta t = \frac{b - a}{N}</M>
+    </p>
 
     <input type="range" bind:value={nSteps} min="1" max="30" step="1" />
-
-    <p>
-
-    
-    </p>
 
     <input type="text" bind:value="{formula}" />
 </article>

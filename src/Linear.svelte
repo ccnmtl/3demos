@@ -1,13 +1,7 @@
 <script>
-
-    import katex from 'katex';
     import M from './M.svelte';
     import Md from './Md.svelte';
     import { v4 as uuidv4 } from "uuid";
-    import { create, all } from "mathjs";
-
-    const config = {};
-    const math = create(all, config);
 
     export let boxes;
 
@@ -37,9 +31,14 @@
 <h1 class="top-title" on:click={toggleHidden}>Linearization</h1>
 <article class:hidden>
 
-    <p>A <b>linear function</b> <M>L(x,y)</M> of two variables has the form <Md>
-        L(x,y) = a + bx + cy
-    </Md> where <M>a,b,c \in \mathbb{R}</M> are constants. Their graphs are planes with normal vector <M> \mathbf{n} = \langle -b, -c, 1 \rangle</M>. </p>
+    <p>
+        A <strong>linear function</strong> <M>L(x,y)</M> of two variables
+        has the form <Md>
+            L(x,y) = a + bx + cy
+        </Md> where <M>a,b,c \in \mathbb{R}</M> are constants.
+        Their graphs are planes with normal vector
+        <M>\mathbf{n} = \langle -b, -c, 1 \rangle</M>.
+    </p>
 
     <p>
         More generally, a linear function of <M>n</M> variables has the form <Md>

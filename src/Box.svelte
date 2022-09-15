@@ -1,12 +1,10 @@
 <script>
-  import ParSurf from './ParSurf.svelte';
-
   import * as THREE from "three";
   import { onDestroy, onMount, createEventDispatcher } from "svelte";
 
   export let scene = new THREE.Scene();
   export let onClose = () => {};
-  export let update = (dt) => {};
+  export let update = () => {};
   export let render = () => {};
   export let animation = false;
 
@@ -20,8 +18,6 @@
   box.position.x = Math.random() * 4 - 2;
   box.position.y = Math.random() * 4 - 2;
   box.position.z = Math.random() * 4 - 2;
-
-  const r = Math.sqrt(box.position.x*box.position.x + box.position.y*box.position.y)
 
   async function updateBox() {
     // await tick();

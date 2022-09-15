@@ -1,5 +1,5 @@
 <script>
-  import { onMount, onDestroy } from "svelte";
+  import { onDestroy } from "svelte";
   import M from "./M.svelte";
 
   import * as THREE from "three";

@@ -1,6 +1,5 @@
 <script>
   import { onMount, onDestroy, createEventDispatcher } from "svelte";
-  import { fly, fade } from "svelte/transition";
   import M from "./M.svelte";
 
   import * as THREE from "three";
@@ -8,15 +7,7 @@
   import { create, all } from "mathjs";
 
   import {
-    colorBufferVertices,
-    blueUpRedDown,
-    addColorBar,
-    marchingSegments,
     ArrowBufferGeometry,
-    vMaxMin,
-    gaussLegendre,
-    ParametricCurve,
-    disposeArray,
     rk4,
     norm1,
   } from "./utils.js";
@@ -36,7 +27,7 @@
   $: nCubed = Math.pow(params.nVec, 3);
 
   export let scene;
-  export let update = (dt) => {};
+  export let update = () => {};
   export let render = () => {};
   export let animation = false;
   export let onClose = () => {};
@@ -56,9 +47,8 @@
     }
 
     initiate(F, dt = 0.01, maxSteps = 500, tol = 1e-3) {
-      const counter = 0,
-        vec = new THREE.Vector3(),
-        vec1 = new THREE.Vector3();
+      const vec = new THREE.Vector3();
+      const vec1 = new THREE.Vector3();
       vec.copy(this.position);
       for (let i = 0; i < maxSteps; i++) {
         vec1.set(...rk4(vec.x, vec.y, vec.z, F, -dt));
@@ -77,7 +67,6 @@
 
   const flowArrows = new THREE.Object3D();
   const fieldMaterial = new THREE.MeshLambertMaterial({ color: 0x373765 });
-  const curlMaterial = new THREE.MeshLambertMaterial({ color: 0x653737 });
   const trailMaterial = new THREE.LineBasicMaterial({
     color: 0xffffff,
     vertexColors: true,
@@ -189,8 +178,7 @@
     const vec = new THREE.Vector3();
     let index;
 
-    const trailPoints = trails.geometry.attributes.position.array,
-      trailPointsMax = trails.geometry.attributes.position.count;
+    const trailPoints = trails.geometry.attributes.position.array;
 
     if (flowTrails) {
       index = (trailLength % MAX_TRAIL_LENGTH) * 2 * 3 * nCubed;
@@ -289,10 +277,6 @@
   scene.add(flowArrows);
   scene.add(trails);
 
-  function simpleMathString(s) {
-    return math.simplify(math.parse(s)).toTex();
-  }
-
   onMount(() => {
     updateField();
     initFlowArrows(flowArrows);
@@ -380,7 +364,6 @@
       </label>
       <!-- </div> -->
 
-      <!-- <div class="play-buttons"> -->
       <button
         on:click={() => {
           flowArrows.visible = true;
@@ -489,13 +472,6 @@
 
   button:active {
     color: gray;
-  }
-
-  .play-buttons {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    grid-template-rows: 1em;
-    place-items: center;
   }
 
   /* The switch - the box around the slider */

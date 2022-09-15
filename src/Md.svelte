@@ -1,14 +1,14 @@
 <script>
     import katex from 'katex';
-    import { afterUpdate, beforeUpdate, onMount } from 'svelte';
+    import { afterUpdate, onMount } from 'svelte';
 
     let div,div2;
 
-    const render = () => 
-    katex.render(div.innerText, div2, {
-        throwOnError: false,
-        displayMode: true
-    })
+    const render = () =>
+          katex.render(div.innerText, div2, {
+              throwOnError: false,
+              displayMode: true
+          });
 
     onMount(render);
     afterUpdate(render);
@@ -18,7 +18,7 @@
 <div bind:this={div} class="slot">
 
     <slot></slot>
-
+ 
 </div>
 
 <div class="output" bind:this={div2}></div>

@@ -1,6 +1,6 @@
 <script>
   import { onMount, onDestroy, createEventDispatcher } from "svelte";
-  import { fly, fade } from "svelte/transition";
+  import katex from 'katex';
   import M from "./M.svelte";
 
   import * as THREE from "three";
@@ -8,16 +8,7 @@
   import { create, all } from "mathjs";
 
   import {
-    colorBufferVertices,
-    blueUpRedDown,
-    addColorBar,
-    marchingSegments,
-    drawAxes,
-    drawGrid,
-    labelAxes,
     ArrowBufferGeometry,
-    vMaxMin,
-    gaussLegendre,
     ParametricCurve,
   } from "./utils.js";
 
@@ -167,7 +158,7 @@
       return (Math.round(100 * t) / 100).toString();
     } catch (e) {
       console.log(e);
-      return "";
+      return '';
     }
   }
 
@@ -276,8 +267,7 @@
     }
 
     if (TNB) {
-      const V = dr.v.clone(),
-        A = dr.a.clone();
+      const A = dr.a.clone();
       dr.v.normalize();
       if (A.cross(dr.v).length() > gridStep / 100) {
         dr.a.addScaledVector(dr.v, dr.v.dot(dr.a) * -1).normalize();
@@ -313,9 +303,6 @@
       }
     }
 
-    if (frame.children.length > 0) {
-      const [rMesh, vMesh, aMesh] = frame.children;
-    }
     // tangentVectors({ u: data.currentUPosition });
     // // if (document.querySelector("input[type=checkbox]#curl").checked) {drawCurl();}
 
@@ -324,17 +311,13 @@
     render();
   }
 
-  function updateColor(e, val) {
+  function updateColor() {
     curveMaterial.color.set(params.color);
     render();
   }
 
   // Exercises
   //
-
-  function simpleMathString(s) {
-    return math.simplify(math.parse(s)).toTex();
-  }
 
   onMount(updateCurve);
   onDestroy(() => {
@@ -353,6 +336,8 @@
     scene.remove(frame);
     render();
   });
+
+    const texString1 = `t = ${stringifyT(params)}`;
 </script>
 
 <div class="boxItem">
@@ -409,8 +394,7 @@
       />
 
       <span class="box-1">
-        <M>t = {{{stringifyT(params)}}}</M>
-        <!-- <M>t</M> -->
+        {@html katex.renderToString(texString1)}
       </span>
       <input
         type="range"

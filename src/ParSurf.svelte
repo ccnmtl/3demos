@@ -1,6 +1,5 @@
 <script>
   import {onMount, onDestroy} from 'svelte';
-  import {fly, fade} from 'svelte/transition';
   import M from "./M.svelte";
 
   import * as THREE from "three";
@@ -10,7 +9,11 @@
   const config = {};
   const math = create(all, config);
 
-  import { lcm, marchingSegments, ParametricGeometry } from "./utils.js";
+  import {
+    lcm, marchingSegments, ParametricGeometry,
+    addColorBar, blueUpRedDown, colorBufferVertices,
+    vMaxMin
+  } from "./utils.js";
 
   export let params = {
     a: "-2",
@@ -49,10 +52,10 @@
   whiteLineMaterial.polygonOffset = true;
   whiteLineMaterial.polygonOffsetFactor = 0.1;
 
-  const wireMaterial = new THREE.MeshBasicMaterial({
+  /*const wireMaterial = new THREE.MeshBasicMaterial({
     color: 0x333333,
     wireframe: true,
-  });
+  });*/
   const minusMaterial = new THREE.MeshPhongMaterial({
     color: 0xff3232,
     shininess: 80,
@@ -96,7 +99,7 @@
       params.nX || 30,
       params.nX || 30
     );
-    const meshGeometry = meshLines(params, params.rNum || rNum, params.cNum || cNum, params.nX || nX);
+    const meshGeometry = meshLines(params, params.rNum, params.cNum, params.nX);
     let material = plusMaterial;
 
     if (surfaceMesh) {
