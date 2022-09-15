@@ -1,27 +1,27 @@
 <script>
-  import katex from "katex";
-  import { afterUpdate, onMount } from "svelte";
+    import katex from "katex";
+    import { afterUpdate, onMount } from "svelte";
 
-  let span, span2;
+    let span, span2;
 
-  const render = () =>
-    katex.render(span.innerText, span2, {
-      throwOnError: false,
-      displayMode: false,
-    });
+    const render = () =>
+          katex.render(span.innerText, span2, {
+              throwOnError: false,
+              displayMode: false,
+          });
 
-  onMount(render);
-  afterUpdate(render);
+    onMount(render);
+    afterUpdate(render);
 </script>
 
 <span bind:this={span} class="input">
-  <slot />
+    <slot />
 </span>
 
 <span bind:this={span2} class="output"></span>
 
 <style>
-  .input {
-    display: none;
-  }
+    .input {
+        display: none;
+    }
 </style>

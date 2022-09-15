@@ -53,55 +53,55 @@
 
     let hidden = false;
 
-function toggleHidden() {
-    hidden = !hidden;
-}
-
-const exampleCurveParams = [
-    {
-        a: "0",
-        b: "2*pi",
-        x: "sin(t)",
-        y: "cos(t)",
-        z: "cos(3t)/3 + 1/2",
-        tau: 0,
-        nX: 30,
-    },
-    {
-        a: "-1.5",
-        b: "1.5",
-        x: "t",
-        y: "t^2",
-        z: "t^3",
-        tau: 0,
-        nX: 30,
+    function toggleHidden() {
+        hidden = !hidden;
     }
-]
 
-function addCurve(selection = 1) {
-    if (boxes.filter((b) => curveId === b.id).length > 0) {
-        boxes = boxes.filter((b) => curveId != b.id);
-        curveId = null;
-        selectedCurve = null
-    } else {
-        const params = exampleCurveParams[selection];
-        const [X,Y,Z,A,B] = ["x","y","z","a","b"].map((c) => math.parse(params[c]));
-        curveId = uuidv4();
-        selectedCurve = selection;
+    const exampleCurveParams = [
+        {
+            a: "0",
+            b: "2*pi",
+            x: "sin(t)",
+            y: "cos(t)",
+            z: "cos(3t)/3 + 1/2",
+            tau: 0,
+            nX: 30,
+        },
+        {
+            a: "-1.5",
+            b: "1.5",
+            x: "t",
+            y: "t^2",
+            z: "t^3",
+            tau: 0,
+            nX: 30,
+        }
+    ]
 
-        boxes = [...boxes, {id: curveId, kind: "curve", params, }];
-        r = (t) => {return {
-            x: X.evaluate({t: t}),
-            y: Y.evaluate({t: t}),
-            z: Z.evaluate({t: t}),
-        }};
-        texStrings.r = "\\left \\langle " + X.toTex() + ", " + Y.toTex()  + ", " + Z.toTex() + "\\right \\rangle";
-        texStrings.a = A.toTex();
-        texStrings.b = B.toTex();
+    function addCurve(selection = 1) {
+        if (boxes.filter((b) => curveId === b.id).length > 0) {
+            boxes = boxes.filter((b) => curveId != b.id);
+            curveId = null;
+            selectedCurve = null
+        } else {
+            const params = exampleCurveParams[selection];
+            const [X,Y,Z,A,B] = ["x","y","z","a","b"].map((c) => math.parse(params[c]));
+            curveId = uuidv4();
+            selectedCurve = selection;
+
+            boxes = [...boxes, {id: curveId, kind: "curve", params, }];
+            r = (t) => {return {
+                x: X.evaluate({t: t}),
+                y: Y.evaluate({t: t}),
+                z: Z.evaluate({t: t}),
+            }};
+            texStrings.r = "\\left \\langle " + X.toTex() + ", " + Y.toTex()  + ", " + Z.toTex() + "\\right \\rangle";
+            texStrings.a = A.toTex();
+            texStrings.b = B.toTex();
+        }
     }
-}
 
-</script>
+    </script>
 
 <h1 class="top-title" on:click={toggleHidden}>Arc Length &amp; Curvature</h1>
 <article class:hidden>
