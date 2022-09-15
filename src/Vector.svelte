@@ -1,6 +1,5 @@
 <script>
   import { onMount, onDestroy } from "svelte";
-  import { fly, fade } from "svelte/transition";
   import M from "./M.svelte";
 
   import * as THREE from "three";
@@ -8,17 +7,7 @@
   import { create, all } from "mathjs";
 
   import {
-    colorBufferVertices,
-    blueUpRedDown,
-    addColorBar,
-    marchingSegments,
-    drawAxes,
-    drawGrid,
-    labelAxes,
-    ArrowBufferGeometry,
-    vMaxMin,
-    gaussLegendre,
-    ParametricCurve,
+    ArrowBufferGeometry
   } from "./utils.js";
 
   const config = {};
@@ -37,7 +26,7 @@
     show: true,
   };
 
-  if (! params.hasOwnProperty("show")) {
+  if (!Object.hasOwn(params, 'show')) {
     params.show = true;
   }
 
@@ -67,7 +56,7 @@
   let arrow;
 
   function updateCurve() {
-    const { a, b, c, x, y, z, nX } = params;
+    const { a, b, c, x, y, z } = params;
 
     const [A, B, C, X, Y, Z] = math
       .parse([a, b, c, x, y, z])
@@ -99,10 +88,6 @@
 
   // Exercises
   //
-
-  function simpleMathString(s) {
-    return math.simplify(math.parse(s)).toTex();
-  }
 
   onMount(updateCurve);
   onDestroy(() => {
