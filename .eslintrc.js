@@ -8,22 +8,8 @@ module.exports = {
         browser: true
     },
     extends: [
-        // TODO: turn this on
+        'plugin:svelte/recommended',
+        // TODO: enable these rules
         // 'eslint:recommended'
-    ],
-    plugins: [
-        'svelte3'
-    ],
-    overrides: [
-        {
-            files: ['*.svelte'],
-            processor: 'svelte3/svelte3'
-        }
-    ],
-    rules: {
-        // ...
-    },
-    settings: {
-        // ...
-    }
+    ]
 };
