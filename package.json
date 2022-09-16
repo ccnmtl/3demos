@@ -25,7 +25,7 @@
     "sirv-cli": "^2.0.2",
     "stats.js": "^0.17.0",
     "svelte-preprocess": "^4.10.7",
-    "three": "^0.139.0",
+    "three": "^0.144.0",
     "uuid": "^9.0.0"
   }
 }
