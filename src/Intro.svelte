@@ -55,9 +55,9 @@
         <a href="https://mathjs.org">math.js</a> for the math parsing and processing.
     </p>
     <p>
-        Finally, I must acknowledge the pioneering work of Paul Seeburger and his <a
-                                                                                      href="https://c3d.libretexts.org/CalcPlot3D/index.html">CalcPlot3D</a
-                                                                                                                                                            > project, which covers much of the functionality of this site, did it first,
+        Finally, I must acknowledge the pioneering work of Paul Seeburger and his
+        <a href="https://c3d.libretexts.org/CalcPlot3D/index.html">CalcPlot3D</a>
+        project, which covers much of the functionality of this site, did it first,
         and does it better.
     </p>
 </article>
