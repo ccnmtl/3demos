@@ -23,7 +23,7 @@
             d: "2",
             z: "1/2 * exp(-(x - y^2 + 1)^2)",
         }},
-    } 
+    }
 
     addGraph("smooth");
 </script>

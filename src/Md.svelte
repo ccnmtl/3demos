@@ -18,7 +18,6 @@
 <div bind:this={div} class="slot">
 
     <slot></slot>
- 
 </div>
 
 <div class="output" bind:this={div2}></div>
