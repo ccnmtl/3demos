@@ -119,12 +119,15 @@
     <span class="box-1">
         <strong>Settings</strong>
     </span>
-    <span
+    <button
+        type="button"
+        class="btn btn-sm btn-light box-3"
+        style="margin-left: auto;"
         on:click={() => {
         showSettings = false;
-        }}
-        class="button box-3 text-right"><i class="fa fa-window-close" /></span
-                                                                            >
+        }}>
+        <i class="bi bi-x-lg"></i>
+    </button>
 
     <span class="box-1 text-right">scale</span>
     <span class="box-23"
@@ -171,11 +174,10 @@
     title="Settings"
     on:click={() => {
     showSettings = !showSettings;
-    }}><i class="fa fa-cog" /></button
-                                  >
-<button class="button" id="encodeURL" title="Encode URL" on:click={encode}
-        ><i class="fa fa-barcode" /></button
-                                        >
+    }}><i class="fa fa-cog" /></button>
+<button class="button" id="encodeURL" title="Encode URL" on:click={encode}>
+    <i class="fa fa-barcode" />
+</button>
 <button
     class="button"
     id="cameraReset"
@@ -185,14 +187,13 @@
     controls.target.set(0, 0, 0);
     controls2.target.set(0, 0, 0);
     render();
-    }}><i class="fa fa-video-camera" /></button
-                                           >
-<button class="button" id="screenshot" title="Take screenshot"
-        ><i class="fa fa-camera" /></button
-                                       >
-<button class="button" id="presentation" title="Presentation mode"
-        ><i class="fa fa-television" /></button
-                                           >
+    }}><i class="fa fa-video-camera" /></button>
+<button class="button" id="screenshot" title="Take screenshot">
+    <i class="fa fa-camera" />
+</button>
+<button class="button" id="presentation" title="Presentation mode">
+    <i class="fa fa-television" />
+</button>
 
 <style>
     .button {
