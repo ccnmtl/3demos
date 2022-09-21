@@ -110,8 +110,10 @@
 
     <p>Select an example: <span on:click={() => addCurve(0)}>crown</span> | <span on:click={() => addCurve(1)}>twist</span> </p>
 
+    <!-- eslint-disable svelte/no-at-html-tags -->
     <div>{@html katex.renderToString(texString1, {displayMode: true})}</div>
     <div>{@html katex.renderToString(texString2, {displayMode: true})}</div>
+    <!-- eslint-enable -->
 
     <p>
         We can estimate the length by selecting a finite
@@ -119,7 +121,9 @@
         distance between them. To wit, we select a partition of <M>[a, b]</M>:
     </p>
 
+    <!-- eslint-disable svelte/no-at-html-tags -->
     <div>{@html katex.renderToString(texString3, {displayMode: true})}</div>
+    <!-- eslint-enable -->
 
     <p>
         where <M>\Delta t = \frac{b - a}{N}</M>

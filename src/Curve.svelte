@@ -394,7 +394,9 @@
                 />
 
             <span class="box-1">
+                <!-- eslint-disable svelte/no-at-html-tags -->
                 {@html katex.renderToString(texString1)}
+                <!-- eslint-enable -->
             </span>
             <input
                 type="range"
