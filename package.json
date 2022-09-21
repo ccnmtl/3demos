@@ -11,7 +11,7 @@
   "devDependencies": {
     "@rollup/plugin-commonjs": "^22.0.2",
     "@rollup/plugin-node-resolve": "^14.1.0",
-    "eslint-plugin-svelte3": "^4.0.0",
+    "eslint-plugin-svelte": "^2.8.0",
     "rollup": "^2.3.4",
     "rollup-plugin-css-only": "^3.1.0",
     "rollup-plugin-livereload": "^2.0.0",
@@ -25,6 +25,7 @@
     "sirv-cli": "^2.0.2",
     "stats.js": "^0.17.0",
     "svelte-preprocess": "^4.10.7",
+    "sveltestrap": "^5.9.0",
     "three": "^0.144.0",
     "uuid": "^9.0.0"
   }

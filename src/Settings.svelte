@@ -1,4 +1,15 @@
 <script>
+    import katex from 'katex';
+    import {
+        Button,
+        Modal,
+        ModalBody,
+        ModalFooter,
+        ModalHeader,
+        TabContent,
+        TabPane
+    } from 'sveltestrap';
+
     import {
         drawAxes,
         drawGrid,
@@ -13,7 +24,6 @@
     export let gridMax, gridStep;
     export let axesHolder, axesText, gridMeshes, lineMaterial, axesMaterial;
     export let animation = false;
-    export let update;
     export let orthoCamera = false;
     export let encode;
 
@@ -25,7 +35,7 @@
 
     console.log(lineMaterial === newLineMaterial, "comp meshes");
 
-    update = (dt) => {
+    export const update = (dt) => {
         const s = (scaleState - oldGridMax) / (gridMax - oldGridMax);
         if ((gridMax - scaleState) * (scaleState - oldGridMax) >= 0) {
             // freeChildren(gridMeshes);
@@ -108,6 +118,38 @@
     }
 
     let showSettings = false;
+    let isPollsOpen = false;
+
+    function openPolls() {
+        isPollsOpen = true;
+    }
+
+    function closePolls() {
+        isPollsOpen = false;
+    }
+
+    const togglePolls = () => (isPollsOpen = !isPollsOpen);
+
+    const blankPreview = 'Question preview area (rendered LaTeX)';
+
+    function pollTextChange(e) {
+        const newVal = e.target.value;
+        let rendered;
+
+        if (newVal === '') {
+            rendered = blankPreview;
+        } else {
+            rendered = katex.renderToString(newVal);
+        }
+
+        const area = document.getElementById('pollPreviewArea');
+        area.innerHTML = rendered;
+    }
+
+    function makePoll(e) {
+
+        closePolls();
+    }
 </script>
 
 <div
@@ -119,12 +161,15 @@
     <span class="box-1">
         <strong>Settings</strong>
     </span>
-    <span
+    <button
+        type="button"
+        class="btn btn-sm btn-light box-3"
+        style="margin-left: auto;"
         on:click={() => {
         showSettings = false;
-        }}
-        class="button box-3 text-right"><i class="fa fa-window-close" /></span
-                                                                            >
+        }}>
+        <i class="bi bi-x-lg"></i>
+    </button>
 
     <span class="box-1 text-right">scale</span>
     <span class="box-23"
@@ -171,11 +216,10 @@
     title="Settings"
     on:click={() => {
     showSettings = !showSettings;
-    }}><i class="fa fa-cog" /></button
-                                  >
-<button class="button" id="encodeURL" title="Encode URL" on:click={encode}
-        ><i class="fa fa-barcode" /></button
-                                        >
+    }}><i class="fa fa-cog" /></button>
+<button class="button" id="encodeURL" title="Encode URL" on:click={encode}>
+    <i class="fa fa-barcode" />
+</button>
 <button
     class="button"
     id="cameraReset"
@@ -190,9 +234,64 @@
 <button class="button" id="screenshot" title="Take screenshot"
         ><i class="fa fa-camera" /></button
                                        >
-<button class="button" id="presentation" title="Presentation mode"
-        ><i class="fa fa-television" /></button
-                                           >
+<button class="button" id="presentation" title="Presentation mode"><i class="fa fa-television" /></button>
+
+<button on:click={openPolls}
+        class="button" title="Make poll">
+    <i class="fa fa-list" />
+</button>
+
+<Modal isOpen={isPollsOpen} toggle={togglePolls} size="lg">
+    <ModalHeader toggle={togglePolls}>Polls</ModalHeader>
+    <ModalBody>
+        <TabContent>
+            <TabPane tabId="make-poll" tab="Make poll" active>
+                <form>
+                    <div class="mb-3">
+                        <label for="exampleInputEmail1" class="form-label">
+                            Ask a question
+                        </label>
+                        <textarea class="form-control"
+                                  on:input={pollTextChange}
+                                  id="pollQuestionTextarea"
+                                  aria-describedby="question"></textarea>
+
+                    </div>
+                    <p id="pollPreviewArea">
+                        {blankPreview}
+                    </p>
+                    <div class="mb-3">
+                        <input type="text" class="form-control"
+                               placeholder="Choice 1" aria-label="Choice 1">
+                        <input type="text" class="form-control"
+                               placeholder="Choice 2" aria-label="Choice 2">
+
+                        <Button color="secondary">
+                            + Add choice
+                        </Button>
+                    </div>
+                    <Button color="primary" on:click={makePoll}>
+                        Make poll
+                    </Button>
+                </form>
+            </TabPane>
+            <TabPane tabId="view-polls" tab="View polls">
+                <p>
+                    No polls created!
+                </p>
+                <ul>
+                </ul>
+            </TabPane>
+        </TabContent>
+
+    </ModalBody>
+
+    <ModalFooter>
+        <Button color="secondary" on:click={closePolls}>
+            Cancel
+        </Button>
+    </ModalFooter>
+</Modal>
 
 <style>
     .button {
