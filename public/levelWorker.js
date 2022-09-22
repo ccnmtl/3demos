@@ -23,49 +23,8 @@ onmessage = (msg) => {
     N: 30,
   });
 
-  // console.log(g, math.parse(g).evaluate({x: 1, y: 2, z: 3}))
-
   postMessage({ normals, vertices, xpts: traceSegments, ypts: [], zpts: [] });
 };
-
-// function marchingSquares({
-//   f,
-//   level,
-//   xmin,
-//   xmax,
-//   ymin,
-//   ymax,
-//   zLevel = null,
-//   nX = 30,
-//   nY = 30,
-// }) {
-//   const dx = (xmax - xmin) / nX,
-//     dy = (ymax - ymin) / nY;
-//   const z = zLevel === null ? level : zLevel;
-//   let points = [];
-//   // for (let i=0; i < nX; i++) {
-//   //   for (let j=0; j < nY; j++) {
-//   //       const x = xmin + i*dx, y = ymin + j*dy;
-//   for (let x = xmin; x < xmax - dx / 3; x += dx) {
-//     for (let y = ymin; y < ymax - dy / 3; y += dy) {
-//       const [a, b, c, d, e] = [
-//         f(x, y),
-//         f(x + dx, y),
-//         f(x + dx, y + dy),
-//         f(x, y + dy),
-//         f(x + dx / 2, y + dy / 2),
-//       ];
-//       marchingSquare(a, b, c, d, e, level).forEach((element) => {
-//         const [s, t] = element;
-//         points.push(x + s * dx, y + t * dy, z);
-//       });
-//       // for (let xy of [[x,y],[x+dx,y],[x + dx,y + dy],[x,y + dy]]) {
-//       //     corners.push((f(...xy) > level) ? 1 : 0);
-//       // }
-//     }
-//   }
-//   return points;
-// }
 
 // binary value for val >= lev for a,b,c,d, starting from most significant bit (perhaps stupidly)
 const squaresTable = {
@@ -86,70 +45,6 @@ const squaresTable = {
   // "0101": [], // saddle point
   // "1010": []
 };
-
-const msPositions = [
-    [0, 0],
-    [1, 0],
-    [1, 1],
-    [0, 1],
-  ],
-  msDirections = [
-    [1, 0],
-    [0, 1],
-    [-1, 0],
-    [0, -1],
-  ];
-
-// return line segments ([pairs of triples])
-function marchingSquare(a, b, c, d, e, lev) {
-  /*
-      a,b,c,d values on corner of unit square {0,1}x{0,1} counter-clockwise from origin
-      e is center value for resolving saddle points
-      return line segment endpoints pairwise in normalized coordinates
-    */
-
-  const values = [a, b, c, d];
-
-  let code = 0;
-
-  const cs = [null, null, null, null];
-
-  for (let index = 0; index < values.length; index++) {
-    const m = values[index],
-      M = values[(index + 1) % 4];
-
-    if (m >= lev) {
-      code += Math.pow(2, 3 - index);
-    }
-
-    if ((m < lev && M >= lev) || (m >= lev && M < lev)) {
-      cs[index] = (lev - m) / (M - m);
-    }
-  }
-
-  const endPoints = [];
-  let edges = [];
-
-  if (squaresTable.hasOwnProperty(code)) {
-    edges = squaresTable[code];
-  } else {
-    if ((a < lev && e < lev) || (!(a < lev) && !(e < lev))) {
-      edges = [0, 1, 2, 3];
-    } else {
-      edges = [3, 0, 1, 2];
-    }
-  }
-
-  for (let index = 0; index < edges.length; index++) {
-    const i = edges[index];
-    const [p1, p2] = msPositions[i];
-    const [v1, v2] = msDirections[i];
-    const c = cs[i];
-
-    endPoints.push([p1 + c * v1, p2 + c * v2]);
-  }
-  return endPoints;
-}
 
 const edgeTable = new Uint16Array([
   0x0, 0x109, 0x203, 0x30a, 0x406, 0x50f, 0x605, 0x70c, 0x80c, 0x905, 0xa0f,
