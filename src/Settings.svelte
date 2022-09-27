@@ -1,4 +1,5 @@
 <script>
+    import { createEventDispatcher } from "svelte";
     import {FontLoader} from 'three/examples/jsm/loaders/FontLoader.js';
     import {TextGeometry} from 'three/examples/jsm/geometries/TextGeometry.js';
     import katex from 'katex';
@@ -17,8 +18,8 @@
         drawGrid,
         labelAxes,
         freeChildren
-    } from "./utils";
-    import { createEventDispatcher } from "svelte";
+    } from './utils';
+    import {polls} from './stores';
 
     const dispatch = createEventDispatcher();
 
@@ -278,6 +279,14 @@
                 </form>
             </TabPane>
             <TabPane tabId="view-polls" tab="View polls">
+                <ul>
+                    {#each $polls as poll}
+                        <li>
+                            <strong>Question:</strong> {poll.question},
+                            {poll.choices.length} choices
+                        </li>
+                    {/each}
+                </ul>
                 <p>
                     No polls created!
                 </p>

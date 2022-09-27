@@ -32,8 +32,6 @@
         makeHSLColor,
     } from "./utils";
 
-    //   import { writable } from 'svelte/store'
-
     let debug = false,
         stats;
     // stats window for debugging
@@ -47,8 +45,6 @@
         shadeUp = false;
     let scaleAnimation = false,
         scaleUpdate;
-
-    // import { dt } from './stores.js';
 
     let canvas;
 
