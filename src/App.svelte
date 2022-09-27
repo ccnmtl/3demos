@@ -1,6 +1,8 @@
 <script>
     import * as THREE from "three";
     import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+    import {FontLoader} from 'three/examples/jsm/loaders/FontLoader.js';
+    import {TextGeometry} from 'three/examples/jsm/geometries/TextGeometry.js';
     import { v4 as uuidv4 } from "uuid";
     // import katex from "katex";
 
@@ -142,10 +144,11 @@
     scene.add(axesHolder);
 
     // Fonts
+    const fontLoader = new FontLoader();
     let [axesText] = labelAxes({
         scene,
         render: requestFrameIfNotRequested,
-    });
+    }, fontLoader, TextGeometry);
 
     // from https://threejsfundamentals.org
     function resizeRendererToDisplaySize(renderer) {
