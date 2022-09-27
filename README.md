@@ -1,5 +1,5 @@
 This is a math visualization environment developed by Drew Youngren
-and the Columbia Center for Teaching and Learning.
+and the Columbia University Center for Teaching and Learning.
 
 ## Get started
 
