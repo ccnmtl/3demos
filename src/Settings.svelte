@@ -1,4 +1,6 @@
 <script>
+    import {FontLoader} from 'three/examples/jsm/loaders/FontLoader.js';
+    import {TextGeometry} from 'three/examples/jsm/geometries/TextGeometry.js';
     import katex from 'katex';
     import {
         Button,
@@ -99,14 +101,14 @@
             // newLineMaterial.opacity = 0;
 
             // Fonts
-
+            const fontLoader = new FontLoader();
             [axesText] = labelAxes({
                 scene,
                 gridMax,
                 gridStep,
                 render,
                 axesText,
-            });
+            }, fontLoader, TextGeometry);
 
             // camera.position.multiplyScalar(gridMax / oldGridMax);
             if (gridMax !== oldGridMax) {
