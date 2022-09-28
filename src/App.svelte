@@ -3,6 +3,12 @@
     import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
     import {FontLoader} from 'three/examples/jsm/loaders/FontLoader.js';
     import {TextGeometry} from 'three/examples/jsm/geometries/TextGeometry.js';
+
+    import {RenderPass} from 'three/examples/jsm/postprocessing/RenderPass.js';
+    import {ShaderPass} from 'three/examples/jsm/postprocessing/ShaderPass.js';
+    import {FXAAShader} from 'three/examples/jsm/shaders/FXAAShader.js';
+    import {EffectComposer} from 'three/examples/jsm/postprocessing/EffectComposer.js';
+
     import { v4 as uuidv4 } from "uuid";
     // import katex from "katex";
 
@@ -119,7 +125,7 @@
     // const geometry = new THREE.BoxGeometry();
     // const material = new THREE.MeshBasicMaterial({ color });
     // const cube = new THREE.Mesh(geometry, material);
-    let renderer;
+    let renderer, composer;
     // scene.add(cube);
 
     // Grid
@@ -202,7 +208,7 @@
 
         controls.update();
         //   console.log(camera.position.x)
-        renderer.render(scene, camera);
+        composer.render(scene, camera);
         if (debug) {
             stats.end();
         }
@@ -240,9 +246,9 @@
 
         controls.update();
         if (orthoCamera) {
-            renderer.render(scene, camera2);
+            composer.render(scene, camera2);
         } else {
-            renderer.render(scene, camera);
+            composer.render(scene, camera);
         }
     }
 
@@ -253,7 +259,25 @@
     };
 
     const createScene = (el) => {
-        renderer = new THREE.WebGLRenderer({ antialias: true, canvas: el });
+        renderer = new THREE.WebGLRenderer({
+            antialias: true,
+            canvas: el
+        });
+        const dpr = window.devicePixelRatio;
+        composer = new EffectComposer(renderer);
+        composer.addPass(new RenderPass(scene, camera));
+
+        // Add anti-aliasing pass
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+        const shaderPass = new ShaderPass(FXAAShader);
+        shaderPass.uniforms.resolution.value = new THREE.Vector2(
+            1 / (width * 2 * dpr), 1 / (height * 2 * dpr));
+        composer.setSize(width * 4 * dpr, height * 4 * dpr);
+        composer.addPass(shaderPass);
+
+        shaderPass.renderToScreen = true;
+
         controls = new OrbitControls(camera, canvas);
         controls2 = new OrbitControls(camera2, canvas);
 
