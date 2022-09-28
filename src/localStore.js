@@ -1,3 +1,8 @@
+/**
+ * Local storage store based on:
+ *   https://developer.mozilla.org/en-US/docs/Learn/Tools_and_testing/Client-side_JavaScript_frameworks/Svelte_stores#code_along_with_us
+ */
+
 import {writable} from 'svelte/store';
 
 export const localStore = (key, initial) => {
