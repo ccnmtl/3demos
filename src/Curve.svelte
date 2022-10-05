@@ -101,7 +101,7 @@
     circleTube.visible = false;
 
 
-    function updateCurve() {
+    const updateCurve = function() {
         animation = false;
         const { a, b, x, y, z } = params;
         let A, B, X, Y, Z;
@@ -148,7 +148,7 @@
         updateFrame();
     }
 
-    function stringifyT(params) {
+    const stringifyT = function(params) {
         const { a, b, tau } = params;
         try {
             const [A, B] = [a, b].map((x) => math.parse(x).evaluate());
@@ -193,7 +193,7 @@
 
     frame.add(point);
 
-    function updateFrame({ dt = 0.01 } = {}) {
+    const updateFrame = function({ dt = 0.01 } = {}) {
         const { a, b, x, y, z } = goodParams;
         const tau = params.tau;
         const T = a + (b - a) * tau;
@@ -311,7 +311,7 @@
         render();
     }
 
-    function updateColor() {
+    const updateColor = function() {
         curveMaterial.color.set(params.color);
         render();
     }
@@ -394,9 +394,7 @@
                 />
 
             <span class="box-1">
-                <!-- eslint-disable svelte/no-at-html-tags -->
                 {@html katex.renderToString(texString1)}
-                <!-- eslint-enable -->
             </span>
             <input
                 type="range"

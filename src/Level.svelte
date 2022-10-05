@@ -79,7 +79,7 @@
 
     // worker.postMessage({ hello: "World!" });
 
-    function updateLevel() {
+    const updateLevel = function() {
         loading = true;
         worker.postMessage(params);
     }
@@ -191,7 +191,7 @@
 
     scene.add(tanFrame);
 
-    function nFrame({
+    const nFrame = function({
         f = (x, y, z) => math.evaluate(params.g, { x, y, z }),
         point = point,
         eps = 1e-4,
@@ -211,7 +211,7 @@
     }
 
     // Construct tangent vectors at a point u,v (both 0 to 1)
-    function tangentVectors({ point, eps = 1e-4, plane = true } = {}) {
+    const tangentVectors = function({ point, eps = 1e-4, plane = true } = {}) {
         const { p, n } = nFrame({
             point,
             eps,
@@ -265,7 +265,7 @@
 
     let mouseVector = new THREE.Vector2();
 
-    function onMouseMove(e) {
+    const onMouseMove = function(e) {
         // normalized mouse coordinates
         mouseVector.x = 2 * (e.clientX / window.innerWidth) - 1;
         mouseVector.y = 1 - 2 * (e.clientY / window.innerHeight);

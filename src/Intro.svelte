@@ -20,7 +20,7 @@
 
     export let hidden = true;
 
-    function toggleHidden() {
+    const toggleHidden = function() {
         hidden = !hidden;
     }
     </script>

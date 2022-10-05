@@ -10,9 +10,7 @@
     const math = create(all, config);
 
     import {
-        lcm, marchingSegments, ParametricGeometry,
-        addColorBar, blueUpRedDown, colorBufferVertices,
-        vMaxMin
+        lcm, marchingSegments, ParametricGeometry
     } from "./utils.js";
 
     export let params = {
@@ -38,12 +36,6 @@
     params["cNum"] = 10;
     params["nX"] = 60;
 
-    const materialColors = new THREE.MeshPhongMaterial({
-        color: 0xffffff,
-        shininess: 70,
-        side: THREE.DoubleSide,
-        vertexColors: true,
-    });
     const whiteLineMaterial = new THREE.LineBasicMaterial({
         color: 0xffffff,
         linewidth: 2,
@@ -73,16 +65,13 @@
         opacity: 0.7,
     });
 
-    let colorFunc = false;
-
-
     let cMin, dMax; // make these globals as useful for tangents.
 
     const tol = 1e-12 //tolerance for comparisons
 
     let surfaceMesh;
 
-    function updateSurface() {
+    const updateSurface = function() {
         const { a, b, c, d, x, y, z } = params;
         const A = math.parse(a).evaluate(),
               B = math.parse(b).evaluate();
@@ -111,50 +100,14 @@
                     mesh.material = material;
                 }
 
-                if (i === 0) {
-                    if (colorFunc) {
-                        mesh.material = materialColors;
-                        let [vMax, vMin] = vMaxMin(mesh, (x, y, z) =>
-                            rData.E.evaluate({ x, y, z })
-                        );
-                        if (vMax == vMin) {
-                            if (vMax == 0) {
-                                vMax = 1;
-                                vMin = -1;
-                            } else {
-                                vMax = (4 / 3) * Math.abs(vMax);
-                                vMin = (-4 / 3) * Math.abs(vMin);
-                            }
-                        }
-                        colorBufferVertices(mesh, (x, y, z) => {
-                            const value = rData.E.evaluate({ x, y, z });
-                            return blueUpRedDown((2 * (value - vMin)) / (vMax - vMin) - 1);
-                        });
-                        const colorBar = document.querySelector(".colorBar");
-                        if (colorBar) document.body.removeChild(colorBar);
-                        addColorBar(vMin, vMax);
-                    }
-                }
                 if (i === 1) {
-                    mesh.visible = !colorFunc;
+                    mesh.visible = true;
                 }
             }
         } else {
             surfaceMesh = new THREE.Object3D();
             const backMesh = new THREE.Mesh(geometry, minusMaterial);
             const frontMesh = new THREE.Mesh(geometry, material);
-            if (colorFunc) {
-                frontMesh.material = materialColors;
-                backMesh.visible = false;
-                let [vMax, vMin] = vMaxMin(frontMesh, (x, y, z) =>
-                    rData.E.evaluate({ x, y, z })
-                );
-                colorBufferVertices(frontMesh, (x, y, z) => {
-                    const value = rData.E.evaluate({ x, y, z });
-                    return blueUpRedDown((2 * (value - vMin)) / (vMax - vMin) - 1);
-                });
-                addColorBar(vMin, vMax);
-            }
             // mesh.add(new THREE.Mesh( geometry, wireMaterial ))
             surfaceMesh.add(frontMesh);
             surfaceMesh.add(backMesh);
@@ -165,7 +118,7 @@
         render();
     }
 
-    function meshLines(rData, rNum = 10, cNum = 10, nX = 30) {
+    const meshLines = function(rData, rNum = 10, cNum = 10, nX = 30) {
         let { a, b, c, d, x, y, z } = rData;
         // const N = lcm(lcm(rNum, cNum), nX);
         const A = math.parse(a).evaluate(),

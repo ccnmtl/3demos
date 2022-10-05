@@ -19,7 +19,7 @@
     box.position.y = Math.random() * 4 - 2;
     box.position.z = Math.random() * 4 - 2;
 
-    async function updateBox() {
+    const updateBox = async function() {
         // await tick();
         if (box.geometry) {
             box.geometry.dispose();

@@ -2,7 +2,6 @@
     import { createEventDispatcher } from "svelte";
     import {FontLoader} from 'three/examples/jsm/loaders/FontLoader.js';
     import {TextGeometry} from 'three/examples/jsm/geometries/TextGeometry.js';
-    import katex from 'katex';
 
     import {
         drawAxes,
@@ -67,7 +66,7 @@
             Math.floor(Math.pow(10, scale) / Math.pow(10, Math.floor(scale)))
     ) / 100;
 
-    function rescale() {
+    const rescale = function() {
         if (scala !== gridMax) {
             oldGridMax = scaleState;
             gridMax = scala;
@@ -111,7 +110,7 @@
     let showSettings = false;
     let isPollsOpen = false;
 
-    function openPolls() {
+    const openPolls = function() {
         isPollsOpen = true;
     }
 

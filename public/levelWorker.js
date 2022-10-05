@@ -1,12 +1,8 @@
+/* global math, importScripts */
+
 importScripts('./math.js');
 
-// console.log("I'm called!")
-
-
-
 onmessage = (msg) => {
-    // console.log(e);
-
     // let msg = marchingCubes();
     const { g, a, b, c, d, e, f, k, xN, yN, zN } = msg.data;
 
@@ -109,7 +105,7 @@ function marchingSquare(a,b,c,d,e,lev) {
     const endPoints = [];
     let edges = [];
 
-    if (squaresTable.hasOwnProperty(code)) {
+    if (Object.hasOwn(squaresTable, code)) {
         edges = squaresTable[code];
     } else {
         if (((a < lev) && (e < lev)) || (!(a < lev) && !(e < lev))) {

@@ -1,17 +1,17 @@
 <script>
+    import katex from 'katex';
     import M from './M.svelte';
-    import Md from './Md.svelte';
     import { v4 as uuidv4 } from "uuid";
 
     export let boxes;
 
     let hidden = false;
 
-    function toggleHidden() {
+    const toggleHidden = function() {
         hidden = !hidden;
     }
 
-    function addGraph(n) {
+    const addGraph = function(n) {
         boxes.push(funcs[n]);
     }
 
@@ -33,19 +33,24 @@
 
     <p>
         A <strong>linear function</strong> <M>L(x,y)</M> of two variables
-        has the form <Md>
-            L(x,y) = a + bx + cy
-        </Md> where <M>a,b,c \in \mathbb{R}</M> are constants.
+        has the form
+        {@html katex.renderToString('L(x,y) = a + bx + cy', {displayMode: true})}
+        where {@html katex.renderToString('a,b,c \\in \\mathbb{R}')} are constants.
         Their graphs are planes with normal vector
-        <M>\mathbf{n} = \langle -b, -c, 1 \rangle</M>.
+        {@html katex.renderToString('\\mathbf{n} = \\langle -b, -c, 1 \\rangle')}.
     </p>
 
     <p>
-        More generally, a linear function of <M>n</M> variables has the form <Md>
-            L(x_1, x_2,\ldots, x_n) = a_0 + \sum_{i = 1}^n a_i x_i
-        </Md> which we can cleverly rewrite using the associations <M>\mathbf{x} = \langle x_1, \ldots, x_n \rangle, a_0 = b, \mathbf{m} = \langle a_1, \ldots, a_n \rangle  </M> as <Md>
-            L(\mathbf{x}) = \mathbf{m}\cdot\mathbf{x} + b.
-        </Md>
+        More generally, a linear function of <M>n</M> variables has the form
+            {@html katex.renderToString(
+            'L(x_1, x_2,\\ldots, x_n) = a_0 + \\sum_{i = 1}^n a_i x_i', {
+            displayMode: true})}
+        which we can cleverly rewrite using the associations
+        {@html katex.renderToString('\\mathbf{x} = \\langle x_1, \\ldots, x_n \\rangle, a_0 = b, \\mathbf{m} = \\langle a_1, \\ldots, a_n \\rangle')}
+as
+        {@html katex.renderToString('L(\\mathbf{x}) = \\mathbf{m}\\cdot\\mathbf{x} + b.', {
+        displayMode: true})}
+
     </p>
 
 </article>

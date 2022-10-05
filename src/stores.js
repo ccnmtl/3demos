@@ -1,12 +1,11 @@
-import {writable} from 'svelte/store';
 import {localStore} from './localStore.js';
 
-const pollTypes = [
+/* const pollTypes = [
     'multiple-choice',
     'point',
     'text',
     'equation'
-];
+]; */
 
 export const initialPolls = [
     {

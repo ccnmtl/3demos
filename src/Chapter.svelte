@@ -8,7 +8,7 @@
     const math = create(all, config);
 
     export let boxes;
-    let curveId, r = (t) => { return {x: t, y: t, z: t}};
+    let curveId = (t) => { return {x: t, y: t, z: t}};
     const texStrings = {
         r: "\\langle t, t, t \\rangle",
         a: "-1.5",
@@ -18,19 +18,21 @@
     const texString1 = `\\mathbf{r}(t) = ${texStrings.r}`;
     const texString2 = `${texStrings.a} \\leq ${texStrings.b}`;
 
+    // eslint-disable no-useless-escape
     const texString3 = `
             \\begin{align*}
             t_0 &= a \\\\
             t_1 &= a + \\Delta t \\\\
-            \ &\\vdots \\\\
+            &\\vdots \\\\
             t_i &= a + i \\Delta t \\\\
-            \ &\\vdots \\\\
+            &\\vdots \\\\
             t_n &= a + n \\Delta t = b
             \\end{align*}`;
+    // eslint-enable
 
     let formula = String.raw`\frac{n^k}{k!}`;
 
-    let nSteps=1, selectedCurve;
+    let nSteps=1;
 
     // let s = String.raw`with some <M> \iint_{\partial{\Sigma }} \mathbb F \cdot d\vec S</M> in it.`
     // console.log(s.replace(/(<\s*M\s*>.*?){(.*<\s*\/\s*M\s*>)/g, '$1 &lbrace; $2'));
@@ -53,7 +55,7 @@
 
     let hidden = false;
 
-    function toggleHidden() {
+    const toggleHidden = function() {
         hidden = !hidden;
     }
 
@@ -78,23 +80,16 @@
         }
     ]
 
-    function addCurve(selection = 1) {
+    const addCurve = function(selection = 1) {
         if (boxes.filter((b) => curveId === b.id).length > 0) {
             boxes = boxes.filter((b) => curveId != b.id);
             curveId = null;
-            selectedCurve = null
         } else {
             const params = exampleCurveParams[selection];
             const [X,Y,Z,A,B] = ["x","y","z","a","b"].map((c) => math.parse(params[c]));
             curveId = uuidv4();
-            selectedCurve = selection;
 
             boxes = [...boxes, {id: curveId, kind: "curve", params, }];
-            r = (t) => {return {
-                x: X.evaluate({t: t}),
-                y: Y.evaluate({t: t}),
-                z: Z.evaluate({t: t}),
-            }};
             texStrings.r = "\\left \\langle " + X.toTex() + ", " + Y.toTex()  + ", " + Z.toTex() + "\\right \\rangle";
             texStrings.a = A.toTex();
             texStrings.b = B.toTex();
@@ -110,10 +105,8 @@
 
     <p>Select an example: <span on:click={() => addCurve(0)}>crown</span> | <span on:click={() => addCurve(1)}>twist</span> </p>
 
-    <!-- eslint-disable svelte/no-at-html-tags -->
     <div>{@html katex.renderToString(texString1, {displayMode: true})}</div>
     <div>{@html katex.renderToString(texString2, {displayMode: true})}</div>
-    <!-- eslint-enable -->
 
     <p>
         We can estimate the length by selecting a finite
@@ -121,12 +114,10 @@
         distance between them. To wit, we select a partition of <M>[a, b]</M>:
     </p>
 
-    <!-- eslint-disable svelte/no-at-html-tags -->
     <div>{@html katex.renderToString(texString3, {displayMode: true})}</div>
-    <!-- eslint-enable -->
 
     <p>
-        where <M>\Delta t = \frac{b - a}{N}</M>
+        where {@html katex.renderToString('\\Delta t = \\frac{b - a}{N}')}
     </p>
 
     <input type="range" bind:value={nSteps} min="1" max="30" step="1" />
@@ -139,10 +130,6 @@
         color: white;
         background-color: rgba(.5,.5,.5,.3);
     }
-
-    /* .hidden {
-        display: none;
-    } */
 
     .top-title {
         color: white;

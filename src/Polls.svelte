@@ -8,6 +8,7 @@
         TabContent,
         TabPane
     } from 'sveltestrap';
+    import katex from 'katex';
     import {
         makePoll, makeSocket
     } from './polls';
@@ -25,7 +26,7 @@
         console.log('made websocket', socket);
     }
 
-    function pollTextChange(e) {
+    const pollTextChange = function(e) {
         const newVal = e.target.value;
         let rendered;
 
@@ -39,7 +40,7 @@
         area.innerHTML = rendered;
     }
 
-    function clickMakePoll(e) {
+    const clickMakePoll = function(e) {
         e.preventDefault();
         console.log('clickMakePoll', e);
 
@@ -49,7 +50,7 @@
         closePolls();
     }
 
-    function closePolls() {
+    const closePolls = function() {
         isPollsOpen = false;
     }
 </script>
