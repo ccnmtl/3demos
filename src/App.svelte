@@ -24,6 +24,7 @@
     import Linear from "./Linear.svelte";
     import Chapter from "./Chapter.svelte";
     import Intro from "./Intro.svelte";
+    import PollRoom from "./PollRoom.svelte";
 
     import {
         drawAxes,
@@ -362,6 +363,12 @@
     // changeColor(color);
 
     let currentChapter = "Intro";
+
+    const router = {};
+    const pollRoom = location.pathname.match(/\/polls\/\d+\//);
+    if (pollRoom) {
+        router.poll = true;
+    }
 </script>
 
 <canvas bind:this={canvas} id="c" />
@@ -369,46 +376,46 @@
 <div class="info" class:flipInfo>
     <div class="info-inner">
         <div class="chapterBox">
-            <div class="collapse-info" class:hidden={shadeUp}>
-                <div class="object-box-title">
-                    <div class="dropdown">
-                        <button class="dropbtn titlefont">3Demos.xyz (βeta)</button>
+            {#if router.poll}
+                <PollRoom />
+            {:else}
+                <div class="collapse-info" class:hidden={shadeUp}>
+                    <div class="object-box-title">
+                        <div class="dropdown">
+                            <button class="dropbtn titlefont">3Demos.xyz (βeta)</button>
 
-                        <div class="dropdown-content">
-                            <span on:click={() => (currentChapter = "Intro")} hidden={false}
-                                >Intro</span
-                                          >
-                            <span on:click={() => (currentChapter = "Chapter")}
-                                >Arc Length & Curvature</span
-                                                           >
-                            <span on:click={() => (currentChapter = "Linear")}
-                                >Linearization</span
-                                                  >
+                            <div class="dropdown-content">
+                                <span on:click={() => (currentChapter = "Intro")} hidden={false}
+                                    >Intro</span>
+                                <span on:click={() => (currentChapter = "Chapter")}
+                                    >Arc Length & Curvature</span>
+                                <span on:click={() => (currentChapter = "Linear")}
+                                    >Linearization</span>
+                            </div>
                         </div>
+                        <span
+                            on:click={() => {
+                            flipInfo = !flipInfo;
+                            }}><i class="fa fa-sliders" /></span>
                     </div>
-                    <span
-                        on:click={() => {
-                        flipInfo = !flipInfo;
-                        }}><i class="fa fa-sliders" /></span
-                                                          >
-                </div>
 
-                {#if currentChapter == "Chapter"}
-                    <Chapter bind:boxes />
-                {:else if currentChapter == "Linear"}
-                    <Linear bind:boxes />
-                {:else if currentChapter === "Intro"}
-                    <Intro />
-                {/if}
-            </div>
-            <div
-                class="raise-lower-bar"
-                on:click={() => {
-                shadeUp = !shadeUp;
-                }}
-                >
-                <span class="raise-lower-button" />
-            </div>
+                    {#if currentChapter == "Chapter"}
+                        <Chapter bind:boxes />
+                    {:else if currentChapter == "Linear"}
+                        <Linear bind:boxes />
+                    {:else if currentChapter === "Intro"}
+                        <Intro />
+                    {/if}
+                </div>
+                <div
+                    class="raise-lower-bar"
+                    on:click={() => {
+                    shadeUp = !shadeUp;
+                    }}
+                    >
+                    <span class="raise-lower-button" />
+                </div>
+            {/if}
         </div>
 
         <div class="objectBoxOuter">
@@ -418,8 +425,7 @@
                     <span
                         on:click={() => {
                         flipInfo = !flipInfo;
-                        }}><i class="fa fa-book" /></span
-                                                       >
+                        }}><i class="fa fa-book" /></span>
                 </div>
                 <!-- <input type="number" bind:value={color} /> -->
 
