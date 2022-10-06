@@ -29,54 +29,6 @@ onmessage = (msg) => {
   postMessage({ normals, vertices, xpts: traceSegments, ypts: [], zpts: [] });
 };
 
-function marchingSquares( {f, level, xmin, xmax, ymin, ymax, zLevel = null, nX = 30, nY = 30} ) {
-
-    const dx = (xmax - xmin) / nX, dy = (ymax - ymin) / nY;
-    const z = zLevel === null ? level : zLevel;
-    let points = [];
-    // for (let i=0; i < nX; i++) {
-    //   for (let j=0; j < nY; j++) {
-    //       const x = xmin + i*dx, y = ymin + j*dy;
-    for (let x = xmin; x < xmax - dx/3; x += dx) {
-        for (let y = ymin; y < ymax - dy/3; y += dy) {
-            const [a,b,c,d,e] = [f(x,y),f(x+dx,y),f(x + dx,y + dy),f(x,y + dy),f(x + dx/2, y + dy/2)];
-            marchingSquare(a,b,c,d,e,level).forEach(element => {
-                const [s,t] = element;
-                points.push(x + s*dx, y + t*dy, z);
-            });
-            // for (let xy of [[x,y],[x+dx,y],[x + dx,y + dy],[x,y + dy]]) {
-            //     corners.push((f(...xy) > level) ? 1 : 0);
-            // }
-        }
-    }
-    return points;
-}
-
-
-function marchingSquares( {f, level, xmin, xmax, ymin, ymax, zLevel = null, nX = 30, nY = 30} ) {
-
-    const dx = (xmax - xmin) / nX, dy = (ymax - ymin) / nY;
-    const z = zLevel === null ? level : zLevel;
-    let points = [];
-    // for (let i=0; i < nX; i++) {
-    //   for (let j=0; j < nY; j++) {
-    //       const x = xmin + i*dx, y = ymin + j*dy;
-    for (let x = xmin; x < xmax - dx/3; x += dx) {
-        for (let y = ymin; y < ymax - dy/3; y += dy) {
-            const [a,b,c,d,e] = [f(x,y),f(x+dx,y),f(x + dx,y + dy),f(x,y + dy),f(x + dx/2, y + dy/2)];
-            marchingSquare(a,b,c,d,e,level).forEach(element => {
-                const [s,t] = element;
-                points.push(x + s*dx, y + t*dy, z);
-            });
-            // for (let xy of [[x,y],[x+dx,y],[x + dx,y + dy],[x,y + dy]]) {
-            //     corners.push((f(...xy) > level) ? 1 : 0);
-            // }
-        }
-    }
-    return points;
-}
-
-
 // binary value for val >= lev for a,b,c,d, starting from most significant bit (perhaps stupidly)
 const squaresTable = {
     0b0000: [],
