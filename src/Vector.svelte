@@ -6,7 +6,9 @@
 
     import { create, all } from "mathjs";
 
-    import { ArrowBufferGeometry } from "./utils.js";
+    import {
+        ArrowBufferGeometry
+    } from "./utils.js";
 
     const config = {};
     const math = create(all, config);
@@ -24,13 +26,8 @@
         show: true,
     };
 
-    if (!Object.hasOwn(params, "show")) {
+    if (!Object.hasOwn(params, 'show')) {
         params.show = true;
-    }
-
-    if (!params.color) {
-        // console.log("color", params.color);
-        params.color = "#AA0000";
     }
 
     export let scene;
@@ -42,7 +39,7 @@
     let hidden = false;
 
     const arrowMaterial = new THREE.MeshPhongMaterial({
-        color: params.color,
+        color: 0xaa0000,
         shininess: 80,
         side: THREE.DoubleSide,
         vertexColors: false,
@@ -62,24 +59,24 @@
         const { a, b, c, x, y, z } = params;
 
         const [A, B, C, X, Y, Z] = math
-        .parse([a, b, c, x, y, z])
-        .map((item) => item.evaluate());
+              .parse([a, b, c, x, y, z])
+              .map((item) => item.evaluate());
 
         const v = new THREE.Vector3(A, B, C);
         // console.log(a.evaluate(), r(0.5));
 
         let geometry = new ArrowBufferGeometry({
-        ...arrowArgs,
-        height: v.length(),
+            ...arrowArgs,
+            height: v.length(),
         });
 
         if (arrow) {
-        arrow.geometry.dispose();
-        arrow.geometry = geometry;
+            arrow.geometry.dispose();
+            arrow.geometry = geometry;
         } else {
-        arrow = new THREE.Mesh(geometry, arrowMaterial);
-        scene.add(arrow);
-        // colorBufferVertices( tube, (x,y,z) => blueUpRedDown(1));
+            arrow = new THREE.Mesh(geometry, arrowMaterial);
+            scene.add(arrow);
+            // colorBufferVertices( tube, (x,y,z) => blueUpRedDown(1));
         }
         arrow.position.set(X, Y, Z);
 
@@ -89,115 +86,97 @@
         render();
     }
 
-    function updateColor() {
-        arrowMaterial.color.set(params.color);
-        render();
-    }
+    // Exercises
+    //
 
     onMount(updateCurve);
     onDestroy(() => {
         if (arrow) {
-        arrow.geometry && arrow.geometry.dispose();
-        arrow.material && arrow.material.dispose();
+            arrow.geometry && arrow.geometry.dispose();
+            arrow.material && arrow.material.dispose();
         }
         scene.remove(arrow);
         render();
     });
-    </script>
+</script>
 
-    <div class="boxItem" class:hidden={!params.show}>
+<div class="boxItem" class:hidden={!params.show}>
     <div class="box-title">
-        <span style="color: {params.color};"
-        ><strong>Vector</strong>
-        <M>\langle a, b, c \rangle</M></span
-        >
+        <span><strong>Vector</strong> <M>\langle a, b, c \rangle</M></span>
         <span
-        ><button
-            on:click={() => {
-            hidden = !hidden;
-            }}><i class="fa fa-window-minimize" /></button
-        ><button on:click={onClose}>
-            <i class="fa fa-window-close" /></button
-        ></span
-        >
+            ><button
+                 on:click={() => {
+                hidden = !hidden;
+                }}><i class="fa fa-window-minimize" /></button
+                                                          ><button on:click={onClose}>
+                <i class="fa fa-window-close" /></button
+                                                    ></span
+                                                         >
     </div>
     <div class:hidden>
         <div class="container">
-        <span class="box-1"><M>a =</M></span>
-        <input
-            type="text"
-            bind:value={params.a}
-            on:change={updateCurve}
-            class="box box-2"
-        />
-        <span class="box-1"><M>b =</M></span>
-        <input
-            type="text"
-            bind:value={params.b}
-            on:change={updateCurve}
-            class="box box-2"
-        />
-        <span class="box-1"><M>c =</M></span>
-        <input
-            type="text"
-            bind:value={params.c}
-            on:change={updateCurve}
-            class="box box-2"
-        />
-
-        Plot at position <M>(p_1, p_2, p_3)</M>:
-
-        <span class="box-1"><M>p_1 =</M></span>
-        <input
-            type="text"
-            bind:value={params.x}
-            on:change={updateCurve}
-            class="box box-2"
-        />
-
-        <span class="box-1"><M>p_2 =</M></span>
-        <input
-            type="text"
-            bind:value={params.y}
-            on:change={updateCurve}
-            class="box box-2"
-        />
-        <span class="box-1"><M>p_3 =</M></span>
-        <input
-            type="text"
-            bind:value={params.z}
-            on:change={updateCurve}
-            class="box box-2"
-        />
-
-        <span class="box-1">scale</span>
-        <input
-            type="range"
-            bind:value={params.nX}
-            min="10"
-            max="60"
-            step="5"
-            on:input={updateCurve}
-            class="box box-2"
-        />
-        </div>
-        <div class="container">
-        <span class="box-1">color</span>
-        <span class="box box-2">
+            <span class="box-1"><M>a =</M></span>
             <input
-            type="color"
-            name="colorPicker"
-            id="colorPicker"
-            bind:value={params.color}
-            on:change={updateColor}
-            style="width:85%; padding: 1px 1px;"
-            />
-        </span>
+                type="text"
+                bind:value={params.a}
+                on:change={updateCurve}
+                class="box box-2"
+                />
+            <span class="box-1"><M>b =</M></span>
+            <input
+                type="text"
+                bind:value={params.b}
+                on:change={updateCurve}
+                class="box box-2"
+                />
+            <span class="box-1"><M>c =</M></span>
+            <input
+                type="text"
+                bind:value={params.c}
+                on:change={updateCurve}
+                class="box box-2"
+                />
+
+            Plot at position <M>(p_1, p_2, p_3)</M>:
+
+            <span class="box-1"><M>p_1 =</M></span>
+            <input
+                type="text"
+                bind:value={params.x}
+                on:change={updateCurve}
+                class="box box-2"
+                />
+
+            <span class="box-1"><M>p_2 =</M></span>
+            <input
+                type="text"
+                bind:value={params.y}
+                on:change={updateCurve}
+                class="box box-2"
+                />
+            <span class="box-1"><M>p_3 =</M></span>
+            <input
+                type="text"
+                bind:value={params.z}
+                on:change={updateCurve}
+                class="box box-2"
+                />
+
+            <span class="box-1">scale</span>
+            <input
+                type="range"
+                bind:value={params.nX}
+                min="10"
+                max="60"
+                step="5"
+                on:input={updateCurve}
+                class="box box-2"
+                />
         </div>
     </div>
-    </div>
+</div>
 
-    <style>
+<style>
     .container {
         display: grid;
 
@@ -222,12 +201,12 @@
     }
 
     /* .box-3 {
-        color: white;
-        vertical-align: middle;
-        text-align: center;
+    color: white;
+    vertical-align: middle;
+    text-align: center;
 
-        grid-column: 2 / 3;
-    } */
+    grid-column: 2 / 3;
+  } */
 
     .box-title {
         display: flex;

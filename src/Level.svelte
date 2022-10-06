@@ -31,9 +31,9 @@
     export let onClose = () => {};
 
     export let camera,
-        controls,
-        // animation = false,
-        gridStep;
+    controls,
+    // animation = false,
+    gridStep;
     // showLevelCurves = false;
 
     let hidden = false,
@@ -89,53 +89,53 @@
     worker.onmessage = (msg) => {
         const { normals, vertices, xpts, ypts, zpts } = msg.data;
         geometry.setAttribute(
-        "position",
-        new THREE.Float32BufferAttribute(vertices, 3)
+            "position",
+            new THREE.Float32BufferAttribute(vertices, 3)
         );
         geometry.setAttribute(
-        "normal",
-        new THREE.Float32BufferAttribute(normals, 3)
+            "normal",
+            new THREE.Float32BufferAttribute(normals, 3)
         );
 
         mesh.visible = true;
 
         // console.log(xpts.length, " Points starting with ", xpts[0]);
         {
-        xTraceGeometry.setAttribute(
-            "position",
-            new THREE.Float32BufferAttribute(xpts, 3)
-        );
+            xTraceGeometry.setAttribute(
+                "position",
+                new THREE.Float32BufferAttribute(xpts, 3)
+            );
 
-        const trace = new THREE.LineSegments(xTraceGeometry, whiteLineMaterial);
+            const trace = new THREE.LineSegments(xTraceGeometry, whiteLineMaterial);
 
-        //   trace.rotation.y = Math.PI / 2;
-        //   trace.rotation.z = Math.PI / 2;
+            // trace.rotation.y = Math.PI / 2;
+            // trace.rotation.z = Math.PI / 2;
 
-        mesh.add(trace);
+            mesh.add(trace);
         }
-        //     {
-        //         yTraceGeometry.setAttribute(
-        //             "position",
-        //             new THREE.Float32BufferAttribute(ypts, 3)
-        //         );
+        // {
+        //     yTraceGeometry.setAttribute(
+        //         "position",
+        //         new THREE.Float32BufferAttribute(ypts, 3)
+        //     );
 
-        //         const trace = new THREE.LineSegments(yTraceGeometry, whiteLineMaterial);
+        //     const trace = new THREE.LineSegments(yTraceGeometry, whiteLineMaterial);
 
-        //         trace.rotation.x = -Math.PI / 2;
-        //         trace.rotation.z = -Math.PI / 2;
+        //     trace.rotation.x = -Math.PI / 2;
+        //     trace.rotation.z = -Math.PI / 2;
 
-        //         mesh.add(trace);
-        //     }
-        //     {
-        //         zTraceGeometry.setAttribute(
-        //             "position",
-        //             new THREE.Float32BufferAttribute(zpts, 3)
-        //         );
+        //     mesh.add(trace);
+        // }
+        // {
+        //     zTraceGeometry.setAttribute(
+        //         "position",
+        //         new THREE.Float32BufferAttribute(zpts, 3)
+        //     );
 
-        //         const trace = new THREE.LineSegments(zTraceGeometry, whiteLineMaterial);
+        //     const trace = new THREE.LineSegments(zTraceGeometry, whiteLineMaterial);
 
-        //         mesh.add(trace);
-        //     }
+        //     mesh.add(trace);
+        // }
 
         point.position.set(0, 0, 0);
 
@@ -164,7 +164,7 @@
     const ruColors = { u: 0x992525, v: 0x252599, n: 0xb6b6b6 };
     for (let key of Object.keys(arrows)) {
         arrows[key].material = new THREE.MeshBasicMaterial({
-        color: ruColors[key],
+            color: ruColors[key],
         });
         tanFrame.add(arrows[key]);
     }
@@ -213,16 +213,16 @@
     // Construct tangent vectors at a point u,v (both 0 to 1)
     function tangentVectors({ point, eps = 1e-4, plane = true } = {}) {
         const { p, n } = nFrame({
-        point,
-        eps,
+            point,
+            eps,
         });
 
         // point.position.copy(dr.p);
 
         const arrowParams = {
-        radiusTop: gridStep / 10,
-        radiusBottom: gridStep / 20,
-        heightTop: gridStep / 7,
+            radiusTop: gridStep / 10,
+            radiusBottom: gridStep / 20,
+            heightTop: gridStep / 7,
         };
 
         const arrow = arrows.n;
@@ -230,34 +230,34 @@
         arrow.position.copy(pos);
         if (arrow.geometry) arrow.geometry.dispose();
         arrow.geometry = new ArrowBufferGeometry({
-        ...arrowParams,
-        height: n.length() / 8,
+            ...arrowParams,
+            height: n.length() / 8,
         });
         arrow.lookAt(pos.add(n));
 
         planeShard.geometry.dispose();
 
         if (plane) {
-        const { a, b, c, d, e, f } = params;
+            const { a, b, c, d, e, f } = params;
 
-        const tangentPlaneGeometry = marchingCubes({
-            f: (x, y, z) => {
-            const xVec = new THREE.Vector3(x, y, z);
-            return xVec.dot(n);
-            },
-            level: n.dot(p) + 1e-8, // offset to avoid overlap artifacts
-            xMin: math.evaluate(a),
-            xMax: math.evaluate(b),
-            yMin: math.evaluate(c),
-            yMax: math.evaluate(d),
-            zMin: math.evaluate(e),
-            zMax: math.evaluate(f),
-            N: 2,
-        });
+            const tangentPlaneGeometry = marchingCubes({
+                f: (x, y, z) => {
+                    const xVec = new THREE.Vector3(x, y, z);
+                    return xVec.dot(n);
+                },
+                level: n.dot(p) + 1e-8, // offset to avoid overlap artifacts
+                xMin: math.evaluate(a),
+                xMax: math.evaluate(b),
+                yMin: math.evaluate(c),
+                yMax: math.evaluate(d),
+                zMin: math.evaluate(e),
+                zMax: math.evaluate(f),
+                N: 2,
+            });
 
-        // console.log(tangentPlaneGeometry);
+            // console.log(tangentPlaneGeometry);
 
-        planeShard.geometry = tangentPlaneGeometry;
+            planeShard.geometry = tangentPlaneGeometry;
         }
     }
 
@@ -273,163 +273,163 @@
         raycaster.setFromCamera(mouseVector, camera);
 
         const intersects = raycaster.intersectObjects(
-        [mesh.children[0], mesh.children[1]],
-        true
+            [mesh.children[0], mesh.children[1]],
+            true
         );
 
         if (intersects.length > 0) {
-        const intersect = intersects[0];
-        // console.log(intersect.uv);
-        point.position.x = intersect.point.x;
-        point.position.y = intersect.point.y;
-        point.position.z = intersect.point.z;
+            const intersect = intersects[0];
+            // console.log(intersect.uv);
+            point.position.x = intersect.point.x;
+            point.position.y = intersect.point.y;
+            point.position.z = intersect.point.z;
 
-        tangentVectors({ point });
+            tangentVectors({ point });
 
-        // console.log(u, v, mouseVector);
-        render();
+            // console.log(u, v, mouseVector);
+            render();
         }
     }
 
     const shiftDown = (e) => {
         if (shadeUp) {
-        switch (e.key) {
-            case "Shift":
-            // animation = true;
-            // frameBall.visible = true;
-            // onMouseMove();
-            window.addEventListener("mousemove", onMouseMove, false);
-            break;
-            case "c":
-            controls.target.set(
-                point.position.x,
-                point.position.y,
-                point.position.z
-            );
-            // console.log("saw", point.position);
-            render();
-            break;
-            case "t":
-            tanFrame.visible = !tanFrame.visible;
-            render();
-            break;
-            case "y":
-            planeShard.visible = !planeShard.visible;
-            render();
-            break;
-            case "n":
-            arrows.n.visible = !arrows.n.visible;
-            render();
-            break;
-        }
+            switch (e.key) {
+                case "Shift":
+                    // animation = true;
+                    // frameBall.visible = true;
+                    // onMouseMove();
+                    window.addEventListener("mousemove", onMouseMove, false);
+                    break;
+                case "c":
+                    controls.target.set(
+                        point.position.x,
+                        point.position.y,
+                        point.position.z
+                    );
+                    // console.log("saw", point.position);
+                    render();
+                    break;
+                case "t":
+                    tanFrame.visible = !tanFrame.visible;
+                    render();
+                    break;
+                case "y":
+                    planeShard.visible = !planeShard.visible;
+                    render();
+                    break;
+                case "n":
+                    arrows.n.visible = !arrows.n.visible;
+                    render();
+                    break;
+            }
         }
     };
 
     const shiftUp = (e) => {
         if (e.key === "Shift") {
-        // animation = false;
-        // frameBall.visible = false;
-        window.removeEventListener("mousemove", onMouseMove);
+            // animation = false;
+            // frameBall.visible = false;
+            window.removeEventListener("mousemove", onMouseMove);
         }
     };
 
     window.addEventListener("keydown", shiftDown, false);
     window.addEventListener("keyup", shiftUp, false);
-    </script>
+</script>
 
-    <div class="boxItem">
+<div class="boxItem">
     <div class="box-title">
         <span>
-        <strong>Level surface </strong>
-        <span class:hidden={!loading}
-            ><i class="fa fa-spinner fa-pulse fa-fw" />
-            <span class="sr-only">Loading...</span>
-        </span>
+            <strong>Level surface </strong>
+            <span class:hidden={!loading}
+                  ><i class="fa fa-spinner fa-pulse fa-fw" />
+                <span class="sr-only">Loading...</span>
+            </span>
         </span>
         <span
-        ><button
-            on:click={() => {
-            hidden = !hidden;
-            }}><i class="fa fa-window-minimize" /></button
-        ><button on:click={onClose}>
-            <i class="fa fa-window-close" /></button
-        ></span
-        >
+            ><button
+                 on:click={() => {
+                hidden = !hidden;
+                }}><i class="fa fa-window-minimize" /></button
+                                                          ><button on:click={onClose}>
+                <i class="fa fa-window-close" /></button
+                                                    ></span
+                                                         >
     </div>
     <div class:hidden>
         <div class="container">
-        <span class="box-1"><M>g(x,y,z) =</M></span>
-        <input
-            type="text"
-            bind:value={params.g}
-            on:change={updateLevel}
-            class="box box-2"
-        />
-        <span class="box-1"><M>k =</M></span>
-        <input
-            type="number"
-            bind:value={params.k}
-            on:change={updateLevel}
-            class="box box-2"
-        />
-
-        <input
-            type="number"
-            bind:value={params.a}
-            on:change={updateLevel}
-            class="box"
-        />
-        <span class="box box-3"><M>\leq x \leq</M></span>
-        <input
-            type="number"
-            bind:value={params.b}
-            on:change={updateLevel}
-            class="box"
-        />
-        <input
-            type="number"
-            bind:value={params.c}
-            on:change={updateLevel}
-            class="box"
-        />
-        <span class="box box-3"><M>\leq y \leq</M></span>
-        <input
-            type="number"
-            bind:value={params.d}
-            on:change={updateLevel}
-            class="box"
-        />
-        <input
-            type="number"
-            bind:value={params.e}
-            on:change={updateLevel}
-            class="box"
-        />
-        <span class="box box-3"><M>\leq z \leq</M></span>
-        <input
-            type="number"
-            bind:value={params.f}
-            on:change={updateLevel}
-            class="box"
-        />
-
-        <span class="box-1">tangents</span>
-        <label class="switch box box-2">
+            <span class="box-1"><M>g(x,y,z) =</M></span>
             <input
-            type="checkbox"
-            value="false"
-            name="frameVisible"
-            id="frameVisible"
-            bind:checked={tanFrame.visible}
-            on:change={render}
-            />
-            <span class="slider round" />
-        </label>
+                type="text"
+                bind:value={params.g}
+                on:change={updateLevel}
+                class="box box-2"
+                />
+            <span class="box-1"><M>k =</M></span>
+            <input
+                type="number"
+                bind:value={params.k}
+                on:change={updateLevel}
+                class="box box-2"
+                />
+
+            <input
+                type="number"
+                bind:value={params.a}
+                on:change={updateLevel}
+                class="box"
+                />
+            <span class="box box-3"><M>\leq x \leq</M></span>
+            <input
+                type="number"
+                bind:value={params.b}
+                on:change={updateLevel}
+                class="box"
+                />
+            <input
+                type="number"
+                bind:value={params.c}
+                on:change={updateLevel}
+                class="box"
+                />
+            <span class="box box-3"><M>\leq y \leq</M></span>
+            <input
+                type="number"
+                bind:value={params.d}
+                on:change={updateLevel}
+                class="box"
+                />
+            <input
+                type="number"
+                bind:value={params.e}
+                on:change={updateLevel}
+                class="box"
+                />
+            <span class="box box-3"><M>\leq z \leq</M></span>
+            <input
+                type="number"
+                bind:value={params.f}
+                on:change={updateLevel}
+                class="box"
+                />
+
+            <span class="box-1">tangents</span>
+            <label class="switch box box-2">
+                <input
+                    type="checkbox"
+                    value="false"
+                    name="frameVisible"
+                    id="frameVisible"
+                    bind:checked={tanFrame.visible}
+                    on:change={render}
+                    />
+                <span class="slider round" />
+            </label>
         </div>
     </div>
-    </div>
+</div>
 
-    <style>
+<style>
     .container {
         display: grid;
 
