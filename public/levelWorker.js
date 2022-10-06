@@ -53,6 +53,30 @@ function marchingSquares( {f, level, xmin, xmax, ymin, ymax, zLevel = null, nX =
 }
 
 
+function marchingSquares( {f, level, xmin, xmax, ymin, ymax, zLevel = null, nX = 30, nY = 30} ) {
+
+    const dx = (xmax - xmin) / nX, dy = (ymax - ymin) / nY;
+    const z = zLevel === null ? level : zLevel;
+    let points = [];
+    // for (let i=0; i < nX; i++) {
+    //   for (let j=0; j < nY; j++) {
+    //       const x = xmin + i*dx, y = ymin + j*dy;
+    for (let x = xmin; x < xmax - dx/3; x += dx) {
+        for (let y = ymin; y < ymax - dy/3; y += dy) {
+            const [a,b,c,d,e] = [f(x,y),f(x+dx,y),f(x + dx,y + dy),f(x,y + dy),f(x + dx/2, y + dy/2)];
+            marchingSquare(a,b,c,d,e,level).forEach(element => {
+                const [s,t] = element;
+                points.push(x + s*dx, y + t*dy, z);
+            });
+            // for (let xy of [[x,y],[x+dx,y],[x + dx,y + dy],[x,y + dy]]) {
+            //     corners.push((f(...xy) > level) ? 1 : 0);
+            // }
+        }
+    }
+    return points;
+}
+
+
 // binary value for val >= lev for a,b,c,d, starting from most significant bit (perhaps stupidly)
 const squaresTable = {
     0b0000: [],
@@ -599,6 +623,40 @@ function marchingCubesWithTraces({
                 }
 
                 for (let index = 0; index < pts.length; index++) {
+                    const e1 = pts[index];
+                    const e2 = pts[index % 3 == 2 ? index - 2 : index + 1];
+                    if (e1[0] * e1[0] + e2[0] * e2[0] <= 1e-5) {
+                    traceSegments.push(x, y + e1[1] * dy, z + e1[2] * dz);
+                    traceSegments.push(x, y + e2[1] * dy, z + e2[2] * dz);
+                    }
+                }
+                }
+
+                // x-traces
+                if (j % dn == traceOffset) {
+                for (let index = 0; index < pts.length; index++) {
+                    const e1 = pts[index];
+                    const e2 = pts[index % 3 == 2 ? index - 2 : index + 1];
+                    if (e1[1] * e1[1] + e2[1] * e2[1] <= 1e-5) {
+                    traceSegments.push(x + e1[0] * dx, y, z + e1[2] * dz);
+                    traceSegments.push(x + e2[0] * dx, y, z + e2[2] * dz);
+                    }
+                }
+                }
+
+                // x-traces
+                if (k % dn == traceOffset) {
+                for (let index = 0; index < pts.length; index++) {
+                    const e1 = pts[index];
+                    const e2 = pts[index % 3 == 2 ? index - 2 : index + 1];
+                    if (e1[2] * e1[2] + e2[2] * e2[2] <= 1e-5) {
+                    traceSegments.push(x + e1[0] * dx, y + e1[1] * dy, z);
+                    traceSegments.push(x + e2[0] * dx, y + e2[1] * dy, z);
+                    }
+                }
+                }
+
+                for (let index = 0; index < pts.length; index++) {
                     const pt = pts[index];
 
                     const u = x + pt[0]*dx, v = y + pt[1]*dy, w = z + pt[2]*dz;
@@ -619,7 +677,6 @@ function marchingCubesWithTraces({
                 }
             }
         }
-    }
 
     // geometry.setAttribute( 'position', new THREE.Float32BufferAttribute( vertices, 3 ) );
     // geometry.setAttribute( 'normal', new THREE.Float32BufferAttribute( normals, 3 ) );
