@@ -1,6 +1,7 @@
 /* jshint esversion: 6 */
 
 import * as THREE from 'three';
+import path from 'path-browserify';
 
 export function marchingSquares({
     f,
@@ -1147,14 +1148,20 @@ function labelAxes({
     scene,
     gridMax = 1,
     gridStep = 0.1,
-    fontFile = "../fonts/P052_Italic.json",
+    fontFile = './fonts/P052_Italic.json',
     textMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 }),
     axesText = [],
     render = undefined,
 } = {}, fontLoader, TextGeometry) {
+    let fontUrl = fontFile;
+    // Use static prefix from Django if present
+    if (window.STATIC_PREFIX) {
+        fontUrl = path.join(window.STATIC_PREFIX, fontUrl);
+    }
+
     const font = fontLoader.load(
         // resource URL
-        fontFile,
+        fontUrl,
         function (font) {
             // clear out the old
             for (let index = 0; index < axesText.length; index++) {
@@ -1222,8 +1229,8 @@ function labelAxes({
         },
 
         // onError callback
-        function () {
-            console.log("An error happened");
+        function (e) {
+            console.log('Font loading error:', e);
         }
     );
     return [axesText, font];
