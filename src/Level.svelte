@@ -108,34 +108,34 @@
 
             const trace = new THREE.LineSegments(xTraceGeometry, whiteLineMaterial);
 
-            // trace.rotation.y = Math.PI / 2;
-            // trace.rotation.z = Math.PI / 2;
+            trace.rotation.y = Math.PI / 2;
+            trace.rotation.z = Math.PI / 2;
 
             mesh.add(trace);
         }
-        // {
-        //     yTraceGeometry.setAttribute(
-        //         "position",
-        //         new THREE.Float32BufferAttribute(ypts, 3)
-        //     );
+        {
+            yTraceGeometry.setAttribute(
+                "position",
+                new THREE.Float32BufferAttribute(ypts, 3)
+            );
 
-        //     const trace = new THREE.LineSegments(yTraceGeometry, whiteLineMaterial);
+            const trace = new THREE.LineSegments(yTraceGeometry, whiteLineMaterial);
 
-        //     trace.rotation.x = -Math.PI / 2;
-        //     trace.rotation.z = -Math.PI / 2;
+            trace.rotation.x = -Math.PI / 2;
+            trace.rotation.z = -Math.PI / 2;
 
-        //     mesh.add(trace);
-        // }
-        // {
-        //     zTraceGeometry.setAttribute(
-        //         "position",
-        //         new THREE.Float32BufferAttribute(zpts, 3)
-        //     );
+            mesh.add(trace);
+        }
+        {
+            zTraceGeometry.setAttribute(
+                "position",
+                new THREE.Float32BufferAttribute(zpts, 3)
+            );
 
-        //     const trace = new THREE.LineSegments(zTraceGeometry, whiteLineMaterial);
+            const trace = new THREE.LineSegments(zTraceGeometry, whiteLineMaterial);
 
-        //     mesh.add(trace);
-        // }
+            mesh.add(trace);
+        }
 
         point.position.set(0, 0, 0);
 
