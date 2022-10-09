@@ -1632,6 +1632,17 @@ function isDependentOn(node, x) {
     return node.filter((node) => node.isSymbolNode && node.name === x).length > 0;
 }
 
+/**
+ * Cast the given input into a number, in a forgiving way.
+ */
+const forceNumber = function(n) {
+    n = Number(n);
+    if (isNaN(n) || typeof n === 'undefined') {
+        n = 0;
+    }
+    return n;
+};
+
 export {
     ArrowBufferGeometry,
     ParametricCurve,
@@ -1650,4 +1661,5 @@ export {
     nextHue,
     makeHSLColor,
     blockGeometry,
+    forceNumber
 };

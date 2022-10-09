@@ -23,7 +23,7 @@ export const initialPolls = [
     }
 ];
 
-let polls = localStore('polls', initialPolls);
+const polls = localStore('polls', initialPolls);
 
 export {
     polls
