@@ -1,6 +1,17 @@
+import {forceNumber} from './utils.js';
+
 const newPollId = function(polls) {
     return polls.length ? Math.max(...polls.map(p => p.id)) + 1 : 1;
 }
+
+const getPollId = function(urlpath) {
+    let m = urlpath.match(/^\/?polls\/(\d+)\/?/);
+    if (m && m.length > 1) {
+        return forceNumber(m[1]);
+    }
+
+    return null;
+};
 
 /**
  * makePoll
@@ -53,5 +64,6 @@ const makeSocket = function(roomName) {
 };
 
 export {
+    getPollId,
     makePoll, makeSocket
 };
