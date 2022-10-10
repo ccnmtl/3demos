@@ -56,7 +56,7 @@ const makeSocket = function(roomName) {
         console.log('socket.onmessage', data);
     };
 
-    socket.onclose = function(e) {
+    socket.onclose = function() {
         console.error('Chat socket closed unexpectedly');
     };
 

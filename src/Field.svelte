@@ -89,7 +89,7 @@
 
     // scene.add(trails);
 
-    function setTrailColors(colorArray, start, total = MAX_TRAIL_LENGTH) {
+    const setTrailColors = function(colorArray, start, total = MAX_TRAIL_LENGTH) {
         let index = 0,
             i = 0;
 
@@ -119,7 +119,7 @@
         arrowGeometries.push(geometry);
     }
 
-    function initFlowArrows(arrows, lim = gridMax, N = params.nVec) {
+    const initFlowArrows = function(arrows, lim = gridMax, N = params.nVec) {
         const vec = new THREE.Vector3();
         let maxLength = 0;
         const arrowDefaultGeometry = new ArrowBufferGeometry({
@@ -174,7 +174,7 @@
         return maxLength; //
     }
 
-    function updateFlowArrows(arrows, F, dt = 0.016) {
+    const updateFlowArrows = function(arrows, F, dt = 0.016) {
         const vec = new THREE.Vector3();
         let index;
 
@@ -246,7 +246,7 @@
         trails.geometry.attributes.position.needsUpdate = true;
     }
 
-    function freeChildren(objectHolder) {
+    const freeChildren = function(objectHolder) {
         for (let i = objectHolder.children.length - 1; i >= 0; i--) {
             const element = objectHolder.children[i];
             if (element.geometry.dispose) element.geometry.dispose();
@@ -254,13 +254,13 @@
         }
     }
 
-    function freeTrails() {
+    const freeTrails = function() {
         trailLength = 0;
     }
 
     let fieldF;
 
-    function updateField() {
+    const updateField = function() {
         const { p, q, r } = params;
         const [P, Q, R] = [p, q, r].map((x) => math.parse(x).compile());
         fieldF = (x, y, z, vec) => {

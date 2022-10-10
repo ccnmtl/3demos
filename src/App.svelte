@@ -120,6 +120,7 @@
     // const material = new THREE.MeshBasicMaterial({ color });
     // const cube = new THREE.Mesh(geometry, material);
     let renderer;
+    let frameRequested = false;
     // scene.add(cube);
 
     // Grid
@@ -140,6 +141,13 @@
     let axesHolder = drawAxes({ gridMax, gridStep, axesMaterial });
     scene.add(axesHolder);
 
+    const requestFrameIfNotRequested = function() {
+        if (!frameRequested) {
+            frameRequested = true;
+            myReq = requestAnimationFrame(render);
+        }
+    }
+
     // Fonts
     const fontLoader = new FontLoader();
     let [axesText] = labelAxes({
@@ -148,7 +156,7 @@
     }, fontLoader, TextGeometry);
 
     // from https://threejsfundamentals.org
-    function resizeRendererToDisplaySize(renderer) {
+    const resizeRendererToDisplaySize = function(renderer) {
         const canvas = renderer.domElement;
         const width = canvas.clientWidth;
         const height = canvas.clientHeight;
@@ -161,17 +169,10 @@
 
     let myReq,
         last,
-        frameRequested = false,
         animating = false;
 
-    function requestFrameIfNotRequested() {
-        if (!frameRequested) {
-            frameRequested = true;
-            myReq = requestAnimationFrame(render);
-        }
-    }
 
-    function animateIfNotAnimating() {
+    const animateIfNotAnimating = function() {
         if (!animating) {
             cancelAnimationFrame(myReq);
             frameRequested = true;
@@ -219,7 +220,7 @@
         }
     };
 
-    function render() {
+    const render = function() {
         frameRequested = false;
 
         for (let index = 0; index < axesText.length; index++) {
@@ -293,7 +294,7 @@
         requestFrameIfNotRequested();
     });
 
-    function makeQueryStringObject() {
+    const makeQueryStringObject = function() {
         const flattenedBoxes = {
             currentChapter,
             shadeUp,
@@ -509,7 +510,7 @@
 
                 <div class="objectBoxInner">
                     <!-- <input type="number" bind:value={color} on:change="{changeColor}"> -->
-                    {#each boxes as b, i (b.id)}
+                    {#each boxes as b (b.id)}
                         <div
                             transition:slide={{ delay: 0, duration: 300, easing: quintOut }}
                             >

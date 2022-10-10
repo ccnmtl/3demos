@@ -125,7 +125,7 @@
     point.visible = false;
     scene.add(point);
 
-    function tangentVectors() {
+    const tangentVectors = function() {
         const arrowParams = {
             radiusTop: gridStep / 10,
             radiusBottom: gridStep / 20,
@@ -253,7 +253,7 @@
 
     let surfaceMesh = new THREE.Object3D();
 
-    function updateSurface() {
+    const updateSurface = function() {
         const { a, b, c, d, z, t0, t1 } = params;
         const A = math.evaluate(a),
               B = math.evaluate(b);
@@ -317,7 +317,7 @@
         render();
     }
 
-    function meshLines(rData, rNum = 10, cNum = 10, nX = 30) {
+    const meshLines = function(rData, rNum = 10, cNum = 10, nX = 30) {
         let { a, b, c, d, z } = rData;
         const time = params.t0 + data.tau * (params.t1 - params.t0);
         // const N = lcm(lcm(rNum, cNum), nX);
@@ -401,7 +401,7 @@
         return geometry;
     }
 
-    function evolveSurface(t) {
+    const evolveSurface = function(t) {
         let Z;
         try {
             Z = math.parse(params.z).compile();
@@ -474,7 +474,7 @@
     );
     scene.add(curveBall);
 
-    function shiftInterpolation(t, L) {
+    const shiftInterpolation = function(t, L) {
         if (t < 2) {
             return L - (L / 2) * t;
         } else {
@@ -482,7 +482,7 @@
         }
     }
 
-    function updateColor() {
+    const updateColor = function() {
         plusMaterial.color.set(params.color);
         const col = new THREE.Color(params.color);
         const hsl = {};
@@ -535,7 +535,7 @@
         render();
     };
 
-    function changeLevels(t) {
+    const changeLevels = function(t) {
         for (let index = 0; index < levelHolder.children.length; index++) {
             const element = levelHolder.children[index];
             element.position.set(0, 0, shiftInterpolation(t, element.level));
@@ -543,7 +543,7 @@
         // selectedLevelCurve.position.set(0, 0, shiftInterpolation( t, selectedLevelCurve.level ))
     }
 
-    function updateLevels() {
+    const updateLevels = function() {
         for (let index = levelHolder.children.length - 1; index >= 0; index--) {
             const element = levelHolder.children[index];
             element.geometry.dispose();
@@ -634,7 +634,7 @@
     );
     boxMesh.add(boxMeshEdges);
 
-    function updateBoxes() {
+    const updateBoxes = function() {
         const { a, b, c, d, z } = params;
         const t = params.t0 + data.tau * (params.t1 - params.t0);
         const [A, B, C, D] = [
@@ -689,7 +689,7 @@
 
     let mouseVector = new THREE.Vector2();
 
-    function onMouseMove(e) {
+    const onMouseMove = function(e) {
         // normalized mouse coordinates
         mouseVector.x = 2 * (e.clientX / window.innerWidth) - 1;
         mouseVector.y = 1 - 2 * (e.clientY / window.innerHeight);
@@ -715,7 +715,7 @@
         }
     }
 
-    function activateLevelElevator() {
+    const activateLevelElevator = function() {
         animation = true;
         data.levelDelta *= -1;
         dispatch("animate");

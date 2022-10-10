@@ -55,7 +55,7 @@
 
     let arrow;
 
-    function updateCurve() {
+    const updateCurve = function() {
         const { a, b, c, x, y, z } = params;
 
         const [A, B, C, X, Y, Z] = math
