@@ -1,5 +1,6 @@
 <script>
     import { onDestroy } from "svelte";
+    import path from 'path-browserify';
     import M from "./M.svelte";
 
     import * as THREE from "three";
@@ -72,7 +73,11 @@
     mesh.visible = false;
     scene.add(mesh);
 
-    const worker = new Worker("./levelWorker.js", {
+    let workerUrl = './levelWorker.js';
+    if (window.STATIC_PREFIX) {
+        workerUrl = path.join(window.STATIC_PREFIX, workerUrl);
+    }
+    const worker = new Worker(workerUrl, {
         type: "classic",
     });
     console.log(worker);
