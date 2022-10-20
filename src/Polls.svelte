@@ -9,22 +9,13 @@
         TabPane
     } from 'sveltestrap';
     import katex from 'katex';
-    import {
-        makePoll, makeSocket
-    } from './polls';
+    import {makePoll} from './polls';
     import {initialPolls} from './stores';
 
     export let isPollsOpen, togglePolls;
     export let polls = initialPolls;
 
     const blankPreview = 'Question preview area (rendered LaTeX)';
-
-    const nameEl = document.getElementById('room-name');
-    if (nameEl) {
-        const roomName = JSON.parse(nameEl.textContent);
-        const socket = makeSocket(roomName);
-        console.log('made websocket', socket);
-    }
 
     const pollTextChange = function(e) {
         const newVal = e.target.value;
