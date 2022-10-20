@@ -44,7 +44,7 @@ const makePoll = function(polls, type=0, prompt='', choices=null) {
  */
 const makeSocket = function(roomName) {
     const socket = new WebSocket(
-        'ws://'
+        'wss://'
             + window.location.host
             + '/ws/polls/'
             + roomName
