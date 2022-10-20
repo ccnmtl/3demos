@@ -27,7 +27,6 @@
   "dependencies": {
     "katex": "^0.16.2",
     "mathjs": "^11.2.1",
-    "path-browserify": "^1.0.1",
     "sirv-cli": "^2.0.2",
     "stats.js": "^0.17.0",
     "svelte-preprocess": "^4.10.7",

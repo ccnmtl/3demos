@@ -1,6 +1,5 @@
 <script>
     import { onDestroy } from "svelte";
-    import path from 'path-browserify';
     import M from "./M.svelte";
 
     import * as THREE from "three";
@@ -10,7 +9,11 @@
     const config = {};
     const math = create(all, config);
 
-    import { marchingCubes, ArrowBufferGeometry } from "./utils.js";
+    import {
+        joinUrl,
+        marchingCubes,
+        ArrowBufferGeometry
+    } from "./utils.js";
 
     // const config = {};
     // const math = create(all, config);
@@ -75,7 +78,7 @@
 
     let workerUrl = './levelWorker.js';
     if (window.STATIC_PREFIX) {
-        workerUrl = path.join(window.STATIC_PREFIX, workerUrl);
+        workerUrl = joinUrl(window.STATIC_PREFIX, workerUrl);
     }
     const worker = new Worker(workerUrl, {
         type: "classic",
