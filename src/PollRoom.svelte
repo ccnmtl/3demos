@@ -17,7 +17,7 @@
     }
 </script>
 
-<h1>Poll {pollId}!</h1>
+<h1>Poll {pollId}</h1>
 {#if !poll}
     <p>Poll {pollId} is not defined!</p>
 {/if}
