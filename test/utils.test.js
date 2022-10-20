@@ -1,5 +1,18 @@
 import assert from 'assert';
-import {gcd} from '../src/utils.js';
+import {
+    joinUrl,
+    gcd
+} from '../src/utils.js';
+
+describe('joinUrl', function() {
+    it('joins two URLs',
+       function() {
+           assert.equal(
+               joinUrl('https://example.org/', './image/path.png'),
+               'https://example.org/image/path.png'
+           );
+       });
+});
 
 describe('gcd', function() {
     it('should return the greatest common divisor of two numbers',

@@ -1,7 +1,26 @@
 /* jshint esversion: 6 */
 
 import * as THREE from 'three';
-import path from 'path-browserify';
+
+/**
+ * Given a URL base and a path, return the two combined.
+ *
+ * This should work with both local, relative paths and absolute URIs.
+ */
+const joinUrl = function(base, path) {
+    let url = {};
+
+    try {
+        url = new URL(path, base);
+    } catch (e) {
+        url = new URL(
+            base.substring(1) +
+                path.substring(1),
+            document.baseURI)
+    }
+
+    return url.href;
+}
 
 export function marchingSquares({
     f,
@@ -1156,7 +1175,7 @@ function labelAxes({
     let fontUrl = fontFile;
     // Use static prefix from Django if present
     if (window.STATIC_PREFIX) {
-        fontUrl = path.join(window.STATIC_PREFIX, fontUrl);
+        fontUrl = joinUrl(window.STATIC_PREFIX, fontFile)
     }
 
     const font = fontLoader.load(
@@ -1644,6 +1663,7 @@ const forceNumber = function(n) {
 };
 
 export {
+    joinUrl,
     ArrowBufferGeometry,
     ParametricCurve,
     drawGrid,
