@@ -21,7 +21,7 @@ const joinUrl = function(base, path) {
         url = new URL(
             base.substring(1) +
                 path.substring(1),
-            document.baseURI)
+            window.location.origin)
     }
 
     return url.href;
