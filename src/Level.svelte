@@ -11,6 +11,7 @@
 
     import {
         joinUrl,
+        createWorker,
         marchingCubes,
         ArrowBufferGeometry
     } from "./utils.js";
@@ -80,10 +81,7 @@
     if (window.STATIC_PREFIX) {
         workerUrl = joinUrl(window.STATIC_PREFIX, workerUrl);
     }
-    const worker = new Worker(workerUrl, {
-        type: "classic",
-    });
-    console.log(worker);
+    const worker = createWorker(workerUrl);
 
     // worker.postMessage({ hello: "World!" });
 
