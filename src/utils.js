@@ -10,6 +10,11 @@ import * as THREE from 'three';
 const joinUrl = function(base, path) {
     let url = {};
 
+    // Add a slash at the end of base if it's not present.
+    if (base.charAt(base.length - 1) !== '/') {
+        base = base + '/';
+    }
+
     try {
         url = new URL(path, base);
     } catch (e) {

@@ -11,6 +11,18 @@ describe('joinUrl', function() {
                joinUrl('https://example.org/', './image/path.png'),
                'https://example.org/image/path.png'
            );
+
+           assert.equal(
+               joinUrl('https://example.org/media/mathplayground',
+                       './fonts/font.json'),
+               'https://example.org/media/mathplayground/fonts/font.json'
+           );
+
+           assert.equal(
+               joinUrl('https://example.org/media/mathplayground/',
+                       './fonts/font.json'),
+               'https://example.org/media/mathplayground/fonts/font.json'
+           );
        });
 });
 
