@@ -1,7 +1,7 @@
 name: build-and-test
 on: [push]
 jobs:
-  build:
+  js:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
@@ -19,3 +19,24 @@ jobs:
         run: npm run eslint
       - name: test
         run: npm test
+  django:
+    name: Django tests
+    runs-on: ubuntu-20.04
+    services:
+      redis:
+        image: redis
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+    strategy:
+      matrix:
+        python-version: [3.8]
+        node-version: [16.x]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run django tests
+        run: make test
