@@ -39,7 +39,7 @@
         color: "#3232ff",
     };
 
-    const data = {
+    let data = {
         rNum: 10,
         cNum: 10,
         nX: 50,
