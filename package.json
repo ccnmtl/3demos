@@ -6,7 +6,7 @@
     "build": "rollup -c",
     "dev": "rollup -c -w",
     "start": "sirv public --no-clear",
-    "eslint": "eslint media/src/*.svelte media/src/*.js media/mathplayground/levelWorker.js",
+    "eslint": "eslint media/src/*.svelte media/src/*.js *.js media/mathplayground/levelWorker.js",
     "test": "./node_modules/mocha/bin/mocha.js media/test/"
   },
   "devDependencies": {
