@@ -9,6 +9,13 @@
     import {FXAAShader} from 'three/examples/jsm/shaders/FXAAShader.js';
     import {EffectComposer} from 'three/examples/jsm/postprocessing/EffectComposer.js';
 
+    import {
+        ButtonDropdown,
+        DropdownItem,
+        DropdownMenu,
+        DropdownToggle
+    } from 'sveltestrap';
+
     import { v4 as uuidv4 } from "uuid";
     // import katex from "katex";
 
@@ -406,22 +413,33 @@
             {:else}
                 <div class="collapse-info" class:hidden={shadeUp}>
                     <div class="object-box-title">
-                        <div class="dropdown">
-                            <button class="dropbtn titlefont">3Demos.xyz (βeta)</button>
-
-                            <div class="dropdown-content">
-                                <span on:click={() => (currentChapter = "Intro")} hidden={false}
-                                    >Intro</span>
-                                <span on:click={() => (currentChapter = "Chapter")}
-                                    >Arc Length & Curvature</span>
-                                <span on:click={() => (currentChapter = "Linear")}
-                                    >Linearization</span>
-                            </div>
-                        </div>
-                        <span
+                        <ButtonDropdown>
+                            <DropdownToggle
+                                class="btn btn-secondary dropdown-toggle titlefont">
+                                3Demos.xyz (βeta)
+                            </DropdownToggle>
+                            <DropdownMenu>
+                                <DropdownItem
+                                    on:click={() => (currentChapter = "Intro")}>
+                                    Intro
+                                </DropdownItem>
+                                <DropdownItem
+                                    on:click={() => (currentChapter = "Chapter")}>
+                                    Arc Length & Curvature
+                                </DropdownItem>
+                                <DropdownItem
+                                    on:click={() => (currentChapter = "Linear")}>
+                                    Linearization
+                                </DropdownItem>
+                            </DropdownMenu>
+                        </ButtonDropdown>
+                        <button
+                            class="btn btn-sm btn-light"
                             on:click={() => {
                             flipInfo = !flipInfo;
-                            }}><i class="fa fa-sliders" /></span>
+                            }}>
+                            <i class="fa fa-sliders" />
+                        </button>
                     </div>
 
                     {#if currentChapter == "Chapter"}
@@ -447,10 +465,11 @@
             <div class="collapse-info" class:hidden={shadeUp}>
                 <div class="object-box-title">
                     <span>3D Objects</span>
-                    <span
+                    <button
+                        class="btn btn-sm btn-light"
                         on:click={() => {
                         flipInfo = !flipInfo;
-                        }}><i class="fa fa-book" /></span>
+                        }}><i class="fa fa-book" /></button>
                 </div>
                 <!-- <input type="number" bind:value={color} /> -->
 
@@ -528,7 +547,7 @@
                         <span on:click={() => upBox("box")}>random box</span>
                     </div>
                 </div>
-                <button class="btn" on:click={blowUpBoxes}>
+                <button class="btn btn-sm" on:click={blowUpBoxes}>
                     <i class="fa fa-trash" />
                 </button>
 
@@ -736,8 +755,7 @@
              gap: 0.25em;
          }
 
-         .dropbtn,
-         .btn {
+         .dropbtn {
              background-color: #aaa;
              color: white;
              padding: 3px 10px;
@@ -832,7 +850,7 @@
              background-color: blue;
          }
 
-         .titlefont {
+         :global(.titlefont) {
              /* font-size: 1.5em; */
              font-family: Cambria, Cochin, Georgia, Times, "Times New Roman", serif;
          }
