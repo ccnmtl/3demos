@@ -9,9 +9,3 @@ Start django server:
 ```
 make runserver
 ```
-
-In order to connect to your development version of the mathplayground front-end code, you'll
-need to symlink in the JS bundle:
-```
-./scripts/link.sh
-```
