@@ -54,7 +54,7 @@ sqlparse==0.4.3
 tqdm==4.64.1
 trio==0.22.0
 trio-websocket==0.9.2
-Twisted==22.8.0
+Twisted==22.10.0
 txaio==22.2.1
 typing_extensions==4.4.0
 urllib3==1.26.12
