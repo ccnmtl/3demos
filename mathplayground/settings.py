@@ -45,9 +45,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_statsd',
 ]
 
 MIDDLEWARE = [
+    'django_statsd.middleware.GraphiteRequestTimingMiddleware',
+    'django_statsd.middleware.GraphiteMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -130,3 +133,10 @@ STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 ]
+
+STATSD_CLIENT = 'statsd.client'
+STATSD_PREFIX = 'mathplayground'
+STATSD_HOST = 'localhost'
+STATSD_PORT = 8125
+
+GRAPHITE_BASE = 'https://graphite.ctl.columbia.edu/render/'
