@@ -268,23 +268,26 @@
 
     const createScene = (el) => {
         renderer = new THREE.WebGLRenderer({
-            antialias: true,
+            // Anti-aliasing is handled below with FXAA
+            antialias: false,
             canvas: el
         });
-        const dpr = window.devicePixelRatio;
-        composer = new EffectComposer(renderer);
-        composer.addPass(new RenderPass(scene, camera));
 
-        // Add anti-aliasing pass
+        const dpr = window.devicePixelRatio;
         const width = window.innerWidth;
         const height = window.innerHeight;
+
+        composer = new EffectComposer(renderer);
+        composer.setSize(width * 2 * dpr, height * 2 * dpr);
+        composer.setPixelRatio(dpr);
+
+        // Add anti-aliasing pass
         const shaderPass = new ShaderPass(FXAAShader);
         shaderPass.uniforms.resolution.value = new THREE.Vector2(
             1 / (width * 2 * dpr), 1 / (height * 2 * dpr));
-        composer.setSize(width * 2 * dpr, height * 2 * dpr);
-        composer.addPass(shaderPass);
 
-        shaderPass.renderToScreen = true;
+        composer.addPass(new RenderPass(scene, camera));
+        composer.addPass(shaderPass);
 
         controls = new OrbitControls(camera, canvas);
         controls2 = new OrbitControls(camera2, canvas);
