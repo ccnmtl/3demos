@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'channels',
     'mathplayground',
     'smoketest',
+    'daphne',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',

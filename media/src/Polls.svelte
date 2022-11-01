@@ -9,7 +9,7 @@
         TabPane
     } from 'sveltestrap';
     import katex from 'katex';
-    import {makePoll} from './polls';
+    import {makePoll} from './rooms';
     import {initialPolls} from './stores';
 
     export let isPollsOpen, togglePolls;
