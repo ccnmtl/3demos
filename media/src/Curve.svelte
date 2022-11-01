@@ -129,7 +129,7 @@
         // console.log(a.evaluate(), r(0.5));
 
         let path = new ParametricCurve(1, r, A, B);
-        let geometry = new THREE.TubeBufferGeometry(
+        let geometry = new THREE.TubeGeometry(
             path,
             1000,
             gridStep / 20,
@@ -249,7 +249,7 @@
                     return vec;
                 }, -gridStep*30, gridStep*30);
             }
-            const geometry = new THREE.TubeBufferGeometry(
+            const geometry = new THREE.TubeGeometry(
                 path,
                 1000,
                 gridStep / 20,
