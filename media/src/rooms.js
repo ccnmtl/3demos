@@ -42,7 +42,7 @@ const makePoll = function(polls, type=0, prompt='', choices=null) {
  * Make a WebSocket with the given room name. Connects to a
  * django-channels socket backend. Returns this socket.
  */
-const makeSocket = function(roomId) {
+const makeSocket = function(roomId, handleMessage) {
     const path = 'wss://'
             + window.location.host
             + '/ws/rooms/'
@@ -50,10 +50,7 @@ const makeSocket = function(roomId) {
           + '/';
     const socket = new WebSocket(path);
 
-    socket.onmessage = function(e) {
-        const data = JSON.parse(e.data);
-        console.log('socket.onmessage', data);
-    };
+    socket.onmessage = handleMessage;
 
     socket.onclose = function() {
         console.error('Chat socket closed unexpectedly');
