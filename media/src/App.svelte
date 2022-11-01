@@ -37,8 +37,8 @@
     import Linear from "./Linear.svelte";
     import Chapter from "./Chapter.svelte";
     import Intro from "./Intro.svelte";
-    import Room from "./Room.svelte";
 
+    import {getRoomId, makeSocket} from './rooms';
     import {
         drawAxes,
         drawGrid,
@@ -311,8 +311,22 @@
 
     let boxes = [];
 
-    const upBox = (thing = "box", params = null) => {
-        boxes = [...boxes, { id: uuidv4(), kind: thing, params: params }];
+    const upBox = (thing="box", params=null) => {
+        const newBox = { id: uuidv4(), kind: thing, params: params };
+
+        socket.send(JSON.stringify({
+            'message': {
+                newBox: newBox
+            }
+        }));
+
+        boxes = [...boxes, newBox];
+    };
+
+    const renderBox = (uuid='my-uuid', thing="box", params=null) => {
+        console.log('renderBox');
+        const newBox = { id: uuid, kind: thing, params: params };
+        boxes = [...boxes, newBox];
     };
 
     const downBox = (id) => {
@@ -384,7 +398,7 @@
             });
 
             for (const val of Object.values(boxHolder)) {
-                upBox(val.kind, val.params);
+                renderBox(val.id, val.kind, val.params);
             }
         }
     });
@@ -399,10 +413,22 @@
 
     let currentChapter = "Intro";
 
+    const handleSocketMessage = function(e) {
+        console.log('handleSocketMessage', e);
+        const data = JSON.parse(e.data);
+        if (data.message && data.message.newBox) {
+            const newBox = data.message.newBox
+            renderBox(newBox.uuid, newBox.kind, newBox.params);
+        }
+    };
+
+    let socket = null;
     const router = {};
     const room = location.pathname.match(/\/rooms\/\d+\//);
     if (room) {
         router.room = true;
+        const roomId = getRoomId(window.location.pathname);
+        socket = makeSocket(roomId, handleSocketMessage);
     }
 </script>
 
@@ -411,57 +437,53 @@
 <div class="info" class:flipInfo>
     <div class="info-inner">
         <div class="chapterBox">
-            {#if router.room}
-                <Room />
-            {:else}
-                <div class="collapse-info" class:hidden={shadeUp}>
-                    <div class="object-box-title">
-                        <ButtonDropdown>
-                            <DropdownToggle
-                                class="btn btn-secondary dropdown-toggle titlefont">
-                                3Demos.xyz (βeta)
-                            </DropdownToggle>
-                            <DropdownMenu>
-                                <DropdownItem
-                                    on:click={() => (currentChapter = "Intro")}>
-                                    Intro
-                                </DropdownItem>
-                                <DropdownItem
-                                    on:click={() => (currentChapter = "Chapter")}>
-                                    Arc Length & Curvature
-                                </DropdownItem>
-                                <DropdownItem
-                                    on:click={() => (currentChapter = "Linear")}>
-                                    Linearization
-                                </DropdownItem>
-                            </DropdownMenu>
-                        </ButtonDropdown>
-                        <button
-                            class="btn btn-sm btn-light"
-                            on:click={() => {
-                            flipInfo = !flipInfo;
-                            }}>
-                            <i class="fa fa-sliders" />
-                        </button>
-                    </div>
+            <div class="collapse-info" class:hidden={shadeUp}>
+                <div class="object-box-title">
+                    <ButtonDropdown>
+                        <DropdownToggle
+                            class="btn btn-secondary dropdown-toggle titlefont">
+                            3Demos.xyz (βeta)
+                        </DropdownToggle>
+                        <DropdownMenu>
+                            <DropdownItem
+                                on:click={() => (currentChapter = "Intro")}>
+                                Intro
+                            </DropdownItem>
+                            <DropdownItem
+                                on:click={() => (currentChapter = "Chapter")}>
+                                Arc Length & Curvature
+                            </DropdownItem>
+                            <DropdownItem
+                                on:click={() => (currentChapter = "Linear")}>
+                                Linearization
+                            </DropdownItem>
+                        </DropdownMenu>
+                    </ButtonDropdown>
+                    <button
+                        class="btn btn-sm btn-light"
+                        on:click={() => {
+                        flipInfo = !flipInfo;
+                        }}>
+                        <i class="fa fa-sliders" />
+                    </button>
+                </div>
 
-                    {#if currentChapter == "Chapter"}
-                        <Chapter bind:boxes />
-                    {:else if currentChapter == "Linear"}
-                        <Linear bind:boxes />
-                    {:else if currentChapter === "Intro"}
-                        <Intro />
-                    {/if}
-                </div>
-                <div
-                    class="raise-lower-bar"
-                    on:click={() => {
-                    shadeUp = !shadeUp;
-                    }}
-                    >
-                    <span class="raise-lower-button" />
-                </div>
-            {/if}
+                {#if currentChapter == "Chapter"}
+                    <Chapter bind:boxes />
+                {:else if currentChapter == "Linear"}
+                    <Linear bind:boxes />
+                {:else if currentChapter === "Intro"}
+                    <Intro />
+                {/if}
+            </div>
+            <div
+                class="raise-lower-bar"
+                on:click={() => {
+                shadeUp = !shadeUp;
+                }}
+                >
+                <span class="raise-lower-button" />
+            </div>
         </div>
 
         <div class="objectBoxOuter">

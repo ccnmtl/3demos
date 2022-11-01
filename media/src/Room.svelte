@@ -18,9 +18,6 @@
 </script>
 
 <h1>Room {roomId}</h1>
-{#if !poll}
-    <p>Poll {roomId} is not defined!</p>
-{/if}
 
 {#if !isInstructor}
     Student view
