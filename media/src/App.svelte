@@ -281,7 +281,7 @@
         const shaderPass = new ShaderPass(FXAAShader);
         shaderPass.uniforms.resolution.value = new THREE.Vector2(
             1 / (width * 2 * dpr), 1 / (height * 2 * dpr));
-        composer.setSize(width * 4 * dpr, height * 4 * dpr);
+        composer.setSize(width * 2 * dpr, height * 2 * dpr);
         composer.addPass(shaderPass);
 
         shaderPass.renderToScreen = true;
