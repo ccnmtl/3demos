@@ -37,7 +37,7 @@
     import Linear from "./Linear.svelte";
     import Chapter from "./Chapter.svelte";
     import Intro from "./Intro.svelte";
-    import PollRoom from "./PollRoom.svelte";
+    import Room from "./Room.svelte";
 
     import {
         drawAxes,
@@ -400,9 +400,9 @@
     let currentChapter = "Intro";
 
     const router = {};
-    const pollRoom = location.pathname.match(/\/polls\/\d+\//);
-    if (pollRoom) {
-        router.poll = true;
+    const room = location.pathname.match(/\/rooms\/\d+\//);
+    if (room) {
+        router.room = true;
     }
 </script>
 
@@ -411,8 +411,8 @@
 <div class="info" class:flipInfo>
     <div class="info-inner">
         <div class="chapterBox">
-            {#if router.poll}
-                <PollRoom />
+            {#if router.room}
+                <Room />
             {:else}
                 <div class="collapse-info" class:hidden={shadeUp}>
                     <div class="object-box-title">
