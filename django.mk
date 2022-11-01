@@ -58,6 +58,9 @@ bandit: $(PY_SENTINAL)
 flake8: $(PY_SENTINAL)
 	$(FLAKE8) $(PY_DIRS) --max-complexity=$(MAX_COMPLEXITY) --exclude=*/local_settings.py,*/migrations/*.py --extend-ignore=$(FLAKE8_IGNORE)
 
+eslint:
+	npm run eslint
+
 runserver: check
 	$(MANAGE) runserver $(INTERFACE):$(RUNSERVER_PORT)
 
