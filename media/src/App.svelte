@@ -287,7 +287,7 @@
             1 / (width * 2 * dpr), 1 / (height * 2 * dpr));
 
         composer.addPass(new RenderPass(scene, camera));
-        composer.addPass(shaderPass);
+        // composer.addPass(shaderPass);
 
         controls = new OrbitControls(camera, canvas);
         controls2 = new OrbitControls(camera2, canvas);
