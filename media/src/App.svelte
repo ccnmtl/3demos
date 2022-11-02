@@ -495,77 +495,93 @@
 
                 <br />
                 <div class="dropdown">
-                    <button class="dropbtn"><i class="fa fa-plus" /></button>
-                    <div class="dropdown-content">
-                        <span on:click={() =>
-                            upBox("vector", {
-                            a: "0.2",
-                            b: "-0.3",
-                            c: "0",
-                            x: "0",
-                            y: "0",
-                            z: "0",
-                            show: true,
-                            })}>
-                            vector <M>\mathbf v = \langle a, b, c \rangle</M>
-                        </span>
+                    <ButtonDropdown>
+                        <DropdownToggle color="primary">
+                            <i class="fa fa-plus" />
+                        </DropdownToggle>
+                        <DropdownMenu>
+                            <DropdownItem on:click={() =>
+                                upBox("vector", {
+                                a: "0.2",
+                                b: "-0.3",
+                                c: "0",
+                                x: "0",
+                                y: "0",
+                                z: "0",
+                                show: true,
+                                })}>
+                                vector <M>\mathbf v = \langle a, b, c \rangle</M>
+                            </DropdownItem>
 
-                        <span on:click={() =>
-                            upBox("curve", {
-                            a: "0",
-                            b: "2*pi",
-                            x: "cos(t)",
-                            y: "sin(t)",
-                            z: `cos(${Math.ceil(10 * Math.random()).toString()}*t)`,
-                            tau: 0,
-                            color: `#${makeHSLColor(Math.random()).getHexString()}`,
-                            })}>space curve <M>\mathbf r(t)</M></span>
-                        <span on:click={() =>
-                            upBox("graph", {
-                            a: "-2",
-                            b: "2",
-                            c: "-2",
-                            d: "2",
-                            z: `cos(${Math.ceil(
-                            3 * Math.random()
-                            ).toString()}*x + ${Math.ceil(
-                            2 * Math.random()
-                            ).toString()}*y)/(1 + x^2 + y^2)`,
-                            tau: 0,
-                            // color: "#3232ff",
-                            })}>graph <M>z = f(x,y)</M></span>
-                        <span on:click={() =>
-                            upBox("level", {
-                            g: "x^2 + 2 y^2 - z^2",
-                            k: "1",
-                            a: "-2",
-                            b: "2",
-                            c: "-2",
-                            d: "2",
-                            e: "-2",
-                            f: "2",
-                            })}>level surface <M>g(x,y,z) = k</M></span>
-                        <span on:click={() =>
-                            upBox("parsurf", {
-                            a: "0",
-                            b: "2*pi",
-                            c: "0",
-                            d: "2*pi",
-                            x: "cos(u)*(1 + sin(v)/3)",
-                            y: "sin(u)*(1 + sin(v)/3)",
-                            z: "cos(v)/3",
-                            })}>parametric surface <M>\mathbf r(u,v)</M></span>
-                        <span on:click={() =>
-                            upBox("field", {
-                            p: "x",
-                            q: "y",
-                            r: "-z",
-                            nVec: 6,
-                            })}>vector field<M>\mathbf F(x,y,z)</M></span>
-                        <span on:click={() => upBox("box")}>random box</span>
-                    </div>
+                            <DropdownItem on:click={() =>
+                                upBox("curve", {
+                                a: "0",
+                                b: "2*pi",
+                                x: "cos(t)",
+                                y: "sin(t)",
+                                z: `cos(${Math.ceil(10 * Math.random()).toString()}*t)`,
+                                tau: 0,
+                                color: `#${makeHSLColor(Math.random()).getHexString()}`,
+                                })}>
+                                space curve <M>\mathbf r(t)</M>
+                            </DropdownItem>
+                            <DropdownItem on:click={() =>
+                                upBox("graph", {
+                                a: "-2",
+                                b: "2",
+                                c: "-2",
+                                d: "2",
+                                z: `cos(${Math.ceil(
+                                3 * Math.random()
+                                ).toString()}*x + ${Math.ceil(
+                                2 * Math.random()
+                                ).toString()}*y)/(1 + x^2 + y^2)`,
+                                tau: 0,
+                                // color: "#3232ff",
+                                })}>
+                                graph <M>z = f(x,y)</M>
+                            </DropdownItem>
+                            <DropdownItem on:click={() =>
+                                upBox("level", {
+                                g: "x^2 + 2 y^2 - z^2",
+                                k: "1",
+                                a: "-2",
+                                b: "2",
+                                c: "-2",
+                                d: "2",
+                                e: "-2",
+                                f: "2",
+                                })}>
+                                level surface <M>g(x,y,z) = k</M>
+                            </DropdownItem>
+                            <DropdownItem on:click={() =>
+                                upBox("parsurf", {
+                                a: "0",
+                                b: "2*pi",
+                                c: "0",
+                                d: "2*pi",
+                                x: "cos(u)*(1 + sin(v)/3)",
+                                y: "sin(u)*(1 + sin(v)/3)",
+                                z: "cos(v)/3",
+                                })}>
+                                parametric surface <M>\mathbf r(u,v)</M>
+                            </DropdownItem>
+                            <DropdownItem on:click={() =>
+                                upBox("field", {
+                                p: "x",
+                                q: "y",
+                                r: "-z",
+                                nVec: 6,
+                                })}>
+                                vector field<M>\mathbf F(x,y,z)</M>
+                            </DropdownItem>
+                            <DropdownItem on:click={() => upBox("box")}>
+                                random box
+                            </DropdownItem>
+                        </DropdownMenu>
+                    </ButtonDropdown>
                 </div>
-                <button class="btn btn-sm" on:click={blowUpBoxes}>
+                <button class="btn btn-secondary" on:click={blowUpBoxes}>
                     <i class="fa fa-trash" />
                 </button>
 
@@ -773,52 +789,9 @@
              gap: 0.25em;
          }
 
-         .dropbtn {
-             background-color: #aaa;
-             color: white;
-             padding: 3px 10px;
-             font-size: 1em;
-             border: none;
-         }
-
          .dropdown {
              position: relative;
              display: inline-block;
-         }
-
-         .dropdown-content {
-             display: none;
-             position: absolute;
-             background-color: #f1f1f1;
-             min-width: 160px;
-             box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
-             z-index: 1;
-         }
-
-         /* .dropdown-content a {
-  color: black;
-  padding: 12px 16px;
-  text-decoration: none;
-  display: block;
-} */
-         .dropdown-content span {
-             color: black;
-             padding: 12px 16px;
-             text-decoration: none;
-             display: block;
-         }
-
-         /* .dropdown-content a:hover {background-color: #ddd;} */
-         .dropdown-content span:hover {
-             background-color: #f77;
-         }
-
-         .dropdown:hover .dropdown-content {
-             display: block;
-         }
-
-         .dropdown:hover .dropbtn {
-             background-color: #3e8e41;
          }
 
          .object-box-title {
