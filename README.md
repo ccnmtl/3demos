@@ -7,10 +7,10 @@ This project comprises of two main parts:
 * Django back-end.
   Django Channels server for mathplayground. Structure based on:
   https://channels.readthedocs.io/en/latest/tutorial/index.html All
-  Django code is in the `/mathplayground` directory.
+  Django code is in the `mathplayground/` directory.
 * Front-end using [Svelte](https://svelte.dev/) and
   [three.js](https://threejs.org/). The main JavaScript code can be
-  found in `/media/src`.
+  found in `media/src/`.
 
 ## Start-up steps:
 Install [Redis](https://redis.io/) and start the redis service.
