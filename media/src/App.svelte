@@ -312,11 +312,13 @@
     const upBox = (thing="box", params=null) => {
         const newBox = { id: uuidv4(), kind: thing, params: params };
 
-        socket.send(JSON.stringify({
-            'message': {
-                newBox: newBox
-            }
-        }));
+        if (socket) {
+            socket.send(JSON.stringify({
+                'message': {
+                    newBox: newBox
+                }
+            }));
+        }
 
         boxes = [...boxes, newBox];
     };
