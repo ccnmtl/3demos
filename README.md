@@ -21,8 +21,9 @@ make runserver
 ```
 
 ### Svelte application
-To make changes in the svelte application in `media/src/`, you can
-run the rollup build via npm like this:
+To make changes in the svelte application in `media/src/`, first install the
+node dependencies with `npm install`. Then you can run the rollup build via 
+npm like this:
 ```
 npm run dev
 ```
