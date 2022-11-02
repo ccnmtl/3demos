@@ -19,3 +19,14 @@ Start django server:
 ```
 make runserver
 ```
+
+### Svelte application
+To make changes in the svelte application in `media/src/`, you can
+run the rollup build via npm like this:
+```
+npm run dev
+```
+
+Or, make a one-time production build of the applcation with `npm run build`.
+
+Both of these commands will update the compiled JS at `media/mathplayground/build/`.
