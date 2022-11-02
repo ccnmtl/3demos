@@ -60,7 +60,7 @@
                     dt /
                     (math.parse(params.b).evaluate() - math.parse(params.a).evaluate());
             } catch (e) {
-                console.log("update parse error", e);
+                console.error('update parse error', e);
             }
         }
         params.tau %= 1;
@@ -73,8 +73,6 @@
     let hidden = false;
     let stopButton, rewButton;
     const goodParams = {};
-
-    // console.log("curve color", color);
 
     const curveMaterial = new THREE.MeshPhongMaterial({
         color: params.color,
@@ -115,7 +113,6 @@
             goodParams["y"] = Y.compile();
             goodParams["z"] = Z.compile();
         } catch (e) {
-            console.log("Parse error", e);
             animation = false;
             return;
         }
@@ -126,7 +123,6 @@
                   Y.evaluate({ t: t }),
                   Z.evaluate({ t: t })
               );
-        // console.log(a.evaluate(), r(0.5));
 
         let path = new ParametricCurve(1, r, A, B);
         let geometry = new THREE.TubeGeometry(
@@ -157,7 +153,7 @@
 
             return (Math.round(100 * t) / 100).toString();
         } catch (e) {
-            console.log(e);
+            console.error(e);
             return '';
         }
     }
@@ -446,7 +442,6 @@
             </button>
             <button
                 on:click={() => {
-                console.log("rew clicked");
                 // animation = false;
                 // flowArrows.visible = false;
                 // freeTrails();

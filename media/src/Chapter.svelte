@@ -34,25 +34,6 @@
 
     let nSteps=1;
 
-    // let s = String.raw`with some <M> \iint_{\partial{\Sigma }} \mathbb F \cdot d\vec S</M> in it.`
-    // console.log(s.replace(/(<\s*M\s*>.*?){(.*<\s*\/\s*M\s*>)/g, '$1 &lbrace; $2'));
-    // s.replace(/(<Md?>)(.*?)(<\/Md?>)/g,(match,p1,p2,p3) => {
-    //     console.log(p1 + p2.split('').map(i => {
-    //         switch (i) {
-    //             case '{':
-    //                 return '&lbrace;';
-    //                 break;
-    //             case '}':
-    //                 return '&rbrace;';
-    //                 break;
-
-    //             default:
-    //                 return i;
-    //                 break;
-    //         }
-    //     }).join('') + p3)
-    // });
-
     let hidden = false;
 
     const toggleHidden = function() {

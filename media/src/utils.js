@@ -661,7 +661,6 @@ export function colorBufferVertices(mesh, f) {
     let colors = [];
     let vec = new THREE.Vector3();
     const points = mesh.geometry.attributes.position.array;
-    // console.log("=======");
     for (let i = 0; i < points.length; i += 3) {
         vec.set(points[i], points[i + 1], points[i + 2]);
         let { x, y, z } = mesh.localToWorld(vec);
@@ -704,12 +703,6 @@ export function addColorBar(vMin = -1, vMax = 1) {
     canvas.width = container.clientWidth / 2;
     canvas.height = container.clientHeight;
     canvas.style.height = "100%";
-    console.log(
-        container.clientHeight,
-        canvas.height,
-        canvas.width,
-        canvas.style.height
-    );
 
     const labels = document.createElement("div");
     labels.classList.add("colorBarTextContainer");
@@ -1058,7 +1051,6 @@ class ArrowBufferGeometry extends THREE.BufferGeometry {
     adjustHeight(newHeight) {
         const points = this.attributes.position.array;
         const oldHeight = points[56];
-        // console.log(newHeight, oldHeight);
 
         let index = 0;
         for (let i = 0; i < points.length / 3; i++) {
@@ -1079,7 +1071,6 @@ class ArrowBufferGeometry extends THREE.BufferGeometry {
 function adjustArrowHeight(geometry, newHeight) {
     const points = geometry.attributes.position.array;
     const oldHeight = points[56];
-    // console.log(newHeight, oldHeight);
 
     let index = 0;
     for (let i = 0; i < points.length / 3; i++) {
@@ -1156,7 +1147,6 @@ function drawAxes({
     gridStep = 0.1,
     axesMaterial = new THREE.MeshLambertMaterial({ color: 0x000000 }),
 } = {}) {
-    console.log(" invoke stuff ", gridMax, gridStep);
     const axesHolder = new THREE.Object3D();
     const axisGeometry = new ArrowBufferGeometry({
         radiusTop: gridStep / 9,
@@ -1285,13 +1275,11 @@ function labelAxes({
             }
         },
         // onProgress callback
-        function (xhr) {
-            console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
-        },
+        function () {},
 
         // onError callback
         function (e) {
-            console.log('Font loading error:', e);
+            console.error('Font loading error:', e);
         }
     );
     return [axesText, font];
@@ -1339,7 +1327,6 @@ const gaussLegendre = (fn, a, b, n) => {
             .reduce((sum, item) => sum + item, 0)
     );
 };
-// console.log(gaussLegendre(x => Math.exp(x), -3, 3, 5));
 
 // Runge-Kutta method
 function rk4(x, y, z, F, dt) {

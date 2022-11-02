@@ -215,7 +215,6 @@
         // camera.position.x = Math.sin(camera.position.y * (Math.PI / 2));
 
         controls.update();
-        //   console.log(camera.position.x)
         composer.render(scene, camera);
         if (debug) {
             stats.end();
@@ -229,7 +228,6 @@
             frameRequested = false;
             animating = false;
             last = false;
-            console.log("Anime stopped.");
         }
     };
 
@@ -324,7 +322,6 @@
     };
 
     const renderBox = (uuid='my-uuid', thing="box", params=null) => {
-        console.log('renderBox');
         const newBox = { id: uuid, kind: thing, params: params };
         boxes = [...boxes, newBox];
     };
@@ -359,18 +356,15 @@
             }
         });
         const urlParams = new URLSearchParams(flattenedBoxes);
-        console.log("boxes", boxes, "paramstring: ", urlParams.toString());
         window.location.search = urlParams.toString();
     }
 
     onMount(() => {
         createScene(canvas);
         const urlParams = new URLSearchParams(location.search);
-        // console.log(urlParams.keys() ? true : false);
         if (urlParams.keys()) {
             const boxHolder = {};
             urlParams.forEach((val, key) => {
-                // console.log(key, val);
                 // This is bad and stupid, and hopefully it will be done better.
                 // make a viewStatus object, maybe?
                 if (key === "currentChapter") {
@@ -381,13 +375,11 @@
                 }
                 if (key === "grid") {
                     gridMeshes.visible = val === "true";
-                    // console.log(gridMeshes, "grid", val);
                 }
                 if (key === "flipInfo") {
                     flipInfo = val;
                 }
                 if (key.slice(0, 3) === "obj") {
-                    // console.log(key.split("_"));
                     const keyParts = key.split("_");
                     if (keyParts[1] === "kind") {
                         boxHolder[keyParts[0]] = { kind: val, params: {} };
@@ -414,7 +406,6 @@
     let currentChapter = "Intro";
 
     const handleSocketMessage = function(e) {
-        console.log('handleSocketMessage', e);
         const data = JSON.parse(e.data);
         if (data.message && data.message.newBox) {
             const newBox = data.message.newBox
