@@ -33,7 +33,6 @@
 
     const clickMakePoll = function(e) {
         e.preventDefault();
-        console.log('clickMakePoll', e);
 
         const poll = makePoll(polls, 0, 'hi', null);
         polls = [...polls, poll];

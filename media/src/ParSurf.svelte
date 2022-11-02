@@ -244,8 +244,6 @@
 
     }
 
-    console.log(scene);
-
     onMount(updateSurface);
     onDestroy(() => {
         for (const child of surfaceMesh.children) {

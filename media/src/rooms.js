@@ -31,8 +31,6 @@ const makePoll = function(polls, type=0, prompt='', choices=null) {
         choices: choices
     };
 
-    console.log('polls', polls);
-
     return poll;
 };
 

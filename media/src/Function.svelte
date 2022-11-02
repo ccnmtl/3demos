@@ -94,7 +94,6 @@
         pointMaterial
     );
     point.position.set(1, 1, 1);
-    console.log(point.position);
     const arrows = {
         u: new THREE.Mesh(),
         v: new THREE.Mesh(),
@@ -181,12 +180,6 @@
                     height: 1,
                 });
             }
-            // const arrpts = arrows[key].geometry.attributes.position.array;
-            // console.log("arrow pts", arrpts.length)
-            // for (let j = 0; j < arrpts.length; j += 3) {
-            //   console.log( "row ", j, arrpts.slice(j,j+3))
-            // }
-            // arrows[key].position.set(x, y, z);
         }
 
         // tangent plane
@@ -406,7 +399,7 @@
         try {
             Z = math.parse(params.z).compile();
         } catch (error) {
-            console.log("evolve error", error);
+            console.error('evolve error', error);
             return;
         }
         boxMesh.visible = false;
@@ -487,7 +480,6 @@
         const col = new THREE.Color(params.color);
         const hsl = {};
         col.getHSL(hsl);
-        // console.log(hsl);
         hsl.h = (hsl.h + 0.618033988749895) % 1;
         // col.setHSL(hsl)
         minusMaterial.color.setHSL(hsl.h, hsl.s, hsl.l);
@@ -511,7 +503,6 @@
             data.shiftLevel = Math.max(0, Math.min(3, newLevel));
             changeLevels(data.shiftLevel);
         } else {
-            console.log("Made it ", data.shiftLevel);
             if (data.shiftLevel === 3) {
                 arrows.u.visible = false;
                 arrows.v.visible = false;
@@ -588,8 +579,6 @@
                 nX: data.nX,
                 nY: data.nX,
             });
-
-            // console.log(lev, points[2]);
 
             if (points.length > 1) {
                 const levelGeometry = new THREE.BufferGeometry();
@@ -703,14 +692,12 @@
 
         if (intersects.length > 0) {
             const intersect = intersects[0];
-            // console.log(intersect.uv);
             point.position.x = intersect.point.x;
             point.position.y = intersect.point.y;
             point.position.z = intersect.point.z;
 
             tangentVectors();
 
-            // console.log(u, v, mouseVector);
             render();
         }
     }
@@ -739,7 +726,6 @@
                         point.position.y,
                         point.position.z
                     );
-                    // console.log("saw", point.position);
                     render();
                     break;
                 case "Backspace":
@@ -956,7 +942,6 @@
                     // animation = !animation;
                     if (data.animateTime) {
                     animation = true;
-                    console.log("gogoggo");
                     dispatch("animate");
                     }
                     }}
@@ -979,7 +964,6 @@
                 </button>
                 <button
                     on:click={() => {
-                    // console.log("rew clicked");
                     data.tau = 0;
                     evolveSurface(params.t0);
                     }}

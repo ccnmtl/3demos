@@ -105,7 +105,6 @@
 
         mesh.visible = true;
 
-        // console.log(xpts.length, " Points starting with ", xpts[0]);
         {
             xTraceGeometry.setAttribute(
                 "position",
@@ -261,8 +260,6 @@
                 N: 2,
             });
 
-            // console.log(tangentPlaneGeometry);
-
             planeShard.geometry = tangentPlaneGeometry;
         }
     }
@@ -285,14 +282,12 @@
 
         if (intersects.length > 0) {
             const intersect = intersects[0];
-            // console.log(intersect.uv);
             point.position.x = intersect.point.x;
             point.position.y = intersect.point.y;
             point.position.z = intersect.point.z;
 
             tangentVectors({ point });
 
-            // console.log(u, v, mouseVector);
             render();
         }
     }
@@ -312,7 +307,6 @@
                         point.position.y,
                         point.position.z
                     );
-                    // console.log("saw", point.position);
                     render();
                     break;
                 case "t":

@@ -105,7 +105,6 @@
             }
             i += 1;
         }
-        console.log("index is", i, total);
     }
 
     // Make a fixed set of different arrow lengths instead of regenerating each time.
@@ -380,7 +379,6 @@
         </button>
         <button
             on:click={() => {
-            console.log("stop clicked");
             animation = false;
             flowArrows.visible = false;
             freeTrails();
@@ -395,7 +393,6 @@
         </button>
         <button
             on:click={() => {
-            console.log("rew clicked");
             // animation = false;
             // flowArrows.visible = false;
             // freeTrails();

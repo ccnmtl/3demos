@@ -63,7 +63,6 @@
               .map((item) => item.evaluate());
 
         const v = new THREE.Vector3(A, B, C);
-        // console.log(a.evaluate(), r(0.5));
 
         let geometry = new ArrowBufferGeometry({
             ...arrowArgs,
@@ -80,7 +79,6 @@
         }
         arrow.position.set(X, Y, Z);
 
-        // console.log(arrow.position, v);
         arrow.lookAt(v.add(arrow.position));
 
         render();
