@@ -13,7 +13,7 @@ const production = !process.env.ROLLUP_WATCH;
 export default {
     input: "media/src/main.js",
     output: {
-        sourcemap: true,
+        sourcemap: false,
         format: "iife",
         name: "app",
         file: "media/mathplayground/build/bundle.js",
