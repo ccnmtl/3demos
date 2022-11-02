@@ -55,11 +55,6 @@ class RoomTests(ChannelsLiveServerTestCase):
             self._enter_room(1)
 
             self._switch_to_window(0)
-
-            WebDriverWait(self.driver, 2).until(
-                lambda _:
-                'Room 1' == self._page_title_value,
-                'Room not titled Room 1')
         finally:
             self._close_all_new_windows()
 
@@ -72,11 +67,6 @@ class RoomTests(ChannelsLiveServerTestCase):
 
             self._open_new_window()
             self._enter_room(2)
-
-            WebDriverWait(self.driver, 2).until(
-                lambda _:
-                'Room 2' == self._page_title_value,
-                'Room not titled Room 2')
         finally:
             self._close_all_new_windows()
 
