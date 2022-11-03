@@ -141,3 +141,11 @@ STATSD_HOST = 'localhost'
 STATSD_PORT = 8125
 
 GRAPHITE_BASE = 'https://graphite.ctl.columbia.edu/render/'
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+        'LOCATION': 'redis://127.0.0.1:6379',
+    }
+}
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
