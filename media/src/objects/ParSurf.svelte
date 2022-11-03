@@ -1,6 +1,6 @@
 <script>
     import {onMount, onDestroy} from 'svelte';
-    import M from "./M.svelte";
+    import M from "../M.svelte";
 
     import * as THREE from "three";
 
@@ -11,7 +11,7 @@
 
     import {
         lcm, marchingSegments, ParametricGeometry
-    } from "./utils.js";
+    } from "../utils.js";
 
     export let params = {
         a: "-2",

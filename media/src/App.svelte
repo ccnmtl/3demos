@@ -16,13 +16,13 @@
 
     // import components
     import M from "./M.svelte";
-    import Box from "./Box.svelte";
-    import ParSurf from "./ParSurf.svelte";
-    import Level from "./Level.svelte";
-    import Curve from "./Curve.svelte";
-    import Field from "./Field.svelte";
-    import Function from "./Function.svelte";
-    import Vector from "./Vector.svelte";
+    import Box from "./objects/Box.svelte";
+    import ParSurf from "./objects/ParSurf.svelte";
+    import Level from "./objects/Level.svelte";
+    import Curve from "./objects/Curve.svelte";
+    import Field from "./objects/Field.svelte";
+    import Function from "./objects/Function.svelte";
+    import Vector from "./objects/Vector.svelte";
     import Settings from "./Settings.svelte";
     import { onMount } from "svelte";
     import { slide } from "svelte/transition";
@@ -199,7 +199,7 @@
         const dt = (time - last) / 1000;
         last = time;
 
-        for (const b of boxes.filter((b) => b.animation)) {
+        for (const b of objects.filter((b) => b.animation)) {
             b.update(dt);
         }
 
@@ -214,7 +214,7 @@
         if (debug) {
             stats.end();
         }
-        if (scaleAnimation || boxes.some((b) => b.animation)) {
+        if (scaleAnimation || objects.some((b) => b.animation)) {
             myReq = requestAnimationFrame(animate);
             frameRequested = true;
             animating = true;
@@ -285,33 +285,33 @@
         requestFrameIfNotRequested();
     };
 
-    let boxes = [];
+    let objects = [];
 
-    const upBox = (thing="box", params=null) => {
-        const newBox = { id: uuidv4(), kind: thing, params: params };
+    const makeObject = (thing="box", params=null) => {
+        const newObject = { id: uuidv4(), kind: thing, params: params };
 
         if (socket) {
             socket.send(JSON.stringify({
-                'message': {
-                    newBox: newBox
+                message: {
+                    newObject: newObject
                 }
             }));
         }
 
-        boxes = [...boxes, newBox];
+        objects = [...objects, newObject];
     };
 
-    const renderBox = (uuid='my-uuid', thing="box", params=null) => {
-        const newBox = { id: uuid, kind: thing, params: params };
-        boxes = [...boxes, newBox];
+    const renderObject = (uuid='my-uuid', thing="box", params=null) => {
+        const newObject = { id: uuid, kind: thing, params: params };
+        objects = [...objects, newObject];
     };
 
-    const downBox = (id) => {
-        boxes = boxes.filter((b) => b.id !== id);
+    const removeObject = (id) => {
+        objects = objects.filter((b) => b.id !== id);
     };
 
-    const blowUpBoxes = () => {
-        boxes = [];
+    const blowUpObjects = () => {
+        objects = [];
     };
 
     window.addEventListener("resize", () => {
@@ -320,22 +320,22 @@
     });
 
     const makeQueryStringObject = function() {
-        const flattenedBoxes = {
+        const flattenedObjects = {
             currentChapter,
             shadeUp,
             flipInfo,
             grid: gridMeshes.visible,
         };
-        boxes.forEach((box, index) => {
+        objects.forEach((object, index) => {
             const prefix = `obj${index}_`;
-            flattenedBoxes[prefix + "kind"] = box.kind;
-            if (box.params) {
-                for (const [key, value] of Object.entries(box.params)) {
-                    flattenedBoxes[prefix + "params_" + key] = value;
+            flattenedObjects[prefix + "kind"] = object.kind;
+            if (object.params) {
+                for (const [key, value] of Object.entries(object.params)) {
+                    flattenedObjects[prefix + "params_" + key] = value;
                 }
             }
         });
-        const urlParams = new URLSearchParams(flattenedBoxes);
+        const urlParams = new URLSearchParams(flattenedObjects);
         window.location.search = urlParams.toString();
     }
 
@@ -343,7 +343,7 @@
         createScene(canvas);
         const urlParams = new URLSearchParams(location.search);
         if (urlParams.keys()) {
-            const boxHolder = {};
+            const objectHolder = {};
             urlParams.forEach((val, key) => {
                 // This is bad and stupid, and hopefully it will be done better.
                 // make a viewStatus object, maybe?
@@ -362,15 +362,15 @@
                 if (key.slice(0, 3) === "obj") {
                     const keyParts = key.split("_");
                     if (keyParts[1] === "kind") {
-                        boxHolder[keyParts[0]] = { kind: val, params: {} };
+                        objectHolder[keyParts[0]] = { kind: val, params: {} };
                     } else {
-                        boxHolder[keyParts[0]].params[keyParts[2]] = val;
+                        objectHolder[keyParts[0]].params[keyParts[2]] = val;
                     }
                 }
             });
 
-            for (const val of Object.values(boxHolder)) {
-                renderBox(val.id, val.kind, val.params);
+            for (const val of Object.values(objectHolder)) {
+                renderObject(val.id, val.kind, val.params);
             }
         }
     });
@@ -387,9 +387,12 @@
 
     const handleSocketMessage = function(e) {
         const data = JSON.parse(e.data);
-        if (data.message && data.message.newBox) {
-            const newBox = data.message.newBox
-            renderBox(newBox.uuid, newBox.kind, newBox.params);
+        if (data.message && data.message.newObject) {
+            const newObject = data.message.newObject;
+            renderObject(
+                newObject.uuid,
+                newObject.kind,
+                newObject.params);
         }
     };
 
@@ -440,9 +443,9 @@
                 </div>
 
                 {#if currentChapter == "Chapter"}
-                    <Chapter bind:boxes />
+                    <Chapter bind:objects />
                 {:else if currentChapter == "Linear"}
-                    <Linear bind:boxes />
+                    <Linear bind:objects />
                 {:else if currentChapter === "Intro"}
                     <Intro />
                 {/if}
@@ -467,9 +470,6 @@
                         flipInfo = !flipInfo;
                         }}><i class="fa fa-book" /></button>
                 </div>
-                <!-- <input type="number" bind:value={color} /> -->
-
-                <!-- <button on:click={blowUpBoxes}> Clear all </button> -->
 
                 <br />
                 <div class="dropdown">
@@ -479,7 +479,7 @@
                         </DropdownToggle>
                         <DropdownMenu>
                             <DropdownItem on:click={() =>
-                                upBox("vector", {
+                                makeObject("vector", {
                                 a: "0.2",
                                 b: "-0.3",
                                 c: "0",
@@ -492,7 +492,7 @@
                             </DropdownItem>
 
                             <DropdownItem on:click={() =>
-                                upBox("curve", {
+                                makeObject("curve", {
                                 a: "0",
                                 b: "2*pi",
                                 x: "cos(t)",
@@ -504,7 +504,7 @@
                                 space curve <M>\mathbf r(t)</M>
                             </DropdownItem>
                             <DropdownItem on:click={() =>
-                                upBox("graph", {
+                                makeObject("graph", {
                                 a: "-2",
                                 b: "2",
                                 c: "-2",
@@ -520,7 +520,7 @@
                                 graph <M>z = f(x,y)</M>
                             </DropdownItem>
                             <DropdownItem on:click={() =>
-                                upBox("level", {
+                                makeObject("level", {
                                 g: "x^2 + 2 y^2 - z^2",
                                 k: "1",
                                 a: "-2",
@@ -533,7 +533,7 @@
                                 level surface <M>g(x,y,z) = k</M>
                             </DropdownItem>
                             <DropdownItem on:click={() =>
-                                upBox("parsurf", {
+                                makeObject("parsurf", {
                                 a: "0",
                                 b: "2*pi",
                                 c: "0",
@@ -545,7 +545,7 @@
                                 parametric surface <M>\mathbf r(u,v)</M>
                             </DropdownItem>
                             <DropdownItem on:click={() =>
-                                upBox("field", {
+                                makeObject("field", {
                                 p: "x",
                                 q: "y",
                                 r: "-z",
@@ -553,19 +553,19 @@
                                 })}>
                                 vector field<M>\mathbf F(x,y,z)</M>
                             </DropdownItem>
-                            <DropdownItem on:click={() => upBox("box")}>
+                            <DropdownItem on:click={() => makeObject("box")}>
                                 random box
                             </DropdownItem>
                         </DropdownMenu>
                     </ButtonDropdown>
                 </div>
-                <button class="btn btn-secondary" on:click={blowUpBoxes}>
+                <button class="btn btn-secondary" on:click={blowUpObjects}>
                     <i class="fa fa-trash" />
                 </button>
 
                 <div class="objectBoxInner">
                     <!-- <input type="number" bind:value={color} on:change="{changeColor}"> -->
-                    {#each boxes as b (b.id)}
+                    {#each objects as b (b.id)}
                         <div
                             transition:slide={{ delay: 0, duration: 300, easing: quintOut }}
                             >
@@ -575,7 +575,7 @@
                                     {scene}
                                     render={requestFrameIfNotRequested}
                                     params={b.params}
-                                    onClose={() => downBox(b.id)}
+                                    onClose={() => removeObject(b.id)}
                                     bind:update={b.update}
                                     bind:animation={b.animation}
                                     />
@@ -586,7 +586,7 @@
                                         {controls}
                                         render={requestFrameIfNotRequested}
                                         params={b.params}
-                                        onClose={() => downBox(b.id)}
+                                        onClose={() => removeObject(b.id)}
                                         bind:shadeUp
                                         bind:update={b.update}
                                         bind:animation={b.animation}
@@ -599,7 +599,7 @@
                                             camera={currentCamera}
                                             {controls}
                                             render={requestFrameIfNotRequested}
-                                            onClose={() => downBox(b.id)}
+                                            onClose={() => removeObject(b.id)}
                                             params={b.params}
                                             bind:shadeUp
                                             bind:update={b.update}
@@ -611,7 +611,7 @@
                                             <Box
                                                 {scene}
                                                 render={requestFrameIfNotRequested}
-                                                onClose={() => downBox(b.id)}
+                                                onClose={() => removeObject(b.id)}
                                                 bind:update={b.update}
                                                 bind:animation={b.animation}
                                                 on:animate={animateIfNotAnimating}
@@ -620,7 +620,7 @@
                                                 <Curve
                                                     {scene}
                                                     render={requestFrameIfNotRequested}
-                                                    onClose={() => downBox(b.id)}
+                                                    onClose={() => removeObject(b.id)}
                                                     params={b.params}
                                                     bind:update={b.update}
                                                     bind:animation={b.animation}
@@ -631,7 +631,7 @@
                                                     <Field
                                                         {scene}
                                                         render={requestFrameIfNotRequested}
-                                                        onClose={() => downBox(b.id)}
+                                                        onClose={() => removeObject(b.id)}
                                                         bind:update={b.update}
                                                         bind:animation={b.animation}
                                                         on:animate={animateIfNotAnimating}
@@ -643,7 +643,7 @@
                                                         <Vector
                                                             {scene}
                                                             render={requestFrameIfNotRequested}
-                                                            onClose={() => downBox(b.id)}
+                                                            onClose={() => removeObject(b.id)}
                                                             params={b.params}
                                                             {gridStep}
                                                             {gridMax}
