@@ -4,7 +4,6 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 
 class RoomsConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        print('rooms connect!')
         self.room_id = self.scope['url_route']['kwargs']['room_id']
         self.room_group_name = 'room_%s' % self.room_id
 
@@ -25,6 +24,7 @@ class RoomsConsumer(AsyncWebsocketConsumer):
 
     # Receive message from WebSocket
     async def receive(self, text_data):
+        session = self.scope['session']
         text_data_json = json.loads(text_data)
         message = text_data_json['message']
 
@@ -33,13 +33,19 @@ class RoomsConsumer(AsyncWebsocketConsumer):
             self.room_group_name,
             {
                 'type': 'chat_message',
-                'message': message
+                'message': message,
+                'session_key': session.session_key,
             }
         )
 
     # Receive message from room group
     async def chat_message(self, event):
         message = event['message']
+        session = self.scope['session']
+
+        # Don't send events to myself.
+        if event.get('session_key') == session.session_key:
+            return
 
         # Send message to WebSocket
         await self.send(text_data=json.dumps({
