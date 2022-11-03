@@ -1,6 +1,6 @@
 <script>
     import { onMount, onDestroy } from "svelte";
-    import M from "./M.svelte";
+    import M from "../M.svelte";
 
     import * as THREE from "three";
 
@@ -8,7 +8,7 @@
 
     import {
         ArrowBufferGeometry
-    } from "./utils.js";
+    } from "../utils.js";
 
     const config = {};
     const math = create(all, config);

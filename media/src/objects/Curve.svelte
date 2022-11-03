@@ -1,7 +1,7 @@
 <script>
     import { onMount, onDestroy, createEventDispatcher } from "svelte";
     import katex from 'katex';
-    import M from "./M.svelte";
+    import M from "../M.svelte";
 
     import * as THREE from "three";
 
@@ -10,7 +10,7 @@
     import {
         ArrowBufferGeometry,
         ParametricCurve,
-    } from "./utils.js";
+    } from "../utils.js";
 
     const config = {};
     const math = create(all, config);

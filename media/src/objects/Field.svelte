@@ -1,6 +1,6 @@
 <script>
     import { onMount, onDestroy, createEventDispatcher } from "svelte";
-    import M from "./M.svelte";
+    import M from "../M.svelte";
 
     import * as THREE from "three";
 
@@ -10,7 +10,7 @@
         ArrowBufferGeometry,
         rk4,
         norm1,
-    } from "./utils.js";
+    } from "../utils.js";
 
     const config = {};
     const math = create(all, config);

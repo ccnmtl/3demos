@@ -3,7 +3,7 @@
     import {ParametricGeometry} from 'three/examples/jsm/geometries/ParametricGeometry.js';
 
     // import { fly, fade } from "svelte/transition";
-    import M from "./M.svelte";
+    import M from "../M.svelte";
 
     import * as THREE from "three";
 
@@ -20,7 +20,7 @@
         marchingSquares,
         ArrowBufferGeometry,
         blockGeometry,
-    } from "./utils.js";
+    } from "../utils.js";
 
     export let camera,
     controls,

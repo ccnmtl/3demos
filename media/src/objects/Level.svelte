@@ -1,6 +1,6 @@
 <script>
     import { onDestroy } from "svelte";
-    import M from "./M.svelte";
+    import M from "../M.svelte";
 
     import * as THREE from "three";
 
@@ -14,7 +14,7 @@
         createWorker,
         marchingCubes,
         ArrowBufferGeometry
-    } from "./utils.js";
+    } from "../utils.js";
 
     // const config = {};
     // const math = create(all, config);
