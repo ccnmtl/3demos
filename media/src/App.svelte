@@ -1,6 +1,6 @@
 <script>
-    import * as THREE from "three";
-    import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
     import {FontLoader} from 'three/examples/jsm/loaders/FontLoader.js';
     import {TextGeometry} from 'three/examples/jsm/geometries/TextGeometry.js';
 
@@ -11,27 +11,24 @@
         DropdownToggle
     } from 'sveltestrap';
 
-    import { v4 as uuidv4 } from "uuid";
-    // import katex from "katex";
-
     // import components
-    import M from "./M.svelte";
-    import Box from "./objects/Box.svelte";
-    import ParSurf from "./objects/ParSurf.svelte";
-    import Level from "./objects/Level.svelte";
-    import Curve from "./objects/Curve.svelte";
-    import Field from "./objects/Field.svelte";
-    import Function from "./objects/Function.svelte";
-    import Vector from "./objects/Vector.svelte";
-    import Settings from "./Settings.svelte";
-    import { onMount } from "svelte";
-    import { slide } from "svelte/transition";
-    import { quintOut } from "svelte/easing";
-    import Stats from "stats.js";
+    import M from './M.svelte';
+    import Box from './objects/Box.svelte';
+    import ParSurf from './objects/ParSurf.svelte';
+    import Level from './objects/Level.svelte';
+    import Curve from './objects/Curve.svelte';
+    import Field from './objects/Field.svelte';
+    import Function from './objects/Function.svelte';
+    import Vector from './objects/Vector.svelte';
+    import Settings from './Settings.svelte';
+    import { onMount } from 'svelte';
+    import { slide } from 'svelte/transition';
+    import { quintOut } from 'svelte/easing';
+    import Stats from 'stats.js';
 
-    import Linear from "./Linear.svelte";
-    import Chapter from "./Chapter.svelte";
-    import Intro from "./Intro.svelte";
+    import Linear from './Linear.svelte';
+    import Chapter from './Chapter.svelte';
+    import Intro from './Intro.svelte';
 
     import {getRoomId, makeSocket} from './rooms';
     import {
@@ -39,7 +36,8 @@
         drawGrid,
         labelAxes,
         makeHSLColor,
-    } from "./utils";
+    } from './utils';
+    import {makeObject, removeObject} from './sceneUtils';
 
     let debug = false,
         stats;
@@ -287,29 +285,6 @@
 
     let objects = [];
 
-    const makeObject = (thing="box", params=null) => {
-        const newObject = { id: uuidv4(), kind: thing, params: params };
-
-        if (socket) {
-            socket.send(JSON.stringify({
-                message: {
-                    newObject: newObject
-                }
-            }));
-        }
-
-        objects = [...objects, newObject];
-    };
-
-    const renderObject = (uuid='my-uuid', thing="box", params=null) => {
-        const newObject = { id: uuid, kind: thing, params: params };
-        objects = [...objects, newObject];
-    };
-
-    const removeObject = (id) => {
-        objects = objects.filter((b) => b.id !== id);
-    };
-
     const blowUpObjects = () => {
         objects = [];
     };
@@ -370,7 +345,8 @@
             });
 
             for (const val of Object.values(objectHolder)) {
-                renderObject(val.id, val.kind, val.params);
+                objects = makeObject(
+                    val.id, val.kind, val.params, objects);
             }
         }
     });
@@ -389,10 +365,11 @@
         const data = JSON.parse(e.data);
         if (data.message && data.message.newObject) {
             const newObject = data.message.newObject;
-            renderObject(
+            objects = makeObject(
                 newObject.uuid,
                 newObject.kind,
-                newObject.params);
+                newObject.params,
+                objects);
         }
     };
 
@@ -479,7 +456,7 @@
                         </DropdownToggle>
                         <DropdownMenu>
                             <DropdownItem on:click={() =>
-                                makeObject("vector", {
+                                objects = makeObject(null, "vector", {
                                 a: "0.2",
                                 b: "-0.3",
                                 c: "0",
@@ -487,12 +464,12 @@
                                 y: "0",
                                 z: "0",
                                 show: true,
-                                })}>
+                                }, objects, socket)}>
                                 vector <M>\mathbf v = \langle a, b, c \rangle</M>
                             </DropdownItem>
 
                             <DropdownItem on:click={() =>
-                                makeObject("curve", {
+                                objects = makeObject(null, "curve", {
                                 a: "0",
                                 b: "2*pi",
                                 x: "cos(t)",
@@ -500,11 +477,11 @@
                                 z: `cos(${Math.ceil(10 * Math.random()).toString()}*t)`,
                                 tau: 0,
                                 color: `#${makeHSLColor(Math.random()).getHexString()}`,
-                                })}>
+                                }, objects, socket)}>
                                 space curve <M>\mathbf r(t)</M>
                             </DropdownItem>
                             <DropdownItem on:click={() =>
-                                makeObject("graph", {
+                                objects = makeObject(null, "graph", {
                                 a: "-2",
                                 b: "2",
                                 c: "-2",
@@ -516,11 +493,11 @@
                                 ).toString()}*y)/(1 + x^2 + y^2)`,
                                 tau: 0,
                                 // color: "#3232ff",
-                                })}>
+                                }, objects, socket)}>
                                 graph <M>z = f(x,y)</M>
                             </DropdownItem>
                             <DropdownItem on:click={() =>
-                                makeObject("level", {
+                                objects = makeObject(null, "level", {
                                 g: "x^2 + 2 y^2 - z^2",
                                 k: "1",
                                 a: "-2",
@@ -529,11 +506,11 @@
                                 d: "2",
                                 e: "-2",
                                 f: "2",
-                                })}>
+                                }, objects, socket)}>
                                 level surface <M>g(x,y,z) = k</M>
                             </DropdownItem>
                             <DropdownItem on:click={() =>
-                                makeObject("parsurf", {
+                                objects = makeObject(null, "parsurf", {
                                 a: "0",
                                 b: "2*pi",
                                 c: "0",
@@ -541,19 +518,20 @@
                                 x: "cos(u)*(1 + sin(v)/3)",
                                 y: "sin(u)*(1 + sin(v)/3)",
                                 z: "cos(v)/3",
-                                })}>
+                                }, objects, socket)}>
                                 parametric surface <M>\mathbf r(u,v)</M>
                             </DropdownItem>
                             <DropdownItem on:click={() =>
-                                makeObject("field", {
+                                objects = makeObject(null, "field", {
                                 p: "x",
                                 q: "y",
                                 r: "-z",
                                 nVec: 6,
-                                })}>
+                                }, objects, socket)}>
                                 vector field<M>\mathbf F(x,y,z)</M>
                             </DropdownItem>
-                            <DropdownItem on:click={() => makeObject("box")}>
+                            <DropdownItem on:click={() =>
+                                objects = makeObject(null, "box", null, objects, socket)}>
                                 random box
                             </DropdownItem>
                         </DropdownMenu>
@@ -575,7 +553,7 @@
                                     {scene}
                                     render={requestFrameIfNotRequested}
                                     params={b.params}
-                                    onClose={() => removeObject(b.id)}
+                                    onClose={() => objects = removeObject(b.id, objects)}
                                     bind:update={b.update}
                                     bind:animation={b.animation}
                                     />
@@ -586,7 +564,7 @@
                                         {controls}
                                         render={requestFrameIfNotRequested}
                                         params={b.params}
-                                        onClose={() => removeObject(b.id)}
+                                        onClose={() => objects = removeObject(b.id, objects)}
                                         bind:shadeUp
                                         bind:update={b.update}
                                         bind:animation={b.animation}
@@ -599,7 +577,7 @@
                                             camera={currentCamera}
                                             {controls}
                                             render={requestFrameIfNotRequested}
-                                            onClose={() => removeObject(b.id)}
+                                            onClose={() => objects = removeObject(b.id, objects)}
                                             params={b.params}
                                             bind:shadeUp
                                             bind:update={b.update}
@@ -611,7 +589,7 @@
                                             <Box
                                                 {scene}
                                                 render={requestFrameIfNotRequested}
-                                                onClose={() => removeObject(b.id)}
+                                                onClose={() => objects = removeObject(b.id, objects)}
                                                 bind:update={b.update}
                                                 bind:animation={b.animation}
                                                 on:animate={animateIfNotAnimating}
@@ -620,7 +598,7 @@
                                                 <Curve
                                                     {scene}
                                                     render={requestFrameIfNotRequested}
-                                                    onClose={() => removeObject(b.id)}
+                                                    onClose={() => objects = removeObject(b.id, objects)}
                                                     params={b.params}
                                                     bind:update={b.update}
                                                     bind:animation={b.animation}
@@ -631,7 +609,7 @@
                                                     <Field
                                                         {scene}
                                                         render={requestFrameIfNotRequested}
-                                                        onClose={() => removeObject(b.id)}
+                                                        onClose={() => objects = removeObject(b.id, objects)}
                                                         bind:update={b.update}
                                                         bind:animation={b.animation}
                                                         on:animate={animateIfNotAnimating}
@@ -643,7 +621,7 @@
                                                         <Vector
                                                             {scene}
                                                             render={requestFrameIfNotRequested}
-                                                            onClose={() => removeObject(b.id)}
+                                                            onClose={() => objects = removeObject(b.id, objects)}
                                                             params={b.params}
                                                             {gridStep}
                                                             {gridMax}
