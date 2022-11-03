@@ -12,7 +12,7 @@ const makeObject = (
         uuid = uuidv4();
     }
 
-    const newObject = { id: uuid, kind: thing, params: params };
+    const newObject = { uuid: uuid, kind: thing, params: params };
 
     if (socket) {
         socket.send(JSON.stringify({
@@ -25,8 +25,23 @@ const makeObject = (
     return [...objects, newObject];
 };
 
-const removeObject = (id, objects) => {
-    return objects.filter((b) => b.id !== id);
+/**
+ * Remove the object with the given ID from the scene.
+ *
+ * Returns a new objects array.
+ */
+const removeObject = (uuid, objects, socket=null) => {
+    if (socket) {
+        socket.send(JSON.stringify({
+            message: {
+                removeObject: {
+                    uuid: uuid
+                }
+            }
+        }));
+    }
+
+    return objects.filter((b) => b.uuid !== uuid);
 };
 
 export {

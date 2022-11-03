@@ -346,7 +346,7 @@
 
             for (const val of Object.values(objectHolder)) {
                 objects = makeObject(
-                    val.id, val.kind, val.params, objects);
+                    val.uuid, val.kind, val.params, objects);
             }
         }
     });
@@ -363,13 +363,19 @@
 
     const handleSocketMessage = function(e) {
         const data = JSON.parse(e.data);
-        if (data.message && data.message.newObject) {
-            const newObject = data.message.newObject;
-            objects = makeObject(
-                newObject.uuid,
-                newObject.kind,
-                newObject.params,
-                objects);
+
+        if (data.message) {
+            if (data.message.newObject) {
+                const newObject = data.message.newObject;
+                objects = makeObject(
+                    newObject.uuid,
+                    newObject.kind,
+                    newObject.params,
+                    objects);
+            } else if (data.message.removeObject) {
+                objects = removeObject(
+                    data.message.removeObject.uuid, objects);
+            }
         }
     };
 
@@ -543,7 +549,7 @@
 
                 <div class="objectBoxInner">
                     <!-- <input type="number" bind:value={color} on:change="{changeColor}"> -->
-                    {#each objects as b (b.id)}
+                    {#each objects as b}
                         <div
                             transition:slide={{ delay: 0, duration: 300, easing: quintOut }}
                             >
@@ -553,7 +559,7 @@
                                     {scene}
                                     render={requestFrameIfNotRequested}
                                     params={b.params}
-                                    onClose={() => objects = removeObject(b.id, objects)}
+                                    onClose={() => objects = removeObject(b.uuid, objects, socket)}
                                     bind:update={b.update}
                                     bind:animation={b.animation}
                                     />
@@ -564,7 +570,7 @@
                                         {controls}
                                         render={requestFrameIfNotRequested}
                                         params={b.params}
-                                        onClose={() => objects = removeObject(b.id, objects)}
+                                        onClose={() => objects = removeObject(b.uuid, objects, socket)}
                                         bind:shadeUp
                                         bind:update={b.update}
                                         bind:animation={b.animation}
@@ -577,7 +583,7 @@
                                             camera={currentCamera}
                                             {controls}
                                             render={requestFrameIfNotRequested}
-                                            onClose={() => objects = removeObject(b.id, objects)}
+                                            onClose={() => objects = removeObject(b.uuid, objects, socket)}
                                             params={b.params}
                                             bind:shadeUp
                                             bind:update={b.update}
@@ -589,7 +595,7 @@
                                             <Box
                                                 {scene}
                                                 render={requestFrameIfNotRequested}
-                                                onClose={() => objects = removeObject(b.id, objects)}
+                                                onClose={() => objects = removeObject(b.uuid, objects, socket)}
                                                 bind:update={b.update}
                                                 bind:animation={b.animation}
                                                 on:animate={animateIfNotAnimating}
@@ -598,7 +604,7 @@
                                                 <Curve
                                                     {scene}
                                                     render={requestFrameIfNotRequested}
-                                                    onClose={() => objects = removeObject(b.id, objects)}
+                                                    onClose={() => objects = removeObject(b.uuid, objects, socket)}
                                                     params={b.params}
                                                     bind:update={b.update}
                                                     bind:animation={b.animation}
@@ -609,7 +615,7 @@
                                                     <Field
                                                         {scene}
                                                         render={requestFrameIfNotRequested}
-                                                        onClose={() => objects = removeObject(b.id, objects)}
+                                                        onClose={() => objects = removeObject(b.uuid, objects, socket)}
                                                         bind:update={b.update}
                                                         bind:animation={b.animation}
                                                         on:animate={animateIfNotAnimating}
@@ -621,7 +627,7 @@
                                                         <Vector
                                                             {scene}
                                                             render={requestFrameIfNotRequested}
-                                                            onClose={() => objects = removeObject(b.id, objects)}
+                                                            onClose={() => objects = removeObject(b.uuid, objects, socket)}
                                                             params={b.params}
                                                             {gridStep}
                                                             {gridMax}
