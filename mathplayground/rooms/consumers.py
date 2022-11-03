@@ -32,14 +32,14 @@ class RoomsConsumer(AsyncWebsocketConsumer):
         await self.channel_layer.group_send(
             self.room_group_name,
             {
-                'type': 'chat_message',
+                'type': 'graph_event',
                 'message': message,
                 'session_key': session.session_key,
             }
         )
 
     # Receive message from room group
-    async def chat_message(self, event):
+    async def graph_event(self, event):
         message = event['message']
         session = self.scope['session']
 
