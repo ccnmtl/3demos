@@ -44,7 +44,26 @@ const removeObject = (uuid, objects, socket=null) => {
     return objects.filter((b) => b.uuid !== uuid);
 };
 
+const handleSceneEvent = function(data, objects) {
+    if (data.message) {
+        if (data.message.newObject) {
+            const newObject = data.message.newObject;
+            objects = makeObject(
+                newObject.uuid,
+                newObject.kind,
+                newObject.params,
+                objects);
+        } else if (data.message.removeObject) {
+            objects = removeObject(
+                data.message.removeObject.uuid, objects);
+        }
+    }
+
+    return objects;
+};
+
 export {
     makeObject,
-    removeObject
+    removeObject,
+    handleSceneEvent
 };
