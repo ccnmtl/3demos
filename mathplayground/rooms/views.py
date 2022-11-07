@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from mathplayground.rooms.scene import RedisScene
 
 
 def index(request):
@@ -7,11 +8,13 @@ def index(request):
 
 def room(request, room_id):
     # Make sure the user's session is created.
-    # TODO: is this really necessary? This should be happening
-    # automatically.
     if not request.session.session_key:
         request.session.create()
 
+    scene = RedisScene(room_id)
+    state = scene.get_state()
+
     return render(request, 'index.html', {
-        'room_id': room_id
+        'room_id': room_id,
+        'scene_state': state,
     })

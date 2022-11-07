@@ -284,6 +284,9 @@
     };
 
     let objects = [];
+    if (window.SCENE_STATE && window.SCENE_STATE.objects) {
+        objects = window.SCENE_STATE.objects;
+    }
 
     const blowUpObjects = () => {
         objects = [];
