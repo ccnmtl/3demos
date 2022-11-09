@@ -1,5 +1,6 @@
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
+from mathplayground.rooms.scene import RedisScene
 
 
 class RoomsConsumer(AsyncWebsocketConsumer):
@@ -28,6 +29,19 @@ class RoomsConsumer(AsyncWebsocketConsumer):
         text_data_json = json.loads(text_data)
         message = text_data_json['message']
 
+        scene = RedisScene(self.room_id)
+        state = scene.get_state()
+        # Update new scene state in redis
+        if message.get('newObject'):
+            obj = message.get('newObject')
+            state = scene.append_obj(state, obj)
+        elif message.get('removeObject'):
+            obj_id = message.get(
+                'removeObject', {}).get('uuid')
+            state = scene.remove_obj(state, obj_id)
+
+        scene.save_state(state)
+
         # Send message to room group
         await self.channel_layer.group_send(
             self.room_group_name,
@@ -47,7 +61,7 @@ class RoomsConsumer(AsyncWebsocketConsumer):
         if event.get('session_key') == session.session_key:
             return
 
-        # Send message to WebSocket
+        # Send out the update to any room participants
         await self.send(text_data=json.dumps({
             'message': message
         }))

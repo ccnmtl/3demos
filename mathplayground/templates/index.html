@@ -24,6 +24,11 @@
 
         <script>
             window.STATIC_PREFIX = '{% static 'mathplayground' %}';
+
+            {% if scene_state %}
+            // Initial scene state loaded from Redis
+            window.SCENE_STATE = {{scene_state|safe}};
+            {% endif %}
         </script>
 
         <script defer src="{% static 'mathplayground/build/bundle.js' %}"></script>
