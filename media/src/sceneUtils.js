@@ -44,7 +44,28 @@ const removeObject = (uuid, objects, socket=null) => {
     return objects.filter((b) => b.uuid !== uuid);
 };
 
+/**
+ * Update the given object in the scene.
+ *
+ * Returns a new objects array.
+ */
+const updateObject = (updatedObject, objects, socket=null) => {
+    if (socket) {
+        socket.send(JSON.stringify({
+            message: {
+                updateObject: updatedObject
+            }
+        }));
+    }
+
+    // Remove old object with this uuid
+    objects = objects.filter((b) => b.uuid !== updatedObject.uuid);
+    // Append updated object
+    return [...objects, updatedObject];
+};
+
 const handleSceneEvent = function(data, objects) {
+    console.log('handleSceneEvent', data, objects);
     if (data.message) {
         if (data.message.newObject) {
             const newObject = data.message.newObject;
@@ -54,8 +75,9 @@ const handleSceneEvent = function(data, objects) {
                 newObject.params,
                 objects);
         } else if (data.message.removeObject) {
-            objects = removeObject(
-                data.message.removeObject.uuid, objects);
+            objects = removeObject(data.message.removeObject.uuid, objects);
+        } else if (data.message.updateObject) {
+            objects = updateObject(data.message.updateObject, objects);
         }
     }
 
@@ -65,5 +87,6 @@ const handleSceneEvent = function(data, objects) {
 export {
     makeObject,
     removeObject,
+    updateObject,
     handleSceneEvent
 };

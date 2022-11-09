@@ -33,6 +33,7 @@
     export let scene;
     export let render = () => {};
     export let onClose = () => {};
+    export let onUpdate = () => {};
     export let gridStep;
     // export let gridMax;
 
@@ -82,7 +83,10 @@
         arrow.lookAt(v.add(arrow.position));
 
         render();
-    }
+    };
+
+    // call updateCurve() when params change
+    $: params && updateCurve();
 
     // Exercises
     //
@@ -117,21 +121,30 @@
             <input
                 type="text"
                 bind:value={params.a}
-                on:change={updateCurve}
+                on:change={() => {
+            onUpdate()
+            updateCurve()
+            }}
                 class="box box-2"
                 />
             <span class="box-1"><M>b =</M></span>
             <input
                 type="text"
                 bind:value={params.b}
-                on:change={updateCurve}
+                on:change={() => {
+            onUpdate()
+            updateCurve()
+            }}
                 class="box box-2"
                 />
             <span class="box-1"><M>c =</M></span>
             <input
                 type="text"
                 bind:value={params.c}
-                on:change={updateCurve}
+                on:change={() => {
+            onUpdate()
+            updateCurve()
+            }}
                 class="box box-2"
                 />
 
@@ -141,7 +154,10 @@
             <input
                 type="text"
                 bind:value={params.x}
-                on:change={updateCurve}
+                on:change={() => {
+            onUpdate()
+            updateCurve()
+            }}
                 class="box box-2"
                 />
 
@@ -149,14 +165,20 @@
             <input
                 type="text"
                 bind:value={params.y}
-                on:change={updateCurve}
+                on:change={() => {
+            onUpdate()
+            updateCurve()
+            }}
                 class="box box-2"
                 />
             <span class="box-1"><M>p_3 =</M></span>
             <input
                 type="text"
                 bind:value={params.z}
-                on:change={updateCurve}
+                on:change={() => {
+            onUpdate()
+            updateCurve()
+            }}
                 class="box box-2"
                 />
 
@@ -167,7 +189,10 @@
                 min="10"
                 max="60"
                 step="5"
-                on:input={updateCurve}
+                on:input={() => {
+            onUpdate()
+            updateCurve()
+            }}
                 class="box box-2"
                 />
         </div>
