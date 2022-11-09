@@ -4,6 +4,7 @@ import svelte from "rollup-plugin-svelte";
 import commonjs from "@rollup/plugin-commonjs";
 import resolve from "@rollup/plugin-node-resolve";
 import css from "rollup-plugin-css-only";
+import terser from '@rollup/plugin-terser';
 
 import pkg from "svelte-preprocess";
 const { replace } = pkg;
@@ -54,7 +55,8 @@ export default {
             browser: true,
             dedupe: ["svelte"],
         }),
-        commonjs()
+        commonjs(),
+        terser()
     ],
     watch: {
         clearScreen: false,
