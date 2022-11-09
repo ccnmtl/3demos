@@ -30,14 +30,16 @@
     import Chapter from './Chapter.svelte';
     import Intro from './Intro.svelte';
 
-    import {getRoomId, makeSocket} from './rooms';
+    import {
+        getRoomId, makeSocket
+    } from './rooms';
     import {
         drawAxes,
         drawGrid,
         labelAxes,
         makeHSLColor,
     } from './utils';
-    import {makeObject, removeObject} from './sceneUtils';
+    import {makeObject, removeObject, handleSceneEvent} from './sceneUtils';
 
     let debug = false,
         stats;
@@ -73,8 +75,6 @@
     );
 
     let orthoCamera = false;
-
-    //    const camera = new THREE.O(75, canvas.clientWidth/canvas.clientHeight, 0.1, 1000);
 
     let gridMax = 1,
         gridStep = 1 / 5;
@@ -122,15 +122,10 @@
 
     let controls, controls2;
 
-    // const geometry = new THREE.BoxGeometry();
-    // const material = new THREE.MeshBasicMaterial({ color });
-    // const cube = new THREE.Mesh(geometry, material);
     let renderer;
     let frameRequested = false;
-    // scene.add(cube);
 
     // Grid
-
     const lineMaterial = new THREE.LineBasicMaterial({
         color: 0x551122,
         transparent: true,
@@ -204,8 +199,6 @@
         if (scaleAnimation) {
             scaleUpdate(dt);
         }
-        // camera.position.y = (camera.position.y + 0.01) % 4;
-        // camera.position.x = Math.sin(camera.position.y * (Math.PI / 2));
 
         controls.update();
         renderer.render(scene, camera);
@@ -354,32 +347,12 @@
         }
     });
 
-    // $: cube.material.color = new THREE.Color(color);
-
-    // const changeColor = () => {
-    //   cube.material.color = new THREE.Color(color);
-    // };
-
-    // changeColor(color);
-
     let currentChapter = "Intro";
 
     const handleSocketMessage = function(e) {
         const data = JSON.parse(e.data);
 
-        if (data.message) {
-            if (data.message.newObject) {
-                const newObject = data.message.newObject;
-                objects = makeObject(
-                    newObject.uuid,
-                    newObject.kind,
-                    newObject.params,
-                    objects);
-            } else if (data.message.removeObject) {
-                objects = removeObject(
-                    data.message.removeObject.uuid, objects);
-            }
-        }
+        objects = handleSceneEvent(data, objects);
     };
 
     let socket = null;
