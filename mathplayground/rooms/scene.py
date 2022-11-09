@@ -72,4 +72,3 @@ class RedisScene:
                 lambda x: x.get('uuid') != obj_id,
                 objects))
         }
-        

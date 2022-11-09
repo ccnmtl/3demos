@@ -38,4 +38,4 @@ class SceneTest(TestCase):
                 'test': 123,
                 'attr2': 'abc',
             }]
-        })        
+        })
