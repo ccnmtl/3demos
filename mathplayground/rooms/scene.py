@@ -1,6 +1,7 @@
 import json
 import redis
 from django.conf import settings
+from django.utils.encoding import smart_str
 
 
 SCENE_PREFIX = 'mathplayground:scene:'
@@ -22,13 +23,16 @@ class RedisScene:
         key = '{}{}'.format(SCENE_PREFIX, self.room_id)
         self.r.set(key, json.dumps(state))
 
-    def get_state(self):
+    def get_state(self, parse_json=True):
         key = '{}{}'.format(SCENE_PREFIX, self.room_id)
 
         state = self.r.get(key)
         if not state:
             # Initial state
             state = '{"objects": []}'
+
+        if not parse_json:
+            return smart_str(state)
 
         return json.loads(state)
 
