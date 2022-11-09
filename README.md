@@ -14,6 +14,9 @@ This project comprises of two main parts:
 
 ## Start-up steps:
 Install [Redis](https://redis.io/) and start the redis service.
+```
+redis-server
+```
 
 Start django server:
 ```
