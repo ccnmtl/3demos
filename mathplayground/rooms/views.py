@@ -12,7 +12,7 @@ def room(request, room_id):
         request.session.create()
 
     scene = RedisScene(room_id)
-    state = scene.get_state()
+    state = scene.get_state(False)
 
     return render(request, 'index.html', {
         'room_id': room_id,
