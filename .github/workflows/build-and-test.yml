@@ -40,5 +40,7 @@ jobs:
         node-version: [18.x]
     steps:
       - uses: actions/checkout@v2
+      - name: Run flake8
+        run: make flake8
       - name: Run django tests
         run: make test
