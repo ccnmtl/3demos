@@ -277,6 +277,10 @@
     };
 
     let objects = [];
+    if (window.SCENE_STATE) {
+        window.SCENE_STATE = JSON.parse(window.SCENE_STATE);
+    }
+
     if (window.SCENE_STATE && window.SCENE_STATE.objects) {
         objects = window.SCENE_STATE.objects;
     }

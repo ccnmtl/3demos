@@ -22,13 +22,16 @@ class RedisScene:
         key = '{}{}'.format(SCENE_PREFIX, self.room_id)
         self.r.set(key, json.dumps(state))
 
-    def get_state(self):
+    def get_state(self, use_json=False):
         key = '{}{}'.format(SCENE_PREFIX, self.room_id)
 
         state = self.r.get(key)
         if not state:
             # Initial state
             state = '{"objects": []}'
+
+        if use_json:
+            return state
 
         return json.loads(state)
 
