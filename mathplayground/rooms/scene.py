@@ -58,7 +58,7 @@ class RedisScene:
     @staticmethod
     def remove_obj(state, obj_id):
         """
-        Given current scene state, append the given object to it.
+        Given current scene state, remove the given object.
 
         Returns the new state.
         """
@@ -75,4 +75,29 @@ class RedisScene:
             'objects': list(filter(
                 lambda x: x.get('uuid') != obj_id,
                 objects))
+        }
+
+    @staticmethod
+    def update_obj(state, obj):
+        """
+        Given current scene state, update the given object.
+
+        Returns the new state.
+        """
+        try:
+            objects = state.get('objects', [])
+        except AttributeError:
+            # If the state is formatted wrong for some reason, just
+            # initialize it to empty.
+            objects = []
+
+        # Remove old object with this uuid
+        objects = list(filter(
+                lambda x: x.get('uuid') != obj.get('uuid'),
+                objects))
+        # Append updated object
+        objects.append(obj)
+
+        return {
+            'objects': objects
         }

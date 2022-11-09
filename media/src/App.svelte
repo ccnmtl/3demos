@@ -39,7 +39,9 @@
         labelAxes,
         makeHSLColor,
     } from './utils';
-    import {makeObject, removeObject, handleSceneEvent} from './sceneUtils';
+    import {
+        makeObject, removeObject, updateObject, handleSceneEvent
+    } from './sceneUtils';
 
     let debug = false,
         stats;
@@ -604,6 +606,7 @@
                                                             {scene}
                                                             render={requestFrameIfNotRequested}
                                                             onClose={() => objects = removeObject(b.uuid, objects, socket)}
+                                                            onUpdate={() => objects = updateObject(b, objects, socket)}
                                                             params={b.params}
                                                             {gridStep}
                                                             {gridMax}

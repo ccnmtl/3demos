@@ -36,9 +36,11 @@ class RoomsConsumer(AsyncWebsocketConsumer):
             obj = message.get('newObject')
             state = scene.append_obj(state, obj)
         elif message.get('removeObject'):
-            obj_id = message.get(
-                'removeObject', {}).get('uuid')
+            obj_id = message.get('removeObject', {}).get('uuid')
             state = scene.remove_obj(state, obj_id)
+        elif message.get('updateObject'):
+            obj = message.get('updateObject', {})
+            state = scene.update_obj(state, obj)
 
         scene.save_state(state)
 
