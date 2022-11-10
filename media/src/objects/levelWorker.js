@@ -3,134 +3,43 @@
  * under consideration. It may be integrated or deleted in the future.
  */
 
-/* eslint-disable */
-importScripts("./math.js");
-/* eslint-enable */
+import { create, all } from 'mathjs';
 
-// console.log("I'm called!")
+const config = {};
+const math = create(all, config);
 
-onmessage = (msg) => {
-    // console.log(e);
-/* eslint-disable */
-    const { g, a, b, c, d, e, f, k, xN, yN, zN } = msg.data;
 
-    const gc = math.parse(g).compile();
-/* eslint-enable */
-    const func = (x, y, z) => gc.evaluate({ x, y, z });
+/**
+ * Given the levelWorker's parameters, calculate a new state.
+ *
+ * Returns a Promise.
+ */
+export function updateParams(params) {
+    const { g, a, b, c, d, e, f, k } = params;
 
-    const { normals, vertices, traceSegments } = marchingCubesWithTraces({
-        f: func,
-/* eslint-disable */
-        level: math.evaluate(k),
-        xMin: math.evaluate(a),
-        xMax: math.evaluate(b),
-        yMin: math.evaluate(c),
-        yMax: math.evaluate(d),
-        zMin: math.evaluate(e),
-        zMax: math.evaluate(f),
-/* eslint-enable */
-        N: 30,
-    });
+    return new Promise((resolve) => {
+        setTimeout(() => {
+            const gc = math.parse(g).compile();
+            const func = (x, y, z) => gc.evaluate({x, y, z});
 
-    postMessage({ normals, vertices, xpts: [], ypts: [], zpts: traceSegments });
-};
-/* eslint-disable */
-function marchingSquares( {f, level, xmin, xmax, ymin, ymax, zLevel = null, nX = 30, nY = 30} ) {
-/* eslint-enable */
-    const dx = (xmax - xmin) / nX, dy = (ymax - ymin) / nY;
-    const z = zLevel === null ? level : zLevel;
-    let points = [];
-    // for (let i=0; i < nX; i++) {
-    //   for (let j=0; j < nY; j++) {
-    //       const x = xmin + i*dx, y = ymin + j*dy;
-    for (let x = xmin; x < xmax - dx/3; x += dx) {
-        for (let y = ymin; y < ymax - dy/3; y += dy) {
-            const [a,b,c,d,e] = [f(x,y),f(x+dx,y),f(x + dx,y + dy),f(x,y + dy),f(x + dx/2, y + dy/2)];
-            marchingSquare(a,b,c,d,e,level).forEach(element => {
-                const [s,t] = element;
-                points.push(x + s*dx, y + t*dy, z);
+            const { normals, vertices, traceSegments } =
+                  marchingCubesWithTraces({
+                      f: func,
+                      level: math.evaluate(String(k)),
+                      xMin: math.evaluate(String(a)),
+                      xMax: math.evaluate(String(b)),
+                      yMin: math.evaluate(String(c)),
+                      yMax: math.evaluate(String(d)),
+                      zMin: math.evaluate(String(e)),
+                      zMax: math.evaluate(String(f)),
+                      N: 30,
+                  });
+
+            resolve({
+                normals, vertices, xpts: [], ypts: [], zpts: traceSegments
             });
-            // for (let xy of [[x,y],[x+dx,y],[x + dx,y + dy],[x,y + dy]]) {
-            //     corners.push((f(...xy) > level) ? 1 : 0);
-            // }
-        }
-    }
-    return points;
-}
-
-
-// binary value for val >= lev for a,b,c,d, starting from most significant bit (perhaps stupidly)
-const squaresTable = {
-    0b0000: [],
-    0b1111: [],
-    0b0111: [0, 3],
-    0b1011: [0, 1],
-    0b1101: [1, 2],
-    0b1110: [2, 3],
-    0b1000: [0, 3],
-    0b0100: [0, 1],
-    0b0010: [1, 2],
-    0b0001: [2, 3],
-    0b1100: [1, 3],
-    0b0110: [0, 2],
-    0b0011: [1, 3],
-    0b1001: [0, 2],
-    // "0101": [], // saddle point
-    // "1010": []
-};
-
-const msPositions = [[0,0],[1,0],[1,1],[0,1]], msDirections = [[1,0],[0,1],[-1,0],[0,-1]];
-
-// return line segments ([pairs of triples])
-function marchingSquare(a,b,c,d,e,lev) {
-
-    /*
-      a,b,c,d values on corner of unit square {0,1}x{0,1} counter-clockwise from origin
-      e is center value for resolving saddle points
-      return line segment endpoints pairwise in normalized coordinates
-    */
-
-
-    const values = [a,b,c,d];
-
-    let code = 0;
-
-    const cs = [null, null, null, null];
-
-    for (let index = 0; index < values.length; index++) {
-        const m = values[index], M = values[(index + 1) % 4];
-
-        if (m >= lev) { code += Math.pow(2,3 - index); }
-
-        if (((m < lev) && (M >= lev)) || ((m >= lev) && (M < lev))) {
-            cs[index] = (lev - m) / (M - m);
-        }
-
-    }
-
-    const endPoints = [];
-    let edges = [];
-
-    if (Object.hasOwn(squaresTable, code)) {
-        edges = squaresTable[code];
-    } else {
-        if (((a < lev) && (e < lev)) || (!(a < lev) && !(e < lev))) {
-            edges = [0,1,2,3];
-        } else {
-            edges = [3,0,1,2];
-        }
-    }
-
-
-    for (let index = 0; index < edges.length; index++) {
-        const i = edges[index];
-        const [p1, p2] = msPositions[i];
-        const [v1, v2] = msDirections[i];
-        const c = cs[i];
-
-        endPoints.push([p1 + c*v1, p2 + c*v2]);
-    }
-    return endPoints;
+        }, 0);
+    });
 }
 
 const edgeTable = new Uint16Array([
@@ -443,9 +352,9 @@ function vertexInterp(level, c0, c1, v0, v1) {
 
 function marchingCube(vals, level) {
     /*
-        return triangles for Marching Cubes algorithm given vals on 8 corners
-        and level
-        */
+      return triangles for Marching Cubes algorithm given vals on 8
+      corners and level
+    */
 
     let cubeindex = 0;
     for (let i = 0; i < vals.length; i++) {
@@ -491,22 +400,26 @@ function marchingCube(vals, level) {
     if (edgeTable[cubeindex] & 512)
         vertList[9] = vertexInterp(
             level, corners[1], corners[5], vals[1], vals[5]);
-    if (edgeTable[cubeindex] & 1024)
+
+    if (edgeTable[cubeindex] & 1024) {
         vertList[10] = vertexInterp(
-        level,
-        corners[2],
-        corners[6],
-        vals[2],
-        vals[6]
+            level,
+            corners[2],
+            corners[6],
+            vals[2],
+            vals[6]
         );
-    if (edgeTable[cubeindex] & 2048)
+    }
+
+    if (edgeTable[cubeindex] & 2048) {
         vertList[11] = vertexInterp(
-        level,
-        corners[3],
-        corners[7],
-        vals[3],
-        vals[7]
+            level,
+            corners[3],
+            corners[7],
+            vals[3],
+            vals[7]
         );
+    }
 
     /* Create the triangle */
     // let ntriang = 0;
@@ -553,97 +466,89 @@ function marchingCubesWithTraces({
 
     for (let i = 0; i < N; i++) {
         for (let j = 0; j < N; j++) {
-        for (let k = 0; k < N; k++) {
-            const [x, y, z] = [xMin + dx * i, yMin + dy * j, zMin + dz * k];
+            for (let k = 0; k < N; k++) {
+                const [x, y, z] = [xMin + dx * i, yMin + dy * j, zMin + dz * k];
 
-            const grid = [
-            [x, y, z],
-            [x, y + dy, z],
-            [x + dx, y + dy, z],
-            [x + dx, y, z],
-            [x, y, z + dz],
-            [x, y + dy, z + dz],
-            [x + dx, y + dy, z + dz],
-            [x + dx, y, z + dz],
-            ];
+                const grid = [
+                    [x, y, z],
+                    [x, y + dy, z],
+                    [x + dx, y + dy, z],
+                    [x + dx, y, z],
+                    [x, y, z + dz],
+                    [x, y + dy, z + dz],
+                    [x + dx, y + dy, z + dz],
+                    [x + dx, y, z + dz],
+                ];
 
-            const vals = [];
-            grid.forEach((corner) => {
-            vals.push(f(...corner));
-            });
+                const vals = [];
+                grid.forEach((corner) => {
+                    vals.push(f(...corner));
+                });
 
-            const pts = marchingCube(vals, level);
+                const pts = marchingCube(vals, level);
 
-            // x-traces
-            if (i % dn == traceOffset) {
-            for (let index = 0; index < pts.length; index++) {
-                const e1 = pts[index];
-                const e2 = pts[index % 3 == 2 ? index - 2 : index + 1];
-                if (e1[0] * e1[0] + e2[0] * e2[0] <= 1e-5) {
-                traceSegments.push(x, y + e1[1] * dy, z + e1[2] * dz);
-                traceSegments.push(x, y + e2[1] * dy, z + e2[2] * dz);
+                // x-traces
+                if (i % dn == traceOffset) {
+                    for (let index = 0; index < pts.length; index++) {
+                        const e1 = pts[index];
+                        const e2 = pts[index % 3 == 2 ? index - 2 : index + 1];
+                        if (e1[0] * e1[0] + e2[0] * e2[0] <= 1e-5) {
+                            traceSegments.push(x, y + e1[1] * dy, z + e1[2] * dz);
+                            traceSegments.push(x, y + e2[1] * dy, z + e2[2] * dz);
+                        }
+                    }
+                }
+
+                // x-traces
+                if (j % dn == traceOffset) {
+                    for (let index = 0; index < pts.length; index++) {
+                        const e1 = pts[index];
+                        const e2 = pts[index % 3 == 2 ? index - 2 : index + 1];
+                        if (e1[1] * e1[1] + e2[1] * e2[1] <= 1e-5) {
+                            traceSegments.push(x + e1[0] * dx, y, z + e1[2] * dz);
+                            traceSegments.push(x + e2[0] * dx, y, z + e2[2] * dz);
+                        }
+                    }
+                }
+
+                // x-traces
+                if (k % dn == traceOffset) {
+                    for (let index = 0; index < pts.length; index++) {
+                        const e1 = pts[index];
+                        const e2 = pts[index % 3 == 2 ? index - 2 : index + 1];
+                        if (e1[2] * e1[2] + e2[2] * e2[2] <= 1e-5) {
+                            traceSegments.push(x + e1[0] * dx, y + e1[1] * dy, z);
+                            traceSegments.push(x + e2[0] * dx, y + e2[1] * dy, z);
+                        }
+                    }
+                }
+
+                for (let index = 0; index < pts.length; index++) {
+                    const pt = pts[index];
+
+                    const u = x + pt[0] * dx,
+                          v = y + pt[1] * dy,
+                          w = z + pt[2] * dz;
+
+                    h = Math.max(u * eps, (2 * eps) ** 2);
+                    const fx = (f(u + h / 2, v, w) - f(u - h / 2, v, w)) / h;
+                    h = Math.max(v * eps, (2 * eps) ** 2);
+                    const fy = (f(u, v + h / 2, w) - f(u, v - h / 2, w)) / h;
+                    h = Math.max(w * eps, (2 * eps) ** 2);
+                    const fz = (f(u, v, w + h / 2) - f(u, v, w - h / 2)) / h;
+                    const inverseSquare =
+                          1 / math.sqrt(fx * fx + fy * fy + fz * fz);
+
+                    vertices.push(u, v, w);
+                    normals.push(
+                        fx * inverseSquare,
+                        fy * inverseSquare,
+                        fz * inverseSquare
+                    );
                 }
             }
-            }
-
-            // x-traces
-            if (j % dn == traceOffset) {
-            for (let index = 0; index < pts.length; index++) {
-                const e1 = pts[index];
-                const e2 = pts[index % 3 == 2 ? index - 2 : index + 1];
-                if (e1[1] * e1[1] + e2[1] * e2[1] <= 1e-5) {
-                traceSegments.push(x + e1[0] * dx, y, z + e1[2] * dz);
-                traceSegments.push(x + e2[0] * dx, y, z + e2[2] * dz);
-                }
-            }
-            }
-
-            // x-traces
-            if (k % dn == traceOffset) {
-            for (let index = 0; index < pts.length; index++) {
-                const e1 = pts[index];
-                const e2 = pts[index % 3 == 2 ? index - 2 : index + 1];
-                if (e1[2] * e1[2] + e2[2] * e2[2] <= 1e-5) {
-                traceSegments.push(x + e1[0] * dx, y + e1[1] * dy, z);
-                traceSegments.push(x + e2[0] * dx, y + e2[1] * dy, z);
-                }
-            }
-            }
-
-            for (let index = 0; index < pts.length; index++) {
-            const pt = pts[index];
-
-            const u = x + pt[0] * dx,
-                v = y + pt[1] * dy,
-                w = z + pt[2] * dz;
-
-            h = Math.max(u * eps, (2 * eps) ** 2);
-            const fx = (f(u + h / 2, v, w) - f(u - h / 2, v, w)) / h;
-            h = Math.max(v * eps, (2 * eps) ** 2);
-            const fy = (f(u, v + h / 2, w) - f(u, v - h / 2, w)) / h;
-            h = Math.max(w * eps, (2 * eps) ** 2);
-            const fz = (f(u, v, w + h / 2) - f(u, v, w - h / 2)) / h;
-/* eslint-disable */
-            const inverseSquare = 1 / math.sqrt(fx * fx + fy * fy + fz * fz);
-/* eslint-enable */
-            // const norm = new THREE.Vector3(fx, fy, fz);
-            // norm.normalize();
-
-            vertices.push(u, v, w);
-            normals.push(
-                fx * inverseSquare,
-                fy * inverseSquare,
-                fz * inverseSquare
-            );
-            }
-        }
         }
     }
 
-    // geometry.setAttribute( 'position', new THREE.Float32BufferAttribute( vertices, 3 ) );
-    // geometry.setAttribute( 'normal', new THREE.Float32BufferAttribute( normals, 3 ) );
-
     return { normals, vertices, traceSegments };
 }
-
-//

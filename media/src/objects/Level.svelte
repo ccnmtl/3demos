@@ -9,9 +9,9 @@
     const config = {};
     const math = create(all, config);
 
+    import {updateParams} from './levelWorker.js';
+
     import {
-        joinUrl,
-        createWorker,
         marchingCubes,
         ArrowBufferGeometry
     } from "../utils.js";
@@ -77,23 +77,17 @@
     mesh.visible = false;
     scene.add(mesh);
 
-    let workerUrl = './levelWorker.js';
-    if (window.STATIC_PREFIX) {
-        workerUrl = joinUrl(window.STATIC_PREFIX, workerUrl);
-    }
-    const worker = createWorker(workerUrl);
-
-    // worker.postMessage({ hello: "World!" });
-
     const updateLevel = function() {
         loading = true;
-        worker.postMessage(params);
+        updateParams(params).then((data) => {
+            levelWorkerSuccessHandler(data);
+        });
     }
 
     updateLevel();
 
-    worker.onmessage = (msg) => {
-        const { normals, vertices, xpts, ypts, zpts } = msg.data;
+    const levelWorkerSuccessHandler = (data) => {
+        const { normals, vertices, xpts, ypts, zpts } = data;
         geometry.setAttribute(
             "position",
             new THREE.Float32BufferAttribute(vertices, 3)
@@ -251,12 +245,12 @@
                     return xVec.dot(n);
                 },
                 level: n.dot(p) + 1e-8, // offset to avoid overlap artifacts
-                xMin: math.evaluate(a),
-                xMax: math.evaluate(b),
-                yMin: math.evaluate(c),
-                yMax: math.evaluate(d),
-                zMin: math.evaluate(e),
-                zMax: math.evaluate(f),
+                xMin: math.evaluate(String(a)),
+                xMax: math.evaluate(String(b)),
+                yMin: math.evaluate(String(c)),
+                yMax: math.evaluate(String(d)),
+                zMin: math.evaluate(String(e)),
+                zMax: math.evaluate(String(f)),
                 N: 2,
             });
 
