@@ -24,6 +24,23 @@
         nVec: 6,
     };
 
+    let oldParams = params;
+
+    $: {
+        if (
+            oldParams.p !== params.p
+                || oldParams.q !== params.q
+                || oldParams.r !== params.r
+                || oldParams.nVec !== params.nVec
+        ) {
+            updateField();
+            oldParams.p = params.p;
+            oldParams.q = params.q;
+            oldParams.r = params.r;
+            oldParams.nVec = params.nVec;
+        }
+    }
+
     $: nCubed = Math.pow(params.nVec, 3);
 
     export let scene;
@@ -31,6 +48,7 @@
     export let render = () => {};
     export let animation = false;
     export let onClose = () => {};
+    export let onUpdate = () => {};
     export let gridMax, gridStep;
 
     let hidden = false;
@@ -321,27 +339,37 @@
             <input
                 type="text"
                 bind:value={params.p}
-                on:change={updateField}
+                on:change={() => {
+            onUpdate();
+            updateField();
+            }}
                 class="box box-2"
                 />
             <span class="box-1"><M>Q(x,y,z) =</M></span>
             <input
                 type="text"
                 bind:value={params.q}
-                on:change={updateField}
+                on:change={() => {
+            onUpdate();
+            updateField();
+            }}
                 class="box box-2"
                 />
             <span class="box-1"><M>R(x,y,z) =</M></span>
             <input
                 type="text"
                 bind:value={params.r}
-                on:change={updateField}
+                on:change={() => {
+            onUpdate();
+            updateField();
+            }}
                 class="box box-2"
                 />
             <span class="box-1">resolution</span>
             <input
                 type="range"
                 bind:value={params.nVec}
+                on:change={onUpdate}
                 min="1"
                 max="10"
                 step="1"

@@ -33,9 +33,57 @@
         params.color = "#FFDD33";
     }
 
+    let oldParams = params;
+
+    // This pattern mimicks the componentDidUpdate/prevState stuff
+    // that's used in React. The goal here is to only call the
+    // expensive render methods when absolutely necessary.
+    //
+    // This allows for WebSocket listeners to see updated objects
+    // in their scene when new params come through.
+    //
+    // This is a more intricate alternative to the simple way of
+    // doing things, which would be:
+    // $: params && updateCurve();
+    // $: params && updateColor();
+    //
+    // The problem with listening for all `params` updates like this
+    // is that the `params` object is updated way too often,
+    // because of the nature of the input bindings in this component.
+    //
+    // This scheme is really dependent on how the Svelte/Three.js
+    // component is organized, and it's not always necessary,
+    // for example, see the Box component for a simpler pattern that
+    // works in that scenario.
+    //
+    // It may be possible to refactor this into a more general function,
+    // which would be nice.
+    $: {
+        if (oldParams.color !== params.color) {
+            updateColor();
+            oldParams.color = params.color;
+        }
+
+        if (
+            oldParams.a !== params.a
+                || oldParams.b !== params.b
+                || oldParams.a !== params.a
+                || oldParams.x !== params.x
+                || oldParams.y !== params.y
+        ) {
+            updateCurve();
+            oldParams.a = params.a;
+            oldParams.b = params.b;
+            oldParams.x = params.x;
+            oldParams.y = params.y;
+            oldParams.z = params.z;
+        }
+    }
+
     export let scene;
     export let render = () => {};
     export let onClose = () => {};
+    export let onUpdate = () => {};
     export let gridStep;
     // export let gridMax;
     // export let color;
@@ -98,7 +146,6 @@
     scene.add(circleTube);
     circleTube.visible = false;
 
-
     const updateCurve = function() {
         animation = false;
         const { a, b, x, y, z } = params;
@@ -142,7 +189,7 @@
         }
 
         updateFrame();
-    }
+    };
 
     const stringifyT = function(params) {
         const { a, b, tau } = params;
@@ -156,7 +203,7 @@
             console.error(e);
             return '';
         }
-    }
+    };
 
     const frame = new THREE.Object3D();
     frame.visible = false;
@@ -338,18 +385,19 @@
 
 <div class="boxItem">
     <div class="box-title">
-        <strong style="color: {params.color};"
-                ><i class="fa fa-square" /> Space Curve</strong
-                                                           >
-        <span
-            ><button
-                 on:click={() => {
+        <strong style="color: {params.color};">
+            <i class="fa fa-square" /> Space Curve</strong>
+        <span>
+            <button
+                on:click={() => {
                 hidden = !hidden;
-                }}><i class="fa fa-window-minimize" /></button
-                                                          ><button on:click={onClose}>
-                <i class="fa fa-window-close" /></button
-                                                    ></span
-                                                         >
+                }}>
+                <i class="fa fa-window-minimize" />
+            </button>
+            <button on:click={onClose}>
+                <i class="fa fa-window-close" />
+            </button>
+        </span>
     </div>
     <div class:hidden>
         <div class="container">
@@ -357,35 +405,50 @@
             <input
                 type="text"
                 bind:value={params.x}
-                on:change={updateCurve}
+                on:change={() => {
+            onUpdate();
+            updateCurve();
+            }}
                 class="box box-2"
                 />
             <span class="box-1"><M>y(t) =</M></span>
             <input
                 type="text"
                 bind:value={params.y}
-                on:change={updateCurve}
+                on:change={() => {
+            onUpdate();
+            updateCurve();
+            }}
                 class="box box-2"
                 />
             <span class="box-1"><M>z(t) =</M></span>
             <input
                 type="text"
                 bind:value={params.z}
-                on:change={updateCurve}
+                on:change={() => {
+            onUpdate();
+            updateCurve();
+            }}
                 class="box box-2"
                 />
 
             <input
                 type="text"
                 bind:value={params.a}
-                on:change={updateCurve}
+                on:change={() => {
+            onUpdate();
+            updateCurve();
+            }}
                 class="box"
                 />
             <span class="box box-3"><M>\leq t \leq</M></span>
             <input
                 type="text"
                 bind:value={params.b}
-                on:change={updateCurve}
+                on:change={() => {
+            onUpdate();
+            updateCurve();
+            }}
                 class="box"
                 />
 
@@ -485,9 +548,12 @@
                 name="colorPicker"
                 id="colorPicker"
                 bind:value={params.color}
-                on:change={updateColor}
-                style="width:85%; padding: 1px 1px;"
-                />
+                on:change={() => {
+            onUpdate();
+            updateColor();
+            }}
+            style="width:85%; padding: 1px 1px;"
+            />
         </span>
     </div>
 </div>

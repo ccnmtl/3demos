@@ -26,9 +26,35 @@
         nX: 30,
     };
 
+    let oldParams = params;
+
+    // See Curve.svelte for explanation of this stuff
+    $: {
+        if (
+            oldParams.a !== params.a
+                || oldParams.b !== params.b
+                || oldParams.a !== params.a
+                || oldParams.c !== params.c
+                || oldParams.d !== params.d
+                || oldParams.x !== params.x
+                || oldParams.y !== params.y
+                || oldParams.z !== params.z
+        ) {
+            updateSurface();
+            oldParams.a = params.a;
+            oldParams.b = params.b;
+            oldParams.c = params.c;
+            oldParams.d = params.d;
+            oldParams.x = params.x;
+            oldParams.y = params.y;
+            oldParams.z = params.z;
+        }
+    }
+
     export let scene;
     export let render = () => {};
     export let onClose = () => {};
+    export let onUpdate = () => {};
 
     let hidden = false;
 
@@ -262,18 +288,53 @@
     <div class:hidden>
         <div class="container">
             <span class="box-1"><M>x(u,v) =</M></span>
-            <input type="text" bind:value={params.x} on:change={updateSurface} class="box box-2" />
+            <input type="text" bind:value={params.x}
+                   on:change={() => {
+            onUpdate();
+            updateSurface();
+            }}
+                   class="box box-2" />
             <span class="box-1"><M>y(u,v) =</M></span>
-            <input type="text" bind:value={params.y} on:change={updateSurface} class="box box-2" />
+            <input type="text" bind:value={params.y}
+                   on:change={() => {
+            onUpdate();
+            updateSurface();
+            }}
+                   class="box box-2" />
             <span class="box-1"><M>z(u,v) =</M></span>
-            <input type="text" bind:value={params.z} on:change={updateSurface} class="box box-2" />
-            <input type="text" bind:value={params.a} on:change={updateSurface} class="box" />
+            <input type="text" bind:value={params.z}
+                   on:change={() => {
+            onUpdate();
+            updateSurface();
+            }}
+                   class="box box-2" />
+            <input type="text" bind:value={params.a}
+                   on:change={() => {
+            onUpdate();
+            updateSurface();
+            }}
+                   class="box" />
             <span class="box box-3"><M>\leq u \leq</M></span>
 
-            <input type="text" bind:value={params.b} on:change={updateSurface} class="box" />
-            <input type="text" bind:value={params.c} on:change={updateSurface} class="box" />
+            <input type="text" bind:value={params.b}
+                   on:change={() => {
+            onUpdate();
+            updateSurface();
+            }}
+                   class="box" />
+            <input type="text" bind:value={params.c}
+                   on:change={() => {
+            onUpdate();
+            updateSurface();
+            }}
+                   class="box" />
             <span class="box box-3"><M>\leq v \leq</M></span>
-            <input type="text" bind:value={params.d} on:change={updateSurface} class="box" />
+            <input type="text" bind:value={params.d}
+                   on:change={() => {
+            onUpdate();
+            updateSurface();
+            }}
+                   class="box" />
 
             <span class="box-1"><M>u</M>-meshes</span>
             <input type="range" bind:value={params.rNum} min="0" max = "20" step="1" on:input={updateSurface} class="box box-2" />

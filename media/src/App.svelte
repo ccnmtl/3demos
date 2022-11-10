@@ -515,7 +515,11 @@
                                 vector field<M>\mathbf F(x,y,z)</M>
                             </DropdownItem>
                             <DropdownItem on:click={() =>
-                                objects = makeObject(null, "box", null, objects, socket)}>
+                                objects = makeObject(null, "box", {
+                                    size: 2
+                                },
+                                objects, socket
+                                )}>
                                 random box
                             </DropdownItem>
                         </DropdownMenu>
@@ -538,6 +542,7 @@
                                     render={requestFrameIfNotRequested}
                                     params={b.params}
                                     onClose={() => objects = removeObject(b.uuid, objects, socket)}
+                                    onUpdate={() => objects = updateObject(b, objects, socket)}
                                     bind:update={b.update}
                                     bind:animation={b.animation}
                                     />
@@ -549,6 +554,7 @@
                                         render={requestFrameIfNotRequested}
                                         params={b.params}
                                         onClose={() => objects = removeObject(b.uuid, objects, socket)}
+                                        onUpdate={() => objects = updateObject(b, objects, socket)}
                                         bind:shadeUp
                                         bind:update={b.update}
                                         bind:animation={b.animation}
@@ -574,6 +580,8 @@
                                                 {scene}
                                                 render={requestFrameIfNotRequested}
                                                 onClose={() => objects = removeObject(b.uuid, objects, socket)}
+                                                onUpdate={() => objects = updateObject(b, objects, socket)}
+                                                params={b.params}
                                                 bind:update={b.update}
                                                 bind:animation={b.animation}
                                                 on:animate={animateIfNotAnimating}
@@ -583,6 +591,7 @@
                                                     {scene}
                                                     render={requestFrameIfNotRequested}
                                                     onClose={() => objects = removeObject(b.uuid, objects, socket)}
+                                                    onUpdate={() => objects = updateObject(b, objects, socket)}
                                                     params={b.params}
                                                     bind:update={b.update}
                                                     bind:animation={b.animation}
@@ -594,6 +603,7 @@
                                                         {scene}
                                                         render={requestFrameIfNotRequested}
                                                         onClose={() => objects = removeObject(b.uuid, objects, socket)}
+                                                        onUpdate={() => objects = updateObject(b, objects, socket)}
                                                         bind:update={b.update}
                                                         bind:animation={b.animation}
                                                         on:animate={animateIfNotAnimating}

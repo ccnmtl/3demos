@@ -39,6 +39,32 @@
         color: "#3232ff",
     };
 
+    let oldParams = params;
+
+    // See Curve.svelte for explanation of this stuff
+    $: {
+        if (oldParams.color !== params.color) {
+            updateColor();
+            oldParams.color = params.color;
+        }
+
+        if (
+            oldParams.a !== params.a
+                || oldParams.b !== params.b
+                || oldParams.a !== params.a
+                || oldParams.c !== params.c
+                || oldParams.d !== params.d
+                || oldParams.z !== params.z
+        ) {
+            updateSurface();
+            oldParams.a = params.a;
+            oldParams.b = params.b;
+            oldParams.c = params.c;
+            oldParams.d = params.d;
+            oldParams.z = params.z;
+        }
+    }
+
     const data = {
         rNum: 10,
         cNum: 10,
@@ -71,6 +97,7 @@
     export let shadeUp;
     export let render = () => {};
     export let onClose = () => {};
+    export let onUpdate = () => {};
     export let update = () => {};
 
     let hidden = false;
@@ -823,7 +850,10 @@
             <input
                 type="text"
                 bind:value={params.a}
-                on:change={updateSurface}
+                on:change={() => {
+            onUpdate();
+            updateSurface();
+            }}
                 class="box"
                 />
             <span class="box box-3"><M>\leq x \leq</M></span>
@@ -831,20 +861,29 @@
             <input
                 type="text"
                 bind:value={params.b}
-                on:change={updateSurface}
+                on:change={() => {
+            onUpdate();
+            updateSurface();
+            }}
                 class="box"
                 />
             <input
                 type="text"
                 bind:value={params.c}
-                on:change={updateSurface}
+                on:change={() => {
+            onUpdate();
+            updateSurface();
+            }}
                 class="box"
                 />
             <span class="box box-3"><M>\leq y \leq</M></span>
             <input
                 type="text"
                 bind:value={params.d}
-                on:change={updateSurface}
+                on:change={() => {
+            onUpdate();
+            updateSurface()
+            }}
                 class="box"
                 />
 
@@ -990,7 +1029,10 @@
                     name="colorPicker"
                     id="colorPicker"
                     bind:value={params.color}
-                    on:change={updateColor}
+                    on:change={() => {
+                onUpdate();
+                updateColor();
+                }}
                     style="width:85%; padding: 1px 1px;"
                     />
             </span>
