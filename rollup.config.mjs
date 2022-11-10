@@ -55,8 +55,8 @@ export default {
             browser: true,
             dedupe: ["svelte"],
         }),
-        commonjs(),
-        terser()
+        commonjs({sourceMap: production}),
+        production && terser()
     ],
     watch: {
         clearScreen: false,
