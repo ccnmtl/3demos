@@ -568,6 +568,7 @@
                                             {controls}
                                             render={requestFrameIfNotRequested}
                                             onClose={() => objects = removeObject(b.uuid, objects, socket)}
+                                            onUpdate={() => objects = updateObject(b, objects, socket)}
                                             params={b.params}
                                             bind:shadeUp
                                             bind:update={b.update}
