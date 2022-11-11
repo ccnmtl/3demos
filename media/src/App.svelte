@@ -349,7 +349,8 @@
         }
     });
 
-    let currentChapter = "Intro";
+    let currentChapter = 'Intro';
+    let currentMode = 'intro';
 
     const handleSocketMessage = function(e) {
         const data = JSON.parse(e.data);
@@ -373,9 +374,10 @@
     <div class="info-inner">
         <div class="chapterBox">
             <div class="collapse-info" class:hidden={shadeUp}>
-                <div class="object-box-title">
+                <div class="object-box-title d-flex">
                     <ButtonDropdown>
                         <DropdownToggle
+                            caret
                             class="btn btn-secondary dropdown-toggle titlefont">
                             3Demos.xyz (βeta)
                         </DropdownToggle>
@@ -394,8 +396,33 @@
                             </DropdownItem>
                         </DropdownMenu>
                     </ButtonDropdown>
+
+                    <ButtonDropdown class="ms-1">
+                        <DropdownToggle caret class="btn btn-light">
+                            Modes
+                        </DropdownToggle>
+                        <DropdownMenu>
+                            <DropdownItem
+                                on:click={() => (currentMode = 'intro')}>
+                                Intro
+                            </DropdownItem>
+                            <DropdownItem
+                                on:click={() => (currentMode = 'story')}>
+                                Story
+                            </DropdownItem>
+                            <DropdownItem
+                                on:click={() => (currentMode = 'creative')}>
+                                Creative
+                            </DropdownItem>
+                            <DropdownItem
+                                on:click={() => (currentMode = 'session')}>
+                                Session/Live
+                            </DropdownItem>
+                        </DropdownMenu>
+                    </ButtonDropdown>
+
                     <button
-                        class="btn btn-sm btn-light"
+                        class="ms-auto btn btn-light"
                         on:click={() => {
                         flipInfo = !flipInfo;
                         }}>
@@ -403,15 +430,19 @@
                     </button>
                 </div>
 
-                {#if currentChapter == "Chapter"}
-                    <Chapter bind:objects />
-                {:else if currentChapter == "Linear"}
-                    <Linear bind:objects />
-                {:else if currentChapter === "Intro"}
-                    <Intro />
+                {#if currentMode === 'session'}
+                    Session mode!
+                {:else}
+                    {#if currentChapter === "Chapter"}
+                        <Chapter bind:objects />
+                    {:else if currentChapter === "Linear"}
+                        <Linear bind:objects />
+                    {:else if currentChapter === "Intro"}
+                        <Intro />
+                    {/if}
                 {/if}
             </div>
-            <button class="form-control form-control-sm raise-lower-button"
+            <button class="btn btn-sm btn-light raise-lower-button d-flex justify-content-center"
                     title="Raise/Lower window"
                     on:click={() => {
                 shadeUp = !shadeUp;
@@ -422,10 +453,10 @@
 
         <div class="objectBoxOuter">
             <div class="collapse-info" class:hidden={shadeUp}>
-                <div class="object-box-title">
+                <div class="object-box-title d-flex">
                     <span>3D Objects</span>
                     <button
-                        class="btn btn-sm btn-light"
+                        class="btn btn-light ms-auto"
                         on:click={() => {
                         flipInfo = !flipInfo;
                         }}><i class="fa fa-book" /></button>
@@ -626,7 +657,7 @@
                                                 {/each}
                                             </div>
             </div>
-            <button class="form-control form-control-sm raise-lower-button"
+            <button class="btn btn-sm btn-light raise-lower-button d-flex justify-content-center"
                     title="Raise/Lower window"
                     on:click={() => {
                 shadeUp = !shadeUp;
@@ -745,9 +776,7 @@
          }
 
          .object-box-title {
-             display: flex;
              font-size: 1.5em;
-             justify-content: space-between;
          }
 
          :global(.boxItem) {
@@ -791,5 +820,12 @@
              background-color: rgba(0.5, 0.5, 0.5, 0.3);
              padding: 5px;
              font-family: Cambria, Cochin, Georgia, Times, "Times New Roman", serif;
+         }
+
+         :global(.btn-group>.btn-group:not(:last-child)>.btn,
+                 .btn-group>.btn.dropdown-toggle-split:first-child,
+                 .btn-group>.btn:not(:last-child):not(.dropdown-toggle)) {
+             border-top-right-radius: inherit;
+             border-bottom-right-radius: inherit;
          }
 </style>
