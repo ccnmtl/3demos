@@ -27,43 +27,6 @@ const joinUrl = function(base, path) {
     return url.href;
 };
 
-/**
- * Web worker constructor that works in both same-origin and
- * cross-domain scenarios.
- *
- * https://benohead.com/blog/2017/12/06/cross-domain-cross-browser-web-workers/
- */
-const createWorker = function(workerUrl) {
-    let worker = null;
-    try {
-        worker = new Worker(workerUrl);
-    } catch (e) {
-        try {
-            let blob;
-            try {
-                blob = new Blob(
-                    ["importScripts('" + workerUrl + "');"], {
-                        "type": 'application/javascript'
-                    });
-            } catch (e1) {
-                let blobBuilder = new (
-                    window.BlobBuilder ||
-                        window.WebKitBlobBuilder ||
-                        window.MozBlobBuilder)();
-                blobBuilder.append("importScripts('" + workerUrl + "');");
-                blob = blobBuilder.getBlob('application/javascript');
-            }
-            let url = window.URL || window.webkitURL;
-            let blobUrl = url.createObjectURL(blob);
-            worker = new Worker(blobUrl);
-        } catch (e2) {
-            // if it still fails, there is nothing much we can do
-            console.error('Failed to load worker:', e2);
-        }
-    }
-    return worker;
-};
-
 export function marchingSquares({
     f,
     level,
@@ -1693,7 +1656,6 @@ const forceNumber = function(n) {
 
 export {
     joinUrl,
-    createWorker,
     ArrowBufferGeometry,
     ParametricCurve,
     drawGrid,
