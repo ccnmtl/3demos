@@ -30,10 +30,37 @@
         f: "2",
     };
 
+    let oldParams = params;
+
+    $: {
+        if (
+            oldParams.g !== params.g
+                || oldParams.k !== params.k
+                || oldParams.a !== params.a
+                || oldParams.b !== params.b
+                || oldParams.a !== params.a
+                || oldParams.c !== params.c
+                || oldParams.d !== params.d
+                || oldParams.e !== params.e
+                || oldParams.f !== params.f
+        ) {
+            updateLevel();
+            oldParams.g = params.g;
+            oldParams.k = params.k;
+            oldParams.a = params.a;
+            oldParams.b = params.b;
+            oldParams.c = params.c;
+            oldParams.d = params.d;
+            oldParams.e = params.e;
+            oldParams.f = params.f;
+        }
+    }
+
     export let scene;
     export let shadeUp;
     export let render = () => {};
     export let onClose = () => {};
+    export let onUpdate = () => {};
 
     export let camera,
     controls,
@@ -356,54 +383,78 @@
             <input
                 type="text"
                 bind:value={params.g}
-                on:change={updateLevel}
+                on:change={() => {
+            onUpdate();
+            updateLevel();
+            }}
                 class="box box-2"
                 />
             <span class="box-1"><M>k =</M></span>
             <input
                 type="number"
                 bind:value={params.k}
-                on:change={updateLevel}
+                on:change={() => {
+            onUpdate();
+            updateLevel();
+            }}
                 class="box box-2"
                 />
 
             <input
                 type="number"
                 bind:value={params.a}
-                on:change={updateLevel}
+                on:change={() => {
+            onUpdate();
+            updateLevel();
+            }}
                 class="box"
                 />
             <span class="box box-3"><M>\leq x \leq</M></span>
             <input
                 type="number"
                 bind:value={params.b}
-                on:change={updateLevel}
+                on:change={() => {
+            onUpdate();
+            updateLevel();
+            }}
                 class="box"
                 />
             <input
                 type="number"
                 bind:value={params.c}
-                on:change={updateLevel}
+                on:change={() => {
+            onUpdate();
+            updateLevel();
+            }}
                 class="box"
                 />
             <span class="box box-3"><M>\leq y \leq</M></span>
             <input
                 type="number"
                 bind:value={params.d}
-                on:change={updateLevel}
+                on:change={() => {
+            onUpdate();
+            updateLevel();
+            }}
                 class="box"
                 />
             <input
                 type="number"
                 bind:value={params.e}
-                on:change={updateLevel}
+                on:change={() => {
+            onUpdate();
+            updateLevel();
+            }}
                 class="box"
                 />
             <span class="box box-3"><M>\leq z \leq</M></span>
             <input
                 type="number"
                 bind:value={params.f}
-                on:change={updateLevel}
+                on:change={() => {
+            onUpdate();
+            updateLevel();
+            }}
                 class="box"
                 />
 
