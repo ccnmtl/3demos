@@ -65,7 +65,6 @@ const updateObject = (updatedObject, objects, socket=null) => {
 };
 
 const handleSceneEvent = function(data, objects) {
-    console.log('handleSceneEvent', data, objects);
     if (data.message) {
         if (data.message.newObject) {
             const newObject = data.message.newObject;

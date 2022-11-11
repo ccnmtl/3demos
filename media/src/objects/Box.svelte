@@ -4,27 +4,31 @@
 
     export let scene = new THREE.Scene();
     export let onClose = () => {};
+    export let onUpdate = () => {};
     export let update = () => {};
     export let render = () => {};
     export let animation = false;
 
-    const speed = Math.ceil(Math.random() * 4)
+
+    export let params = {
+        size: 2
+    };
+
+    const speed = Math.ceil(Math.random() * 4);
 
     const dispatch = createEventDispatcher();
-
-    let size = 2;
 
     const box = new THREE.Mesh();
     box.position.x = Math.random() * 4 - 2;
     box.position.y = Math.random() * 4 - 2;
     box.position.z = Math.random() * 4 - 2;
 
-    const updateBox = async function() {
-        // await tick();
+    const updateBox = function() {
         if (box.geometry) {
             box.geometry.dispose();
         }
-        box.geometry = new THREE.BoxGeometry(size, size, size);
+        box.geometry = new THREE.BoxGeometry(
+            params.size, params.size, params.size);
         for (let index = box.children.length - 1 ; index >= 0; index--) {
             const element = box.children[index];
             element.geometry.dispose();
@@ -36,7 +40,9 @@
 
         box.add( line );
         render();
-    }
+    };
+
+    $: params && updateBox();
 
     box.material = new THREE.MeshBasicMaterial({ color: 0x2f0077 });
 
@@ -53,10 +59,8 @@
     });
 
     onMount(() => {
-        render()
+        render();
     })
-
-
 
     // Set update function for animation
     update = (dt) => {
@@ -64,21 +68,24 @@
         box.rotation.y += speed*dt;
         box.rotation.z += speed*Math.PI/4*dt;
     }
-
-
 </script>
 
 <div class="boxItem">
     <input
         type="range"
-        bind:value={size}
-        on:input={updateBox}
+        bind:value={params.size}
+        on:input={() => {
+            onUpdate();
+            updateBox();
+        }}
         min="0.5"
         max="4"
         step="0.01"
-        /> &nbsp; <button on:click={onClose}> <i class="fa fa-times"></i></button>
+        /> &nbsp; <button on:click={onClose}>
+        <i class="fa fa-times"></i>
+    </button>
 
-    <button  on:click={() => {animation = !animation; if (animation) dispatch('animate');}}>
+    <button on:click={() => {animation = !animation; if (animation) dispatch('animate');}}>
         {#if !animation}
             <i class="fa fa-play"></i>
         {:else}
@@ -87,11 +94,6 @@
     </button>
 </div>
 
-<!-- <div class="stats">
-     <span></span> : <span id="dateNow"></span>
-</div> -->
-
-<!-- <link rel="stylesheet" href=""> -->
 <style>
     input {
         margin: 0px;
@@ -110,14 +112,4 @@
         /* background-color: rgba(0.6,0.6,0.6,1); */
         color: black;
     }
-    /* .stats {
-      color: white;
-      border: 1px solid white;
-      margin-left: auto;
-      margin-right: auto;
-      width: 6em;
-  } */
-
-
 </style>
-
