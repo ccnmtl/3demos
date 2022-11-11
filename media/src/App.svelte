@@ -411,14 +411,13 @@
                     <Intro />
                 {/if}
             </div>
-            <div
-                class="raise-lower-bar"
-                on:click={() => {
+            <button class="form-control form-control-sm raise-lower-button"
+                    title="Raise/Lower window"
+                    on:click={() => {
                 shadeUp = !shadeUp;
-                }}
-                >
-                <span class="raise-lower-button" />
-            </div>
+                }}>
+                <i class={`bi bi-chevron-${shadeUp ? 'down' : 'up'}`}></i>
+            </button>
         </div>
 
         <div class="objectBoxOuter">
@@ -627,14 +626,13 @@
                                                 {/each}
                                             </div>
             </div>
-            <div
-                class="raise-lower-bar"
-                on:click={() => {
+            <button class="form-control form-control-sm raise-lower-button"
+                    title="Raise/Lower window"
+                    on:click={() => {
                 shadeUp = !shadeUp;
-                }}
-                >
-                <span class="raise-lower-button" />
-            </div>
+                }}>
+                <i class={`bi bi-chevron-${shadeUp ? 'down' : 'up'}`}></i>
+            </button>
         </div>
     </div>
 </div>
@@ -774,23 +772,13 @@
              justify-content: flex-start;
              width: clamp(23ch, 30%, 45ch);
          }
-         .raise-lower-bar {
-             height: 0.4rem;
-             display: grid;
-             place-items: center;
-         }
 
          .raise-lower-button {
-             height: 0.2rem;
-             background-color: rgba(33, 33, 33, 0.8);
              width: clamp(50px, 20%, 200px);
-         }
+             margin: 0 auto;
 
-         .raise-lower-bar:hover > .raise-lower-button {
-             background-color: white;
-         }
-         .raise-lower-bar:active > .raise-lower-button {
-             background-color: blue;
+             /* Bold */
+             -webkit-text-stroke: 1px;
          }
 
          :global(.titlefont) {
