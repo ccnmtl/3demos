@@ -28,7 +28,9 @@
     addGraph("smooth");
 </script>
 
-<h1 class="top-title" on:click={toggleHidden}>Linearization</h1>
+<button class="top-title" on:click={toggleHidden}>
+    Linearization
+</button>
 <article class:hidden>
 
     <p>
