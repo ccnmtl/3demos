@@ -105,16 +105,3 @@
 
     <input type="text" bind:value="{formula}" />
 </article>
-
-<style>
-    article {
-        color: white;
-        background-color: rgba(.5,.5,.5,.3);
-    }
-
-    .top-title {
-        color: white;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        user-select: none;
-    }
-</style>

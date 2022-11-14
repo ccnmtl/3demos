@@ -42,16 +42,3 @@
         and does it better.
     </p>
 </article>
-
-<style>
-    .top-title {
-        color: white;
-        font-size: smaller;
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        user-select: none;
-        cursor: pointer;
-    }
-    .top-title:hover {
-        background-color: rgba(255, 0, 0, 0.3);
-    }
-</style>

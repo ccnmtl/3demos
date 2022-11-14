@@ -93,23 +93,3 @@
         {/if}
     </button>
 </div>
-
-<style>
-    input {
-        margin: 0px;
-        vertical-align: middle;
-    }
-    button {
-        background-color: rgba(.6, 0.6, 0.6, 0.6);
-        border: none;
-        color: gray;
-    }
-    button:hover {
-        /* background-color: rgba(0.6,0.6,0.6,0.5); */
-        color: white;
-    }
-    button:active {
-        /* background-color: rgba(0.6,0.6,0.6,1); */
-        color: black;
-    }
-</style>

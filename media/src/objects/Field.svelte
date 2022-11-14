@@ -386,10 +386,9 @@
                     id="trailsVisible"
                     bind:checked={flowTrails}
                     on:change={freeTrails}
-                    />
+                />
                 <span class="slider round" />
             </label>
-            <!-- </div> -->
 
         <button
             on:click={() => {
@@ -439,127 +438,3 @@
 </div>
 </div>
 
-<style>
-    .container {
-        display: grid;
-
-        grid-template-columns: 1fr auto 1fr;
-        grid-template-rows: auto;
-
-        grid-gap: 10px 15px;
-
-        padding: 10px;
-    }
-
-    .box-1 {
-        text-align: right;
-        grid-column: 1 / 2;
-        color: white;
-        vertical-align: middle;
-    }
-
-    .box-2 {
-        grid-column-start: 2;
-        grid-column-end: 4;
-    }
-
-    .box-3 {
-        color: white;
-        vertical-align: middle;
-        text-align: center;
-
-        grid-column: 2;
-    }
-    .box-4 {
-        color: white;
-        vertical-align: middle;
-        text-align: left;
-
-        grid-column: 3;
-    }
-
-    .box-title {
-        display: flex;
-        justify-content: space-between;
-        color: whitesmoke;
-        padding: 0.5em;
-    }
-
-    button {
-        background-color: transparent;
-        color: whitesmoke;
-        border: none;
-    }
-
-    button:hover {
-        color: white;
-    }
-
-    button:active {
-        color: gray;
-    }
-
-    /* The switch - the box around the slider */
-    .switch {
-        position: relative;
-        display: inline-block;
-        width: 2em;
-        height: 1.2em;
-        text-align: right;
-    }
-
-    /* Hide default HTML checkbox */
-    .switch input {
-        opacity: 0;
-        width: 0;
-        height: 0;
-    }
-
-    /* The slider */
-    .slider {
-        position: absolute;
-        cursor: pointer;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-color: #ccc;
-        -webkit-transition: 0.4s;
-        transition: 0.4s;
-    }
-
-    .slider:before {
-        position: absolute;
-        content: "";
-        height: 1em;
-        width: 1em;
-        left: 0.1em;
-        bottom: 0.1em;
-        background-color: white;
-        -webkit-transition: 0.4s;
-        transition: 0.4s;
-    }
-
-    input:checked + .slider {
-        background-color: #2196f3;
-    }
-
-    input:focus + .slider {
-        box-shadow: 0 0 1px #2196f3;
-    }
-
-    input:checked + .slider:before {
-        -webkit-transform: translateX(1em);
-        -ms-transform: translateX(1em);
-        transform: translateX(1em);
-    }
-
-    /* Rounded sliders */
-    .slider.round {
-        border-radius: 34px;
-    }
-
-    .slider.round:before {
-        border-radius: 50%;
-    }
-</style>

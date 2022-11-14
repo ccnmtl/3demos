@@ -85,9 +85,6 @@
     export let onClose = () => {};
     export let onUpdate = () => {};
     export let gridStep;
-    // export let gridMax;
-    // export let color;
-
     export let animation = false;
     export const update = (dt) => {
         const { a, b, x, y, z } = goodParams;
@@ -115,9 +112,8 @@
         updateFrame();
     };
 
-    let TNB = false,
-        osculatingCircle = false;
-
+    let TNB = false
+    let osculatingCircle = false;
     let hidden = false;
     let stopButton, rewButton;
     const goodParams = {};
@@ -128,7 +124,6 @@
         side: THREE.DoubleSide,
         vertexColors: false,
         transparent: false,
-        // opacity: 0.7,
     });
 
     const grayMaterial = new THREE.MeshPhongMaterial({
@@ -137,7 +132,6 @@
         side: THREE.DoubleSide,
         vertexColors: false,
         transparent: false,
-        // opacity: 0.7,
     });
 
     let tube,
@@ -185,7 +179,6 @@
         } else {
             tube = new THREE.Mesh(geometry, curveMaterial);
             scene.add(tube);
-            // colorBufferVertices( tube, (x,y,z) => blueUpRedDown(1));
         }
 
         updateFrame();
@@ -212,7 +205,6 @@
         r: new THREE.Mesh(),
         v: new THREE.Mesh(),
         a: new THREE.Mesh(),
-        // n: new THREE.Mesh(), // later
     };
 
     const arrowParams = {
@@ -280,7 +272,6 @@
                 V.normalize();
                 A.addScaledVector(V, A.dot(V) * -1);
                 A.normalize();
-                // R.addScaledVector(A, 1 / curvature);
                 path = new ParametricCurve(1, (t) => {
                     const vec = R.clone().addScaledVector(A,(1 - Math.cos(t)) / curvature).addScaledVector(V, Math.sin(t) / curvature);
                     return vec;
@@ -345,12 +336,6 @@
                 arrow.visible = false;
             }
         }
-
-        // tangentVectors({ u: data.currentUPosition });
-        // // if (document.querySelector("input[type=checkbox]#curl").checked) {drawCurl();}
-
-        // // updateShards(data.shards);
-        // if (!frameRequested) render();
         render();
     }
 
@@ -358,9 +343,6 @@
         curveMaterial.color.set(params.color);
         render();
     }
-
-    // Exercises
-    //
 
     onMount(updateCurve);
     onDestroy(() => {
@@ -406,52 +388,50 @@
                 type="text"
                 bind:value={params.x}
                 on:change={() => {
-            onUpdate();
-            updateCurve();
-            }}
+                    onUpdate();
+                    updateCurve();
+                }}
                 class="box box-2"
-                />
+            />
             <span class="box-1"><M>y(t) =</M></span>
             <input
                 type="text"
                 bind:value={params.y}
                 on:change={() => {
-            onUpdate();
-            updateCurve();
-            }}
+                    onUpdate();
+                    updateCurve();
+                }}
                 class="box box-2"
-                />
+            />
             <span class="box-1"><M>z(t) =</M></span>
             <input
                 type="text"
                 bind:value={params.z}
                 on:change={() => {
-            onUpdate();
-            updateCurve();
-            }}
+                    onUpdate();
+                    updateCurve();
+                }}
                 class="box box-2"
-                />
-
+            />
             <input
                 type="text"
                 bind:value={params.a}
                 on:change={() => {
-            onUpdate();
-            updateCurve();
-            }}
+                    onUpdate();
+                    updateCurve();
+                }}
                 class="box"
-                />
+            />
             <span class="box box-3"><M>\leq t \leq</M></span>
             <input
                 type="text"
                 bind:value={params.b}
                 on:change={() => {
-            onUpdate();
-            updateCurve();
-            }}
+                    onUpdate();
+                    updateCurve();
+                }}
                 class="box"
-                />
-
+            />
             <span class="box-1">
                 {@html katex.renderToString(texString1)}
             </span>
@@ -463,8 +443,7 @@
                 step="0.001"
                 on:input={updateFrame}
                 class="box box-2"
-                />
-
+            />
             <span class="box-1">frame</span>
             <label class="switch box box-2">
                 <input
@@ -473,221 +452,83 @@
                     id="frameVisible"
                     bind:checked={frame.visible}
                     on:change={render}
-                    />
+                />
                 <span class="slider round" />
             </label>
-            <!-- </div> -->
+            <span class="play-buttons box-4">
+                <button
+                    on:click={() => {
+                        frame.visible = true;
+                        animation = !animation;
+                        if (animation) dispatch("animate");
+                    }}
+                    class="box-1"
+                >
+                    {#if !animation}
+                        <i class="fa fa-play" />
+                    {:else}
+                        <i class="fa fa-pause" />
+                    {/if}
+                </button>
+                <button
+                    on:click={() => {
+                        animation = false;
+                        render();
+                    }}
+                    class="box-3"
+                    bind:this={stopButton}
+                >
+                    <i class="fa fa-stop" />
+                </button>
+                <button
+                    on:click={() => {
+                        params.tau = 0;
+                        updateFrame();
+                    }}
+                    class="box-4"
+                    bind:this={rewButton}
+                >
+                    <i class="fa fa-fast-backward" />
+                </button>
+            </span>
 
-        <span class="play-buttons box-4">
-            <button
-                on:click={() => {
-                frame.visible = true;
-                animation = !animation;
-                if (animation) dispatch("animate");
-                }}
-                class="box-1"
-                >
-                {#if !animation}
-                    <i class="fa fa-play" />
-                {:else}
-                    <i class="fa fa-pause" />
-                {/if}
-            </button>
-            <button
-                on:click={() => {
-                animation = false;
-                render();
-                }}
-                class="box-3"
-                bind:this={stopButton}
-                >
-                <i class="fa fa-stop" />
-            </button>
-            <button
-                on:click={() => {
-                // animation = false;
-                // flowArrows.visible = false;
-                // freeTrails();
-                params.tau = 0;
-                updateFrame();
-                }}
-                class="box-4"
-                bind:this={rewButton}
-                >
-                <i class="fa fa-fast-backward" />
-            </button>
-        </span>
-
-        <span class="box-1">reparamterize by <M>s</M></span>
-        <label class="switch box box-2">
-            <input
-                type="checkbox"
-                name="reparamByArcLength"
-                id="reparamByArcLength"
-                bind:checked={TNB}
-                on:change={updateFrame}
+            <span class="box-1">reparamterize by <M>s</M></span>
+            <label class="switch box box-2">
+                <input
+                    type="checkbox"
+                    name="reparamByArcLength"
+                    id="reparamByArcLength"
+                    bind:checked={TNB}
+                    on:change={updateFrame}
                 />
-            <span class="slider round" />
-        </label>
+                <span class="slider round" />
+            </label>
 
-        <span class="box-1">osculating circle</span>
-        <label class="switch box box-2">
-            <input
-                type="checkbox"
-                name="osculatingCircle"
-                id="osculatingCircle"
-                bind:checked={osculatingCircle}
-                on:change={updateFrame}
+            <span class="box-1">osculating circle</span>
+            <label class="switch box box-2">
+                <input
+                    type="checkbox"
+                    name="osculatingCircle"
+                    id="osculatingCircle"
+                    bind:checked={osculatingCircle}
+                    on:change={updateFrame}
                 />
-            <span class="slider round" />
-        </label>
-        <span class="box-1">color</span>
-        <span class="box box-2">
-            <input
-                type="color"
-                name="colorPicker"
-                id="colorPicker"
-                bind:value={params.color}
-                on:change={() => {
-            onUpdate();
-            updateColor();
-            }}
-            style="width:85%; padding: 1px 1px;"
+                <span class="slider round" />
+            </label>
+            <span class="box-1">color</span>
+            <span class="box box-2">
+                <input
+                    type="color"
+                    name="colorPicker"
+                    id="colorPicker"
+                    bind:value={params.color}
+                    on:change={() => {
+                        onUpdate();
+                        updateColor();
+                    }}
+                    style="width:85%; padding: 1px 1px;"
             />
-        </span>
+            </span>
+        </div>
     </div>
 </div>
-</div>
-
-<style>
-    .container {
-        display: grid;
-
-        grid-template-columns: 1fr auto 1fr;
-        grid-template-rows: auto;
-
-        grid-gap: 10px 15px;
-
-        padding: 10px;
-    }
-
-    .box-1 {
-        text-align: right;
-        grid-column: 1 / 2;
-        color: white;
-        vertical-align: middle;
-    }
-
-    .box-2 {
-        grid-column-start: 2;
-        grid-column-end: 4;
-    }
-
-    .box-3 {
-        color: white;
-        vertical-align: middle;
-        text-align: center;
-
-        grid-column: 2 / 3;
-    }
-
-    .box-4 {
-        color: white;
-        vertical-align: middle;
-        text-align: center;
-
-        grid-column: 3 / 4;
-    }
-
-    .box-title {
-        display: flex;
-        justify-content: space-between;
-        color: whitesmoke;
-        padding: 0.5em;
-    }
-
-    button {
-        background-color: transparent;
-        color: whitesmoke;
-        border: none;
-    }
-
-    button:hover {
-        color: white;
-    }
-
-    button:active {
-        color: gray;
-    }
-
-    .play-buttons {
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
-        grid-template-rows: 1em;
-        place-items: center;
-    }
-
-    /* The switch - the box around the slider */
-    .switch {
-        position: relative;
-        display: inline-block;
-        width: 2em;
-        height: 1.2em;
-        text-align: right;
-    }
-
-    /* Hide default HTML checkbox */
-    .switch input {
-        opacity: 0;
-        width: 0;
-        height: 0;
-    }
-
-    /* The slider */
-    .slider {
-        position: absolute;
-        cursor: pointer;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-color: #ccc;
-        -webkit-transition: 0.4s;
-        transition: 0.4s;
-    }
-
-    .slider:before {
-        position: absolute;
-        content: "";
-        height: 1em;
-        width: 1em;
-        left: 0.1em;
-        bottom: 0.1em;
-        background-color: white;
-        -webkit-transition: 0.4s;
-        transition: 0.4s;
-    }
-
-    input:checked + .slider {
-        background-color: #2196f3;
-    }
-
-    input:focus + .slider {
-        box-shadow: 0 0 1px #2196f3;
-    }
-
-    input:checked + .slider:before {
-        -webkit-transform: translateX(1em);
-        -ms-transform: translateX(1em);
-        transform: translateX(1em);
-    }
-
-    /* Rounded sliders */
-    .slider.round {
-        border-radius: 34px;
-    }
-
-    .slider.round:before {
-        border-radius: 50%;
-    }
-</style>

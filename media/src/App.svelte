@@ -440,78 +440,82 @@
                         <DropdownMenu>
                             <DropdownItem on:click={() =>
                                 objects = makeObject(null, "vector", {
-                                a: "0.2",
-                                b: "-0.3",
-                                c: "0",
-                                x: "0",
-                                y: "0",
-                                z: "0",
-                                show: true,
-                                }, objects, socket)}>
-                                vector <M>\mathbf v = \langle a, b, c \rangle</M>
+                                    a: "0.2",
+                                    b: "-0.3",
+                                    c: "0",
+                                    x: "0",
+                                    y: "0",
+                                    z: "0",
+                                    show: true,
+                                    }, objects, socket)
+                            }>
+                                Vector <M>\mathbf v = \langle a, b, c \rangle</M>
                             </DropdownItem>
-
-                            <DropdownItem on:click={() =>
+                            <DropdownItem on:click={() => 
                                 objects = makeObject(null, "curve", {
-                                a: "0",
-                                b: "2*pi",
-                                x: "cos(t)",
-                                y: "sin(t)",
-                                z: `cos(${Math.ceil(10 * Math.random()).toString()}*t)`,
-                                tau: 0,
-                                color: `#${makeHSLColor(Math.random()).getHexString()}`,
-                                }, objects, socket)}>
-                                space curve <M>\mathbf r(t)</M>
+                                    a: "0",
+                                    b: "2*pi",
+                                    x: "cos(t)",
+                                    y: "sin(t)",
+                                    z: `cos(${Math.ceil(10 * Math.random()).toString()}*t)`,
+                                    tau: 0,
+                                    color: `#${makeHSLColor(Math.random()).getHexString()}`,
+                                },
+                                objects,
+                                socket
+                            )}
+                            >
+                                Space Curve <M>\mathbf r(t)</M>
                             </DropdownItem>
                             <DropdownItem on:click={() =>
                                 objects = makeObject(null, "graph", {
-                                a: "-2",
-                                b: "2",
-                                c: "-2",
-                                d: "2",
-                                z: `cos(${Math.ceil(
-                                3 * Math.random()
-                                ).toString()}*x + ${Math.ceil(
-                                2 * Math.random()
-                                ).toString()}*y)/(1 + x^2 + y^2)`,
-                                tau: 0,
-                                // color: "#3232ff",
+                                    a: "-2",
+                                    b: "2",
+                                    c: "-2",
+                                    d: "2",
+                                    z: `cos(${Math.ceil(
+                                    3 * Math.random()
+                                    ).toString()}*x + ${Math.ceil(
+                                    2 * Math.random()
+                                    ).toString()}*y)/(1 + x^2 + y^2)`,
+                                    tau: 0,
+                                    // color: "#3232ff",
                                 }, objects, socket)}>
-                                graph <M>z = f(x,y)</M>
+                                Graph <M>z = f(x,y)</M>
                             </DropdownItem>
                             <DropdownItem on:click={() =>
                                 objects = makeObject(null, "level", {
-                                g: "x^2 + 2 y^2 - z^2",
-                                k: "1",
-                                a: "-2",
-                                b: "2",
-                                c: "-2",
-                                d: "2",
-                                e: "-2",
-                                f: "2",
+                                    g: "x^2 + 2 y^2 - z^2",
+                                    k: "1",
+                                    a: "-2",
+                                    b: "2",
+                                    c: "-2",
+                                    d: "2",
+                                    e: "-2",
+                                    f: "2",
                                 }, objects, socket)}>
-                                level surface <M>g(x,y,z) = k</M>
+                                Level Surface <M>g(x,y,z) = k</M>
                             </DropdownItem>
                             <DropdownItem on:click={() =>
                                 objects = makeObject(null, "parsurf", {
-                                a: "0",
-                                b: "2*pi",
-                                c: "0",
-                                d: "2*pi",
-                                x: "cos(u)*(1 + sin(v)/3)",
-                                y: "sin(u)*(1 + sin(v)/3)",
-                                z: "cos(v)/3",
+                                    a: "0",
+                                    b: "2*pi",
+                                    c: "0",
+                                    d: "2*pi",
+                                    x: "cos(u)*(1 + sin(v)/3)",
+                                    y: "sin(u)*(1 + sin(v)/3)",
+                                    z: "cos(v)/3",
                                 }, objects, socket)}>
-                                parametric surface <M>\mathbf r(u,v)</M>
+                                Parametric Surface <M>\mathbf r(u,v)</M>
                             </DropdownItem>
                             <DropdownItem on:click={() =>
                                 objects = makeObject(null, "field", {
-                                p: "x",
-                                q: "y",
-                                r: "-z",
-                                nVec: 6,
+                                    p: "x",
+                                    q: "y",
+                                    r: "-z",
+                                    nVec: 6,
                                 }, objects, socket)}>
-                                vector field<M>\mathbf F(x,y,z)</M>
+                                Vector Field<M>\mathbf F(x,y,z)</M>
                             </DropdownItem>
                             <DropdownItem on:click={() =>
                                 objects = makeObject(null, "box", {
@@ -519,7 +523,7 @@
                                 },
                                 objects, socket
                                 )}>
-                                random box
+                                Random Box
                             </DropdownItem>
                         </DropdownMenu>
                     </ButtonDropdown>
@@ -529,12 +533,8 @@
                 </button>
 
                 <div class="objectBoxInner">
-                    <!-- <input type="number" bind:value={color} on:change="{changeColor}"> -->
                     {#each objects as b}
-                        <div
-                            transition:slide={{ delay: 0, duration: 300, easing: quintOut }}
-                            >
-                            <!-- <p>Number {b.id}.</p> -->
+                        <div transition:slide={{ delay: 0, duration: 300, easing: quintOut }}>
                             {#if b.kind === "parsurf"}
                                 <ParSurf
                                     {scene}
@@ -544,87 +544,87 @@
                                     onUpdate={() => objects = updateObject(b, objects, socket)}
                                     bind:update={b.update}
                                     bind:animation={b.animation}
-                                    />
-                                {:else if b.kind === "graph"}
-                                    <Function
-                                        {scene}
-                                        camera={currentCamera}
-                                        {controls}
-                                        render={requestFrameIfNotRequested}
-                                        params={b.params}
-                                        onClose={() => objects = removeObject(b.uuid, objects, socket)}
-                                        onUpdate={() => objects = updateObject(b, objects, socket)}
-                                        bind:shadeUp
-                                        bind:update={b.update}
-                                        bind:animation={b.animation}
-                                        on:animate={animateIfNotAnimating}
-                                        {gridStep}
-                                        />
-                                    {:else if b.kind === "level"}
-                                        <Level
-                                            {scene}
-                                            camera={currentCamera}
-                                            {controls}
-                                            render={requestFrameIfNotRequested}
-                                            onClose={() => objects = removeObject(b.uuid, objects, socket)}
-                                            onUpdate={() => objects = updateObject(b, objects, socket)}
-                                            params={b.params}
-                                            bind:shadeUp
-                                            bind:update={b.update}
-                                            bind:animation={b.animation}
-                                            on:animate={animateIfNotAnimating}
-                                            {gridStep}
-                                            />
-                                        {:else if b.kind === "box"}
-                                            <Box
-                                                {scene}
-                                                render={requestFrameIfNotRequested}
-                                                onClose={() => objects = removeObject(b.uuid, objects, socket)}
-                                                onUpdate={() => objects = updateObject(b, objects, socket)}
-                                                params={b.params}
-                                                bind:update={b.update}
-                                                bind:animation={b.animation}
-                                                on:animate={animateIfNotAnimating}
-                                                />
-                                            {:else if b.kind === "curve"}
-                                                <Curve
-                                                    {scene}
-                                                    render={requestFrameIfNotRequested}
-                                                    onClose={() => objects = removeObject(b.uuid, objects, socket)}
-                                                    onUpdate={() => objects = updateObject(b, objects, socket)}
-                                                    params={b.params}
-                                                    bind:update={b.update}
-                                                    bind:animation={b.animation}
-                                                    on:animate={animateIfNotAnimating}
-                                                    {gridStep}
-                                                    />
-                                                {:else if b.kind === "field"}
-                                                    <Field
-                                                        {scene}
-                                                        render={requestFrameIfNotRequested}
-                                                        onClose={() => objects = removeObject(b.uuid, objects, socket)}
-                                                        onUpdate={() => objects = updateObject(b, objects, socket)}
-                                                        bind:update={b.update}
-                                                        bind:animation={b.animation}
-                                                        on:animate={animateIfNotAnimating}
-                                                        params={b.params}
-                                                        {gridStep}
-                                                        {gridMax}
-                                                        />
-                                                    {:else if b.kind === "vector"}
-                                                        <Vector
-                                                            {scene}
-                                                            render={requestFrameIfNotRequested}
-                                                            onClose={() => objects = removeObject(b.uuid, objects, socket)}
-                                                            onUpdate={() => objects = updateObject(b, objects, socket)}
-                                                            params={b.params}
-                                                            {gridStep}
-                                                            {gridMax}
-                                                            />
-                                                        {/if}
-                                                    </div>
-                                                {/each}
-                                            </div>
+                                />
+                            {:else if b.kind === "graph"}
+                                <Function
+                                    {scene}
+                                    camera={currentCamera}
+                                    {controls}
+                                    render={requestFrameIfNotRequested}
+                                    params={b.params}
+                                    onClose={() => objects = removeObject(b.uuid, objects, socket)}
+                                    onUpdate={() => objects = updateObject(b, objects, socket)}
+                                    bind:shadeUp
+                                    bind:update={b.update}
+                                    bind:animation={b.animation}
+                                    on:animate={animateIfNotAnimating}
+                                    {gridStep}
+                                />
+                            {:else if b.kind === "level"}
+                                <Level
+                                    {scene}
+                                    camera={currentCamera}
+                                    {controls}
+                                    render={requestFrameIfNotRequested}
+                                    onClose={() => objects = removeObject(b.uuid, objects, socket)}
+                                    onUpdate={() => objects = updateObject(b, objects, socket)}
+                                    params={b.params}
+                                    bind:shadeUp
+                                    bind:update={b.update}
+                                    bind:animation={b.animation}
+                                    on:animate={animateIfNotAnimating}
+                                    {gridStep}
+                                />
+                            {:else if b.kind === "box"}
+                                <Box
+                                    {scene}
+                                    render={requestFrameIfNotRequested}
+                                    onClose={() => objects = removeObject(b.uuid, objects, socket)}
+                                    onUpdate={() => objects = updateObject(b, objects, socket)}
+                                    params={b.params}
+                                    bind:update={b.update}
+                                    bind:animation={b.animation}
+                                    on:animate={animateIfNotAnimating}
+                                />
+                            {:else if b.kind === "curve"}
+                                <Curve
+                                    {scene}
+                                    render={requestFrameIfNotRequested}
+                                    onClose={() => objects = removeObject(b.uuid, objects, socket)}
+                                    onUpdate={() => objects = updateObject(b, objects, socket)}
+                                    params={b.params}
+                                    bind:update={b.update}
+                                    bind:animation={b.animation}
+                                    on:animate={animateIfNotAnimating}
+                                    {gridStep}
+                                />
+                            {:else if b.kind === "field"}
+                                <Field
+                                    {scene}
+                                    render={requestFrameIfNotRequested}
+                                    onClose={() => objects = removeObject(b.uuid, objects, socket)}
+                                    onUpdate={() => objects = updateObject(b, objects, socket)}
+                                    bind:update={b.update}
+                                    bind:animation={b.animation}
+                                    on:animate={animateIfNotAnimating}
+                                    params={b.params}
+                                    {gridStep}
+                                    {gridMax}
+                                />
+                            {:else if b.kind === "vector"}
+                                <Vector
+                                    {scene}
+                                    render={requestFrameIfNotRequested}
+                                    onClose={() => objects = removeObject(b.uuid, objects, socket)}
+                                    onUpdate={() => objects = updateObject(b, objects, socket)}
+                                    params={b.params}
+                                    {gridStep}
+                                    {gridMax}
+                                />
+                            {/if}
+                        </div>
+                    {/each}
+                </div>
             </div>
             <button class="form-control form-control-sm raise-lower-button"
                     title="Raise/Lower window"
@@ -670,126 +670,95 @@
     }
 
     .info {
-        /* display: block; */
         position: absolute;
         left: 3%;
         top: 0%;
         width: clamp(23ch, 50%, 75ch);
         background-color: transparent;
         perspective: 1000px; /* Remove this if you don't want the 3D effect */
-        }
+    }
 
-         .info-inner {
-             position: relative;
-             width: 100%;
-             height: 100%;
-             /* text-align: center; */
-             transition: transform 0.8s, opacity 0.8s;
-             transform-style: preserve-3d;
-         }
+    .info-inner {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        transition: transform 0.8s, opacity 0.8s;
+        transform-style: preserve-3d;
+    }
 
-         .info.flipInfo .info-inner {
-             transform: rotateY(180deg);
-         }
+    .info.flipInfo .info-inner {
+        transform: rotateY(180deg);
+    }
 
-         .chapterBox,
-         .objectBoxOuter {
-             position: absolute;
-             width: 100%;
-             height: fit-content;
-             background-color: rgba(100, 100, 100, 0.5);
-             color: white;
-             /* overflow-x: hidden; */
-             border-radius: 0.5em;
-             border-top-left-radius: 0rem;
-             border-top-right-radius: 0rem;
-             /* box-shadow: 1 1 black, 2 2 yellow; */
-             border: 1px solid black;
-             padding: 5px;
-             /* max-height: 94%; */
-             transition: opacity 0.8s;
-             box-sizing: border-box;
+    .chapterBox,
+    .objectBoxOuter {
+        position: absolute;
+        width: 100%;
+        height: fit-content;
+        background-color: rgba(100, 100, 100, 0.5);
+        color: white;
+        border-radius: 0.5em;
+        border-top-left-radius: 0rem;
+        border-top-right-radius: 0rem;
+        border: 1px solid black;
+        padding: 5px;
+        transition: opacity 0.8s;
+        box-sizing: border-box;
 
-             -webkit-backface-visibility: hidden;
-             backface-visibility: hidden;
-         }
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
+    }
 
-         .chapterBox {
-             text-align: unset;
-         }
+    .chapterBox {
+        text-align: unset;
+    }
 
-         .objectBoxOuter {
-             transform: rotateY(180deg);
-             opacity: 0;
-         }
+    .objectBoxOuter {
+        transform: rotateY(180deg);
+        opacity: 0;
+    }
 
-         .info.flipInfo .chapterBox {
-             opacity: 0;
-         }
+    .info.flipInfo .chapterBox {
+        opacity: 0;
+    }
 
-         .info.flipInfo .objectBoxOuter {
-             opacity: 1;
-         }
+    .info.flipInfo .objectBoxOuter {
+        opacity: 1;
+    }
 
-         .objectBoxInner {
-             display: flex;
-             flex-direction: column-reverse;
-             max-height: 75vh;
-             overflow-y: auto;
-             gap: 0.25em;
-         }
+    .objectBoxInner {
+        display: flex;
+        flex-direction: column-reverse;
+        max-height: 75vh;
+        overflow-y: auto;
+        gap: 0.25em;
+    }
 
-         .dropdown {
-             position: relative;
-             display: inline-block;
-         }
+    .dropdown {
+        position: relative;
+        display: inline-block;
+    }
 
-         .object-box-title {
-             display: flex;
-             font-size: 1.5em;
-             justify-content: space-between;
-         }
+    .object-box-title {
+        display: flex;
+        font-size: 1.5em;
+        justify-content: space-between;
+    }
 
-         :global(.boxItem) {
-             flex: auto;
-             /* background-color: yellow; */
-             background-color: rgba(33, 33, 33, 0.8);
-             border: 1px solid black;
-             border-radius: 1rem;
-             /* margin: 5px; */
-             /* padding-left: 5%; */
-         }
+    .settings-tray {
+        position: fixed;
+        left: 3px;
+        bottom: 0;
+        display: flex;
+        justify-content: flex-start;
+        width: clamp(23ch, 30%, 45ch);
+    }
 
-         :global(.hidden) {
-             display: none;
-         }
+    .raise-lower-button {
+        width: clamp(50px, 20%, 200px);
+        margin: 0 auto;
 
-         .settings-tray {
-             position: fixed;
-             left: 3px;
-             bottom: 0;
-             display: flex;
-             justify-content: flex-start;
-             width: clamp(23ch, 30%, 45ch);
-         }
-
-         .raise-lower-button {
-             width: clamp(50px, 20%, 200px);
-             margin: 0 auto;
-
-             /* Bold */
-             -webkit-text-stroke: 1px;
-         }
-
-         :global(.titlefont) {
-             /* font-size: 1.5em; */
-             font-family: Cambria, Cochin, Georgia, Times, "Times New Roman", serif;
-         }
-
-         :global(article) {
-             color: white;
-             background-color: rgba(0.5, 0.5, 0.5, 0.3);
-             padding: 5px;
-             font-family: Cambria, Cochin, Georgia, Times, "Times New Roman", serif;
-         }
+        /* Bold */
+        -webkit-text-stroke: 1px;
+    }
 </style>
