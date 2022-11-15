@@ -6,7 +6,9 @@
     }
     </script>
 
-<h1 class="top-title" on:click={toggleHidden}>Introduction</h1>
+<button class="btn btn-secondary" on:click={toggleHidden}>
+    Introduction <i class="bi bi-caret-down-fill"></i>
+</button>
 <article class:hidden>
     <p>
         Welcome to 3Demos. This is a site dedicated to visualizations for

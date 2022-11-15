@@ -1,12 +1,8 @@
 <script>
     import { onMount, onDestroy, createEventDispatcher } from "svelte";
     import {ParametricGeometry} from 'three/examples/jsm/geometries/ParametricGeometry.js';
-
-    // import { fly, fade } from "svelte/transition";
     import M from "../M.svelte";
-
     import * as THREE from "three";
-
     import { create, all } from "mathjs";
 
     const config = {};
@@ -65,7 +61,7 @@
         }
     }
 
-    const data = {
+    let data = {
         rNum: 10,
         cNum: 10,
         nX: 50,
@@ -89,9 +85,6 @@
     if (!params.color) {
         params.color = "#3232ff";
     }
-    // for (const prop of Object.keys(defaultParams)) {
-    //   params[prop] = params[prop] || defaultParams[prop];
-    // }
 
     export let scene;
     export let shadeUp;
@@ -287,7 +280,6 @@
             data.nX,
             data.nX
         );
-        // const meshGeometry = new THREE.BufferGeometry();
         const meshGeometry = meshLines(params, data.rNum, data.cNum, data.nX);
         let material = plusMaterial;
 
@@ -299,21 +291,14 @@
                 if (i < 1) {
                     mesh.material = material;
                 }
-
-                // if (i === 1) {
-                //   mesh.visible = !colorFunc;
-                // }
             }
         } else {
-            // surfaceMesh = new THREE.Object3D();
             const backMesh = new THREE.Mesh(geometry, minusMaterial);
             const frontMesh = new THREE.Mesh(geometry, material);
 
-            // mesh.add(new THREE.Mesh( geometry, wireMaterial ))
             surfaceMesh.add(frontMesh);
             surfaceMesh.add(backMesh);
             surfaceMesh.add(new THREE.LineSegments(meshGeometry, whiteLineMaterial));
-            // mesh.visible = false;
             scene.add(surfaceMesh);
         }
         point.position.set(
@@ -340,7 +325,6 @@
     const meshLines = function(rData, rNum = 10, cNum = 10, nX = 30) {
         let { a, b, c, d, z } = rData;
         const time = params.t0 + data.tau * (params.t1 - params.t0);
-        // const N = lcm(lcm(rNum, cNum), nX);
         const A = math.evaluate(a),
               B = math.evaluate(b);
 
@@ -434,7 +418,6 @@
         for (let j = 0; j < 3; j += 2) {
             const geometry = surfaceMesh.children[j].geometry;
             const positions = geometry.attributes.position.array;
-            // const normals = geometry.attributes.normal.array;
 
             let index = 0;
             for (let i = 0; i < positions.length / 3; i++) {
@@ -508,7 +491,6 @@
         const hsl = {};
         col.getHSL(hsl);
         hsl.h = (hsl.h + 0.618033988749895) % 1;
-        // col.setHSL(hsl)
         minusMaterial.color.setHSL(hsl.h, hsl.s, hsl.l);
         render();
     }
@@ -538,18 +520,12 @@
             } else {
                 arrows.u.visible = true;
                 arrows.v.visible = true;
-                // arrows.n.visible = false;
                 arrows.grad.visible = false;
             }
             if (!data.animateTime) {
                 animation = false;
             }
         }
-        // for (let index = 0; index < levelHolder.children.length; index++) {
-        //   const element = levelHolder.children[index];
-        //   element.position.set(0, 0, shiftInterpolation(t, element.level));
-        // }
-        // curveBall.position.set(0, 0, shiftInterpolation(t, curveBall.level));
         render();
     };
 
@@ -558,7 +534,6 @@
             const element = levelHolder.children[index];
             element.position.set(0, 0, shiftInterpolation(t, element.level));
         }
-        // selectedLevelCurve.position.set(0, 0, shiftInterpolation( t, selectedLevelCurve.level ))
     }
 
     const updateLevels = function() {
@@ -739,9 +714,6 @@
         if (shadeUp) {
             switch (e.key) {
                 case "Shift":
-                    // animation = true;
-                    // frameBall.visible = true;
-                    // onMouseMove();
                     window.addEventListener("mousemove", onMouseMove, false);
                     break;
                 case "0":
@@ -796,9 +768,7 @@
                     render();
                     break;
                 case "p":
-                    // frame.visible = true;
                     data.animateTime = !data.animateTime;
-                    // animation = !animation;
                     if (data.animateTime) {
                         animation = true;
                         dispatch("animate");
@@ -812,8 +782,6 @@
 
     const shiftUp = (e) => {
         if (e.key === "Shift") {
-            // animation = false;
-            // frameBall.visible = false;
             window.removeEventListener("mousemove", onMouseMove);
         }
     };
@@ -825,69 +793,60 @@
 <div class="boxItem">
     <div class="box-title">
         <strong>Graph of function</strong>
-        <span
-            ><button
-                 on:click={() => {
-                hidden = !hidden;
-                }}><i class="fa fa-window-minimize" /></button
-                                                          ><button on:click={onClose}>
-                <i class="fa fa-window-close" /></button
-                                                    ></span
-                                                         >
+        <span>
+            <button on:click={() => {hidden = !hidden;}}>
+                <i class="fa fa-window-minimize" />
+            </button>
+            <button on:click={onClose}>
+                <i class="fa fa-window-close" />
+            </button>
+        </span>
     </div>
     <div class:hidden>
         <div class="container">
-            <span class="box-1"><M>f(x,y[,t]) =</M></span>
+            <span class="box-1">
+                <M>f(x,y[,t]) =</M>
+            </span>
             <input
                 type="text"
                 bind:value={params.z}
                 on:change={updateSurface}
-                on:input={() => {
-            data.animateTime = false;
-            }}
-            class="box box-2"
+                on:input={() => {data.animateTime = false;}}
+                class="box box-2"
             />
             <input
                 type="text"
                 bind:value={params.a}
-                on:change={() => {
-            onUpdate();
-            updateSurface();
-            }}
+                on:change={() => {onUpdate(); updateSurface();}}
                 class="box"
-                />
-            <span class="box box-3"><M>\leq x \leq</M></span>
-
+            />
+            <span class="box box-3">
+                <M>\leq x \leq</M>
+            </span>
             <input
                 type="text"
                 bind:value={params.b}
-                on:change={() => {
-            onUpdate();
-            updateSurface();
-            }}
+                on:change={() => {onUpdate(); updateSurface();}}
                 class="box"
-                />
+            />
             <input
                 type="text"
                 bind:value={params.c}
-                on:change={() => {
-            onUpdate();
-            updateSurface();
-            }}
+                on:change={() => {onUpdate(); updateSurface();}}
                 class="box"
-                />
-            <span class="box box-3"><M>\leq y \leq</M></span>
+            />
+            <span class="box box-3">
+                <M>\leq y \leq</M>
+            </span>
             <input
                 type="text"
                 bind:value={params.d}
-                on:change={() => {
-            onUpdate();
-            updateSurface()
-            }}
+                on:change={() => {onUpdate(); updateSurface()}}
                 class="box"
-                />
-
-            <span class="box-1"><M>x</M>-meshes</span>
+            />
+            <span class="box-1">
+                <M>x</M>-meshes
+            </span>
             <input
                 type="range"
                 bind:value={data.rNum}
@@ -895,14 +854,17 @@
                 max="20"
                 step="1"
                 on:input={() => {
-            const mesh = surfaceMesh.children[2];
-            mesh.geometry.dispose();
-            mesh.geometry = meshLines(params, data.rNum, data.cNum, data.nX);
-            render();
-            }}
-            class="box box-2"
+                    const mesh = surfaceMesh.children[2];
+                    mesh.geometry.dispose();
+                    mesh.geometry = meshLines(
+                        params, data.rNum, data.cNum, data.nX);
+                    render();
+                }}
+                class="box box-2"
             />
-            <span class="box-1"><M>y</M>-meshes</span>
+            <span class="box-1">
+                <M>y</M>-meshes
+            </span>
             <input
                 type="range"
                 bind:value={data.cNum}
@@ -910,14 +872,17 @@
                 max="20"
                 step="1"
                 on:input={() => {
-            const mesh = surfaceMesh.children[2];
-            mesh.geometry.dispose();
-            mesh.geometry = meshLines(params, data.rNum, data.cNum, data.nX);
-            render();
-            }}
-            class="box box-2"
+                    const mesh = surfaceMesh.children[2];
+                    mesh.geometry.dispose();
+                    mesh.geometry = meshLines(
+                        params, data.rNum, data.cNum, data.nX);
+                    render();
+                }}
+                class="box box-2"
             />
-            <span class="box-1">resolution</span>
+            <span class="box-1">
+                resolution
+            </span>
             <input
                 type="range"
                 bind:value={data.nX}
@@ -926,10 +891,10 @@
                 step="5"
                 on:input={updateSurface}
                 class="box box-2"
-                />
-
-            <span class="box-1">levels</span>
-
+            />
+            <span class="box-1">
+                levels
+            </span>
             <span class="box-2">
                 <button on:click={activateLevelElevator} class="box-2">
                     {#if data.levelDelta === 1}
@@ -939,8 +904,9 @@
                     {/if}
                 </button>
             </span>
-
-            <span class="box-1">viewgraph</span>
+            <span class="box-1">
+                viewgraph
+            </span>
             <label class="switch box box-2">
                 <input
                     type="checkbox"
@@ -948,16 +914,15 @@
                     id="graphVisible"
                     bind:checked={surfaceMesh.visible}
                     on:change={render}
-                    />
+                />
                 <span class="slider round" />
             </label>
-
             <input type="number" bind:value={params.t0} class="box" />
-            <span class="box box-3"><M>\leq t \leq</M></span>
+            <span class="box box-3">
+                <M>\leq t \leq</M>
+            </span>
             <input type="number" bind:value={params.t1} class="box" />
-
             <span class="box-1">
-                <!-- <M>t = {{{stringifyT(params)}}}</M> -->
                 <M>t</M>
             </span>
             <input
@@ -967,18 +932,15 @@
                 max="1"
                 step="0.001"
                 on:input={() => {
-            evolveSurface(data.tau * (params.t1 - params.t0));
-            render();
-            }}
-            class="box box-2"
+                    evolveSurface(data.tau * (params.t1 - params.t0));
+                    render();
+                }}
+                class="box box-2"
             />
-
             <span class="play-buttons box-4">
                 <button
                     on:click={() => {
-                    // frame.visible = true;
                     data.animateTime = !data.animateTime;
-                    // animation = !animation;
                     if (data.animateTime) {
                     animation = true;
                     dispatch("animate");
@@ -1011,8 +973,9 @@
                     <i class="fa fa-fast-backward" />
                 </button>
             </span>
-
-            <span class="box-1">tangents</span>
+            <span class="box-1">
+                tangents
+            </span>
             <label class="switch box box-2">
                 <input
                     type="checkbox"
@@ -1020,7 +983,7 @@
                     id="frameVisible"
                     bind:checked={point.visible}
                     on:change={render}
-                    />
+                />
                 <span class="slider round" />
             </label>
             <span class="box box-2">
@@ -1030,14 +993,15 @@
                     id="colorPicker"
                     bind:value={params.color}
                     on:change={() => {
-                onUpdate();
-                updateColor();
-                }}
+                        onUpdate();
+                        updateColor();
+                    }}
                     style="width:85%; padding: 1px 1px;"
-                    />
+                />
             </span>
-
-            <span class="box-1">integrate</span>
+            <span class="box-1">
+                integrate
+            </span>
             <label class="switch box box-2">
                 <input
                     type="checkbox"
@@ -1045,16 +1009,13 @@
                     id="doIntegral"
                     bind:checked={boxMesh.visible}
                     on:change={() => {
-                if (boxMesh.visible) {
-                updateBoxes();
-                }
-                render();
-                }}
+                        if (boxMesh.visible) {updateBoxes();}
+                        render();
+                    }}
                 />
                 <span class="slider round" />
             </label>
             <span class="box-1">
-                <!-- <M>t = {{{stringifyT(params)}}}</M> -->
                 <M>N</M>
             </span>
             <input
@@ -1064,10 +1025,10 @@
                 max="81"
                 step="1"
                 on:input={() => {
-            updateBoxes();
-            render();
-            }}
-            class="box box-2"
+                    updateBoxes();
+                    render();
+                }}
+                class="box box-2"
             />
             <span class="box-1"> sample </span>
             <input
@@ -1077,18 +1038,18 @@
                 max="4"
                 step="1"
                 on:input={() => {
-            const pt = [
-            [0, 0],
-            [1, 0],
-            [1 / 2, 1 / 2],
-            [0, 1],
-            [1, 1],
-            ];
-            [data.s, data.t] = pt[data.samp];
-            updateBoxes();
-            render();
-            }}
-            class="box box-2"
+                    const pt = [
+                        [0, 0],
+                        [1, 0],
+                        [1 / 2, 1 / 2],
+                        [0, 1],
+                        [1, 1],
+                    ];
+                    [data.s, data.t] = pt[data.samp];
+                    updateBoxes();
+                    render();
+                }}
+                class="box box-2"
             />
         </div>
     </div>

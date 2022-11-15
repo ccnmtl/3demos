@@ -7,7 +7,7 @@
     const config = {};
     const math = create(all, config);
 
-    export let boxes;
+    export let boxes = [];
     let curveId = (t) => { return {x: t, y: t, z: t}};
     const texStrings = {
         r: "\\langle t, t, t \\rangle",
@@ -67,11 +67,13 @@
             curveId = null;
         } else {
             const params = exampleCurveParams[selection];
-            const [X,Y,Z,A,B] = ["x","y","z","a","b"].map((c) => math.parse(params[c]));
+            const [X,Y,Z,A,B] = ["x","y","z","a","b"].map((c) => 
+                                    math.parse(params[c]));
             curveId = uuidv4();
 
             boxes = [...boxes, {id: curveId, kind: "curve", params, }];
-            texStrings.r = "\\left \\langle " + X.toTex() + ", " + Y.toTex()  + ", " + Z.toTex() + "\\right \\rangle";
+            texStrings.r = "\\left \\langle " + X.toTex() + ", " + Y.toTex() +
+                           ", " + Z.toTex() + "\\right \\rangle";
             texStrings.a = A.toTex();
             texStrings.b = B.toTex();
         }
@@ -79,20 +81,35 @@
 
     </script>
 
-<h1 class="top-title" on:click={toggleHidden}>Arc Length &amp; Curvature</h1>
+<button class="top-title" on:click={toggleHidden}>
+    Arc Length &amp; Curvature
+</button>
 <article class:hidden>
 
-    <p>Suppose we have a curve <M>C</M> in space parameterized by a smooth function <M>\mathbf r(t)</M> for <M>a \leq t \leq b</M> and we wish to know how long it is. That is, we want to compute the <b>arc length</b> of <M>C</M>.</p>
+    <p>
+        Suppose we have a curve <M>C</M> in space parameterized by a smooth 
+        function <M>\mathbf r(t)</M> for <M>a \leq t \leq b</M> and we wish 
+        to know how long it is. That is, we want to compute the 
+        <b>arc length</b> of <M>C</M>.
+    </p>
 
-    <p>Select an example: <span on:click={() => addCurve(0)}>crown</span> | <span on:click={() => addCurve(1)}>twist</span> </p>
+    <p>Select an example: 
+        <button on:click={() => addCurve(0)}>
+            crown
+        </button>
+         | 
+        <button on:click={() => addCurve(1)}>
+            twist
+        </button>
+    </p>
 
     <div>{@html katex.renderToString(texString1, {displayMode: true})}</div>
     <div>{@html katex.renderToString(texString2, {displayMode: true})}</div>
 
     <p>
-        We can estimate the length by selecting a finite
-        number <M>N</M> of positions along the curve and measuring the
-        distance between them. To wit, we select a partition of <M>[a, b]</M>:
+        We can estimate the length by selecting a finite number <M>N</M> of 
+        positions along the curve and measuring the distance between them. To 
+        wit, we select a partition of <M>[a, b]</M>:
     </p>
 
     <div>{@html katex.renderToString(texString3, {displayMode: true})}</div>
