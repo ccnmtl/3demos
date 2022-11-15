@@ -27,6 +27,13 @@ const joinUrl = function(base, path) {
     return url.href;
 };
 
+/**
+ * Given a room/session id, return its path.
+ */
+const getRoomUrl = function(id) {
+    return joinUrl(window.location.origin, `/rooms/${id}/`);
+};
+
 export function marchingSquares({
     f,
     level,
@@ -1656,6 +1663,7 @@ const forceNumber = function(n) {
 
 export {
     joinUrl,
+    getRoomUrl,
     ArrowBufferGeometry,
     ParametricCurve,
     drawGrid,
