@@ -6,8 +6,8 @@
     }
     </script>
 
-<button class="top-title" on:click={toggleHidden}>
-    Introduction
+<button class="btn btn-secondary" on:click={toggleHidden}>
+    Introduction <i class="bi bi-caret-down-fill"></i>
 </button>
 <article class:hidden>
     <p>
@@ -44,16 +44,3 @@
         and does it better.
     </p>
 </article>
-
-<style>
-    .top-title {
-        color: white;
-        font-size: smaller;
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        user-select: none;
-        cursor: pointer;
-    }
-    .top-title:hover {
-        background-color: rgba(255, 0, 0, 0.3);
-    }
-</style>
