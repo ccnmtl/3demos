@@ -29,6 +29,7 @@
     import Linear from './Linear.svelte';
     import Chapter from './Chapter.svelte';
     import Intro from './Intro.svelte';
+    import Session from './modes/Session.svelte';
 
     import {
         getRoomId, makeSocket
@@ -361,9 +362,12 @@
     let socket = null;
     const router = {};
     const room = location.pathname.match(/\/rooms\/\d+\//);
+    let roomId = null;
+
     if (room) {
+        currentMode = 'session';
         router.room = true;
-        const roomId = getRoomId(window.location.pathname);
+        roomId = getRoomId(window.location.pathname);
         socket = makeSocket(roomId, handleSocketMessage);
     }
 </script>
@@ -403,18 +407,22 @@
                         </DropdownToggle>
                         <DropdownMenu>
                             <DropdownItem
+                                active={currentMode === 'intro'}
                                 on:click={() => (currentMode = 'intro')}>
                                 Intro
                             </DropdownItem>
                             <DropdownItem
+                                active={currentMode === 'story'}
                                 on:click={() => (currentMode = 'story')}>
                                 Story
                             </DropdownItem>
                             <DropdownItem
+                                active={currentMode === 'creative'}
                                 on:click={() => (currentMode = 'creative')}>
                                 Creative
                             </DropdownItem>
                             <DropdownItem
+                                active={currentMode === 'session'}
                                 on:click={() => (currentMode = 'session')}>
                                 Session/Live
                             </DropdownItem>
@@ -431,7 +439,7 @@
                 </div>
 
                 {#if currentMode === 'session'}
-                    Session mode!
+                    <Session sessionId={roomId} />
                 {:else}
                     {#if currentChapter === "Chapter"}
                         <Chapter bind:objects />
