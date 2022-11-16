@@ -1,12 +1,8 @@
 <script>
     import { onMount, onDestroy, createEventDispatcher } from "svelte";
     import {ParametricGeometry} from 'three/examples/jsm/geometries/ParametricGeometry.js';
-
-    // import { fly, fade } from "svelte/transition";
     import M from "../M.svelte";
-
     import * as THREE from "three";
-
     import { create, all } from "mathjs";
 
     const config = {};
@@ -89,9 +85,6 @@
     if (!params.color) {
         params.color = "#3232ff";
     }
-    // for (const prop of Object.keys(defaultParams)) {
-    //   params[prop] = params[prop] || defaultParams[prop];
-    // }
 
     export let scene;
     export let shadeUp;
@@ -287,7 +280,6 @@
             data.nX,
             data.nX
         );
-        // const meshGeometry = new THREE.BufferGeometry();
         const meshGeometry = meshLines(params, data.rNum, data.cNum, data.nX);
         let material = plusMaterial;
 
@@ -299,21 +291,14 @@
                 if (i < 1) {
                     mesh.material = material;
                 }
-
-                // if (i === 1) {
-                //   mesh.visible = !colorFunc;
-                // }
             }
         } else {
-            // surfaceMesh = new THREE.Object3D();
             const backMesh = new THREE.Mesh(geometry, minusMaterial);
             const frontMesh = new THREE.Mesh(geometry, material);
 
-            // mesh.add(new THREE.Mesh( geometry, wireMaterial ))
             surfaceMesh.add(frontMesh);
             surfaceMesh.add(backMesh);
             surfaceMesh.add(new THREE.LineSegments(meshGeometry, whiteLineMaterial));
-            // mesh.visible = false;
             scene.add(surfaceMesh);
         }
         point.position.set(
@@ -340,7 +325,6 @@
     const meshLines = function(rData, rNum = 10, cNum = 10, nX = 30) {
         let { a, b, c, d, z } = rData;
         const time = params.t0 + data.tau * (params.t1 - params.t0);
-        // const N = lcm(lcm(rNum, cNum), nX);
         const A = math.evaluate(a),
               B = math.evaluate(b);
 
@@ -434,7 +418,6 @@
         for (let j = 0; j < 3; j += 2) {
             const geometry = surfaceMesh.children[j].geometry;
             const positions = geometry.attributes.position.array;
-            // const normals = geometry.attributes.normal.array;
 
             let index = 0;
             for (let i = 0; i < positions.length / 3; i++) {
@@ -508,7 +491,6 @@
         const hsl = {};
         col.getHSL(hsl);
         hsl.h = (hsl.h + 0.618033988749895) % 1;
-        // col.setHSL(hsl)
         minusMaterial.color.setHSL(hsl.h, hsl.s, hsl.l);
         render();
     }
@@ -538,18 +520,12 @@
             } else {
                 arrows.u.visible = true;
                 arrows.v.visible = true;
-                // arrows.n.visible = false;
                 arrows.grad.visible = false;
             }
             if (!data.animateTime) {
                 animation = false;
             }
         }
-        // for (let index = 0; index < levelHolder.children.length; index++) {
-        //   const element = levelHolder.children[index];
-        //   element.position.set(0, 0, shiftInterpolation(t, element.level));
-        // }
-        // curveBall.position.set(0, 0, shiftInterpolation(t, curveBall.level));
         render();
     };
 
@@ -558,7 +534,6 @@
             const element = levelHolder.children[index];
             element.position.set(0, 0, shiftInterpolation(t, element.level));
         }
-        // selectedLevelCurve.position.set(0, 0, shiftInterpolation( t, selectedLevelCurve.level ))
     }
 
     const updateLevels = function() {
@@ -739,9 +714,6 @@
         if (shadeUp) {
             switch (e.key) {
                 case "Shift":
-                    // animation = true;
-                    // frameBall.visible = true;
-                    // onMouseMove();
                     window.addEventListener("mousemove", onMouseMove, false);
                     break;
                 case "0":
@@ -968,9 +940,7 @@
             <span class="play-buttons box-4">
                 <button
                     on:click={() => {
-                    // frame.visible = true;
                     data.animateTime = !data.animateTime;
-                    // animation = !animation;
                     if (data.animateTime) {
                     animation = true;
                     dispatch("animate");
@@ -1084,129 +1054,3 @@
         </div>
     </div>
 </div>
-
-<style>
-    .container {
-        display: grid;
-
-        grid-template-columns: 1fr auto 1fr;
-        grid-template-rows: auto;
-
-        grid-gap: 10px 15px;
-
-        padding: 10px;
-    }
-
-    .box-1 {
-        text-align: right;
-        grid-column: 1 / 2;
-        color: white;
-        vertical-align: middle;
-    }
-
-    .box-2 {
-        grid-column-start: 2;
-        grid-column-end: 4;
-    }
-
-    .box-3 {
-        color: white;
-        vertical-align: middle;
-        text-align: center;
-
-        grid-column: 2 / 3;
-    }
-
-    .box-title {
-        display: flex;
-        justify-content: space-between;
-        color: whitesmoke;
-        padding: 0.5em;
-    }
-
-    button {
-        background-color: transparent;
-        color: whitesmoke;
-        border: 1px solid whitesmoke;
-        font-family: Verdana, Geneva, Tahoma, sans-serif;
-    }
-
-    button:hover {
-        color: white;
-    }
-
-    button:active {
-        color: gray;
-    }
-
-    /* .play-buttons {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    grid-template-rows: 1em;
-    place-items: center;
-  } */
-
-    /* The switch - the box around the slider */
-    .switch {
-        position: relative;
-        display: inline-block;
-        width: 2em;
-        height: 1.2em;
-        text-align: right;
-    }
-
-    /* Hide default HTML checkbox */
-    .switch input {
-        opacity: 0;
-        width: 0;
-        height: 0;
-    }
-
-    /* The slider */
-    .slider {
-        position: absolute;
-        cursor: pointer;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-color: #ccc;
-        -webkit-transition: 0.4s;
-        transition: 0.4s;
-    }
-
-    .slider:before {
-        position: absolute;
-        content: "";
-        height: 1em;
-        width: 1em;
-        left: 0.1em;
-        bottom: 0.1em;
-        background-color: white;
-        -webkit-transition: 0.4s;
-        transition: 0.4s;
-    }
-
-    input:checked + .slider {
-        background-color: #2196f3;
-    }
-
-    input:focus + .slider {
-        box-shadow: 0 0 1px #2196f3;
-    }
-
-    input:checked + .slider:before {
-        -webkit-transform: translateX(1em);
-        -ms-transform: translateX(1em);
-        transform: translateX(1em);
-    }
-
-    /* Rounded sliders */
-    .slider.round {
-        border-radius: 34px;
-    }
-
-    .slider.round:before {
-        border-radius: 50%;
-    }
-</style>

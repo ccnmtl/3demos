@@ -24,17 +24,12 @@
     const newLineMaterial = lineMaterial.clone();
     newLineMaterial.polygonOffset = true;
     newLineMaterial.polygonOffsetFactor = 0.1;
-    // scene.add(newGridMeshes);
 
     export const update = (dt) => {
         const s = (scaleState - oldGridMax) / (gridMax - oldGridMax);
         if ((gridMax - scaleState) * (scaleState - oldGridMax) >= 0) {
-            // freeChildren(gridMeshes);
-            // gridMeshes.copy(drawGrid( {lineMaterial, gridMax: scaleState, gridStep: scaleState / 10}));
-
             newLineMaterial.opacity = s;
             lineMaterial.opacity = 1 - s;
-
             camera.position.multiplyScalar(
                 ((gridMax - oldGridMax) * dt + scaleState) / scaleState
             );
@@ -43,12 +38,10 @@
             animation = false;
             oldGridMax = gridMax;
             scaleState = gridMax;
-
             gridMeshes.geometry.dispose();
             gridMeshes.geometry = newGridMeshes.geometry;
             lineMaterial.opacity = 1;
             gridMeshes.material = lineMaterial;
-
             newLineMaterial.opacity = 0;
             scene.remove(newGridMeshes);
         }
@@ -56,7 +49,6 @@
 
     let scaleState = gridMax;
     let oldGridMax = gridMax;
-
     let scale = 0;
 
     $: scala =
@@ -71,15 +63,9 @@
             oldGridMax = scaleState;
             gridMax = scala;
             gridStep = gridMax / 10;
-
-            // freeChildren(gridMeshes);
-
-            // gridMeshes.copy(drawGrid( {lineMaterial, gridMax, gridStep}));
-
             freeChildren(axesHolder);
             // Axes
             axesHolder.copy(drawAxes({ gridMax, gridStep, axesMaterial }));
-
             newGridMeshes = drawGrid({
                 lineMaterial: newLineMaterial,
                 gridMax,
@@ -87,7 +73,6 @@
             });
             newGridMeshes.renderOrder = 1;
             scene.add(newGridMeshes);
-            // newLineMaterial.opacity = 0;
 
             // Fonts
             const fontLoader = new FontLoader();
@@ -99,7 +84,6 @@
                 axesText,
             }, fontLoader, TextGeometry);
 
-            // camera.position.multiplyScalar(gridMax / oldGridMax);
             if (gridMax !== oldGridMax) {
                 animation = true;
                 dispatch("animate");
@@ -147,8 +131,7 @@
                step=".02"
                bind:value={scale}
                on:change={rescale}
-               /><span class="output">{scala}</span></span
-                                                        >
+               /><span class="output">{scala}</span></span>
 
     <span class="box-1 text-right">grid</span>
     <label class="switch box-2">

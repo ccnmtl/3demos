@@ -21,9 +21,3 @@
 </div>
 
 <div class="output" bind:this={div2}></div>
-
-<style>
-    .slot {
-        display: none;
-    }
-</style>
