@@ -424,7 +424,7 @@
                             <DropdownItem
                                 active={currentMode === 'session'}
                                 on:click={() => (currentMode = 'session')}>
-                                Session/Live
+                                Session
                             </DropdownItem>
                         </DropdownMenu>
                     </ButtonDropdown>
@@ -439,7 +439,7 @@
                 </div>
 
                 {#if currentMode === 'session'}
-                    <Session sessionId={roomId} />
+                    <Session roomId={roomId} />
                 {:else}
                     {#if currentChapter === "Chapter"}
                         <Chapter bind:objects />

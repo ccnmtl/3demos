@@ -1,37 +1,37 @@
 <script>
     import {getRoomUrl} from '../utils.js';
 
-    export let sessionId;
-    let joinSessionId = '';
+    export let roomId;
+    let joinRoomId = '';
 
-    const onJoinSession = (joinSessionId) => {
-        window.location.href = getRoomUrl(joinSessionId);
+    const onJoinRoom = (joinRoomId) => {
+        window.location.href = getRoomUrl(joinRoomId);
     };
 
-    const onMakeSession = () => {
-        // Generate random session ID between 1 and 100
-        const newSessionId = Math.round(Math.random() * 100) + 1;
-        window.location.href = getRoomUrl(newSessionId);
+    const onMakeRoom = () => {
+        // Generate random room ID between 1 and 100
+        const newRoomId = Math.round(Math.random() * 100) + 1;
+        window.location.href = getRoomUrl(newRoomId);
     };
 </script>
 
-{#if sessionId}
+{#if roomId}
 <p>
-    Connected to session <strong>{sessionId}</strong>!
+    Connected to room <strong>{roomId}</strong>!
 </p>
 {:else}
-    <form on:submit|preventDefault={() => onJoinSession(joinSessionId)}
+    <form on:submit|preventDefault={() => onJoinRoom(joinRoomId)}
         class="row row-cols-lg-auto align-items-center">
         <div class="col-12">
-            <input type="text" class="form-control" id="joinSessionId"
-                   placeholder="Session ID"
-                   bind:value={joinSessionId} />
+            <input type="text" class="form-control" id="joinRoomId"
+                   placeholder="Room ID"
+                   bind:value={joinRoomId} />
         </div>
         <div class="col-12">
             <button
                 type="submit"
-                class={`btn btn-primary ${joinSessionId ? '' : 'disabled'}`}>
-                Join Session
+                class={`btn btn-primary ${joinRoomId ? '' : 'disabled'}`}>
+                Join Room
             </button>
         </div>
     </form>
@@ -40,7 +40,7 @@
 
     <button
         type="button" class="btn btn-primary"
-        on:click={onMakeSession}>
-        Make Session
+        on:click={onMakeRoom}>
+        Make Room
     </button>
 {/if}
