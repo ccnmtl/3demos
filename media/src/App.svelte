@@ -375,7 +375,7 @@
         <div class="chapterBox">
             <div class="collapse-info" class:hidden={shadeUp}>
                 <div class="object-box-title d-flex">
-                    <ButtonDropdown>
+                    <ButtonDropdown class="mb-1">
                         <DropdownToggle
                             caret
                             class="btn btn-secondary dropdown-toggle titlefont">
@@ -442,7 +442,7 @@
                     {/if}
                 {/if}
             </div>
-            <button class="btn btn-sm btn-light raise-lower-button d-flex justify-content-center"
+            <button class="btn btn-sm btn-light mt-1 raise-lower-button d-flex justify-content-center"
                     title="Raise/Lower window"
                     on:click={() => {
                 shadeUp = !shadeUp;
@@ -464,7 +464,7 @@
 
                 <br />
                 <div class="dropdown">
-                    <ButtonDropdown>
+                    <ButtonDropdown class="mb-1">
                         <DropdownToggle color="primary">
                             <i class="fa fa-plus" />
                         </DropdownToggle>
@@ -657,7 +657,7 @@
                     {/each}
                 </div>
             </div>
-            <button class="btn btn-sm btn-light raise-lower-button d-flex justify-content-center"
+            <button class="btn btn-sm btn-light mt-1 raise-lower-button d-flex justify-content-center"
                     title="Raise/Lower window"
                     on:click={() => {
                 shadeUp = !shadeUp;
