@@ -1,11 +1,11 @@
 name: build-and-test
 on: [push]
 jobs:
-  build:
-    runs-on: ubuntu-20.04
+  js:
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
-        node-version: [16.x, 18.x]
+        node-version: [18.x]
     name: Node ${{ matrix.node }} run
     steps:
       - uses: actions/checkout@v2
@@ -17,3 +17,30 @@ jobs:
         run: npm install
       - name: eslint
         run: npm run eslint
+      - name: build
+        run: npm run build
+      - name: test
+        run: npm test
+  django:
+    name: Django tests
+    runs-on: ubuntu-20.04
+    services:
+      redis:
+        image: redis
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+    strategy:
+      matrix:
+        python-version: [3.8]
+        node-version: [18.x]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run flake8
+        run: make flake8
+      - name: Run django tests
+        run: make test

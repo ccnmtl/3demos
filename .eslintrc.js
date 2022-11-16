@@ -1,3 +1,4 @@
+/* eslint-env node */
 module.exports = {
     parserOptions: {
         ecmaVersion: 2019,
@@ -7,9 +8,11 @@ module.exports = {
         es6: true,
         browser: true
     },
+    rules: {
+        'svelte/no-at-html-tags': 'off'
+    },
     extends: [
         'plugin:svelte/recommended',
-        // TODO: enable these rules
-        // 'eslint:recommended'
+        'eslint:recommended'
     ]
 };

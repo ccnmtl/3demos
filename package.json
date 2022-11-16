@@ -1,23 +1,27 @@
 {
-  "name": "svelte-app",
+  "name": "mathplayground",
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "rollup -c",
+    "build": "rollup -c --compact",
     "dev": "rollup -c -w",
     "start": "sirv public --no-clear",
-    "eslint": "eslint src/*.svelte src/*.js"
+    "eslint": "eslint media/src/*.svelte media/src/*.js media/src/**/*.js media/src/**/*.svelte *.js",
+    "test": "./node_modules/mocha/bin/mocha.js media/test/"
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^22.0.2",
-    "@rollup/plugin-node-resolve": "^14.1.0",
-    "eslint-plugin-svelte": "^2.8.0",
-    "rollup": "^2.3.4",
-    "rollup-plugin-css-only": "^3.1.0",
-    "rollup-plugin-livereload": "^2.0.0",
+    "@babel/preset-env": "^7.19.1",
+    "@babel/register": "^7.18.9",
+    "@rollup/plugin-commonjs": "^23.0.0",
+    "@rollup/plugin-node-resolve": "^15.0.0",
+    "@rollup/plugin-terser": "^0.1.0",
+    "eslint": "^8.25.0",
+    "eslint-plugin-svelte": "^2.13.0",
+    "mocha": "^10.0.0",
+    "rollup": "^3.2.5",
+    "rollup-plugin-css-only": "^4.3.0",
     "rollup-plugin-svelte": "^7.1.0",
-    "rollup-plugin-terser": "^7.0.0",
-    "svelte": "~3.50.1"
+    "svelte": "~3.53.1"
   },
   "dependencies": {
     "katex": "^0.16.2",
@@ -26,7 +30,7 @@
     "stats.js": "^0.17.0",
     "svelte-preprocess": "^4.10.7",
     "sveltestrap": "^5.9.0",
-    "three": "^0.144.0",
+    "three": "^0.146.0",
     "uuid": "^9.0.0"
   }
 }
