@@ -614,7 +614,7 @@
                                     on:animate={animateIfNotAnimating}
                                     {gridStep}
                                 />
-                            {:else if b.kind === "box"}
+                            {:else if b.kind === "box" && b.params}
                                 <Box
                                     {scene}
                                     render={requestFrameIfNotRequested}
