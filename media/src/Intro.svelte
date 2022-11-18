@@ -9,7 +9,7 @@
 <button class="btn btn-secondary" on:click={toggleHidden}>
     Introduction <i class="bi bi-caret-down-fill"></i>
 </button>
-<article class:hidden>
+<article hidden={hidden}>
     <p>
         Welcome to 3Demos. This is a site dedicated to visualizations for
         multivariable calculus. There are essentially two ways in which one can

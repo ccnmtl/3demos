@@ -1,0 +1,14 @@
+[
+    {
+        "kind": "curve",
+        "params": {
+            "a": "0",
+            "b": "2*pi",
+            "x": "cos(t)",
+            "y": "sin(t)",
+            "z": "cos(9*t)",
+            "tau": "0",
+            "color": "#00cc00"
+        }
+    }
+]

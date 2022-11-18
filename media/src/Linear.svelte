@@ -31,7 +31,7 @@
 <button class="top-title" on:click={toggleHidden}>
     Linearization
 </button>
-<article class:hidden>
+<article hidden={hidden}>
 
     <p>
         A <strong>linear function</strong> <M>L(x,y)</M> of two variables
