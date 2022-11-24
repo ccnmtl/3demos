@@ -23,7 +23,7 @@ django-cacheds3storage==0.2.2
 django-smoketest==1.2.0
 django-storages==1.13.1
 exceptiongroup==1.0.0rc9
-flake8==5.0.4
+flake8==6.0.0
 h11==0.14.0
 hyperlink==21.0.0
 idna==3.4
