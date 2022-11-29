@@ -18,9 +18,10 @@ a:visited {
 article {
     color: white;
     background-color: rgba(0, 0, 0, 0.7);
-    padding: 10px;
-    border-radius: 1rem;
+    padding: 1rem;
+    font: 1.2rem;
     font-family: Cambria, Cochin, Georgia, Times, "Times New Roman", serif;
+    border-radius: 0.5rem;
 }
 
 body {
@@ -141,6 +142,11 @@ input:disabled {
 
 input:focus + .slider {
     box-shadow: 0 0 1px #2196f3;
+}
+
+.MathJax {
+    font-size: 1.1rem;
+    font-weight: bolder;
 }
 
 .play-buttons {

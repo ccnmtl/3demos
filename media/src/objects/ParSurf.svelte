@@ -70,10 +70,6 @@
     whiteLineMaterial.polygonOffset = true;
     whiteLineMaterial.polygonOffsetFactor = 0.1;
 
-    /*const wireMaterial = new THREE.MeshBasicMaterial({
-      color: 0x333333,
-      wireframe: true,
-      });*/
     const minusMaterial = new THREE.MeshPhongMaterial({
         color: 0xff3232,
         shininess: 80,
@@ -285,23 +281,23 @@
     <div class="box-title">
         <strong>Parametric surface</strong> <span><button on:click={() => {hidden = !hidden}}><i class="fa fa-window-minimize"></i></button><button on:click={onClose}> <i class="fa fa-window-close"></i></button></span>
     </div>
-    <div class:hidden>
+    <div hidden={hidden}>
         <div class="container">
-            <span class="box-1"><M>x(u,v) =</M></span>
+            <span class="box-1"><M size="sm">x(u,v) =</M></span>
             <input type="text" bind:value={params.x}
                    on:change={() => {
             onUpdate();
             updateSurface();
             }}
                    class="box box-2" />
-            <span class="box-1"><M>y(u,v) =</M></span>
+            <span class="box-1"><M size="sm">y(u,v) =</M></span>
             <input type="text" bind:value={params.y}
                    on:change={() => {
             onUpdate();
             updateSurface();
             }}
                    class="box box-2" />
-            <span class="box-1"><M>z(u,v) =</M></span>
+            <span class="box-1"><M size="sm">z(u,v) =</M></span>
             <input type="text" bind:value={params.z}
                    on:change={() => {
             onUpdate();
@@ -314,7 +310,7 @@
             updateSurface();
             }}
                    class="box" />
-            <span class="box box-3"><M>\leq u \leq</M></span>
+            <span class="box box-3"><M size="sm">\leq u \leq</M></span>
 
             <input type="text" bind:value={params.b}
                    on:change={() => {
@@ -328,7 +324,7 @@
             updateSurface();
             }}
                    class="box" />
-            <span class="box box-3"><M>\leq v \leq</M></span>
+            <span class="box box-3"><M size="sm">\leq v \leq</M></span>
             <input type="text" bind:value={params.d}
                    on:change={() => {
             onUpdate();
@@ -336,11 +332,11 @@
             }}
                    class="box" />
 
-            <span class="box-1"><M>u</M>-meshes</span>
+            <span class="box-1"><M size="sm">u</M>-meshes</span>
             <input type="range" bind:value={params.rNum} min="0" max = "20" step="1" on:input={updateSurface} class="box box-2" />
-            <span class="box-1"><M>v</M>-meshes</span>
+            <span class="box-1"><M size="sm">v</M>-meshes</span>
             <input type="range" bind:value={params.cNum} min="0" max = "20" step="1" on:input={updateSurface} class="box box-2" />
-            <span class="box-1">resolution</span>
+            <span class="box-1">Resolution</span>
             <input type="range" bind:value={params.nX} min="10" max = "60" step="5" on:input={updateSurface} class="box box-2" />
         </div>
 </div></div>

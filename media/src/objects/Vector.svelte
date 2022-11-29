@@ -102,9 +102,9 @@
     });
 </script>
 
-<div class="boxItem" class:hidden={!params.show}>
+<div class="boxItem" hidden={!params.show}>
     <div class="box-title">
-        <span><strong>Vector</strong> <M>\langle a, b, c \rangle</M></span>
+        <span><strong>Vector</strong> <M size="sm">\langle a, b, c \rangle</M></span>
         <span>
             <button
                 on:click={() => { hidden = !hidden; }}
@@ -120,9 +120,9 @@
             </button>
         </span>
     </div>
-    <div class:hidden>
+    <div hidden={hidden}>
         <div class="container">
-            <span class="box-1"><M>a =</M></span>
+            <span class="box-1"><M size="sm">a =</M></span>
             <input
                 type="text"
                 bind:value={params.a}
@@ -132,7 +132,7 @@
             }}
                 class="box box-2"
                 />
-            <span class="box-1"><M>b =</M></span>
+            <span class="box-1"><M size="sm">b =</M></span>
             <input
                 type="text"
                 bind:value={params.b}
@@ -142,7 +142,7 @@
             }}
                 class="box box-2"
                 />
-            <span class="box-1"><M>c =</M></span>
+            <span class="box-1"><M size="sm">c =</M></span>
             <input
                 type="text"
                 bind:value={params.c}
@@ -153,9 +153,9 @@
                 class="box box-2"
                 />
 
-            Plot at position <M>(p_1, p_2, p_3)</M>:
+            Plot at position <M size="sm">(p_1, p_2, p_3)</M>:
 
-            <span class="box-1"><M>p_1 =</M></span>
+            <span class="box-1"><M size="sm">p_1 =</M></span>
             <input
                 type="text"
                 bind:value={params.x}
@@ -166,7 +166,7 @@
                 class="box box-2"
                 />
 
-            <span class="box-1"><M>p_2 =</M></span>
+            <span class="box-1"><M size="sm">p_2 =</M></span>
             <input
                 type="text"
                 bind:value={params.y}
@@ -176,7 +176,7 @@
             }}
                 class="box box-2"
                 />
-            <span class="box-1"><M>p_3 =</M></span>
+            <span class="box-1"><M size="sm">p_3 =</M></span>
             <input
                 type="text"
                 bind:value={params.z}
@@ -187,7 +187,7 @@
                 class="box box-2"
                 />
 
-            <span class="box-1">scale</span>
+            <span class="box-1">Scale</span>
             <input
                 type="range"
                 bind:value={params.nX}

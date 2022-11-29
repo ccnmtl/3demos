@@ -24,7 +24,6 @@
     "svelte": "~3.54.0"
   },
   "dependencies": {
-    "katex": "^0.16.2",
     "mathjs": "^11.2.1",
     "sirv-cli": "^2.0.2",
     "stats.js": "^0.17.0",
