@@ -611,6 +611,10 @@ export function marchingCubes({
     return geometry;
 }
 
+export function download() {
+    alert('This is the download function');
+}
+
 // Find extremes of scalar function on vertices
 
 export function vMaxMin(mesh, f) {

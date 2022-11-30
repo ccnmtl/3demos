@@ -84,7 +84,7 @@
 <button class="top-title" on:click={toggleHidden}>
     Arc Length &amp; Curvature
 </button>
-<article class:hidden>
+<article hidden={hidden}>
 
     <p>
         Suppose we have a curve <M>C</M> in space parameterized by a smooth 
