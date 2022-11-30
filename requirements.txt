@@ -23,7 +23,7 @@ django-cacheds3storage==0.2.2
 django-smoketest==1.2.0
 django-storages==1.13.1
 exceptiongroup==1.0.0rc9
-flake8==5.0.4
+flake8==6.0.0
 h11==0.14.0
 hyperlink==21.0.0
 idna==3.4
@@ -35,9 +35,9 @@ outcome==1.2.0
 packaging==21.3
 pyasn1==0.4.8
 pyasn1-modules==0.2.8
-pycodestyle==2.9.1
+pycodestyle==2.10.0
 pycparser==2.21
-pyflakes==2.5.0
+pyflakes==3.0.1
 pyOpenSSL==22.1.0
 pyparsing==3.0.9
 PySocks==1.7.1
