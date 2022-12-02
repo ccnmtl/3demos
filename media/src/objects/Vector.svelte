@@ -1,229 +1,243 @@
 <script>
-    import { onMount, onDestroy } from "svelte";
-    import M from "../M.svelte";
+  import { onMount, onDestroy } from "svelte";
+  import M from "../M.svelte";
 
-    import * as THREE from "three";
+  import * as THREE from "three";
 
-    import { create, all } from "mathjs";
+  import { create, all } from "mathjs";
 
-    import {
-        ArrowBufferGeometry
-    } from "../utils.js";
+  import { ArrowBufferGeometry } from "../utils.js";
 
-    const config = {};
-    const math = create(all, config);
+  const config = {};
+  const math = create(all, config);
 
-    // export let paramString;
+  // export let paramString;
 
-    export let params = {
-        a: "-1",
-        b: "1",
-        c: "2",
-        x: "0",
-        y: "0",
-        z: "0",
-        nX: 30,
-        show: true,
-    };
+  export let params = {
+    a: "-1",
+    b: "1",
+    c: "2",
+    x: "0",
+    y: "0",
+    z: "0",
+    nX: 30,
+    show: true,
+    color: "#AA000D",
+  };
 
-    if (!Object.hasOwn(params, 'show')) {
-        params.show = true;
+  if (!Object.hasOwn(params, "show")) {
+    params.show = true;
+  }
+
+  export let scene;
+  export let render = () => {};
+  export let onClose = () => {};
+  export let onUpdate = () => {};
+  export let gridStep;
+  //   export let gridMax;
+
+  let hidden = false;
+
+  const arrowMaterial = new THREE.MeshPhongMaterial({
+    color: params.color,
+    shininess: 80,
+    side: THREE.DoubleSide,
+    vertexColors: false,
+    transparent: false,
+    opacity: 0.7,
+  });
+  const vfScale = gridStep * 5;
+  const arrowArgs = {
+    radiusTop: vfScale / 24,
+    radiusBottom: vfScale / 75,
+    heightTop: vfScale / 8,
+  };
+
+  let arrow;
+
+  const updateCurve = function () {
+    const { a, b, c, x, y, z } = params;
+
+    const [A, B, C, X, Y, Z] = math
+      .parse([a, b, c, x, y, z])
+      .map((item) => item.evaluate());
+
+    const v = new THREE.Vector3(A, B, C);
+
+    let geometry = new ArrowBufferGeometry({
+      ...arrowArgs,
+      height: v.length(),
+    });
+
+    if (arrow) {
+      arrow.geometry.dispose();
+      arrow.geometry = geometry;
+    } else {
+      arrow = new THREE.Mesh(geometry, arrowMaterial);
+      scene.add(arrow);
+      // colorBufferVertices( tube, (x,y,z) => blueUpRedDown(1));
     }
+    arrow.position.set(X, Y, Z);
 
-    export let scene;
-    export let render = () => {};
-    export let onClose = () => {};
-    export let onUpdate = () => {};
-    export let gridStep;
-    // export let gridMax;
+    arrow.lookAt(v.add(arrow.position));
 
-    let hidden = false;
+    render();
+  };
 
-    const arrowMaterial = new THREE.MeshPhongMaterial({
-        color: 0xaa0000,
-        shininess: 80,
-        side: THREE.DoubleSide,
-        vertexColors: false,
-        transparent: false,
-        opacity: 0.7,
-    });
-    const vfScale = gridStep * 5;
-    const arrowArgs = {
-        radiusTop: vfScale / 24,
-        radiusBottom: vfScale / 75,
-        heightTop: vfScale / 8,
-    };
+  // call updateCurve() when params change
+  $: params && updateCurve();
 
-    let arrow;
+  function updateColor() {
+    arrowMaterial.color.set(params.color);
+    render();
+  }
 
-    const updateCurve = function() {
-        const { a, b, c, x, y, z } = params;
-
-        const [A, B, C, X, Y, Z] = math
-              .parse([a, b, c, x, y, z])
-              .map((item) => item.evaluate());
-
-        const v = new THREE.Vector3(A, B, C);
-
-        let geometry = new ArrowBufferGeometry({
-            ...arrowArgs,
-            height: v.length(),
-        });
-
-        if (arrow) {
-            arrow.geometry.dispose();
-            arrow.geometry = geometry;
-        } else {
-            arrow = new THREE.Mesh(geometry, arrowMaterial);
-            scene.add(arrow);
-            // colorBufferVertices( tube, (x,y,z) => blueUpRedDown(1));
-        }
-        arrow.position.set(X, Y, Z);
-
-        arrow.lookAt(v.add(arrow.position));
-
-        render();
-    };
-
-    // call updateCurve() when params change
-    $: params && updateCurve();
-
-    // Exercises
-    //
-
-    onMount(updateCurve);
-    onDestroy(() => {
-        if (arrow) {
-            arrow.geometry && arrow.geometry.dispose();
-            arrow.material && arrow.material.dispose();
-        }
-        scene.remove(arrow);
-        render();
-    });
+  onMount(updateCurve);
+  onDestroy(() => {
+    if (arrow) {
+      arrow.geometry && arrow.geometry.dispose();
+      arrow.material && arrow.material.dispose();
+    }
+    scene.remove(arrow);
+    render();
+  });
 </script>
 
 <div class="boxItem" class:hidden={!params.show}>
-    <div class="box-title">
-        <span><strong>Vector</strong> <M>\langle a, b, c \rangle</M></span>
-        <span
-            ><button
-                 on:click={() => {
-                hidden = !hidden;
-                }}><i class="fa fa-window-minimize" /></button
-                                                          ><button on:click={onClose}>
-                <i class="fa fa-window-close" /></button
-                                                    ></span
-                                                         >
+  <div class="box-title">
+    <span><strong>Vector</strong> <M>\langle a, b, c \rangle</M></span>
+    <span
+      ><button
+        on:click={() => {
+          hidden = !hidden;
+        }}><i class="fa fa-window-minimize" /></button
+      ><button on:click={onClose}>
+        <i class="fa fa-window-close" /></button
+      ></span
+    >
+  </div>
+  <div class:hidden>
+    <div class="container">
+      <span class="box-1"><M>a =</M></span>
+      <input
+        type="text"
+        bind:value={params.a}
+        on:change={() => {
+          onUpdate();
+          updateCurve();
+        }}
+        class="box box-2"
+      />
+      <span class="box-1"><M>b =</M></span>
+      <input
+        type="text"
+        bind:value={params.b}
+        on:change={() => {
+          onUpdate();
+          updateCurve();
+        }}
+        class="box box-2"
+      />
+      <span class="box-1"><M>c =</M></span>
+      <input
+        type="text"
+        bind:value={params.c}
+        on:change={() => {
+          onUpdate();
+          updateCurve();
+        }}
+        class="box box-2"
+      />
+
+      Plot at position <M>(p_1, p_2, p_3)</M>:
+
+      <span class="box-1"><M>p_1 =</M></span>
+      <input
+        type="text"
+        bind:value={params.x}
+        on:change={() => {
+          onUpdate();
+          updateCurve();
+        }}
+        class="box box-2"
+      />
+
+      <span class="box-1"><M>p_2 =</M></span>
+      <input
+        type="text"
+        bind:value={params.y}
+        on:change={() => {
+          onUpdate();
+          updateCurve();
+        }}
+        class="box box-2"
+      />
+      <span class="box-1"><M>p_3 =</M></span>
+      <input
+        type="text"
+        bind:value={params.z}
+        on:change={() => {
+          onUpdate();
+          updateCurve();
+        }}
+        class="box box-2"
+      />
+
+      <span class="box-1">scale</span>
+      <input
+        type="range"
+        bind:value={params.nX}
+        min="10"
+        max="60"
+        step="5"
+        on:input={() => {
+          onUpdate();
+          updateCurve();
+        }}
+        class="box box-2"
+      />
     </div>
-    <div class:hidden>
-        <div class="container">
-            <span class="box-1"><M>a =</M></span>
-            <input
-                type="text"
-                bind:value={params.a}
-                on:change={() => {
-            onUpdate()
-            updateCurve()
-            }}
-                class="box box-2"
-                />
-            <span class="box-1"><M>b =</M></span>
-            <input
-                type="text"
-                bind:value={params.b}
-                on:change={() => {
-            onUpdate()
-            updateCurve()
-            }}
-                class="box box-2"
-                />
-            <span class="box-1"><M>c =</M></span>
-            <input
-                type="text"
-                bind:value={params.c}
-                on:change={() => {
-            onUpdate()
-            updateCurve()
-            }}
-                class="box box-2"
-                />
-
-            Plot at position <M>(p_1, p_2, p_3)</M>:
-
-            <span class="box-1"><M>p_1 =</M></span>
-            <input
-                type="text"
-                bind:value={params.x}
-                on:change={() => {
-            onUpdate()
-            updateCurve()
-            }}
-                class="box box-2"
-                />
-
-            <span class="box-1"><M>p_2 =</M></span>
-            <input
-                type="text"
-                bind:value={params.y}
-                on:change={() => {
-            onUpdate()
-            updateCurve()
-            }}
-                class="box box-2"
-                />
-            <span class="box-1"><M>p_3 =</M></span>
-            <input
-                type="text"
-                bind:value={params.z}
-                on:change={() => {
-            onUpdate()
-            updateCurve()
-            }}
-                class="box box-2"
-                />
-
-            <span class="box-1">scale</span>
-            <input
-                type="range"
-                bind:value={params.nX}
-                min="10"
-                max="60"
-                step="5"
-                on:input={() => {
-            onUpdate()
-            updateCurve()
-            }}
-                class="box box-2"
-                />
-        </div>
+    <div class="container">
+      <span class="box-1">color</span>
+      <span class="box box-2">
+        <input
+          type="color"
+          name="colorPicker"
+          id="colorPicker"
+          bind:value={params.color}
+          on:change={updateColor}
+          style="width:85%; padding: 1px 1px;"
+        />
+      </span>
     </div>
+  </div>
 </div>
 
 <style>
-    .container {
-        display: grid;
+  .container {
+    display: grid;
 
-        grid-template-columns: 1fr auto 1fr;
-        grid-template-rows: auto;
+    grid-template-columns: 1fr auto 1fr;
+    grid-template-rows: auto;
 
-        grid-gap: 10px 15px;
+    grid-gap: 10px 15px;
 
-        padding: 10px;
-    }
+    padding: 10px;
+  }
 
-    .box-1 {
-        text-align: right;
-        grid-column: 1 / 2;
-        color: white;
-        vertical-align: middle;
-    }
+  .box-1 {
+    text-align: right;
+    grid-column: 1 / 2;
+    color: white;
+    vertical-align: middle;
+  }
 
-    .box-2 {
-        grid-column-start: 2;
-        grid-column-end: 4;
-    }
+  .box-2 {
+    grid-column-start: 2;
+    grid-column-end: 4;
+  }
 
-    /* .box-3 {
+  /* .box-3 {
     color: white;
     vertical-align: middle;
     text-align: center;
@@ -231,24 +245,24 @@
     grid-column: 2 / 3;
   } */
 
-    .box-title {
-        display: flex;
-        justify-content: space-between;
-        color: whitesmoke;
-        padding: 0.5em;
-    }
+  .box-title {
+    display: flex;
+    justify-content: space-between;
+    color: whitesmoke;
+    padding: 0.5em;
+  }
 
-    button {
-        background-color: transparent;
-        color: whitesmoke;
-        border: none;
-    }
+  button {
+    background-color: transparent;
+    color: whitesmoke;
+    border: none;
+  }
 
-    button:hover {
-        color: white;
-    }
+  button:hover {
+    color: white;
+  }
 
-    button:active {
-        color: gray;
-    }
+  button:active {
+    color: gray;
+  }
 </style>
