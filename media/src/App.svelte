@@ -279,12 +279,12 @@
         requestFrameIfNotRequested();
     };
 
-    let objects = [];
+    export let objects = [];
     if (window.SCENE_STATE && window.SCENE_STATE.objects) {
         objects = window.SCENE_STATE.objects;
     }
 
-    const blowUpObjects = () => {
+    export const blowUpObjects = () => {
         objects = [];
     };
 
@@ -377,7 +377,7 @@
 <div class="info" class:flipInfo>
     <div class="info-inner">
         <div class="chapterBox">
-            <div class="collapse-info" class:hidden={shadeUp}>
+            <div class="collapse-info" hidden={shadeUp}>
                 <div class="object-box-title d-flex">
                     <ButtonDropdown class="mb-1">
                         <DropdownToggle
@@ -460,7 +460,7 @@
         </div>
 
         <div class="objectBoxOuter">
-            <div class="collapse-info" class:hidden={shadeUp}>
+            <div class="collapse-info" hidden={shadeUp}>
                 <div class="object-box-title d-flex">
                     <span>3D Objects</span>
                     <button
@@ -689,6 +689,8 @@
         {axesHolder}
         {lineMaterial}
         {axesMaterial}
+        bind:objects
+        bind:socket
         encode={makeQueryStringObject}
         render={requestFrameIfNotRequested}
         bind:update={scaleUpdate}
