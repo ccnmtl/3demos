@@ -1,5 +1,7 @@
 /node_modules/
 /public/build/
+build/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
