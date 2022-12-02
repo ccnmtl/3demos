@@ -593,6 +593,7 @@
                       q: "y",
                       r: "-z",
                       nVec: 6,
+                      color: `#${makeHSLColor(Math.random()).getHexString()}`,
                     },
                     objects,
                     socket
