@@ -29,6 +29,17 @@ class RoomsConsumer(AsyncWebsocketConsumer):
         text_data_json = json.loads(text_data)
         message = text_data_json['message']
 
+        if message.get('broadcastPoll'):
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'room_event',
+                    'message': message,
+                    'session_key': session.session_key,
+                }
+            )
+            return
+
         scene = RedisScene(self.room_id)
         state = scene.get_state()
         # Update new scene state in redis
@@ -48,14 +59,14 @@ class RoomsConsumer(AsyncWebsocketConsumer):
         await self.channel_layer.group_send(
             self.room_group_name,
             {
-                'type': 'graph_event',
+                'type': 'room_event',
                 'message': message,
                 'session_key': session.session_key,
             }
         )
 
     # Receive message from room group
-    async def graph_event(self, event):
+    async def room_event(self, event):
         message = event['message']
         session = self.scope['session']
 

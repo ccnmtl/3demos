@@ -26,7 +26,8 @@
     export let encode;
     export let objects;
     export let socket;
-        
+    export let currentMode;
+
     let newGridMeshes;
     const newLineMaterial = lineMaterial.clone();
     newLineMaterial.polygonOffset = true;
@@ -119,7 +120,7 @@
                 if (upload.length < 33) {
                     for (let i = 0; i < upload.length; i++) {
                         objects = makeObject(
-                            null, 
+                            null,
                             upload[i].kind,
                             upload[i].params,
                             objects,
@@ -129,7 +130,7 @@
                 } else {
                     alert('Object limit of 32 per upload.');
                 }
-                
+
             };
             reader.readAsText(e.target.files[0], 'utf-8');
         }
@@ -225,9 +226,9 @@
     class="button"
     id="settings"
     title="Settings"
-    on:click={() => { 
+    on:click={() => {
         showUpload = false;
-        showSettings = !showSettings; 
+        showSettings = !showSettings;
     }}
 >
     <i class="fa fa-cog" />
@@ -235,17 +236,17 @@
 <button class="button" id="encodeURL" title="Encode URL" on:click={encode}>
     <i class="fa fa-barcode" />
 </button>
-<button 
-    class="button" 
-    title="Upload Scene" 
-    on:click={() => { 
+<button
+    class="button"
+    title="Upload Scene"
+    on:click={() => {
         showSettings = false;
         showUpload = !showUpload;
     }}
 >
     <i class="fa fa-upload" />
 </button>
-<button 
+<button
     class="button"
     title="Download Scene"
     on:click={download}
@@ -271,12 +272,15 @@
     <i class="fa fa-television" />
 </button>
 
-<button on:click={openPolls}
-        class="button" title="Polls">
-    <i class="fa fa-list" />
-</button>
+{#if currentMode === 'session'}
+    <button on:click={openPolls}
+            class="button" title="Polls">
+        <i class="fa fa-list" />
+    </button>
+{/if}
 
 <Polls
+    bind:socket
     isPollsOpen={isPollsOpen}
     togglePolls={togglePolls} />
 

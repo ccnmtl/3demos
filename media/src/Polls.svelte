@@ -9,10 +9,11 @@
         TabPane
     } from 'sveltestrap';
     import katex from 'katex';
-    import {makePoll} from './rooms';
+    import {makePoll, broadcastPoll} from './pollUtils';
     import {initialPolls} from './stores';
 
     export let isPollsOpen, togglePolls;
+    export let socket;
     export let polls = initialPolls;
 
     const blankPreview = 'Question preview area (rendered LaTeX)';
@@ -31,7 +32,7 @@
         area.innerHTML = rendered;
     }
 
-    const clickMakePoll = function(e) {
+    const onClickMakePoll = function(e) {
         e.preventDefault();
 
         const poll = makePoll(polls, 0, 'hi', null);
@@ -39,6 +40,11 @@
 
         closePolls();
     }
+
+    const onClickBroadcast = function(e, poll) {
+        // Send the given poll to session participants
+        broadcastPoll(poll, socket);
+    };
 
     const closePolls = function() {
         isPollsOpen = false;
@@ -111,7 +117,7 @@
                             + Add choice
                         </Button>
                     </div>
-                    <Button color="primary" on:click={clickMakePoll}>
+                    <Button color="primary" on:click={onClickMakePoll}>
                         Make poll
                     </Button>
                 </form>
@@ -123,6 +129,13 @@
                             <a href={`/polls/${poll.id}/`}>Poll {poll.id}</a> -
                             <strong>Prompts:</strong> {poll.prompt},
                             {poll.choices.length} choices
+
+                            <button
+                                type="button"
+                                class="btn btn-primary btn-sm"
+                                on:click={(e) => onClickBroadcast(e, poll)}>
+                                Broadcast
+                            </button>
                         </li>
                     {:else}
                         No polls created!

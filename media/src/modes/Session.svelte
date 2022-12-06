@@ -1,7 +1,10 @@
 <script>
+    import Poll from '../Poll.svelte';
     import {getRoomUrl} from '../utils.js';
 
     export let roomId;
+    export let currentPoll;
+
     let joinRoomId = '';
 
     const onJoinRoom = (joinRoomId) => {
@@ -18,6 +21,10 @@
 {#if roomId}
 <p>
     Connected to room <strong>{roomId}</strong>!
+
+    {#if currentPoll}
+        <Poll bind:currentPoll />
+    {/if}
 </p>
 {:else}
     <form on:submit|preventDefault={() => onJoinRoom(joinRoomId)}
