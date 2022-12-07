@@ -1,6 +1,11 @@
 body {
-    color: #333;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+}
+
+body,
+.chapterBox .card {
+    /* Font color for light background */
+    color: #333;
 }
 
 a {
@@ -183,4 +188,10 @@ input:focus + .slider {
 
 .top-title:hover {
     background-color: rgba(255, 0, 0, 0.3);
+}
+
+.chapterBox p,
+.chapterBox article,
+.objectBoxOuter {
+    color: white;
 }

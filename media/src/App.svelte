@@ -43,6 +43,7 @@
     import {
         makeObject, removeObject, updateObject, handleSceneEvent
     } from './sceneUtils';
+    import {handlePollEvent} from './pollUtils';
 
     let debug = false,
         stats;
@@ -280,6 +281,8 @@
     };
 
     export let objects = [];
+    export let currentPoll = null;
+
     if (window.SCENE_STATE && window.SCENE_STATE.objects) {
         objects = window.SCENE_STATE.objects;
     }
@@ -356,7 +359,11 @@
     const handleSocketMessage = function(e) {
         const data = JSON.parse(e.data);
 
-        objects = handleSceneEvent(data, objects);
+        if (data.message.broadcastPoll) {
+            currentPoll = handlePollEvent(data);
+        } else {
+            objects = handleSceneEvent(data, objects);
+        }
     };
 
     let socket = null;
@@ -439,7 +446,9 @@
                 </div>
 
                 {#if currentMode === 'session'}
-                    <Session roomId={roomId} />
+                    <Session
+                        roomId={roomId}
+                        bind:currentPoll />
                 {:else}
                     {#if currentChapter === "Chapter"}
                         <Chapter bind:objects />
@@ -696,6 +705,7 @@
         bind:update={scaleUpdate}
         bind:animation={scaleAnimation}
         bind:orthoCamera
+        bind:currentMode
         on:animate={animateIfNotAnimating}
         />
 </div>
@@ -737,7 +747,6 @@
         width: 100%;
         height: fit-content;
         background-color: rgba(100, 100, 100, 0.5);
-        color: white;
         border-radius: 0.5em;
         border-top-left-radius: 0rem;
         border-top-right-radius: 0rem;
