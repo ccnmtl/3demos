@@ -447,7 +447,8 @@
 
                 {#if currentMode === 'session'}
                     <Session
-                        roomId={roomId}
+                        bind:roomId
+                        bind:socket
                         bind:currentPoll />
                 {:else}
                     {#if currentChapter === "Chapter"}
