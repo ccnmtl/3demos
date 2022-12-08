@@ -3,6 +3,7 @@
     import {getRoomUrl} from '../utils.js';
 
     export let roomId;
+    export let socket;
     export let currentPoll;
 
     let joinRoomId = '';
@@ -23,7 +24,7 @@
     Connected to room <strong>{roomId}</strong>!
 
     {#if currentPoll}
-        <Poll bind:currentPoll />
+        <Poll bind:currentPoll bind:socket />
     {/if}
 </p>
 {:else}
