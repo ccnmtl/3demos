@@ -23,6 +23,10 @@ Start django server:
 make runserver
 ```
 
+In order to get the django daphne application responding to WebSockets,
+you will need to set up a proxy with nginx to forward and set certain headers.
+See: https://channels.readthedocs.io/en/latest/deploying.html#nginx-supervisor-ubuntu
+
 ### Svelte application
 To make changes to the svelte application in `media/src/`, first install the
 node dependencies with `npm install`. Then you can run the rollup build via 
