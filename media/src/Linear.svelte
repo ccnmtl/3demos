@@ -28,7 +28,11 @@
     addGraph("smooth");
 </script>
 
-<button class="top-title" on:click={toggleHidden}>
+<button
+    class="btn btn-light"
+    aria-label={(hidden ? 'Show' : 'Hide') + ' Linearization'}
+    on:click={toggleHidden}
+>
     Linearization
 </button>
 <article hidden={hidden}>

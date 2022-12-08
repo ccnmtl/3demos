@@ -105,15 +105,20 @@
 <div class="boxItem" class:hidden={!params.show}>
     <div class="box-title">
         <span><strong>Vector</strong> <M>\langle a, b, c \rangle</M></span>
-        <span
-            ><button
-                 on:click={() => {
-                hidden = !hidden;
-                }}><i class="fa fa-window-minimize" /></button
-                                                          ><button on:click={onClose}>
-                <i class="fa fa-window-close" /></button
-                                                    ></span
-                                                         >
+        <span>
+            <button
+                on:click={() => { hidden = !hidden; }}
+                aria-label="Minimize Object Window"
+            >
+                <i class="fa fa-window-minimize" />
+            </button>
+            <button
+                on:click={onClose}
+                aria-label="Delete Object"
+            >
+                <i class="fa fa-window-close" />
+            </button>
+        </span>
     </div>
     <div class:hidden>
         <div class="container">
@@ -221,34 +226,5 @@
     .box-2 {
         grid-column-start: 2;
         grid-column-end: 4;
-    }
-
-    /* .box-3 {
-    color: white;
-    vertical-align: middle;
-    text-align: center;
-
-    grid-column: 2 / 3;
-  } */
-
-    .box-title {
-        display: flex;
-        justify-content: space-between;
-        color: whitesmoke;
-        padding: 0.5em;
-    }
-
-    button {
-        background-color: transparent;
-        color: whitesmoke;
-        border: none;
-    }
-
-    button:hover {
-        color: white;
-    }
-
-    button:active {
-        color: gray;
     }
 </style>

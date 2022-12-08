@@ -1,15 +1,9 @@
-body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
-}
-
-body,
-.chapterBox .card {
-    /* Font color for light background */
-    color: #333;
+* {
+    font-size: 1.05rem;
 }
 
 a {
-    color: rgb(0,100,200);
+    color: rgb(68, 159, 249);
     text-decoration: none;
 }
 
@@ -18,14 +12,25 @@ a:hover {
 }
 
 a:visited {
-    color: rgb(0,80,160);
+    color: rgb(209, 76, 242);
 }
 
 article {
     color: white;
-    background-color: rgba(0.5, 0.5, 0.5, 0.3);
-    padding: 5px;
+    background-color: rgba(0, 0, 0, 0.7);
+    padding: 10px;
+    border-radius: 1rem;
     font-family: Cambria, Cochin, Georgia, Times, "Times New Roman", serif;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+}
+
+body,
+.chapterBox .card {
+    /* Font color for light background */
+    color: #000;
 }
 
 .box-1 {
@@ -55,7 +60,7 @@ article {
 
 .boxItem {
     flex: auto;
-    background-color: rgba(33, 33, 33, 0.8);
+    background-color: rgba(0, 0, 0, 0.7);
     border: 1px solid black;
     border-radius: 1rem;
 }
@@ -63,13 +68,28 @@ article {
 .box-title {
     display: flex;
     justify-content: space-between;
-    color: whitesmoke;
+    color: white;
     padding: 0.5em;
 }
 
-button {
+.settings-tray button {
     color: #333;
-    background-color: #f4f4f4;
+    font-size: 1.5rem;
+    padding: 0.25rem 0.5rem;
+}
+
+button {
+    background-color: transparent;
+    color: white;
+    border: none;
+}
+
+button:hover {
+    color: white;
+}
+
+button:active {
+    color: gray;
 }
 
 .container {
@@ -85,6 +105,16 @@ button {
 
 label {
     display: block;
+}
+
+h1 {
+    color: white;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+h2 {
+    font-size: 1.5rem;
 }
 
 .hidden {
@@ -184,10 +214,6 @@ input:focus + .slider {
     font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
     user-select: none;
     cursor: pointer;
-}
-
-.top-title:hover {
-    background-color: rgba(255, 0, 0, 0.3);
 }
 
 .chapterBox p,
