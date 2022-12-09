@@ -380,13 +380,13 @@
     .box-title {
         display: flex;
         justify-content: space-between;
-        color: whitesmoke;
+        color: white;
         padding: .5em;
     }
 
     button {
         background-color: transparent;
-        color:whitesmoke;
+        color:white;
         border: none;
     }
 

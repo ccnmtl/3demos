@@ -1,18 +1,22 @@
 <script>
-    export let hidden = true;
+    export let hidden = false;
 
     const toggleHidden = function() {
         hidden = !hidden;
     }
     </script>
 
-<button class="btn btn-secondary" on:click={toggleHidden}>
-    Introduction <i class="bi bi-caret-down-fill"></i>
+<button 
+    class="btn btn-light"
+    aria-label={(hidden ? 'Show' : 'Hide') + ' Introduction'}
+    on:click={toggleHidden}
+>
+    Introduction
 </button>
 <article hidden={hidden}>
     <p>
         Welcome to 3Demos. This is a site dedicated to visualizations for
-        multivariable calculus. There are essentially two ways in which one can
+        multivariable calculus. There are two ways in which one can
         interact with the site, what your might call "story mode" and "creative
         mode".
     </p>
@@ -24,9 +28,10 @@
     </p>
 
     <p>
-        Creative mode can be accessed via the <i class="fa fa-sliders" /> icon in the
-        upper-right. Here, one can create (and destroy) as many of the objects as one
-        pleases. Note that hardware limitations may affect performance.
+        Objects are found in the Object List <i class="fa fa-sliders" /> accessible from
+        the button in the upper-right. Here, one can create (and destroy) as many of
+        the objects as one pleases. Note that hardware limitations may affect 
+        performance.
     </p>
 
     <p>

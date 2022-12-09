@@ -81,7 +81,11 @@
 
     </script>
 
-<button class="top-title" on:click={toggleHidden}>
+<button 
+    class="btn btn-light"
+    aria-label={(hidden ? 'Show' : 'Hide') + ' Arc Length and Curvature'}
+    on:click={toggleHidden}
+>
     Arc Length &amp; Curvature
 </button>
 <article hidden={hidden}>
@@ -94,12 +98,17 @@
     </p>
 
     <p>Select an example: 
-        <button on:click={() => addCurve(0)}>
-            crown
+        <button 
+            on:click={() => addCurve(0)}
+            class="btn btn-light"
+        >
+            Crown
         </button>
-         | 
-        <button on:click={() => addCurve(1)}>
-            twist
+        <button 
+            on:click={() => addCurve(1)}
+            class="btn btn-light"
+        >
+            Twist
         </button>
     </p>
 
