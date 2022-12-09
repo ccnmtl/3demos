@@ -29,9 +29,8 @@ class RoomsConsumer(AsyncWebsocketConsumer):
         text_data_json = json.loads(text_data)
         message = text_data_json['message']
 
-        # TODO
         if message.get('pollResponse'):
-            print('pollResponse!', message)
+            # Send poll response to instructor
             return
 
         if message.get('broadcastPoll'):
