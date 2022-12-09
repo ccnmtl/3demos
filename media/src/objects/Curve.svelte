@@ -492,7 +492,7 @@
                 </button>
             </span>
 
-            <span class="box-1">reparamterize by <M>s</M></span>
+            <span class="box-1">reparameterize by <M>s</M></span>
             <label class="switch box box-2">
                 <input
                     type="checkbox"
