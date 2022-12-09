@@ -1,27 +1,26 @@
 <script>
-    //import {forceNumber} from './utils';
+    import {forceNumber} from './utils';
 
     export let currentPoll;
     export let socket;
 
     const handleOnSubmit = function(e) {
         e.preventDefault();
-        let response = null;
-        const responseEl =
-            e.target.querySelectorAll('input[name="poll_response"]');
-        if (responseEl.length > 1) {
-            let i=0;
-            while(!response && i < responseEl.length){
-                if (responseEl[i].checked){
-                    response = responseEl[i].value;
-                } else {
-                    i++;
+        let response = [];
+
+        if (currentPoll.type === 0) {
+            const responseEl =
+                  e.target.querySelector('input[name="poll_response"]');
+            response = forceNumber(responseEl.value);
+        } else if (currentPoll.type === 1) {
+            const responseEl =
+                  e.target.querySelectorAll('input[name="poll_response"]');
+            responseEl.forEach(function(el) {
+                if (el.checked) {
+                    response.push(el.value);
                 }
-            }
-        } else {
-            response = responseEl[0].value;
+            });
         }
-        
 
         socket.send(JSON.stringify({
             message: {
