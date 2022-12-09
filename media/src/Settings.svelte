@@ -27,6 +27,7 @@
     export let objects;
     export let socket;
     export let currentMode;
+    export let pollResponses;
 
     let newGridMeshes;
     const newLineMaterial = lineMaterial.clone();
@@ -281,6 +282,7 @@
 
 <Polls
     bind:socket
+    bind:pollResponses
     isPollsOpen={isPollsOpen}
     togglePolls={togglePolls} />
 

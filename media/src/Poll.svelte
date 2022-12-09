@@ -1,13 +1,26 @@
 <script>
+    import {forceNumber} from './utils';
+
     export let currentPoll;
     export let socket;
 
     const handleOnSubmit = function(e) {
         e.preventDefault();
+        let response = [];
 
-        const responseEl =
-              e.target.querySelector('input[name="poll_response"]');
-        const response = responseEl.value;
+        if (currentPoll.type === 0) {
+            const responseEl =
+                  e.target.querySelector('input[name="poll_response"]');
+            response = forceNumber(responseEl.value);
+        } else if (currentPoll.type === 1) {
+            const responseEl =
+                  e.target.querySelectorAll('input[name="poll_response"]');
+            responseEl.forEach(function(el) {
+                if (el.checked) {
+                    response.push(el.value);
+                }
+            });
+        }
 
         socket.send(JSON.stringify({
             message: {
@@ -38,7 +51,9 @@
                             <label class="form-check-label">
                                 <input class="form-check-input"
                                        type="radio"
-                                       name={`pollRadio-${choice}`}>
+                                       id={`pollRadio-${choice}`}
+                                       name="poll_response"
+                                       value={choice}>
                                 {choice}
                             </label>
                         </div>
