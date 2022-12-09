@@ -29,9 +29,17 @@ class RoomsConsumer(AsyncWebsocketConsumer):
         text_data_json = json.loads(text_data)
         message = text_data_json['message']
 
-        # TODO
         if message.get('pollResponse'):
-            print('pollResponse!', message)
+            # Send poll response to instructor
+            # TODO - currently sends to everyone.
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'room_event',
+                    'message': message,
+                    'session_key': session.session_key,
+                }
+            )
             return
 
         if message.get('broadcastPoll'):

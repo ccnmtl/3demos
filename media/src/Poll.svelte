@@ -1,4 +1,6 @@
 <script>
+    import {forceNumber} from './utils';
+
     export let currentPoll;
     export let socket;
 
@@ -7,7 +9,7 @@
 
         const responseEl =
               e.target.querySelector('input[name="poll_response"]');
-        const response = responseEl.value;
+        const response = forceNumber(responseEl.value);
 
         socket.send(JSON.stringify({
             message: {

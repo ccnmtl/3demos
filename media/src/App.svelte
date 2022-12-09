@@ -358,10 +358,14 @@
     let currentChapter = 'Intro';
     let currentMode = 'intro';
 
+    let pollResponses = [];
+
     const handleSocketMessage = function(e) {
         const data = JSON.parse(e.data);
-
-        if (data.message.broadcastPoll) {
+        
+        if (data.message.pollResponse) {
+            pollResponses = [...pollResponses, data.message.pollResponse];
+        } else if (data.message.broadcastPoll) {
             currentPoll = handlePollEvent(data);
         } else {
             objects = handleSceneEvent(data, objects);
@@ -735,6 +739,7 @@
             {axesMaterial}
             bind:objects
             bind:socket
+            bind:pollResponses            
             encode={makeQueryStringObject}
             render={requestFrameIfNotRequested}
             bind:update={scaleUpdate}

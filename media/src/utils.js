@@ -1665,6 +1665,17 @@ const forceNumber = function(n) {
     return n;
 };
 
+/**
+ * Return the dom element with the given query selector that
+ * contains the given text.
+ *
+ * https://stackoverflow.com/a/67398903/173630
+ */
+const querySelectorIncludesText = function(selector, text){
+    return Array.from(document.querySelectorAll(selector))
+        .find(el => el.textContent.includes(text));
+};
+
 export {
     joinUrl,
     getRoomUrl,
@@ -1685,5 +1696,6 @@ export {
     nextHue,
     makeHSLColor,
     blockGeometry,
-    forceNumber
+    forceNumber,
+    querySelectorIncludesText
 };
