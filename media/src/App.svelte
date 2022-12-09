@@ -41,7 +41,9 @@
         makeHSLColor,
     } from './utils';
     import {
-        makeObject, removeObject, updateObject, handleSceneEvent
+        makeObject, removeObject, updateObject,
+        publishScene,
+        handleSceneEvent
     } from './sceneUtils';
     import {handlePollEvent} from './pollUtils';
 
@@ -356,6 +358,10 @@
         }
     });
 
+    const onPublishScene = function() {
+        publishScene(objects, socket);
+    };
+
     let currentChapter = 'Intro';
     let currentMode = 'intro';
 
@@ -518,15 +524,16 @@
                             <i class="fa fa-book" />
                         </button>
                     </div>
-                    <div class="btn-group mb-2">
-                        <ButtonDropdown>
-                            <DropdownToggle color="primary">
-                                Add Object
-                                <i class="fa fa-plus" />
-                            </DropdownToggle>
-                            <DropdownMenu>
-                                <DropdownItem on:click={() =>
-                                    objects = makeObject(null, "vector", {
+                    <div class="btn-toolbar justify-content-between" role="toolbar">
+                        <div class="btn-group mb-2">
+                            <ButtonDropdown>
+                                <DropdownToggle color="primary">
+                                    Add Object
+                                    <i class="fa fa-plus" />
+                                </DropdownToggle>
+                                <DropdownMenu>
+                                    <DropdownItem on:click={() =>
+                                        objects = makeObject(null, "vector", {
                                         a: "0.2",
                                         b: "-0.3",
                                         c: "0",
@@ -534,7 +541,7 @@
                                         y: "0",
                                         z: "0",
                                         show: true,
-                                        }, objects, socket)
+                                        }, objects)
                                 }>
                                     Vector <M size="sm">\mathbf v = \langle a, b, c \rangle</M>
                                 </DropdownItem>
@@ -548,8 +555,7 @@
                                         tau: 0,
                                         color: `#${makeHSLColor(Math.random()).getHexString()}`,
                                     },
-                                    objects,
-                                    socket
+                                    objects
                                 )}
                                 >
                                     Space Curve <M size="sm">\mathbf r(t)</M>
@@ -567,7 +573,7 @@
                                         ).toString()}*y)/(1 + x^2 + y^2)`,
                                         tau: 0,
                                         // color: "#3232ff",
-                                    }, objects, socket)}>
+                                    }, objects)}>
                                     Graph <M size="sm">z = f(x,y)</M>
                                 </DropdownItem>
                                 <DropdownItem on:click={() =>
@@ -580,7 +586,7 @@
                                         d: "2",
                                         e: "-2",
                                         f: "2",
-                                    }, objects, socket)}>
+                                    }, objects)}>
                                     Level Surface <M size="sm">g(x,y,z) = k</M>
                                 </DropdownItem>
                                 <DropdownItem on:click={() =>
@@ -592,7 +598,7 @@
                                         x: "cos(u)*(1 + sin(v)/3)",
                                         y: "sin(u)*(1 + sin(v)/3)",
                                         z: "cos(v)/3",
-                                    }, objects, socket)}>
+                                    }, objects)}>
                                     Parametric Surface <M size="sm">\mathbf r(u,v)</M>
                                 </DropdownItem>
                                 <DropdownItem on:click={() =>
@@ -601,25 +607,32 @@
                                         q: "y",
                                         r: "-z",
                                         nVec: 6,
-                                    }, objects, socket)}>
+                                    }, objects)}>
                                     Vector Field<M size="sm">\mathbf F(x,y,z)</M>
                                 </DropdownItem>
                                 <DropdownItem on:click={() =>
                                     objects = makeObject(null, "box", {
                                         size: 2
-                                    },
-                                    objects, socket
-                                    )}>
-                                    Random Box
-                                </DropdownItem>
-                            </DropdownMenu>
-                        </ButtonDropdown>
-                        <button class="btn btn-danger" on:click={blowUpObjects}>
-                            Clear Objects
-                            <i class="fa fa-trash" />
-                        </button>
+                                        },
+                                        objects
+                                        )}>
+                                        Random Box
+                                    </DropdownItem>
+                                </DropdownMenu>
+                            </ButtonDropdown>
+                            <button class="btn btn-danger" on:click={blowUpObjects}>
+                                Clear Objects
+                                <i class="fa fa-trash" />
+                            </button>
+                        </div>
+                        {#if currentMode === 'session'}
+                            <button class="btn btn-primary mb-2" on:click={onPublishScene}>
+                                Publish Scene
+                                <i class="bi bi-broadcast-pin"></i>
+                            </button>
+                        {/if}
                     </div>
-                    
+
                     <div class="objectBoxInner">
                         {#each objects as b}
                             <div transition:slide={{ delay: 0, duration: 300, easing: quintOut }}>
@@ -628,8 +641,8 @@
                                         {scene}
                                         render={requestFrameIfNotRequested}
                                         params={b.params}
-                                        onClose={() => objects = removeObject(b.uuid, objects, socket)}
-                                        onUpdate={() => objects = updateObject(b, objects, socket)}
+                                        onClose={() => objects = removeObject(b.uuid, objects)}
+                                        onUpdate={() => objects = updateObject(b, objects)}
                                         bind:update={b.update}
                                         bind:animation={b.animation}
                                     />
@@ -640,8 +653,8 @@
                                         {controls}
                                         render={requestFrameIfNotRequested}
                                         params={b.params}
-                                        onClose={() => objects = removeObject(b.uuid, objects, socket)}
-                                        onUpdate={() => objects = updateObject(b, objects, socket)}
+                                        onClose={() => objects = removeObject(b.uuid, objects)}
+                                        onUpdate={() => objects = updateObject(b, objects)}
                                         bind:shadeUp
                                         bind:update={b.update}
                                         bind:animation={b.animation}
@@ -654,8 +667,8 @@
                                         camera={currentCamera}
                                         {controls}
                                         render={requestFrameIfNotRequested}
-                                        onClose={() => objects = removeObject(b.uuid, objects, socket)}
-                                        onUpdate={() => objects = updateObject(b, objects, socket)}
+                                        onClose={() => objects = removeObject(b.uuid, objects)}
+                                        onUpdate={() => objects = updateObject(b, objects)}
                                         params={b.params}
                                         bind:shadeUp
                                         bind:update={b.update}
@@ -667,8 +680,8 @@
                                     <Box
                                         {scene}
                                         render={requestFrameIfNotRequested}
-                                        onClose={() => objects = removeObject(b.uuid, objects, socket)}
-                                        onUpdate={() => objects = updateObject(b, objects, socket)}
+                                        onClose={() => objects = removeObject(b.uuid, objects)}
+                                        onUpdate={() => objects = updateObject(b, objects)}
                                         params={b.params}
                                         bind:update={b.update}
                                         bind:animation={b.animation}
@@ -678,8 +691,8 @@
                                     <Curve
                                         {scene}
                                         render={requestFrameIfNotRequested}
-                                        onClose={() => objects = removeObject(b.uuid, objects, socket)}
-                                        onUpdate={() => objects = updateObject(b, objects, socket)}
+                                        onClose={() => objects = removeObject(b.uuid, objects)}
+                                        onUpdate={() => objects = updateObject(b, objects)}
                                         params={b.params}
                                         bind:update={b.update}
                                         bind:animation={b.animation}
@@ -690,8 +703,8 @@
                                     <Field
                                         {scene}
                                         render={requestFrameIfNotRequested}
-                                        onClose={() => objects = removeObject(b.uuid, objects, socket)}
-                                        onUpdate={() => objects = updateObject(b, objects, socket)}
+                                        onClose={() => objects = removeObject(b.uuid, objects)}
+                                        onUpdate={() => objects = updateObject(b, objects)}
                                         bind:update={b.update}
                                         bind:animation={b.animation}
                                         on:animate={animateIfNotAnimating}
@@ -703,8 +716,8 @@
                                     <Vector
                                         {scene}
                                         render={requestFrameIfNotRequested}
-                                        onClose={() => objects = removeObject(b.uuid, objects, socket)}
-                                        onUpdate={() => objects = updateObject(b, objects, socket)}
+                                        onClose={() => objects = removeObject(b.uuid, objects)}
+                                        onUpdate={() => objects = updateObject(b, objects)}
                                         params={b.params}
                                         {gridStep}
                                         {gridMax}

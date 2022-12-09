@@ -64,6 +64,21 @@ const updateObject = (updatedObject, objects, socket=null) => {
     return [...objects, updatedObject];
 };
 
+
+/**
+ * Given a scene object (just an array of objects at the moment),
+ * publish it to the given websocket.
+ */
+const publishScene = function(objects, socket=null) {
+    if (socket) {
+        socket.send(JSON.stringify({
+            message: {
+                publishScene: objects
+            }
+        }));
+    }
+};
+
 const handleSceneEvent = function(data, objects) {
     if (data.message) {
         if (data.message.newObject) {
@@ -77,6 +92,8 @@ const handleSceneEvent = function(data, objects) {
             objects = removeObject(data.message.removeObject.uuid, objects);
         } else if (data.message.updateObject) {
             objects = updateObject(data.message.updateObject, objects);
+        } else if (data.message.publishScene) {
+            objects = data.message.publishScene;
         }
     }
 
@@ -87,5 +104,6 @@ export {
     makeObject,
     removeObject,
     updateObject,
+    publishScene,
     handleSceneEvent
 };
