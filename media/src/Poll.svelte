@@ -1,15 +1,27 @@
 <script>
-    import {forceNumber} from './utils';
+    //import {forceNumber} from './utils';
 
     export let currentPoll;
     export let socket;
 
     const handleOnSubmit = function(e) {
         e.preventDefault();
-
+        let response = null;
         const responseEl =
-              e.target.querySelector('input[name="poll_response"]');
-        const response = forceNumber(responseEl.value);
+            e.target.querySelectorAll('input[name="poll_response"]');
+        if (responseEl.length > 1) {
+            let i=0;
+            while(!response && i < responseEl.length){
+                if (responseEl[i].checked){
+                    response = responseEl[i].value;
+                } else {
+                    i++;
+                }
+            }
+        } else {
+            response = responseEl[0].value;
+        }
+        
 
         socket.send(JSON.stringify({
             message: {
@@ -40,7 +52,9 @@
                             <label class="form-check-label">
                                 <input class="form-check-input"
                                        type="radio"
-                                       name={`pollRadio-${choice}`}>
+                                       id={`pollRadio-${choice}`}
+                                       name="poll_response"
+                                       value={choice}>
                                 {choice}
                             </label>
                         </div>
