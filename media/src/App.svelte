@@ -263,6 +263,7 @@
         controls = new OrbitControls(camera, canvas);
         controls2 = new OrbitControls(camera2, canvas);
 
+        controls.listenToKeyEvents(window);
         controls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
         controls.dampingFactor = 0.05;
 
