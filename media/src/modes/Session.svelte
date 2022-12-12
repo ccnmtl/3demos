@@ -1,5 +1,5 @@
 <script>
-    import Poll from '../Poll.svelte';
+    import Poll from '../polls/Poll.svelte';
     import {getRoomUrl} from '../utils.js';
 
     export let roomId;

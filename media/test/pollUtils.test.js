@@ -1,5 +1,5 @@
 import assert from 'assert';
-import {makePoll} from '../src/pollUtils.js';
+import {makePoll} from '../src/polls/pollUtils.js';
 
 describe('makePoll', function() {
     it('should make a valid poll',
