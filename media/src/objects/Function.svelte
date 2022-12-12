@@ -788,7 +788,7 @@
 
     window.addEventListener("keydown", shiftDown, false);
     window.addEventListener("keyup", shiftUp, false);
-                                   </script>
+</script>
 
 <div class="boxItem">
     <div class="box-title">

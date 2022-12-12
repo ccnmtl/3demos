@@ -30,6 +30,7 @@
     import Chapter from './Chapter.svelte';
     import Intro from './Intro.svelte';
     import Session from './modes/Session.svelte';
+    import KeyboardControls from './KeyboardControls.svelte';
 
     import {
         getRoomId, makeSocket
@@ -384,6 +385,17 @@
         roomId = getRoomId(window.location.pathname);
         socket = makeSocket(roomId, handleSocketMessage);
     }
+
+    const altDown = (e) => {
+        if (e.altKey) {
+            switch(e.code) {
+                case "Space":
+                    shadeUp = !shadeUp;
+                    break;
+            }
+        }
+    };
+    window.addEventListener("keydown", altDown, false);
 </script>
 <main>
     <canvas bind:this={canvas} id="c" />
@@ -450,6 +462,10 @@
                                     on:click={() => (currentChapter = "Linear")}>
                                     Linearization
                                 </DropdownItem>
+                                <DropdownItem
+                                    on:click={() => (currentChapter = "Keyboard Controls")}>
+                                    Keyboard Controls
+                                </DropdownItem>
                             </DropdownMenu>
                         </ButtonDropdown>
                     </div>
@@ -463,6 +479,8 @@
                             <Chapter bind:objects />
                         {:else if currentChapter === "Linear"}
                             <Linear bind:objects />
+                        {:else if currentChapter === "Keyboard Controls"}
+                            <KeyboardControls />
                         {:else if currentChapter === "Intro"}
                             <Intro />
                         {/if}

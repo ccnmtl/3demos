@@ -317,9 +317,6 @@
         if (shadeUp) {
             switch (e.key) {
                 case "Shift":
-                    // animation = true;
-                    // frameBall.visible = true;
-                    // onMouseMove();
                     window.addEventListener("mousemove", onMouseMove, false);
                     break;
                 case "c":
@@ -348,8 +345,6 @@
 
     const shiftUp = (e) => {
         if (e.key === "Shift") {
-            // animation = false;
-            // frameBall.visible = false;
             window.removeEventListener("mousemove", onMouseMove);
         }
     };
