@@ -65,6 +65,9 @@ class RoomsConsumer(AsyncWebsocketConsumer):
         elif message.get('updateObject'):
             obj = message.get('updateObject', {})
             state = scene.update_obj(state, obj)
+        elif message.get('publishScene'):
+            new_scene = message.get('publishScene', [])
+            state = {'objects': new_scene}
 
         scene.save_state(state)
 
