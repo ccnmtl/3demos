@@ -802,10 +802,10 @@
             </button>
         </span>
     </div>
-    <div class:hidden>
+    <div hidden={hidden}>
         <div class="container">
             <span class="box-1">
-                <M>f(x,y[,t]) =</M>
+                <M size="sm">f(x,y[,t]) =</M>
             </span>
             <input
                 type="text"
@@ -821,7 +821,7 @@
                 class="box"
             />
             <span class="box box-3">
-                <M>\leq x \leq</M>
+                <M size="sm">\leq x \leq</M>
             </span>
             <input
                 type="text"
@@ -836,7 +836,7 @@
                 class="box"
             />
             <span class="box box-3">
-                <M>\leq y \leq</M>
+                <M size="sm">\leq y \leq</M>
             </span>
             <input
                 type="text"
@@ -845,7 +845,7 @@
                 class="box"
             />
             <span class="box-1">
-                <M>x</M>-meshes
+                <M size="sm">x</M>-meshes
             </span>
             <input
                 type="range"
@@ -863,7 +863,7 @@
                 class="box box-2"
             />
             <span class="box-1">
-                <M>y</M>-meshes
+                <M size="sm">y</M>-meshes
             </span>
             <input
                 type="range"
@@ -881,7 +881,7 @@
                 class="box box-2"
             />
             <span class="box-1">
-                resolution
+                Resolution
             </span>
             <input
                 type="range"
@@ -893,7 +893,7 @@
                 class="box box-2"
             />
             <span class="box-1">
-                levels
+                Levels
             </span>
             <span class="box-2">
                 <button on:click={activateLevelElevator} class="box-2">
@@ -905,7 +905,7 @@
                 </button>
             </span>
             <span class="box-1">
-                viewgraph
+                View Graph
             </span>
             <label class="switch box box-2">
                 <input
@@ -919,11 +919,11 @@
             </label>
             <input type="number" bind:value={params.t0} class="box" />
             <span class="box box-3">
-                <M>\leq t \leq</M>
+                <M size="sm">\leq t \leq</M>
             </span>
             <input type="number" bind:value={params.t1} class="box" />
             <span class="box-1">
-                <M>t</M>
+                <M size="sm">t</M>
             </span>
             <input
                 type="range"
@@ -974,7 +974,7 @@
                 </button>
             </span>
             <span class="box-1">
-                tangents
+                Tangents
             </span>
             <label class="switch box box-2">
                 <input
@@ -1000,7 +1000,7 @@
                 />
             </span>
             <span class="box-1">
-                integrate
+                Integrate
             </span>
             <label class="switch box box-2">
                 <input
@@ -1016,7 +1016,7 @@
                 <span class="slider round" />
             </label>
             <span class="box-1">
-                <M>N</M>
+                <M size="sm">N</M>
             </span>
             <input
                 type="range"
@@ -1030,7 +1030,7 @@
                 }}
                 class="box box-2"
             />
-            <span class="box-1"> sample </span>
+            <span class="box-1"> Sample </span>
             <input
                 type="range"
                 bind:value={data.samp}

@@ -1,11 +1,11 @@
 <script>
-    import katex from 'katex';
     import M from './M.svelte';
     import { v4 as uuidv4 } from "uuid";
 
     export let boxes = [];
 
     let hidden = false;
+    const texString1 = `\\( \\Large a,b,c \\in \\mathbb{R} \\)`;
 
     const toggleHidden = function() {
         hidden = !hidden;
@@ -40,22 +40,33 @@
     <p>
         A <strong>linear function</strong> <M>L(x,y)</M> of two variables
         has the form
-        {@html katex.renderToString('L(x,y) = a + bx + cy', {displayMode: true})}
-        where {@html katex.renderToString('a,b,c \\in \\mathbb{R}')} are constants.
+            <M display>L(x,y) = a + bx + cy</M>
+        where {texString1} are constants.
         Their graphs are planes with normal vector
-        {@html katex.renderToString('\\mathbf{n} = \\langle -b, -c, 1 \\rangle')}.
+        <M>n = \langle -b, -c, 1 \rangle</M>.
     </p>
 
     <p>
         More generally, a linear function of <M>n</M> variables has the form
-            {@html katex.renderToString(
-            'L(x_1, x_2,\\ldots, x_n) = a_0 + \\sum_{i = 1}^n a_i x_i', {
-            displayMode: true})}
+            <M display>{`L(x_1, x_2,\\ldots, x_n) = a_0 + \\sum_{i = 1}^n a_i x_i`}</M>
         which we can cleverly rewrite using the associations
-        {@html katex.renderToString('\\mathbf{x} = \\langle x_1, \\ldots, x_n \\rangle, a_0 = b, \\mathbf{m} = \\langle a_1, \\ldots, a_n \\rangle')}
-as
-        {@html katex.renderToString('L(\\mathbf{x}) = \\mathbf{m}\\cdot\\mathbf{x} + b.', {
-        displayMode: true})}
+        <!-- Less organized, equals signs do not line up. The screen reader 
+            reads each line individually. I think it provides better pacing.
+        -->
+            <M display>x = \langle x_1, \ldots, x_n \rangle</M>
+            <M display>a_0 = b</M>
+            <M display>m = \langle a_1, \ldots, a_n \rangle</M>
+
+        <!-- Alternative structure - More organized, but the screen reader 
+            reads the whole statement at once which may lead to confusion.
+
+            <M display>{`\\eqalign{
+                x &= \\langle x_1, \\ldots, x_n \\rangle \\cr
+                a_0 &= b \\cr
+                m &= \\langle a_1, \\ldots, a_n \\rangle
+            }`}</M>
+        -->
+        as <M>L(x) = m \cdot x + b</M>.
 
     </p>
 

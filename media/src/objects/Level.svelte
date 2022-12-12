@@ -377,9 +377,9 @@
                                                     ></span
                                                          >
     </div>
-    <div class:hidden>
+    <div hidden={hidden}>
         <div class="container">
-            <span class="box-1"><M>g(x,y,z) =</M></span>
+            <span class="box-1"><M size="sm">g(x,y,z) =</M></span>
             <input
                 type="text"
                 bind:value={params.g}
@@ -389,7 +389,7 @@
             }}
                 class="box box-2"
                 />
-            <span class="box-1"><M>k =</M></span>
+            <span class="box-1"><M size="sm">k =</M></span>
             <input
                 type="number"
                 bind:value={params.k}
@@ -409,7 +409,7 @@
             }}
                 class="box"
                 />
-            <span class="box box-3"><M>\leq x \leq</M></span>
+            <span class="box box-3"><M size="sm">\leq x \leq</M></span>
             <input
                 type="number"
                 bind:value={params.b}
@@ -428,7 +428,7 @@
             }}
                 class="box"
                 />
-            <span class="box box-3"><M>\leq y \leq</M></span>
+            <span class="box box-3"><M size="sm">\leq y \leq</M></span>
             <input
                 type="number"
                 bind:value={params.d}
@@ -447,7 +447,7 @@
             }}
                 class="box"
                 />
-            <span class="box box-3"><M>\leq z \leq</M></span>
+            <span class="box box-3"><M size="sm">\leq z \leq</M></span>
             <input
                 type="number"
                 bind:value={params.f}
@@ -458,7 +458,7 @@
                 class="box"
                 />
 
-            <span class="box-1">tangents</span>
+            <span class="box-1">Tangents</span>
             <label class="switch box box-2">
                 <input
                     type="checkbox"

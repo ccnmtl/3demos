@@ -1,6 +1,5 @@
 <script>
     import { onMount, onDestroy, createEventDispatcher } from "svelte";
-    import katex from 'katex';
     import M from "../M.svelte";
 
     import * as THREE from "three";
@@ -381,9 +380,9 @@
             </button>
         </span>
     </div>
-    <div class:hidden>
+    <div hidden={hidden}>
         <div class="container">
-            <span class="box-1"><M>x(t) =</M></span>
+            <span class="box-1"><M size="sm">x(t) =</M></span>
             <input
                 type="text"
                 bind:value={params.x}
@@ -393,7 +392,7 @@
                 }}
                 class="box box-2"
             />
-            <span class="box-1"><M>y(t) =</M></span>
+            <span class="box-1"><M size="sm">y(t) =</M></span>
             <input
                 type="text"
                 bind:value={params.y}
@@ -403,7 +402,7 @@
                 }}
                 class="box box-2"
             />
-            <span class="box-1"><M>z(t) =</M></span>
+            <span class="box-1"><M size="sm">z(t) =</M></span>
             <input
                 type="text"
                 bind:value={params.z}
@@ -422,7 +421,7 @@
                 }}
                 class="box"
             />
-            <span class="box box-3"><M>\leq t \leq</M></span>
+            <span class="box box-3"><M size="sm">\leq t \leq</M></span>
             <input
                 type="text"
                 bind:value={params.b}
@@ -433,7 +432,7 @@
                 class="box"
             />
             <span class="box-1">
-                {@html katex.renderToString(texString1)}
+                <M size="sm">{texString1}</M>
             </span>
             <input
                 type="range"
@@ -444,7 +443,7 @@
                 on:input={updateFrame}
                 class="box box-2"
             />
-            <span class="box-1">frame</span>
+            <span class="box-1">Frame</span>
             <label class="switch box box-2">
                 <input
                     type="checkbox"
@@ -492,7 +491,7 @@
                 </button>
             </span>
 
-            <span class="box-1">reparameterize by <M>s</M></span>
+            <span class="box-1">Reparamterize by <M>s</M></span>
             <label class="switch box box-2">
                 <input
                     type="checkbox"
@@ -504,7 +503,7 @@
                 <span class="slider round" />
             </label>
 
-            <span class="box-1">osculating circle</span>
+            <span class="box-1">Osculating Circle</span>
             <label class="switch box box-2">
                 <input
                     type="checkbox"
@@ -515,7 +514,7 @@
                 />
                 <span class="slider round" />
             </label>
-            <span class="box-1">color</span>
+            <span class="box-1">Color</span>
             <span class="box box-2">
                 <input
                     type="color"

@@ -105,8 +105,6 @@
         heightTop: vfScale / 8,
     };
 
-    // scene.add(trails);
-
     const setTrailColors = function(colorArray, start, total = MAX_TRAIL_LENGTH) {
         let index = 0,
             i = 0;
@@ -333,9 +331,9 @@
                                                     ></span
                                                          >
     </div>
-    <div class:hidden>
+    <div hidden={hidden}>
         <div class="container">
-            <span class="box-1"><M>P(x,y,z) =</M></span>
+            <span class="box-1"><M size="sm">P(x,y,z) =</M></span>
             <input
                 type="text"
                 bind:value={params.p}
@@ -345,7 +343,7 @@
             }}
                 class="box box-2"
                 />
-            <span class="box-1"><M>Q(x,y,z) =</M></span>
+            <span class="box-1"><M size="sm">Q(x,y,z) =</M></span>
             <input
                 type="text"
                 bind:value={params.q}
@@ -355,7 +353,7 @@
             }}
                 class="box box-2"
                 />
-            <span class="box-1"><M>R(x,y,z) =</M></span>
+            <span class="box-1"><M size="sm">R(x,y,z) =</M></span>
             <input
                 type="text"
                 bind:value={params.r}
@@ -365,7 +363,7 @@
             }}
                 class="box box-2"
                 />
-            <span class="box-1">resolution</span>
+            <span class="box-1">Resolution</span>
             <input
                 type="range"
                 bind:value={params.nVec}
@@ -378,7 +376,7 @@
             rewButton.click();
             }}
             />
-            <span class="box-1">trails</span>
+            <span class="box-1">Trails</span>
             <label class="switch box box-2">
                 <input
                     type="checkbox"
@@ -420,9 +418,6 @@
         </button>
         <button
             on:click={() => {
-            // animation = false;
-            // flowArrows.visible = false;
-            // freeTrails();
             freeChildren(flowArrows);
             maxLength = initFlowArrows(flowArrows, gridMax, params.nVec);
             updateFlowArrows(flowArrows, fieldF, 0);

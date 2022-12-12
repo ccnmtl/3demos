@@ -536,7 +536,7 @@
                                         show: true,
                                         }, objects, socket)
                                 }>
-                                    Vector <M>\mathbf v = \langle a, b, c \rangle</M>
+                                    Vector <M size="sm">\mathbf v = \langle a, b, c \rangle</M>
                                 </DropdownItem>
                                 <DropdownItem on:click={() => 
                                     objects = makeObject(null, "curve", {
@@ -552,7 +552,7 @@
                                     socket
                                 )}
                                 >
-                                    Space Curve <M>\mathbf r(t)</M>
+                                    Space Curve <M size="sm">\mathbf r(t)</M>
                                 </DropdownItem>
                                 <DropdownItem on:click={() =>
                                     objects = makeObject(null, "graph", {
@@ -568,7 +568,7 @@
                                         tau: 0,
                                         // color: "#3232ff",
                                     }, objects, socket)}>
-                                    Graph <M>z = f(x,y)</M>
+                                    Graph <M size="sm">z = f(x,y)</M>
                                 </DropdownItem>
                                 <DropdownItem on:click={() =>
                                     objects = makeObject(null, "level", {
@@ -581,7 +581,7 @@
                                         e: "-2",
                                         f: "2",
                                     }, objects, socket)}>
-                                    Level Surface <M>g(x,y,z) = k</M>
+                                    Level Surface <M size="sm">g(x,y,z) = k</M>
                                 </DropdownItem>
                                 <DropdownItem on:click={() =>
                                     objects = makeObject(null, "parsurf", {
@@ -593,7 +593,7 @@
                                         y: "sin(u)*(1 + sin(v)/3)",
                                         z: "cos(v)/3",
                                     }, objects, socket)}>
-                                    Parametric Surface <M>\mathbf r(u,v)</M>
+                                    Parametric Surface <M size="sm">\mathbf r(u,v)</M>
                                 </DropdownItem>
                                 <DropdownItem on:click={() =>
                                     objects = makeObject(null, "field", {
@@ -602,7 +602,7 @@
                                         r: "-z",
                                         nVec: 6,
                                     }, objects, socket)}>
-                                    Vector Field<M>\mathbf F(x,y,z)</M>
+                                    Vector Field<M size="sm">\mathbf F(x,y,z)</M>
                                 </DropdownItem>
                                 <DropdownItem on:click={() =>
                                     objects = makeObject(null, "box", {

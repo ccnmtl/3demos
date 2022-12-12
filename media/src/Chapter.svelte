@@ -1,5 +1,4 @@
 <script>
-    import katex from 'katex';
     import M from './M.svelte';
     import { v4 as uuidv4 } from "uuid";
     import { create, all } from "mathjs";
@@ -15,19 +14,31 @@
         b: "-1.5"
     };
 
-    const texString1 = `\\mathbf{r}(t) = ${texStrings.r}`;
+    const texString1 = `r(t) = ${texStrings.r}`;
     const texString2 = `${texStrings.a} \\leq ${texStrings.b}`;
 
     // eslint-disable no-useless-escape
-    const texString3 = `
-            \\begin{align*}
-            t_0 &= a \\\\
-            t_1 &= a + \\Delta t \\\\
-            &\\vdots \\\\
-            t_i &= a + i \\Delta t \\\\
-            &\\vdots \\\\
-            t_n &= a + n \\Delta t = b
-            \\end{align*}`;
+
+    /**
+     * Less organized, equals signs do not line up. The screen reader reads 
+     * each line individually. I think it provides better pacing.
+    */
+    const texString3 = `\\dot{x} = \\sigma(y-x)`;
+    const texString4 = `\\dot{y} = \\rho x - y - xz`;
+    const texString5 = `\\dot{z} = -\\beta z + xy`;
+    const texString6 = `\\( \\Large \\Delta t = \\frac{b - a}{N} \\)`;
+
+    /**
+     * Alternative structure - More organized, but the screen reader reads the
+     * whole statement at once which may lead to confusion.
+     * const texString3 = `
+        \\eqalign{
+            \\dot{x} & = \\sigma(y-x) \\cr
+            \\dot{y} & = \\rho x - y - xz \\cr
+            \\dot{z} & = -\\beta z + xy
+        }`;
+     */
+
     // eslint-enable
 
     let formula = String.raw`\frac{n^k}{k!}`;
@@ -92,7 +103,7 @@
 
     <p>
         Suppose we have a curve <M>C</M> in space parameterized by a smooth 
-        function <M>\mathbf r(t)</M> for <M>a \leq t \leq b</M> and we wish 
+        function <M>r(t)</M> for <M>a \leq t \leq b</M> and we wish 
         to know how long it is. That is, we want to compute the 
         <b>arc length</b> of <M>C</M>.
     </p>
@@ -112,8 +123,8 @@
         </button>
     </p>
 
-    <div>{@html katex.renderToString(texString1, {displayMode: true})}</div>
-    <div>{@html katex.renderToString(texString2, {displayMode: true})}</div>
+    <M display>{texString1}</M>
+    <M display>{texString2}</M>
 
     <p>
         We can estimate the length by selecting a finite number <M>N</M> of 
@@ -121,10 +132,12 @@
         wit, we select a partition of <M>[a, b]</M>:
     </p>
 
-    <div>{@html katex.renderToString(texString3, {displayMode: true})}</div>
+    <M display>{texString3}</M>
+    <M display>{texString4}</M>
+    <M display>{texString5}</M>
 
     <p>
-        where {@html katex.renderToString('\\Delta t = \\frac{b - a}{N}')}
+        where {texString6}
     </p>
 
     <input type="range" bind:value={nSteps} min="1" max="30" step="1" />
