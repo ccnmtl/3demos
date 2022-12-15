@@ -1,13 +1,17 @@
 <script>
-    import {forceNumber} from './utils';
+    import {forceNumber} from '../utils';
 
     export let currentPoll;
     export let socket;
 
+    let submitted = false;
+    let response = null;
+
     const handleOnSubmit = function(e) {
         e.preventDefault();
-        let response = [];
 
+        // Set up response
+        response = [];
         if (currentPoll.type === 0) {
             const responseEl =
                   e.target.querySelector('input[name="poll_response"]');
@@ -22,17 +26,38 @@
             });
         }
 
+        // Send response over websocket
         socket.send(JSON.stringify({
             message: {
                 pollResponse: response
             }
         }));
-    }
+
+        // Display "Response Submitted!"
+        submitted = true;
+    };
+
+    const onPollUpdate = function() {
+        // Un-submit the form when the instructor broadcasts a new
+        // poll.
+        submitted = false;
+    };
+
+    $: onPollUpdate(currentPoll);
 </script>
+
 
 {#if currentPoll}
     <div class="card">
         <div class="card-body">
+            {#if submitted}
+                <p>
+                    Response submitted!
+                </p>
+                <p>
+                    Your answer: {response}
+                </p>
+            {:else}
             <form on:submit={handleOnSubmit}>
                 <div class="mb-3">
                     {currentPoll.prompt}
@@ -64,6 +89,7 @@
                     Submit
                 </button>
             </form>
+            {/if}
         </div>
     </div>
 {/if}

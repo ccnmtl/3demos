@@ -11,7 +11,7 @@
         freeChildren,
         download
     } from './utils';
-    import Polls from './Polls.svelte';
+    import Polls from './polls/Polls.svelte';
     import {
         makeObject
     } from './sceneUtils';

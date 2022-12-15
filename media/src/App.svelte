@@ -46,7 +46,7 @@
         publishScene,
         handleSceneEvent
     } from './sceneUtils';
-    import {handlePollEvent} from './pollUtils';
+    import {handlePollEvent} from './polls/pollUtils';
 
     let debug = false,
         stats;
@@ -771,7 +771,7 @@
             {axesMaterial}
             bind:objects
             bind:socket
-            bind:pollResponses            
+            bind:pollResponses
             encode={makeQueryStringObject}
             render={requestFrameIfNotRequested}
             bind:update={scaleUpdate}

@@ -222,7 +222,7 @@ input:focus + .slider {
     cursor: pointer;
 }
 
-.chapterBox p,
+.chapterBox .collapse-info,
 .chapterBox article,
 .objectBoxOuter {
     color: white;

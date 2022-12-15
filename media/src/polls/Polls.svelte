@@ -1,16 +1,15 @@
 <script>
     import {
-        Button,
         Modal,
         ModalBody,
-        ModalFooter,
         ModalHeader,
         TabContent,
         TabPane
     } from 'sveltestrap';
+    import PollResponses from './PollResponses.svelte';
     import {broadcastPoll} from './pollUtils';
-    import {initialPolls} from './stores';
-    import {querySelectorIncludesText} from './utils';
+    import {initialPolls} from '../stores';
+    import {querySelectorIncludesText} from '../utils';
 
     export let isPollsOpen, togglePolls;
     export let socket;
@@ -20,6 +19,9 @@
     let activeTab = 'polls';
 
     const onClickBroadcast = function(e, poll) {
+        // Clear current poll responses
+        pollResponses = [];
+
         // Send the given poll to session participants
         broadcastPoll(poll, socket);
 
@@ -31,10 +33,6 @@
         const responsesEl = querySelectorIncludesText(
             '.polls-modal .nav-tabs a', 'Responses');
         responsesEl.click();
-    };
-
-    const closePolls = function() {
-        isPollsOpen = false;
     };
 </script>
 
@@ -70,21 +68,8 @@
             </TabPane>
             <TabPane tabId="responses" tab="Responses"
                      active={activeTab === 'responses'}>
-
-                {pollResponses.length} responses
-
-                <ul>
-                    {#each pollResponses as response}
-                        <li>{response}</li>
-                    {/each}
-                </ul>
+                <PollResponses bind:pollResponses />
             </TabPane>
         </TabContent>
     </ModalBody>
-
-    <ModalFooter>
-        <Button color="secondary" on:click={closePolls}>
-            Cancel
-        </Button>
-    </ModalFooter>
 </Modal>
