@@ -1,8 +1,8 @@
-import * as d3 from 'd3';
-
 // Copyright 2021 Observable, Inc.
 // Released under the ISC license.
 // https://observablehq.com/@d3/bar-chart
+import * as d3 from 'd3';
+
 export default function BarChart(data, {
     x = (d, i) => i, // given d in data, returns the (ordinal) x-value
     y = d => d, // given d in data, returns the (quantitative) y-value

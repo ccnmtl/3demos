@@ -16,14 +16,19 @@
     export let polls = initialPolls;
     export let pollResponses;
 
+    let currentPollType = null;
     let activeTab = 'polls';
 
-    const onClickBroadcast = function(e, poll) {
+    const onClickBroadcast = function(e, p) {
+        currentPollType = p.type;
+
         // Clear current poll responses
-        pollResponses = [];
+        // This causes the weird property bug where currentPollType
+        // is not updated.
+        //pollResponses = [];
 
         // Send the given poll to session participants
-        broadcastPoll(poll, socket);
+        broadcastPoll(p, socket);
 
         // Open responses pane
         activeTab = 'responses';
@@ -68,7 +73,7 @@
             </TabPane>
             <TabPane tabId="responses" tab="Responses"
                      active={activeTab === 'responses'}>
-                <PollResponses bind:pollResponses />
+                <PollResponses bind:currentPollType bind:pollResponses />
             </TabPane>
         </TabContent>
     </ModalBody>
