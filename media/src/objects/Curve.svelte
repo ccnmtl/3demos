@@ -366,8 +366,12 @@
 
 <div class="boxItem">
     <div class="box-title">
-        <strong style="color: {params.color};">
-            <i class="fa fa-square" /> Space Curve</strong>
+        <span>
+            <strong style="color: {params.color};">
+                <i class="fa fa-square" />
+            </strong>
+            <strong>Space Curve</strong>
+        </span>
         <span>
             <button
                 on:click={() => {
