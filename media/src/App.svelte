@@ -13,7 +13,6 @@
 
     // import components
     import M from './M.svelte';
-    import Box from './objects/Box.svelte';
     import ParSurf from './objects/ParSurf.svelte';
     import Level from './objects/Level.svelte';
     import Curve from './objects/Curve.svelte';
@@ -628,14 +627,6 @@
                                     }, objects)}>
                                     Vector Field<M size="sm">\mathbf F(x,y,z)</M>
                                 </DropdownItem>
-                                <DropdownItem on:click={() =>
-                                    objects = makeObject(null, "box", {
-                                        size: 2
-                                        },
-                                        objects
-                                        )}>
-                                        Random Box
-                                    </DropdownItem>
                                 </DropdownMenu>
                             </ButtonDropdown>
                             <button class="btn btn-danger" on:click={blowUpObjects}>
@@ -693,17 +684,6 @@
                                         bind:animation={b.animation}
                                         on:animate={animateIfNotAnimating}
                                         {gridStep}
-                                    />
-                                {:else if b.kind === "box" && b.params}
-                                    <Box
-                                        {scene}
-                                        render={requestFrameIfNotRequested}
-                                        onClose={() => objects = removeObject(b.uuid, objects)}
-                                        onUpdate={() => objects = updateObject(b, objects)}
-                                        params={b.params}
-                                        bind:update={b.update}
-                                        bind:animation={b.animation}
-                                        on:animate={animateIfNotAnimating}
                                     />
                                 {:else if b.kind === "curve"}
                                     <Curve
