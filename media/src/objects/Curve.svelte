@@ -85,28 +85,40 @@
     export let onUpdate = () => {};
     export let gridStep;
     export let animation = false;
+
     export const update = (dt) => {
         const { a, b, x, y, z } = goodParams;
         const T = a + (b - a) * params.tau;
         if (TNB) {
             const vel = new THREE.Vector3(
-                (x.evaluate({ t: T + 0.01 / 2 }) - x.evaluate({ t: T - 0.01 / 2 })) /
-                    0.01,
-                (y.evaluate({ t: T + 0.01 / 2 }) - y.evaluate({ t: T - 0.01 / 2 })) /
-                    0.01,
-                (z.evaluate({ t: T + 0.01 / 2 }) - z.evaluate({ t: T - 0.01 / 2 })) /
-                    0.01
+                (
+                    x.evaluate({
+                        t: T + 0.01 / 2
+                    }) - x.evaluate({ t: T - 0.01 / 2 })
+                ) / 0.01,
+                (
+                    y.evaluate({
+                        t: T + 0.01 / 2
+                    }) - y.evaluate({ t: T - 0.01 / 2 })
+                ) / 0.01,
+                (
+                    z.evaluate({
+                        t: T + 0.01 / 2
+                    }) - z.evaluate({ t: T - 0.01 / 2 })
+                ) / 0.01
             );
             params.tau += dt / vel.length() / (b - a);
         } else {
             try {
-                params.tau +=
-                    dt /
-                    (math.parse(params.b).evaluate() - math.parse(params.a).evaluate());
+                params.tau += dt / (
+                    math.parse(params.b).evaluate() -
+                        math.parse(params.a).evaluate()
+                );
             } catch (e) {
                 console.error('update parse error', e);
             }
         }
+
         params.tau %= 1;
         updateFrame();
     };

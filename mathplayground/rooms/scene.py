@@ -29,7 +29,7 @@ class RedisScene:
         state = self.r.get(key)
         if not state:
             # Initial state
-            state = '{"objects": []}'
+            state = '{"animating": False, "objects": []}'
 
         if not parse_json:
             return smart_str(state)

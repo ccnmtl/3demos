@@ -1,4 +1,6 @@
 <script>
+    import { onMount, afterUpdate } from 'svelte';
+
     import * as THREE from 'three';
     import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
     import {FontLoader} from 'three/examples/jsm/loaders/FontLoader.js';
@@ -20,7 +22,6 @@
     import Function from './objects/Function.svelte';
     import Vector from './objects/Vector.svelte';
     import Settings from './Settings.svelte';
-    import { onMount } from 'svelte';
     import { slide } from 'svelte/transition';
     import { quintOut } from 'svelte/easing';
     import Stats from 'stats.js';
@@ -178,7 +179,6 @@
         last,
         animating = false;
 
-
     const animateIfNotAnimating = function() {
         if (!animating) {
             cancelAnimationFrame(myReq);
@@ -188,7 +188,7 @@
         }
     }
 
-    const animate = (time = 0) => {
+    const animate = (time=0) => {
         if (debug) {
             stats.begin();
         }
@@ -199,6 +199,7 @@
         last = time;
 
         for (const b of objects.filter((b) => b.animation)) {
+            console.log('b.update', b);
             b.update(dt);
         }
 
@@ -321,6 +322,58 @@
         window.location.search = urlParams.toString();
     }
 
+    const onPublishScene = function() {
+        publishScene(objects, animating, socket);
+    };
+
+    let currentChapter = 'Intro';
+    let currentMode = 'intro';
+
+    let pollResponses = [];
+
+    const handleSocketMessage = function(e) {
+        const data = JSON.parse(e.data);
+        
+        if (data.message.pollResponse) {
+            pollResponses = [...pollResponses, data.message.pollResponse];
+        } else if (data.message.broadcastPoll) {
+            currentPoll = handlePollEvent(data);
+        } else {
+            const newScene = handleSceneEvent(data, objects);
+
+            objects = newScene.objects;
+
+            if (newScene.animating && animating !== newScene.animating) {
+                animateIfNotAnimating();
+            } else if (newScene.animating === false) {
+                animating = false;
+            }
+        }
+    };
+
+    let socket = null;
+    const router = {};
+    const room = location.pathname.match(/\/rooms\/\d+\//);
+    let roomId = null;
+
+    if (room) {
+        currentMode = 'session';
+        router.room = true;
+        roomId = getRoomId(window.location.pathname);
+        socket = makeSocket(roomId, handleSocketMessage);
+    }
+
+    const altDown = (e) => {
+        if (e.altKey) {
+            switch(e.code) {
+                case "Space":
+                    shadeUp = !shadeUp;
+                    break;
+            }
+        }
+    };
+    window.addEventListener("keydown", altDown, false);
+
     onMount(() => {
         createScene(canvas);
         const urlParams = new URLSearchParams(location.search);
@@ -358,49 +411,9 @@
         }
     });
 
-    const onPublishScene = function() {
-        publishScene(objects, socket);
-    };
-
-    let currentChapter = 'Intro';
-    let currentMode = 'intro';
-
-    let pollResponses = [];
-
-    const handleSocketMessage = function(e) {
-        const data = JSON.parse(e.data);
-        
-        if (data.message.pollResponse) {
-            pollResponses = [...pollResponses, data.message.pollResponse];
-        } else if (data.message.broadcastPoll) {
-            currentPoll = handlePollEvent(data);
-        } else {
-            objects = handleSceneEvent(data, objects);
-        }
-    };
-
-    let socket = null;
-    const router = {};
-    const room = location.pathname.match(/\/rooms\/\d+\//);
-    let roomId = null;
-
-    if (room) {
-        currentMode = 'session';
-        router.room = true;
-        roomId = getRoomId(window.location.pathname);
-        socket = makeSocket(roomId, handleSocketMessage);
-    }
-
-    const altDown = (e) => {
-        if (e.altKey) {
-            switch(e.code) {
-                case "Space":
-                    shadeUp = !shadeUp;
-                    break;
-            }
-        }
-    };
-    window.addEventListener("keydown", altDown, false);
+    afterUpdate(() => {
+        console.log('afterUpdate', objects);
+    });
 </script>
 <main>
     <canvas bind:this={canvas} id="c" />

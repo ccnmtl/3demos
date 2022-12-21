@@ -66,20 +66,33 @@ const updateObject = (updatedObject, objects, socket=null) => {
 
 
 /**
- * Given a scene object (just an array of objects at the moment),
- * publish it to the given websocket.
+ * Given a scene object, publish it to the given websocket.
  */
-const publishScene = function(objects, socket=null) {
+const publishScene = function(objects, animating=false, socket=null) {
     if (socket) {
         socket.send(JSON.stringify({
             message: {
-                publishScene: objects
+                publishScene: {
+                    animating: animating,
+                    objects: objects
+                }
             }
         }));
     }
 };
 
+/**
+ * handleSceneEvent()
+ *
+ * This event handler gets called when we receive a new scene event
+ * from the lower-level handleSocketMessage handler. Generally,
+ * operate on the client's scene based on the data that came through.
+ *
+ * Returns the new scene.
+ */
 const handleSceneEvent = function(data, objects) {
+    let animating = false;
+
     if (data.message) {
         if (data.message.newObject) {
             const newObject = data.message.newObject;
@@ -93,11 +106,15 @@ const handleSceneEvent = function(data, objects) {
         } else if (data.message.updateObject) {
             objects = updateObject(data.message.updateObject, objects);
         } else if (data.message.publishScene) {
-            objects = data.message.publishScene;
+            animating = data.message.publishScene.animating;
+            objects = data.message.publishScene.objects;
         }
     }
 
-    return objects;
+    return {
+        animating: animating,
+        objects: objects
+    };
 };
 
 export {
