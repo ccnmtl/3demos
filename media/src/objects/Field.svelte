@@ -56,6 +56,8 @@
     export let onClose = () => {};
     export let onUpdate = () => {};
     export let gridMax, gridStep;
+    export let selected;
+    export let objID;
 
     let hidden = false;
     let flowTrails = true;
@@ -356,7 +358,7 @@
     };
 </script>
 
-<div class="boxItem">
+<div class={'boxItem' + (selected === objID ? ' selected': '')} on:click on:keydown>
     <div class="box-title">
         <strong>Vector Field</strong>
         <ObjHeader

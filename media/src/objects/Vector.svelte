@@ -48,6 +48,8 @@
     export let onClose = () => {};
     export let onUpdate = () => {};
     export let gridStep;
+    export let selected;
+    export let objID;
 
     let hidden = false;
 
@@ -184,7 +186,7 @@
     });
 </script>
 
-<div class="boxItem" hidden={!params.show}>
+<div class={'boxItem' + (selected === objID ? ' selected': '')} hidden={!params.show} on:click on:keydown>
     <div class="box-title">
         <span><strong>Vector</strong> <M size="sm">\langle a, b, c \rangle</M></span>
         <ObjHeader
