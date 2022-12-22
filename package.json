@@ -30,7 +30,7 @@
     "stats.js": "^0.17.0",
     "svelte-preprocess": "^5.0.0",
     "sveltestrap": "^5.9.0",
-    "three": "^0.147.0",
+    "three": "^0.148.0",
     "uuid": "^9.0.0"
   }
 }
