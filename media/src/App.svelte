@@ -447,6 +447,7 @@
                             <i class="fa fa-sliders" />
                         </button>
                     </div>
+                    {#if currentMode !== 'session'}
                     <div class="object-box-title d-flex">
                         <ButtonDropdown class="mb-2">
                             <DropdownToggle
@@ -474,6 +475,7 @@
                             </DropdownMenu>
                         </ButtonDropdown>
                     </div>
+                    {/if}
                     {#if currentMode === 'session'}
                         <Session
                             bind:roomId

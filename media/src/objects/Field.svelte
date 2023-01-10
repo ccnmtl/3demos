@@ -321,15 +321,14 @@
 <div class="boxItem">
     <div class="box-title">
         <strong>Vector Field</strong>
-        <span
-            ><button
+        <span>
+            <button class="btn"
                  on:click={() => {
                 hidden = !hidden;
-                }}><i class="fa fa-window-minimize" /></button
-                                                          ><button on:click={onClose}>
-                <i class="fa fa-window-close" /></button
-                                                    ></span
-                                                         >
+                }}><i class="fa fa-window-minimize" /></button>
+            <button class="btn" on:click={onClose}>
+                <i class="fa fa-window-close" /></button>
+        </span>
     </div>
     <div hidden={hidden}>
         <div class="container">
@@ -388,13 +387,12 @@
                 <span class="slider round" />
             </label>
 
-        <button
+        <button class="btn box-1"
             on:click={() => {
             flowArrows.visible = true;
             animation = !animation;
             if (animation) dispatch("animate");
             }}
-            class="box-1"
             >
             {#if !animation}
                 <i class="fa fa-play" />
@@ -402,7 +400,7 @@
                 <i class="fa fa-pause" />
             {/if}
         </button>
-        <button
+        <button class="btn box-3"
             on:click={() => {
             animation = false;
             flowArrows.visible = false;
@@ -411,12 +409,11 @@
             maxLength = initFlowArrows(flowArrows, gridMax, params.nVec);
             render();
             }}
-            class="box-3"
             bind:this={stopButton}
             >
             <i class="fa fa-stop" />
         </button>
-        <button
+        <button class="btn box-4"
             on:click={() => {
             freeChildren(flowArrows);
             maxLength = initFlowArrows(flowArrows, gridMax, params.nVec);
@@ -424,7 +421,6 @@
             freeTrails();
             render();
             }}
-            class="box-4"
             bind:this={rewButton}
             >
             <i class="fa fa-fast-backward" />

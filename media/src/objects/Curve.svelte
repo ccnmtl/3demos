@@ -373,13 +373,13 @@
             <strong>Space Curve</strong>
         </span>
         <span>
-            <button
+            <button class="btn"
                 on:click={() => {
                 hidden = !hidden;
                 }}>
                 <i class="fa fa-window-minimize" />
             </button>
-            <button on:click={onClose}>
+            <button class="btn" on:click={onClose}>
                 <i class="fa fa-window-close" />
             </button>
         </span>
@@ -459,13 +459,12 @@
                 <span class="slider round" />
             </label>
             <span class="play-buttons box-4">
-                <button
+                <button class="btn box-1"
                     on:click={() => {
                         frame.visible = true;
                         animation = !animation;
                         if (animation) dispatch("animate");
                     }}
-                    class="box-1"
                 >
                     {#if !animation}
                         <i class="fa fa-play" />
@@ -473,22 +472,20 @@
                         <i class="fa fa-pause" />
                     {/if}
                 </button>
-                <button
+                <button class="btn box-3"
                     on:click={() => {
                         animation = false;
                         render();
                     }}
-                    class="box-3"
                     bind:this={stopButton}
                 >
                     <i class="fa fa-stop" />
                 </button>
-                <button
+                <button class="btn box-4"
                     on:click={() => {
                         params.tau = 0;
                         updateFrame();
                     }}
-                    class="box-4"
                     bind:this={rewButton}
                 >
                     <i class="fa fa-fast-backward" />

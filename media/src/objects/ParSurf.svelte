@@ -279,7 +279,10 @@
 
 <div class="boxItem">
     <div class="box-title">
-        <strong>Parametric surface</strong> <span><button on:click={() => {hidden = !hidden}}><i class="fa fa-window-minimize"></i></button><button on:click={onClose}> <i class="fa fa-window-close"></i></button></span>
+        <strong>Parametric surface</strong> <span>
+            <button class="btn"on:click={() => {hidden = !hidden}}><i class="fa fa-window-minimize"></i></button>
+            <button class="btn" on:click={onClose}> <i class="fa fa-window-close"></i></button>
+        </span>
     </div>
     <div hidden={hidden}>
         <div class="container">
