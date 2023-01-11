@@ -290,6 +290,10 @@
         objects = window.SCENE_STATE.objects;
     }
 
+    if (window.SCENE_STATE && window.SCENE_STATE.poll) {
+        currentPoll = window.SCENE_STATE.poll;
+    }
+
     export const blowUpObjects = () => {
         if(confirm('Remove all objects in the scene?')) {
             objects = [];
@@ -369,7 +373,7 @@
 
     const handleSocketMessage = function(e) {
         const data = JSON.parse(e.data);
-        
+
         if (data.message.pollResponse) {
             pollResponses = [...pollResponses, data.message.pollResponse];
         } else if (data.message.broadcastPoll) {
@@ -443,7 +447,7 @@
                             on:click={() => {
                                 flipInfo = !flipInfo;
                             }}>
-                            Object List 
+                            Object List
                             <i class="fa fa-sliders" />
                         </button>
                     </div>
@@ -537,7 +541,7 @@
                                 flipInfo = !flipInfo;
                             }}
                         >
-                            Chapters 
+                            Chapters
                             <i class="fa fa-book" />
                         </button>
                     </div>
@@ -562,7 +566,7 @@
                                 }>
                                     Vector <M size="sm">\mathbf v = \langle a, b, c \rangle</M>
                                 </DropdownItem>
-                                <DropdownItem on:click={() => 
+                                <DropdownItem on:click={() =>
                                     objects = makeObject(null, "curve", {
                                         a: "0",
                                         b: "2*pi",

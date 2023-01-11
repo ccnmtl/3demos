@@ -42,17 +42,6 @@ class RoomsConsumer(AsyncWebsocketConsumer):
             )
             return
 
-        if message.get('broadcastPoll'):
-            await self.channel_layer.group_send(
-                self.room_group_name,
-                {
-                    'type': 'room_event',
-                    'message': message,
-                    'session_key': session.session_key,
-                }
-            )
-            return
-
         scene = RedisScene(self.room_id)
         state = scene.get_state()
         # Update new scene state in redis
@@ -68,6 +57,12 @@ class RoomsConsumer(AsyncWebsocketConsumer):
         elif message.get('publishScene'):
             new_scene = message.get('publishScene', [])
             state = {'objects': new_scene}
+        elif message.get('broadcastPoll'):
+            new_poll = message.get('broadcastPoll', {})
+            state = {
+                'poll': new_poll,
+                'objects': state.get('objects', []),
+            }
 
         scene.save_state(state)
 
