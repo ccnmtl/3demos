@@ -363,14 +363,12 @@
             </span>
         </span>
         <span
-            ><button
+            ><button class="btn"
                  on:click={() => {
                 hidden = !hidden;
-                }}><i class="fa fa-window-minimize" /></button
-                                                          ><button on:click={onClose}>
-                <i class="fa fa-window-close" /></button
-                                                    ></span
-                                                         >
+                }}><i class="fa fa-window-minimize" /></button>
+            <button class="btn" on:click={onClose}>
+                <i class="fa fa-window-close" /></button></span>
     </div>
     <div hidden={hidden}>
         <div class="container">

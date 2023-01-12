@@ -106,13 +106,13 @@
     <div class="box-title">
         <span><strong>Vector</strong> <M size="sm">\langle a, b, c \rangle</M></span>
         <span>
-            <button
+            <button class="btn"
                 on:click={() => { hidden = !hidden; }}
                 aria-label="Minimize Object Window"
             >
                 <i class="fa fa-window-minimize" />
             </button>
-            <button
+            <button class="btn"
                 on:click={onClose}
                 aria-label="Delete Object"
             >

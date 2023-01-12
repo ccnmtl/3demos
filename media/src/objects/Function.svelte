@@ -794,10 +794,10 @@
     <div class="box-title">
         <strong>Graph of function</strong>
         <span>
-            <button on:click={() => {hidden = !hidden;}}>
+            <button class="btn" on:click={() => {hidden = !hidden;}}>
                 <i class="fa fa-window-minimize" />
             </button>
-            <button on:click={onClose}>
+            <button class="btn" on:click={onClose}>
                 <i class="fa fa-window-close" />
             </button>
         </span>
@@ -896,7 +896,7 @@
                 Levels
             </span>
             <span class="box-2">
-                <button on:click={activateLevelElevator} class="box-2">
+                <button class="btn box-2" on:click={activateLevelElevator}>
                     {#if data.levelDelta === 1}
                         Up <i class="fa fa-caret-up" />
                     {:else}
@@ -938,7 +938,7 @@
                 class="box box-2"
             />
             <span class="play-buttons box-4">
-                <button
+                <button class="btn box-1"
                     on:click={() => {
                     data.animateTime = !data.animateTime;
                     if (data.animateTime) {
@@ -946,7 +946,6 @@
                     dispatch("animate");
                     }
                     }}
-                    class="box-1"
                     >
                     {#if !data.animateTime}
                         <i class="fa fa-play" />
@@ -954,21 +953,19 @@
                         <i class="fa fa-pause" />
                     {/if}
                 </button>
-                <button
+                <button class="btn box-3"
                     on:click={() => {
                     data.animateTime = false;
                     render();
                     }}
-                    class="box-3"
                     >
                     <i class="fa fa-stop" />
                 </button>
-                <button
+                <button class="btn box-4"
                     on:click={() => {
                     data.tau = 0;
                     evolveSurface(params.t0);
                     }}
-                    class="box-4"
                     >
                     <i class="fa fa-fast-backward" />
                 </button>
