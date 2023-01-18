@@ -51,9 +51,8 @@ class RedisScene:
             objects = []
 
         objects.append(obj)
-        return {
-            'objects': objects
-        }
+        state['objects'] = objects
+        return state
 
     @staticmethod
     def remove_obj(state, obj_id):
@@ -67,15 +66,13 @@ class RedisScene:
         except AttributeError:
             # If the state is formatted wrong for some reason, just
             # initialize it to empty.
-            return {
-                'objects': []
-            }
+            state['objects'] = []
+            return objects
 
-        return {
-            'objects': list(filter(
-                lambda x: x.get('uuid') != obj_id,
-                objects))
-        }
+        state['objects'] = list(filter(
+            lambda x: x.get('uuid') != obj_id,
+            objects))
+        return state
 
     @staticmethod
     def update_obj(state, obj):
@@ -98,6 +95,5 @@ class RedisScene:
         # Append updated object
         objects.append(obj)
 
-        return {
-            'objects': objects
-        }
+        state['objects'] = objects
+        return state

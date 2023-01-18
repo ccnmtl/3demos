@@ -285,6 +285,9 @@
 
     export let objects = [];
     export let currentPoll = null;
+    export let isHost = false;
+
+    let host = null;
 
     if (window.SCENE_STATE && window.SCENE_STATE.objects) {
         objects = window.SCENE_STATE.objects;
@@ -292,6 +295,14 @@
 
     if (window.SCENE_STATE && window.SCENE_STATE.poll) {
         currentPoll = window.SCENE_STATE.poll;
+    }
+
+    if (window.SCENE_STATE && window.SCENE_STATE.host) {
+        host = window.SCENE_STATE.host;
+    }
+
+    if (host && window.SESSION_KEY && host === window.SESSION_KEY) {
+        isHost = true;
     }
 
     export const blowUpObjects = () => {
@@ -484,6 +495,7 @@
                         <Session
                             bind:roomId
                             bind:socket
+                            bind:isHost
                             bind:currentPoll />
                     {:else}
                         {#if currentChapter === "Chapter"}
