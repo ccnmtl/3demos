@@ -35,7 +35,17 @@
 
         <script defer src="{% static 'mathplayground/build/bundle.js' %}"></script>
     </head>
+    {% if GA_CODE %}
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id={{GA_CODE}}"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
 
+            gtag('config', '{{GA_CODE}}', { 'anonymize_ip': true });
+        </script>
+    {% endif %}
     <body>
     </body>
 </html>
