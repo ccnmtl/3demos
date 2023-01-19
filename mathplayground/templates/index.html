@@ -26,6 +26,9 @@
 
         <script>
             window.STATIC_PREFIX = '{% static 'mathplayground' %}';
+            {% if request.session %}
+            window.SESSION_KEY = '{{ request.session.session_key }}';
+            {% endif %}
 
             {% if scene_state %}
             // Initial scene state loaded from Redis

@@ -15,7 +15,7 @@ const getRoomId = function(urlpath) {
  * Make a WebSocket with the given room name. Connects to a
  * django-channels socket backend. Returns this socket.
  */
-const makeSocket = function(roomId, handleMessage) {
+const makeSocket = function(roomId, handleMessage=null) {
     const path = 'wss://'
             + window.location.host
             + '/ws/rooms/'
@@ -23,7 +23,9 @@ const makeSocket = function(roomId, handleMessage) {
           + '/';
     const socket = new WebSocket(path);
 
-    socket.onmessage = handleMessage;
+    if (handleMessage) {
+        socket.onmessage = handleMessage;
+    }
 
     socket.onclose = function() {
         console.error('Chat socket closed unexpectedly');
@@ -32,7 +34,18 @@ const makeSocket = function(roomId, handleMessage) {
     return socket;
 };
 
+const setHost = (socket=null) => {
+    if (socket) {
+        socket.send(JSON.stringify({
+            message: {
+                setHost: true
+            }
+        }));
+    }
+};
+
 export {
     getRoomId,
-    makeSocket
+    makeSocket,
+    setHost
 };
