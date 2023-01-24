@@ -5,6 +5,7 @@
     import {TextGeometry} from 'three/examples/jsm/geometries/TextGeometry.js';
 
     import {
+        Button,
         ButtonDropdown,
         DropdownItem,
         DropdownMenu,
@@ -416,6 +417,11 @@
         }
     };
     window.addEventListener("keydown", altDown, false);
+
+    const onToggleSession = function() {
+        currentMode = (currentMode !== 'session') ?
+            'session' : 'intro';
+    };
 </script>
 <main>
     <canvas bind:this={canvas} id="c" />
@@ -426,33 +432,12 @@
                 <div class="collapse-info" hidden={shadeUp}>
                     <div class="d-flex mb-2">
                         <h1 class="titlefont flex-grow-1 px-2">3Demos.xyz (βeta)</h1>
-                        <ButtonDropdown class="px-2">
-                            <DropdownToggle caret class="btn btn-light">
-                                Modes
-                            </DropdownToggle>
-                            <DropdownMenu>
-                                <DropdownItem
-                                    active={currentMode === 'intro'}
-                                    on:click={() => (currentMode = 'intro')}>
-                                    Intro
-                                </DropdownItem>
-                                <DropdownItem
-                                    active={currentMode === 'story'}
-                                    on:click={() => (currentMode = 'story')}>
-                                    Story
-                                </DropdownItem>
-                                <DropdownItem
-                                    active={currentMode === 'creative'}
-                                    on:click={() => (currentMode = 'creative')}>
-                                    Creative
-                                </DropdownItem>
-                                <DropdownItem
-                                    active={currentMode === 'session'}
-                                    on:click={() => (currentMode = 'session')}>
-                                    Session
-                                </DropdownItem>
-                            </DropdownMenu>
-                        </ButtonDropdown>
+                        <Button
+                            class="me-2"
+                            active={currentMode === 'session'}
+                            on:click={onToggleSession}>
+                            Session
+                        </Button>
                         <button
                             class="ms-auto btn btn-light px-2"
                             on:click={() => {
