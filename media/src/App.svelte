@@ -637,7 +637,7 @@
                                 <i class="fa fa-trash" />
                             </button>
                         </div>
-                        {#if currentMode === 'session'}
+                        {#if currentMode === 'session' && isHost}
                             <button class="btn btn-primary mb-2" on:click={onPublishScene}>
                                 Publish Scene
                                 <i class="bi bi-broadcast-pin"></i>
