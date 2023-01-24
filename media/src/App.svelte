@@ -773,6 +773,7 @@
         width: 100%;
         height: 100%;
         margin: 0;
+        z-index: -10;
     }
 
     .info {
@@ -857,6 +858,7 @@
         display: flex;
         justify-content: flex-start;
         width: clamp(23ch, 30%, 45ch);
+        z-index: -1;
     }
 
     .raise-lower-button {
