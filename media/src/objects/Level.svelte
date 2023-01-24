@@ -1,6 +1,7 @@
 <script>
     import { onDestroy } from "svelte";
     import M from "../M.svelte";
+    import ObjHeader from "../ObjHeader.svelte";
 
     import * as THREE from "three";
 
@@ -362,13 +363,10 @@
                 <span class="sr-only">Loading...</span>
             </span>
         </span>
-        <span
-            ><button class="btn"
-                 on:click={() => {
-                hidden = !hidden;
-                }}><i class="fa fa-window-minimize" /></button>
-            <button class="btn" on:click={onClose}>
-                <i class="fa fa-window-close" /></button></span>
+        <ObjHeader
+            bind:hidden={hidden}
+            bind:onClose={onClose}
+        />
     </div>
     <div hidden={hidden}>
         <div class="container">

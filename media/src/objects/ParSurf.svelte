@@ -1,6 +1,7 @@
 <script>
     import {onMount, onDestroy} from 'svelte';
     import M from "../M.svelte";
+    import ObjHeader from "../ObjHeader.svelte";
 
     import * as THREE from "three";
 
@@ -279,10 +280,11 @@
 
 <div class="boxItem">
     <div class="box-title">
-        <strong>Parametric surface</strong> <span>
-            <button class="btn"on:click={() => {hidden = !hidden}}><i class="fa fa-window-minimize"></i></button>
-            <button class="btn" on:click={onClose}> <i class="fa fa-window-close"></i></button>
-        </span>
+        <strong>Parametric surface</strong>
+        <ObjHeader
+            bind:hidden={hidden}
+            bind:onClose={onClose}
+        />
     </div>
     <div hidden={hidden}>
         <div class="container">
@@ -345,55 +347,11 @@
 </div></div>
 
 <style>
-    .container {
-        display: grid;
-
-        grid-template-columns: 1fr auto 1fr;
-        grid-template-rows: auto;
-
-        grid-gap: 10px 15px;
-
-        padding: 10px;
-    }
-
-    .box-1 {
-        text-align: right;
-        grid-column: 1 / 2;
-        color: white;
-        vertical-align: middle;
-    }
-
-    .box-2 {
-        grid-column-start: 2;
-        grid-column-end: 4;
-    }
-
     .box-3 {
         color: white;
         vertical-align: middle;
         text-align: center;
 
         grid-column: 2 / 3;
-    }
-
-    .box-title {
-        display: flex;
-        justify-content: space-between;
-        color: white;
-        padding: .5em;
-    }
-
-    button {
-        background-color: transparent;
-        color:white;
-        border: none;
-    }
-
-    button:hover {
-        color: white;
-    }
-
-    button:active {
-        color: gray;
     }
 </style>

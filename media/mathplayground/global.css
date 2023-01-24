@@ -69,6 +69,20 @@ body,
     padding: 0.5em;
 }
 
+.item-header {
+    background-color: transparent;
+    color:white;
+    border: none;
+}
+
+.item-header:hover {
+    color: white;
+}
+
+.item-header:active {
+    color: gray;
+}
+
 .settings-tray button {
     color: #333;
     font-size: 1.5rem;
