@@ -8,8 +8,7 @@
         drawAxes,
         drawGrid,
         labelAxes,
-        freeChildren,
-        download
+        freeChildren
     } from './utils';
     import Polls from './polls/Polls.svelte';
     import {
@@ -110,31 +109,46 @@
     const togglePolls = () => (isPollsOpen = !isPollsOpen);
 
     const uploadScene = (e) => {
-            const reader = new FileReader();
-            reader.onload = (evt) => {
-                let upload = [];
-                try {
-                    upload = JSON.parse(evt.target.result);
-                } catch (SyntaxError) {
-                    alert('Improper JSON formatting');
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+            let upload = [];
+            try {
+                upload = JSON.parse(evt.target.result);
+            } catch (SyntaxError) {
+                alert('Improper JSON formatting');
+            }
+            if (upload.length < 33) {
+                for (let i = 0; i < upload.length; i++) {
+                    objects = makeObject(
+                        null,
+                        upload[i].kind,
+                        upload[i].params,
+                        objects,
+                        socket
+                    );
                 }
-                if (upload.length < 33) {
-                    for (let i = 0; i < upload.length; i++) {
-                        objects = makeObject(
-                            null,
-                            upload[i].kind,
-                            upload[i].params,
-                            objects,
-                            socket
-                        );
-                    }
-                } else {
-                    alert('Object limit of 32 per upload.');
-                }
+            } else {
+                alert('Object limit of 32 per upload.');
+            }
 
-            };
-            reader.readAsText(e.target.files[0], 'utf-8');
-        }
+        };
+        reader.readAsText(e.target.files[0], 'utf-8');
+    }
+
+    const makeFilename = () => {
+        const formattedDate = new Date().toISOString().split('T')[0];
+        return '3Demos-scene-' + formattedDate + '.json';
+    }
+
+    const downloadScene = () => {
+        let json = JSON.stringify(objects);
+        const blob = new Blob([json], {type: "application/json",});
+        let a = document.createElement('a');
+        a.download = makeFilename();
+        a.href = window.URL.createObjectURL(blob);
+        a.click();
+        a.remove();
+    }
 </script>
 
 <div
@@ -250,7 +264,7 @@
 <button
     class="button"
     title="Download Scene"
-    on:click={download}
+    on:click={downloadScene}
 >
     <i class="fa fa-download" />
 </button>
