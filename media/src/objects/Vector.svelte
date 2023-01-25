@@ -1,6 +1,7 @@
 <script>
     import { onMount, onDestroy } from "svelte";
     import M from "../M.svelte";
+    import ObjHeader from "../ObjHeader.svelte";
 
     import * as THREE from "three";
 
@@ -105,20 +106,10 @@
 <div class="boxItem" hidden={!params.show}>
     <div class="box-title">
         <span><strong>Vector</strong> <M size="sm">\langle a, b, c \rangle</M></span>
-        <span>
-            <button class="btn"
-                on:click={() => { hidden = !hidden; }}
-                aria-label="Minimize Object Window"
-            >
-                <i class="fa fa-window-minimize" />
-            </button>
-            <button class="btn"
-                on:click={onClose}
-                aria-label="Delete Object"
-            >
-                <i class="fa fa-window-close" />
-            </button>
-        </span>
+        <ObjHeader
+            bind:hidden={hidden}
+            bind:onClose={onClose}
+        />
     </div>
     <div hidden={hidden}>
         <div class="container">
@@ -203,28 +194,3 @@
         </div>
     </div>
 </div>
-
-<style>
-    .container {
-        display: grid;
-
-        grid-template-columns: 1fr auto 1fr;
-        grid-template-rows: auto;
-
-        grid-gap: 10px 15px;
-
-        padding: 10px;
-    }
-
-    .box-1 {
-        text-align: right;
-        grid-column: 1 / 2;
-        color: white;
-        vertical-align: middle;
-    }
-
-    .box-2 {
-        grid-column-start: 2;
-        grid-column-end: 4;
-    }
-</style>

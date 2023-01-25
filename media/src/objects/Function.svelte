@@ -2,6 +2,7 @@
     import { onMount, onDestroy, createEventDispatcher } from "svelte";
     import {ParametricGeometry} from 'three/examples/jsm/geometries/ParametricGeometry.js';
     import M from "../M.svelte";
+    import ObjHeader from "../ObjHeader.svelte";
     import * as THREE from "three";
     import { create, all } from "mathjs";
 
@@ -793,14 +794,10 @@
 <div class="boxItem">
     <div class="box-title">
         <strong>Graph of function</strong>
-        <span>
-            <button class="btn" on:click={() => {hidden = !hidden;}}>
-                <i class="fa fa-window-minimize" />
-            </button>
-            <button class="btn" on:click={onClose}>
-                <i class="fa fa-window-close" />
-            </button>
-        </span>
+        <ObjHeader
+            bind:hidden={hidden}
+            bind:onClose={onClose}
+        />
     </div>
     <div hidden={hidden}>
         <div class="container">
