@@ -69,17 +69,17 @@ body,
     padding: 0.5em;
 }
 
-.item-header {
+.item-header button {
     background-color: transparent;
     color:white;
     border: none;
 }
 
-.item-header:hover {
+.item-header button:hover {
     color: white;
 }
 
-.item-header:active {
+.item-header button:active {
     color: gray;
 }
 

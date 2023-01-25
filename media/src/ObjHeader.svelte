@@ -3,17 +3,15 @@
     export let onClose;
 </script>
 
-<span>
-    <button 
-        class="item-header"
-        on:click={() => {hidden = !hidden}}
-    >
+<div class="item-header">
+    <button
+        title={hidden ? 'Show' : 'Hide'}
+        on:click={() => {hidden = !hidden}}>
         <i class="fa fa-window-minimize"></i>
     </button>
-    <button 
-        class="item-header"
-        on:click={onClose}
-    >
+    <button
+        title="Remove object"
+        on:click={onClose}>
         <i class="fa fa-window-close"></i>
     </button>
-</span>
+</div>
