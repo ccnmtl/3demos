@@ -17,6 +17,7 @@
 
     const dispatch = createEventDispatcher();
 
+    export let isHost;
     export let scene, camera, render, controls, controls2;
     export let gridMax, gridStep;
     export let axesHolder, axesText, gridMeshes, lineMaterial, axesMaterial;
@@ -287,7 +288,7 @@
     <i class="fa fa-television" />
 </button>
 
-{#if currentMode === 'session'}
+{#if currentMode === 'session' && isHost}
     <button on:click={openPolls}
             class="button" title="Polls">
         <i class="fa fa-list" />

@@ -741,6 +741,7 @@
 
     <div class="settings-tray">
         <Settings
+            bind:isHost
             {scene}
             {camera}
             {controls}
