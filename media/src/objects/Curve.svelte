@@ -72,11 +72,11 @@
         }
 
         if (
-            oldParams.a !== params.a
-                || oldParams.b !== params.b
-                || oldParams.a !== params.a
-                || oldParams.x !== params.x
-                || oldParams.y !== params.y
+            oldParams.a !== params.a ||
+            oldParams.b !== params.b ||
+            oldParams.a !== params.a ||
+            oldParams.x !== params.x ||
+            oldParams.y !== params.y
         ) {
             updateCurve();
             oldParams.a = params.a;
@@ -112,7 +112,7 @@
                     dt /
                     (math.parse(params.b).evaluate() - math.parse(params.a).evaluate());
             } catch (e) {
-                console.error('update parse error', e);
+                console.error("update parse error", e);
             }
         }
         params.tau %= 1;
@@ -155,7 +155,7 @@
         return new THREE.Vector3(evalX, evalY, evalZ);
     };
 
-    let TNB = false
+    let TNB = false;
     let osculatingCircle = false;
     let hidden = false;
     let stopButton, rewButton;
@@ -170,7 +170,7 @@
     });
 
     const grayMaterial = new THREE.MeshPhongMaterial({
-        color: new THREE.Color(.39, .34, .35),
+        color: new THREE.Color(0.39, 0.34, 0.35),
         shininess: 80,
         side: THREE.DoubleSide,
         vertexColors: false,
@@ -183,7 +183,8 @@
     scene.add(circleTube);
     circleTube.visible = false;
 
-    const updateCurve = function() {
+    const updateCurve = function () {
+        animation = false;
         const { a, b, x, y, z } = params;
         let A, B, X, Y, Z;
 
@@ -224,13 +225,7 @@
         }
 
         let path = new ParametricCurve(1, r, A, B);
-        let geometry = new THREE.TubeGeometry(
-            path,
-            1000,
-            gridStep / 20,
-            8,
-            false
-        );
+        let geometry = new THREE.TubeGeometry(path, 1000, gridStep / 20, 8, false);
         if (tube) {
             tube.geometry.dispose();
             tube.geometry = geometry;
@@ -242,7 +237,7 @@
         updateFrame();
     };
 
-    const stringifyT = function(params) {
+    const stringifyT = function (params) {
         const { a, b, tau } = params;
         try {
             const [A, B] = [a, b].map((x) => math.parse(x).evaluate());
@@ -252,7 +247,7 @@
             return (Math.round(100 * t) / 100).toString();
         } catch (e) {
             console.error(e);
-            return '';
+        return "";
         }
     };
 
@@ -286,7 +281,7 @@
 
     frame.add(point);
 
-    const updateFrame = function({ dt = 0.01 } = {}) {
+    const updateFrame = function ({ dt = 0.01 } = {}) {
         const { a, b, x, y, z } = goodParams;
         const tau = params.tau;
         const T = a + (b - a) * tau;
@@ -309,16 +304,16 @@
             ),
             a: new THREE.Vector3(
                 (x.evaluate({ t: T + dt }) -
-                 2 * x.evaluate({ t: T }) +
-                 x.evaluate({ t: T - dt })) /
+                    2 * x.evaluate({ t: T }) +
+                    x.evaluate({ t: T - dt })) /
                     (dt * dt),
                 (y.evaluate({ t: T + dt }) -
-                 2 * y.evaluate({ t: T }) +
-                 y.evaluate({ t: T - dt })) /
+                    2 * y.evaluate({ t: T }) +
+                    y.evaluate({ t: T - dt })) /
                     (dt * dt),
                 (z.evaluate({ t: T + dt }) -
-                 2 * z.evaluate({ t: T }) +
-                 z.evaluate({ t: T - dt })) /
+                    2 * z.evaluate({ t: T }) +
+                    z.evaluate({ t: T - dt })) /
                     (dt * dt)
             ),
         };
@@ -334,16 +329,28 @@
                 V.normalize();
                 A.addScaledVector(V, A.dot(V) * -1);
                 A.normalize();
-                path = new ParametricCurve(1, (t) => {
-                    const vec = R.clone().addScaledVector(A,(1 - Math.cos(t)) / curvature).addScaledVector(V, Math.sin(t) / curvature);
-                    return vec;
-                }, 0, 2*Math.PI);
+                path = new ParametricCurve(
+                    1,
+                    (t) => {
+                        const vec = R.clone()
+                            .addScaledVector(A, (1 - Math.cos(t)) / curvature)
+                            .addScaledVector(V, Math.sin(t) / curvature);
+                        return vec;
+                    },
+                    0,
+                    2 * Math.PI
+                );
             } else {
                 V.normalize();
-                path = new ParametricCurve(1, (t) => {
+                path = new ParametricCurve(
+                1,
+                (t) => {
                     const vec = R.clone().addScaledVector(V, t);
                     return vec;
-                }, -gridStep*30, gridStep*30);
+                },
+                -gridStep * 30,
+                gridStep * 30
+                );
             }
             const geometry = new THREE.TubeGeometry(
                 path,
@@ -357,7 +364,6 @@
             circleTube.geometry = geometry;
 
             circleTube.visible = true;
-
         } else {
             circleTube.visible = false;
         }
@@ -399,20 +405,18 @@
             }
         }
         render();
-    }
+    };
 
-    const updateColor = function() {
+    const updateColor = function () {
         curveMaterial.color.set(params.color);
         render();
-    }
+    };
 
     const startAnimation = (toggleState=false) => {
         frame.visible = true;
-
         if (toggleState) {
             animation = !animation;
         }
-
         if (animation) {
             dispatch('animate');
         }
@@ -450,12 +454,9 @@
             </strong>
             <strong>Space Curve</strong>
         </span>
-        <ObjHeader
-            bind:hidden={hidden}
-            bind:onClose={onClose}
-        />
+        <ObjHeader bind:hidden bind:onClose />
     </div>
-    <div hidden={hidden}>
+    <div {hidden}>
         <div class="container">
             <span class="box-1"><M size="sm">x(t) =</M></span>
             <ObjectParamInput
@@ -558,43 +559,43 @@
                 </button>
             </span>
 
-            <span class="box-1">Reparamterize by <M>s</M></span>
-            <label class="switch box box-2">
-                <input
-                    type="checkbox"
-                    name="reparamByArcLength"
-                    id="reparamByArcLength"
-                    bind:checked={TNB}
-                    on:change={updateFrame}
-                />
-                <span class="slider round" />
-            </label>
-
-            <span class="box-1">Osculating Circle</span>
-            <label class="switch box box-2">
-                <input
-                    type="checkbox"
-                    name="osculatingCircle"
-                    id="osculatingCircle"
-                    bind:checked={osculatingCircle}
-                    on:change={updateFrame}
-                />
-                <span class="slider round" />
-            </label>
-            <span class="box-1">Color</span>
-            <span class="box box-2">
-                <input
-                    type="color"
-                    name="colorPicker"
-                    id="colorPicker"
-                    bind:value={params.color}
-                    on:change={() => {
-                        onUpdate();
-                        updateColor();
-                    }}
-                    style="width:85%; padding: 1px 1px;"
+        <span class="box-1">Reparamterize by <M>s</M></span>
+        <label class="switch box box-2">
+            <input
+                type="checkbox"
+                name="reparamByArcLength"
+                id="reparamByArcLength"
+                bind:checked={TNB}
+                on:change={updateFrame}
             />
-            </span>
+            <span class="slider round" />
+        </label>
+
+        <span class="box-1">Osculating Circle</span>
+        <label class="switch box box-2">
+            <input
+                type="checkbox"
+                name="osculatingCircle"
+                id="osculatingCircle"
+                bind:checked={osculatingCircle}
+                on:change={updateFrame}
+            />
+            <span class="slider round" />
+        </label>
+        <span class="box-1">Color</span>
+        <span class="box box-2">
+            <input
+                type="color"
+                name="colorPicker"
+                id="colorPicker"
+                bind:value={params.color}
+                on:change={() => {
+                    onUpdate();
+                    updateColor();
+                }}
+                style="width:85%; padding: 1px 1px;"
+            />
+        </span>
         </div>
     </div>
 </div>
