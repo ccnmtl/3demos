@@ -2,20 +2,23 @@
     import M from './M.svelte';
     import { v4 as uuidv4 } from "uuid";
     import { create, all } from "mathjs";
+    import {
+        ButtonDropdown,
+        DropdownItem,
+        DropdownMenu,
+        DropdownToggle
+    } from 'sveltestrap';
 
     const config = {};
     const math = create(all, config);
 
-    export let boxes = [];
-    let curveId = (t) => { return {x: t, y: t, z: t}};
-    const texStrings = {
-        r: "\\langle t, t, t \\rangle",
-        a: "-1.5",
-        b: "-1.5"
-    };
+    export let objects = [];
 
-    const texString1 = `r(t) = ${texStrings.r}`;
-    const texString2 = `${texStrings.a} \\leq ${texStrings.b}`;
+    const texStrings = {
+        r: "\\langle ?, ?, ? \\rangle",
+        a: "-\\infty",
+        b: "\\infty"
+    };
 
     // eslint-disable no-useless-escape
 
@@ -23,10 +26,10 @@
      * Less organized, equals signs do not line up. The screen reader reads 
      * each line individually. I think it provides better pacing.
     */
-    const texString3 = `\\dot{x} = \\sigma(y-x)`;
-    const texString4 = `\\dot{y} = \\rho x - y - xz`;
-    const texString5 = `\\dot{z} = -\\beta z + xy`;
-    const texString6 = `\\( \\Large \\Delta t = \\frac{b - a}{N} \\)`;
+    const texString1 = `\\dot{x} = \\sigma(y-x)`;
+    const texString2 = `\\dot{y} = \\rho x - y - xz`;
+    const texString3 = `\\dot{z} = -\\beta z + xy`;
+    const texString4 = `\\( \\Large \\Delta t = \\frac{b - a}{N} \\)`;
 
     /**
      * Alternative structure - More organized, but the screen reader reads the
@@ -40,10 +43,6 @@
      */
 
     // eslint-enable
-
-    let formula = String.raw`\frac{n^k}{k!}`;
-
-    let nSteps=1;
 
     let hidden = false;
 
@@ -72,22 +71,21 @@
         }
     ]
 
-    const addCurve = function(selection = 1) {
-        if (boxes.filter((b) => curveId === b.id).length > 0) {
-            boxes = boxes.filter((b) => curveId != b.id);
-            curveId = null;
-        } else {
-            const params = exampleCurveParams[selection];
-            const [X,Y,Z,A,B] = ["x","y","z","a","b"].map((c) => 
-                                    math.parse(params[c]));
-            curveId = uuidv4();
+    let exTitle = null;
+    let exId = null;
 
-            boxes = [...boxes, {id: curveId, kind: "curve", params, }];
-            texStrings.r = "\\left \\langle " + X.toTex() + ", " + Y.toTex() +
-                           ", " + Z.toTex() + "\\right \\rangle";
-            texStrings.a = A.toTex();
-            texStrings.b = B.toTex();
-        }
+    const addCurve = function(selection, title) {
+        exTitle = title;
+        const params =  exampleCurveParams[selection];
+        const [X,Y,Z,A,B] = ['x','y','z','a','b'].map((c) => 
+                                math.parse(params[c]));
+        texStrings.r = "\\left \\langle " + X.toTex() + ", " + Y.toTex() +
+                        ", " + Z.toTex() + "\\right \\rangle";
+        texStrings.a = A.toTex();
+        texStrings.b = B.toTex();
+        objects = objects.filter((b) => b.uuid !== exId);
+        exId = uuidv4();
+        objects = [...objects, {id:exId, kind: 'curve', params,}];
     }
 
     </script>
@@ -108,23 +106,30 @@
         <b>arc length</b> of <M>C</M>.
     </p>
 
-    <p>Select an example: 
-        <button 
-            on:click={() => addCurve(0)}
-            class="btn btn-light"
-        >
-            Crown
-        </button>
-        <button 
-            on:click={() => addCurve(1)}
-            class="btn btn-light"
-        >
-            Twist
-        </button>
+    <p class="row">
+        <ButtonDropdown class="col-auto">
+            <DropdownToggle 
+                caret
+                class="btn btn-light dropdown-toggle"
+            >
+                Examples
+            </DropdownToggle>
+            <DropdownMenu>
+                <DropdownItem on:click={() => addCurve(0, "Crown")}>
+                    Crown
+                </DropdownItem>
+                <DropdownItem on:click={() => addCurve(1, "Twist")}>
+                    Twist
+                </DropdownItem>
+            </DropdownMenu>
+        </ButtonDropdown>
+        <span class="col-auto ml-2 mt-2">
+            {exTitle ? "Currently viewing: " + exTitle : ""}
+        </span>
     </p>
 
-    <M display>{texString1}</M>
-    <M display>{texString2}</M>
+    <M display>{`r(t) =`} {texStrings.r}</M>
+    <M display>{texStrings.a} {`\\leq`} {texStrings.b}</M>
 
     <p>
         We can estimate the length by selecting a finite number <M>N</M> of 
@@ -132,15 +137,11 @@
         wit, we select a partition of <M>[a, b]</M>:
     </p>
 
+    <M display>{texString1}</M>
+    <M display>{texString2}</M>
     <M display>{texString3}</M>
-    <M display>{texString4}</M>
-    <M display>{texString5}</M>
 
     <p>
-        where {texString6}
+        where {texString4}
     </p>
-
-    <input type="range" bind:value={nSteps} min="1" max="30" step="1" />
-
-    <input type="text" bind:value="{formula}" />
 </article>

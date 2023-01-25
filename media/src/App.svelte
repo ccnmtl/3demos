@@ -460,8 +460,13 @@
                             <DropdownMenu>
                                 <DropdownItem
                                     on:click={() => (currentChapter = "Intro")}>
-                                    Intro
+                                    Introduction
                                 </DropdownItem>
+                                <DropdownItem
+                                    on:click={() => (currentChapter = "Keyboard Controls")}>
+                                    Keyboard Controls
+                                </DropdownItem>
+                                <DropdownItem divider />
                                 <DropdownItem
                                     on:click={() => (currentChapter = "Chapter")}>
                                     Arc Length & Curvature
@@ -469,10 +474,6 @@
                                 <DropdownItem
                                     on:click={() => (currentChapter = "Linear")}>
                                     Linearization
-                                </DropdownItem>
-                                <DropdownItem
-                                    on:click={() => (currentChapter = "Keyboard Controls")}>
-                                    Keyboard Controls
                                 </DropdownItem>
                             </DropdownMenu>
                         </ButtonDropdown>
@@ -485,19 +486,19 @@
                             bind:isHost
                             bind:currentPoll />
                     {:else}
-                        {#if currentChapter === "Chapter"}
+                        {#if currentChapter === "Intro"}
+                            <Intro />
+                        {:else if currentChapter === "Keyboard Controls"}
+                            <KeyboardControls />
+                        {:else if currentChapter === "Chapter"}
                             <Chapter bind:objects />
                         {:else if currentChapter === "Linear"}
                             <Linear bind:objects />
-                        {:else if currentChapter === "Keyboard Controls"}
-                            <KeyboardControls />
-                        {:else if currentChapter === "Intro"}
-                            <Intro />
                         {/if}
                     {/if}
                 </div>
                 <button class="btn btn-sm btn-light mt-1 raise-lower-button d-flex justify-content-center"
-                        title="Raise/Lower window"
+                        title={shadeUp ? 'Reveal Menu' : 'Hide Menu'}
                         on:click={() => {
                     shadeUp = !shadeUp;
                     }}>
