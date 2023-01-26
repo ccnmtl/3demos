@@ -31,7 +31,7 @@
         f: "2",
     };
 
-    let oldParams = params;
+    let oldParams = Object.assign({}, params);
 
     $: {
         if (

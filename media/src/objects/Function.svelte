@@ -36,7 +36,7 @@
         color: "#3232ff",
     };
 
-    let oldParams = params;
+    let oldParams = Object.assign({}, params);
 
     // See Curve.svelte for explanation of this stuff
     $: {

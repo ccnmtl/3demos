@@ -27,7 +27,7 @@
         nX: 30,
     };
 
-    let oldParams = params;
+    let oldParams = Object.assign({}, params);
 
     // See Curve.svelte for explanation of this stuff
     $: {
