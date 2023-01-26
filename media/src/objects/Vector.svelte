@@ -27,7 +27,7 @@
         show: true,
     };
 
-    if (!Object.hasOwn(params, 'show')) {
+    if (!('show' in params)) {
         params.show = true;
     }
 

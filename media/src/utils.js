@@ -136,7 +136,7 @@ function marchingSquare(a, b, c, d, e, lev) {
     const endPoints = [];
     let edges = [];
 
-    if (Object.hasOwn(squaresTable, code)) {
+    if (code in squaresTable) {
         edges = squaresTable[code];
     } else {
         if ((a < lev && e < lev) || (!(a < lev) && !(e < lev))) {
