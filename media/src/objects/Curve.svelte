@@ -33,7 +33,7 @@
         params.color = "#FFDD33";
     }
 
-    let oldParams = params;
+    let oldParams = Object.assign({}, params);
 
     // This pattern mimicks the componentDidUpdate/prevState stuff
     // that's used in React. The goal here is to only call the
