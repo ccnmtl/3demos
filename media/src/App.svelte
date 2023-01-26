@@ -507,33 +507,6 @@
                 <div class="collapse-info" hidden={shadeUp}>
                     <div class="object-box-title d-flex mb-2">
                         <h2 class="flex-grow-1 px-2">3D Objects</h2>
-                        <ButtonDropdown class="px-2">
-                            <DropdownToggle caret class="btn btn-light">
-                                Modes
-                            </DropdownToggle>
-                            <DropdownMenu>
-                                <DropdownItem
-                                    active={currentMode === 'intro'}
-                                    on:click={() => (currentMode = 'intro')}>
-                                    Intro
-                                </DropdownItem>
-                                <DropdownItem
-                                    active={currentMode === 'story'}
-                                    on:click={() => (currentMode = 'story')}>
-                                    Story
-                                </DropdownItem>
-                                <DropdownItem
-                                    active={currentMode === 'creative'}
-                                    on:click={() => (currentMode = 'creative')}>
-                                    Creative
-                                </DropdownItem>
-                                <DropdownItem
-                                    active={currentMode === 'session'}
-                                    on:click={() => (currentMode = 'session')}>
-                                    Session
-                                </DropdownItem>
-                            </DropdownMenu>
-                        </ButtonDropdown>
                         <button
                             class="btn btn-light ms-auto px-2"
                             on:click={() => {
