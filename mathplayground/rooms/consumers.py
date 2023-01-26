@@ -4,9 +4,18 @@ from mathplayground.rooms.scene import RedisScene
 
 
 class RoomsConsumer(AsyncWebsocketConsumer):
+    active_users = {}
+
     async def connect(self):
         self.room_id = self.scope['url_route']['kwargs']['room_id']
         self.room_group_name = 'room_%s' % self.room_id
+
+        # Add user to room count
+        session_key = self.scope['session'].session_key
+        if self.room_id not in self.active_users:
+            self.active_users[self.room_id] = [session_key]
+        elif session_key not in self.active_users[self.room_id]:
+            self.active_users[self.room_id].append(session_key)
 
         # Join room group
         await self.channel_layer.group_add(
@@ -17,6 +26,15 @@ class RoomsConsumer(AsyncWebsocketConsumer):
         await self.accept()
 
     async def disconnect(self, close_code):
+        # Remove user from room count
+        session_key = self.scope['session'].session_key
+        if self.room_id in self.active_users and \
+           session_key in self.active_users[self.room_id]:
+            # Remove my session key from the list
+            self.active_users[self.room_id] = list(filter(
+                lambda x: x != session_key,
+                self.active_users[self.room_id]))
+
         # Leave room group
         await self.channel_layer.group_discard(
             self.room_group_name,
