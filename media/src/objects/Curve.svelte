@@ -141,7 +141,6 @@
     circleTube.visible = false;
 
     const updateCurve = function() {
-        animation = false;
         const { a, b, x, y, z } = params;
         let A, B, X, Y, Z;
         try {
@@ -156,6 +155,10 @@
         } catch (e) {
             animation = false;
             return;
+        }
+
+        if (animation) {
+            startAnimation(false);
         }
 
         const r = (t) =>
@@ -344,6 +347,18 @@
         render();
     }
 
+    const startAnimation = (toggleState=false) => {
+        frame.visible = true;
+
+        if (toggleState) {
+            animation = !animation;
+        }
+
+        if (animation) {
+            dispatch('animate');
+        }
+    };
+
     onMount(updateCurve);
     onDestroy(() => {
         if (tube) {
@@ -454,12 +469,7 @@
             </label>
             <span class="play-buttons box-4">
                 <button class="btn box-1"
-                    on:click={() => {
-                        frame.visible = true;
-                        animation = !animation;
-                        if (animation) dispatch("animate");
-                    }}
-                >
+                    on:click={() => startAnimation(true)}>
                     {#if !animation}
                         <i class="fa fa-play" />
                     {:else}
