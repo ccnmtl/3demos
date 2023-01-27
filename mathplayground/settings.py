@@ -150,3 +150,8 @@ CACHES = {
     }
 }
 SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+
+try:
+    from mathplayground.local_settings import *  # noqa: F403,F401
+except ImportError:
+    pass
