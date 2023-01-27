@@ -436,8 +436,8 @@
             <div class="chapterBox">
                 <div class="collapse-info" hidden={shadeUp}>
                     <div class="d-flex mb-2">
-                        <h1 class="titlefont flex-grow-1 px-2">
-                            <a href="/" title="Home">3Demos.xyz (βeta)</a>
+                        <h1 class="flex-grow-1 px-2">
+                            <a class="titlefont" href="/" title="Home">3Demos (βeta)</a>
                         </h1>
                         <Button
                             class="me-2"

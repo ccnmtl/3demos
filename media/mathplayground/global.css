@@ -11,6 +11,14 @@ a:visited {
     color: rgb(209, 76, 242);
 }
 
+a.titlefont {
+    font-family: Cambria, Cochin, Georgia, Times, "Times New Roman", serif;
+    color: white;
+}
+a.titlefont:hover, a.titlefont:focus {
+    color: #2196f3;
+}
+
 article {
     color: white;
     background-color: rgba(0, 0, 0, 0.7);
@@ -196,10 +204,6 @@ input:focus + .slider {
     opacity: 0;
     width: 0;
     height: 0;
-}
-
-.titlefont {
-    font-family: Cambria, Cochin, Georgia, Times, "Times New Roman", serif;
 }
 
 .top-title {
