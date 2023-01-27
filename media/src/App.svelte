@@ -287,6 +287,7 @@
     export let objects = [];
     export let currentPoll = null;
     export let isHost = false;
+    let activeUserCount = 0;
 
     let host = null;
 
@@ -390,6 +391,10 @@
             pollResponses = [...pollResponses, data.message.pollResponse];
         } else if (data.message.broadcastPoll) {
             currentPoll = handlePollEvent(data);
+        } else if (data.message.updateActiveUsers) {
+            if (typeof data.message.updateActiveUsers === 'number') {
+                activeUserCount = data.message.updateActiveUsers;
+            }
         } else {
             objects = handleSceneEvent(data, objects);
         }
@@ -740,6 +745,14 @@
             on:animate={animateIfNotAnimating}
             />
     </div>
+
+    {#if roomId}
+        <div class="active-users-count"
+             title={activeUserCount + ' users in session'}>
+            <i class="bi bi-person-fill"></i>
+            {activeUserCount}
+        </div>
+    {/if}
 </main>
 <style>
     canvas {
@@ -843,5 +856,16 @@
 
         /* Bold */
         -webkit-text-stroke: 1px;
+    }
+
+    .active-users-count {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        color: white;
+        background-color: rgba(0, 0, 0, 0.6);
+        border: 1px solid black;
+        border-radius: 0.5em;
+        padding: 5px;
     }
 </style>
