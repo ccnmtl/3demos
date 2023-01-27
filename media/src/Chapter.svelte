@@ -204,7 +204,7 @@
     </span>
   </p>
 
-  <M display>{`\\mathbf\{r\}(t) =`} {texStrings.r}</M>
+  <M display>{`\\mathbf{r}(t) =`} {texStrings.r}</M>
   <M display>{texStrings.a} {`\\leq t \\leq`} {texStrings.b}</M>
 
   <p>
@@ -235,7 +235,7 @@
 
   <p>Thus we can approximate</p>
   <M display>
-    {`\\text{Arc length} \\approx \\sum_{i = 1}^{${nVects}} |\\mathbf r(t_i) - \\mathbf r(t_\{i - 1\})| \\approx ${
+    {`\\text{Arc length} \\approx \\sum_{i = 1}^{${nVects}} |\\mathbf r(t_i) - \\mathbf r(t_{i - 1})| \\approx ${
       Math.round(1000 * lengthApproximation) / 1000
     }.`}
   </M>
