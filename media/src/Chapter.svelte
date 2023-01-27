@@ -103,7 +103,7 @@
       "\\right \\rangle";
     texStrings.a = A.toTex();
     texStrings.b = B.toTex();
-    console.log(objects);
+
     objects = objects.filter((b) => b.uuid !== exId);
     exId = uuidv4();
     objects = [...objects, { uuid: exId, kind: "curve", params }];
@@ -114,7 +114,6 @@
     if (exTitle) {
       // clear out old vectors
       if (firstVectorObject) {
-        console.log("DEELeting!!!\n");
         objects.splice(objects.indexOf(firstVectorObject), nVects);
       }
 
@@ -166,7 +165,6 @@
       nVects = num;
 
       objects = [...objects, ...vecs];
-      console.log("nvect", nVects, "vect Index", firstVectorObject, objects);
     }
   };
 </script>
