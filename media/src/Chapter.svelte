@@ -26,9 +26,7 @@
    * Less organized, equals signs do not line up. The screen reader reads
    * each line individually. I think it provides better pacing.
    */
-  const texString1 = `\\dot{x} = \\sigma(y-x)`;
-  const texString2 = `\\dot{y} = \\rho x - y - xz`;
-  const texString3 = `\\dot{z} = -\\beta z + xy`;
+
   const texString4 = `\\( \\Large \\Delta t = \\frac{b - a}{N} \\)`;
 
   /**
@@ -191,7 +189,7 @@
         Examples
       </DropdownToggle>
       <DropdownMenu>
-        {#each Object.entries(exampleCurveParams) as [title, ps]}
+        {#each Object.keys(exampleCurveParams) as title}
           <DropdownItem on:click={() => addCurve(title)}>
             {title}
           </DropdownItem>
@@ -237,7 +235,7 @@
 
   <p>Thus we can approximate</p>
   <M display>
-    {`\\text{Arc length} \\approx \\sum_\{i = 1\}^\{${nVects}\} |\\mathbf r(t_i) - \\mathbf r(t_\{i - 1\})| \\approx ${
+    {`\\text{Arc length} \\approx \\sum_{i = 1}^{${nVects}} |\\mathbf r(t_i) - \\mathbf r(t_\{i - 1\})| \\approx ${
       Math.round(1000 * lengthApproximation) / 1000
     }.`}
   </M>
