@@ -61,6 +61,7 @@
       z: "cos(3t)/3 + 1/2",
       tau: 0,
       nX: 30,
+      color: "#CB44CB",
     },
     Twist: {
       a: "-1.5",
@@ -103,7 +104,7 @@
       "\\right \\rangle";
     texStrings.a = A.toTex();
     texStrings.b = B.toTex();
-
+
     objects = objects.filter((b) => b.uuid !== exId);
     exId = uuidv4();
     objects = [...objects, { uuid: exId, kind: "curve", params }];
@@ -236,7 +237,7 @@
 
   <p>Thus we can approximate</p>
   <M display>
-    {`\\text{Arc length} \\approx \\sum_\{i = 0\}^\{${nVects}\} |\\mathbf r(t_i) - \\mathbf r(t_\{i - 1\})| \\approx ${
+    {`\\text{Arc length} \\approx \\sum_\{i = 1\}^\{${nVects}\} |\\mathbf r(t_i) - \\mathbf r(t_\{i - 1\})| \\approx ${
       Math.round(1000 * lengthApproximation) / 1000
     }.`}
   </M>
