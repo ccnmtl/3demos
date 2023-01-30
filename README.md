@@ -1,7 +1,6 @@
-# mathplayground
-MathPlayground, aka 3Demos is Drew Youngren's 3D Calculus
-Visualizations. Developed by Drew Youngren and the Columbia University
-Center for Teaching and Learning.
+# 3Demos
+3Demos is Drew Youngren's 3D Calculus Visualizations. Developed by Drew Youngren
+and the Columbia University Center for Teaching and Learning.
 
 This project comprises of two main parts:
 * Django back-end.
