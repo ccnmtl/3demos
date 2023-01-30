@@ -1,4 +1,8 @@
 <script>
+    import { onMount } from 'svelte';
+    import { slide } from 'svelte/transition';
+    import { quintOut } from 'svelte/easing';
+
     import * as THREE from 'three';
     import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
     import {FontLoader} from 'three/examples/jsm/loaders/FontLoader.js';
@@ -21,9 +25,7 @@
     import Function from './objects/Function.svelte';
     import Vector from './objects/Vector.svelte';
     import Settings from './Settings.svelte';
-    import { onMount } from 'svelte';
-    import { slide } from 'svelte/transition';
-    import { quintOut } from 'svelte/easing';
+
     import Stats from 'stats.js';
 
     import Linear from './Linear.svelte';
@@ -189,7 +191,7 @@
         }
     }
 
-    const animate = (time = 0) => {
+    const animate = (time=0) => {
         if (debug) {
             stats.begin();
         }
@@ -200,7 +202,11 @@
         last = time;
 
         for (const b of objects.filter((b) => b.animation)) {
-            b.update(dt);
+            if (typeof b.update === 'function') {
+                b.update(dt);
+            } else {
+                console.error('b.update is not callable', b);
+            }
         }
 
         if (scaleAnimation) {
@@ -212,6 +218,7 @@
         if (debug) {
             stats.end();
         }
+
         if (scaleAnimation || objects.some((b) => b.animation)) {
             myReq = requestAnimationFrame(animate);
             frameRequested = true;
@@ -340,6 +347,13 @@
 
     onMount(() => {
         createScene(canvas);
+
+        // If any of the loaded objects are currently animating, call
+        // the animate() function.
+        if (objects.some((b) => b.animation)) {
+            animate();
+        }
+
         const urlParams = new URLSearchParams(location.search);
         if (urlParams.keys()) {
             const objectHolder = {};
