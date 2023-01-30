@@ -27,6 +27,12 @@
         show: true,
     };
 
+    if (!params.color) {
+        params.color = "#FF0000";
+    }
+
+    let oldParams = Object.assign({}, params);
+
     if (!('show' in params)) {
         params.show = true;
     }
@@ -36,12 +42,11 @@
     export let onClose = () => {};
     export let onUpdate = () => {};
     export let gridStep;
-    // export let gridMax;
 
     let hidden = false;
 
     const arrowMaterial = new THREE.MeshPhongMaterial({
-        color: 0xaa0000,
+        color: params.color,
         shininess: 80,
         side: THREE.DoubleSide,
         vertexColors: false,
@@ -77,7 +82,6 @@
         } else {
             arrow = new THREE.Mesh(geometry, arrowMaterial);
             scene.add(arrow);
-            // colorBufferVertices( tube, (x,y,z) => blueUpRedDown(1));
         }
         arrow.position.set(X, Y, Z);
 
@@ -86,9 +90,33 @@
         render();
     };
 
-    // call updateCurve() when params change
-    $: params && updateCurve();
+    const updateColor = function() {
+        arrowMaterial.color.set(params.color);
+        render();
+    }
 
+    // call updateCurve() when params change
+    $: {
+        if (oldParams.color !== params.color) {
+            updateColor();
+            oldParams.color = params.color;
+        }
+
+        if (
+            oldParams.a !== params.a
+                || oldParams.b !== params.b
+                || oldParams.a !== params.a
+                || oldParams.x !== params.x
+                || oldParams.y !== params.y
+        ) {
+            updateCurve();
+            oldParams.a = params.a;
+            oldParams.b = params.b;
+            oldParams.x = params.x;
+            oldParams.y = params.y;
+            oldParams.z = params.z;
+        }
+    }
     // Exercises
     //
 
@@ -172,25 +200,24 @@
                 type="text"
                 bind:value={params.z}
                 on:change={() => {
-            onUpdate()
-            updateCurve()
-            }}
+                    onUpdate()
+                    updateCurve()
+                }}
                 class="box box-2"
                 />
-
-            <span class="box-1">Scale</span>
-            <input
-                type="range"
-                bind:value={params.nX}
-                min="10"
-                max="60"
-                step="5"
-                on:input={() => {
-            onUpdate()
-            updateCurve()
-            }}
-                class="box box-2"
-                />
+            <span class="box-1">Color</span>
+            <span class="box box-2">
+                <input
+                    type="color"
+                    name="colorPicker"
+                    id="colorPicker"
+                    bind:value={params.color}
+                    on:change={() => {
+                        onUpdate();
+                        updateColor();
+                    }}
+                    style="width:85%; padding: 1px 1px;"
+            />
         </div>
     </div>
 </div>
