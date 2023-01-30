@@ -176,9 +176,19 @@
   Arc Length &amp; Curvature
 </button>
 <article {hidden}>
+
+    A test section for math typesetting. 
+  <p>
+    <!-- <M>\sum_{j \in \mathbb{Z}}^n e^{-i\pi j^2}</M> -->
+    <M display>{`\\sum_{j \\in \\mathbb{Z}}^n e^{-i\pi j^2}`}</M>
+    <M display>{"\\sum_{j \\in \\mathbb{Z}}^n e^{-i\pi j^2}"}</M>
+    <!-- <M display>\sum_{j \in \mathbb{Z}}^n e^{-i\pi j^2}</M>  --> 
+    <M>{`\\sum_{j \\in \\mathbb{Z}}^n e^{-i\pi j^2}`}</M>
+  </p> 
+
   <p>
     Suppose we have a curve <M>C</M> in space parameterized by a smooth function
-    <M>\mathbf{r}(t)</M> for <M>a \leq t \leq b</M> and we wish to know how long
+    <M>{`\mathbf{r}(t)`}</M> for <M>a \leq t \leq b</M> and we wish to know how long
     it is. That is, we want to compute the
     <b>arc length</b> of <M>C</M>.
   </p>
