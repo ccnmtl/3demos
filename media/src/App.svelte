@@ -715,7 +715,6 @@
                                         onUpdate={() => objects = updateObject(b, objects)}
                                         params={b.params}
                                         {gridStep}
-                                        {gridMax}
                                     />
                                 {/if}
                             </div>
