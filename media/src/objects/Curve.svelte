@@ -373,7 +373,10 @@
                 x.material && x.material.dispose();
             });
         }
+
+        scene.remove(circleTube);
         scene.remove(frame);
+
         render();
     });
 
