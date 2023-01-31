@@ -279,9 +279,6 @@
 
         controls.screenSpacePanning = false;
 
-        // controls.minDistance = 100;
-        // controls.maxDistance = 500;
-
         controls.maxPolarAngle = Math.PI;
 
         controls.addEventListener("change", requestFrameIfNotRequested);
@@ -387,6 +384,16 @@
                     val.uuid, val.kind, val.params, objects);
             }
         }
+
+        const inputarea = document.getElementsByClassName('objectBoxInner')[0];
+        inputarea.addEventListener("focusin", () => {
+            controls.enabled = false;
+            controls2.enabled = false;
+        })
+        inputarea.addEventListener("focusout", () => {
+            controls.enabled = true;
+            controls2.enabled = true;
+        })
     });
 
     const onPublishScene = function() {
