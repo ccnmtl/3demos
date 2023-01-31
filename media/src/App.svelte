@@ -445,9 +445,9 @@
 <main>
     <canvas bind:this={canvas} id="c" />
 
-    <div class="info" class:flipInfo>
+    <div class="info">
         <div class="info-inner">
-            <div class="chapterBox">
+            <div class="chapterBox" hidden={flipInfo}>
                 <div class="collapse-info" hidden={shadeUp}>
                     <div class="d-flex mb-2">
                         <h1 class="flex-grow-1 px-2">
@@ -524,7 +524,7 @@
                 </button>
             </div>
 
-            <div class="objectBoxOuter">
+            <div class="objectBoxOuter" hidden={!flipInfo}>
                 <div class="collapse-info" hidden={shadeUp}>
                     <div class="object-box-title d-flex mb-2">
                         <h2 class="flex-grow-1 px-2">3D Objects</h2>
@@ -795,10 +795,6 @@
         transform-style: preserve-3d;
     }
 
-    .info.flipInfo .info-inner {
-        transform: rotateY(180deg);
-    }
-
     .chapterBox,
     .objectBoxOuter {
         position: absolute;
@@ -819,19 +815,6 @@
 
     .chapterBox {
         text-align: unset;
-    }
-
-    .objectBoxOuter {
-        transform: rotateY(180deg);
-        opacity: 0;
-    }
-
-    .info.flipInfo .chapterBox {
-        opacity: 0;
-    }
-
-    .info.flipInfo .objectBoxOuter {
-        opacity: 1;
     }
 
     .objectBoxInner {
