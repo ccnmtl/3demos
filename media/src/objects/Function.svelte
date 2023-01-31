@@ -671,6 +671,10 @@
             child.material && child.material.dispose();
         }
         scene.remove(levelHolder);
+
+        // Remove integral
+        scene.remove(boxMesh);
+
         scene.remove(point);
         window.removeEventListener("keydown", shiftDown);
         window.removeEventListener("keyup", shiftUp);
