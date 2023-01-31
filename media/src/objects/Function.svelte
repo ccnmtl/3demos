@@ -265,10 +265,32 @@
 
     const tol = 1e-12; //tolerance for comparisons
 
+    /**
+     * Returns true if given params are valid.
+     */
+    const checkValidParams = function(a, b, c, d) {
+        if (a === b) {
+            console.error('a and b cannot be equal');
+            return false;
+        }
+
+        if (c === d) {
+            console.error('c and d cannot be equal');
+            return false;
+        }
+
+        return true;
+    };
+
     let surfaceMesh = new THREE.Object3D();
 
     const updateSurface = function() {
         const { a, b, c, d, z, t0, t1 } = params;
+
+        if (!checkValidParams(a, b, c, d)) {
+            return;
+        }
+
         const A = math.evaluate(a),
               B = math.evaluate(b);
         const [C, D, Z] = math.parse([c, d, z]);
@@ -325,6 +347,10 @@
 
     const meshLines = function(rData, rNum = 10, cNum = 10, nX = 30) {
         let { a, b, c, d, z } = rData;
+        if (!checkValidParams(a, b, c, d)) {
+            return;
+        }
+
         const time = params.t0 + data.tau * (params.t1 - params.t0);
         const A = math.evaluate(a),
               B = math.evaluate(b);
