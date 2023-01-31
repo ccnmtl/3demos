@@ -58,10 +58,15 @@ const updateObject = (updatedObject, objects, socket=null) => {
         }));
     }
 
-    // Remove old object with this uuid
-    objects = objects.filter((b) => b.uuid !== updatedObject.uuid);
-    // Append updated object
-    return [...objects, updatedObject];
+    // Replace old object with this uuid in place, not changing
+    // array ordering as this will affect the form UI.
+    return objects.map(b => {
+        if (b.uuid !== updatedObject.uuid) {
+            return b;
+        } else {
+            return updatedObject;
+        }
+    });
 };
 
 
