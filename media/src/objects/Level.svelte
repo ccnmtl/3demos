@@ -358,8 +358,8 @@
     <div class="box-title">
         <span>
             <strong>Level surface </strong>
-            <span class:hidden={!loading}
-                  ><i class="fa fa-spinner fa-pulse fa-fw" />
+            <span hidden={!loading}>
+                <i class="fa fa-spinner fa-pulse fa-fw" />
                 <span class="sr-only">Loading...</span>
             </span>
         </span>
