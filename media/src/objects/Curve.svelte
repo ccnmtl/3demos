@@ -1,16 +1,15 @@
 <script>
     import { onMount, onDestroy, createEventDispatcher } from "svelte";
-    import M from "../M.svelte";
-    import ObjHeader from "../ObjHeader.svelte";
-
     import * as THREE from "three";
-
     import { create, all } from "mathjs";
 
+    import M from "../M.svelte";
+    import ObjHeader from "../ObjHeader.svelte";
     import {
         ArrowBufferGeometry,
         ParametricCurve,
     } from "../utils.js";
+    import ObjectParamInput from '../form-components/ObjectParamInput.svelte';
 
     const config = {};
     const math = create(all, config);
@@ -399,54 +398,49 @@
     <div hidden={hidden}>
         <div class="container">
             <span class="box-1"><M size="sm">x(t) =</M></span>
-            <input
-                type="text"
-                bind:value={params.x}
-                on:change={() => {
+            <ObjectParamInput
+                initialValue={params.x}
+                onBlur={(newVal) => {
+                    params.x = newVal;
                     onUpdate();
                     updateCurve();
-                }}
-                class="box box-2"
-            />
+                }} />
             <span class="box-1"><M size="sm">y(t) =</M></span>
-            <input
-                type="text"
-                bind:value={params.y}
-                on:change={() => {
+            <ObjectParamInput
+                initialValue={params.y}
+                onBlur={(newVal) => {
+                    params.y = newVal;
                     onUpdate();
                     updateCurve();
-                }}
-                class="box box-2"
-            />
+                }} />
+
             <span class="box-1"><M size="sm">z(t) =</M></span>
-            <input
-                type="text"
-                bind:value={params.z}
-                on:change={() => {
+            <ObjectParamInput
+                initialValue={params.z}
+                onBlur={(newVal) => {
+                    params.z = newVal;
                     onUpdate();
                     updateCurve();
-                }}
-                class="box box-2"
-            />
-            <input
-                type="text"
-                bind:value={params.a}
-                on:change={() => {
+                }} />
+
+            <ObjectParamInput
+                className="box"
+                initialValue={params.a}
+                onBlur={(newVal) => {
+                    params.a = newVal;
                     onUpdate();
                     updateCurve();
-                }}
-                class="box"
-            />
+                }} />
             <span class="box box-3"><M size="sm">\leq t \leq</M></span>
-            <input
-                type="text"
-                bind:value={params.b}
-                on:change={() => {
+            <ObjectParamInput
+                className="box"
+                initialValue={params.b}
+                onBlur={(newVal) => {
+                    params.b = newVal;
                     onUpdate();
                     updateCurve();
-                }}
-                class="box"
-            />
+                }} />
+
             <span class="box-1">
                 <M size="sm">{texString1}</M>
             </span>

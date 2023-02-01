@@ -1,17 +1,16 @@
 <script>
     import { onMount, onDestroy, createEventDispatcher } from "svelte";
-    import M from "../M.svelte";
-    import ObjHeader from "../ObjHeader.svelte";
-
     import * as THREE from "three";
-
     import { create, all } from "mathjs";
 
+    import M from "../M.svelte";
+    import ObjHeader from "../ObjHeader.svelte";
     import {
         ArrowBufferGeometry,
         rk4,
         norm1,
     } from "../utils.js";
+    import ObjectParamInput from '../form-components/ObjectParamInput.svelte';
 
     const config = {};
     const math = create(all, config);
@@ -330,35 +329,31 @@
     <div hidden={hidden}>
         <div class="container">
             <span class="box-1"><M size="sm">P(x,y,z) =</M></span>
-            <input
-                type="text"
-                bind:value={params.p}
-                on:change={() => {
-            onUpdate();
-            updateField();
-            }}
-                class="box box-2"
-                />
+            <ObjectParamInput
+                initialValue={params.p}
+                onBlur={(newVal) => {
+                    params.p = newVal;
+                    onUpdate();
+                    updateField();
+                }} />
             <span class="box-1"><M size="sm">Q(x,y,z) =</M></span>
-            <input
-                type="text"
-                bind:value={params.q}
-                on:change={() => {
-            onUpdate();
-            updateField();
-            }}
-                class="box box-2"
-                />
+            <ObjectParamInput
+                initialValue={params.q}
+                onBlur={(newVal) => {
+                    params.q = newVal;
+                    onUpdate();
+                    updateField();
+                }} />
+
             <span class="box-1"><M size="sm">R(x,y,z) =</M></span>
-            <input
-                type="text"
-                bind:value={params.r}
-                on:change={() => {
-            onUpdate();
-            updateField();
-            }}
-                class="box box-2"
-                />
+            <ObjectParamInput
+                initialValue={params.r}
+                onBlur={(newVal) => {
+                    params.r = newVal;
+                    onUpdate();
+                    updateField();
+                }} />
+
             <span class="box-1">Resolution</span>
             <input
                 type="range"
@@ -425,4 +420,3 @@
     </div>
 </div>
 </div>
-

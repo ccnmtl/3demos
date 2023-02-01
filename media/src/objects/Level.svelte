@@ -1,11 +1,11 @@
 <script>
     import { onDestroy } from "svelte";
+    import * as THREE from "three";
+    import { create, all } from "mathjs";
+
     import M from "../M.svelte";
     import ObjHeader from "../ObjHeader.svelte";
-
-    import * as THREE from "three";
-
-    import { create, all } from "mathjs";
+    import ObjectParamInput from '../form-components/ObjectParamInput.svelte';
 
     const config = {};
     const math = create(all, config);
@@ -16,9 +16,6 @@
         marchingCubes,
         ArrowBufferGeometry
     } from "../utils.js";
-
-    // const config = {};
-    // const math = create(all, config);
 
     export let params = {
         g: "x^2 - y^2 + z^2",
@@ -371,83 +368,82 @@
     <div hidden={hidden}>
         <div class="container">
             <span class="box-1"><M size="sm">g(x,y,z) =</M></span>
-            <input
-                type="text"
-                bind:value={params.g}
-                on:change={() => {
-            onUpdate();
-            updateLevel();
-            }}
-                class="box box-2"
-                />
-            <span class="box-1"><M size="sm">k =</M></span>
-            <input
-                type="number"
-                bind:value={params.k}
-                on:change={() => {
-            onUpdate();
-            updateLevel();
-            }}
-                class="box box-2"
-                />
+            <ObjectParamInput
+                initialValue={params.g}
+                onBlur={(newVal) => {
+                    params.g = newVal;
+                    onUpdate();
+                    updateLevel();
+                }} />
 
-            <input
+            <span class="box-1"><M size="sm">k =</M></span>
+            <ObjectParamInput
+                initialValue={params.k}
+                onBlur={(newVal) => {
+                    params.k = newVal;
+                    onUpdate();
+                    updateLevel();
+                }} />
+
+            <ObjectParamInput
                 type="number"
-                bind:value={params.a}
-                on:change={() => {
-            onUpdate();
-            updateLevel();
-            }}
-                class="box"
-                />
+                className="box"
+                initialValue={params.a}
+                onBlur={(newVal) => {
+                    params.a = newVal;
+                    onUpdate();
+                    updateLevel();
+                }} />
             <span class="box box-3"><M size="sm">\leq x \leq</M></span>
-            <input
+            <ObjectParamInput
                 type="number"
-                bind:value={params.b}
-                on:change={() => {
-            onUpdate();
-            updateLevel();
-            }}
-                class="box"
-                />
-            <input
+                className="box"
+                initialValue={params.b}
+                onBlur={(newVal) => {
+                    params.b = newVal;
+                    onUpdate();
+                    updateLevel();
+                }} />
+
+            <ObjectParamInput
                 type="number"
-                bind:value={params.c}
-                on:change={() => {
-            onUpdate();
-            updateLevel();
-            }}
-                class="box"
-                />
-            <span class="box box-3"><M size="sm">\leq y \leq</M></span>
-            <input
+                className="box"
+                initialValue={params.c}
+                onBlur={(newVal) => {
+                    params.c = newVal;
+                    onUpdate();
+                    updateLevel();
+                }} />
+                <span class="box box-3"><M size="sm">\leq y \leq</M></span>
+            <ObjectParamInput
                 type="number"
-                bind:value={params.d}
-                on:change={() => {
-            onUpdate();
-            updateLevel();
-            }}
-                class="box"
-                />
-            <input
+                className="box"
+                initialValue={params.d}
+                onBlur={(newVal) => {
+                    params.d = newVal;
+                    onUpdate();
+                    updateLevel();
+                }} />
+
+            <ObjectParamInput
                 type="number"
-                bind:value={params.e}
-                on:change={() => {
-            onUpdate();
-            updateLevel();
-            }}
-                class="box"
-                />
+                className="box"
+                initialValue={params.e}
+                onBlur={(newVal) => {
+                    params.e = newVal;
+                    onUpdate();
+                    updateLevel();
+                }} />
             <span class="box box-3"><M size="sm">\leq z \leq</M></span>
-            <input
+            <ObjectParamInput
                 type="number"
-                bind:value={params.f}
-                on:change={() => {
-            onUpdate();
-            updateLevel();
-            }}
-                class="box"
-                />
+                className="box"
+                initialValue={params.f}
+                onBlur={(newVal) => {
+                    params.f = newVal;
+                    onUpdate();
+                    updateLevel();
+                }} />
 
             <span class="box-1">Tangents</span>
             <label class="switch box box-2">
