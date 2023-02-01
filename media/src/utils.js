@@ -28,6 +28,26 @@ const joinUrl = function(base, path) {
 };
 
 /**
+ * Converts parameters and objects into URL Search Parameters
+ * @param {*} params 
+ * @param {*} objects 
+ * @returns URLSearchParams
+ */
+const convertToURLParams = function(params, objects) {
+    objects.forEach((object, index) => {
+        const prefix = `obj${index}_`;
+        params[prefix + "kind"] = object.kind;
+        if (object.params) {
+            for (const [key, value] of Object.entries(object.params)) {
+                params[prefix + "params_" + key] = value;
+            }
+        }
+    });
+    const urlParams = new URLSearchParams(params);
+    return urlParams;
+}
+
+/**
  * Given a room/session id, return its path.
  */
 const getRoomUrl = function(id) {
@@ -1675,6 +1695,7 @@ const querySelectorIncludesText = function(selector, text){
 export {
     joinUrl,
     getRoomUrl,
+    convertToURLParams,
     ArrowBufferGeometry,
     ParametricCurve,
     drawGrid,

@@ -7,6 +7,7 @@
     export let socket;
     export let isHost;
     export let currentPoll;
+    export let objects;
 
     let role = 'student';
     if (isHost) {
@@ -29,7 +30,7 @@
         // https://developer.mozilla.org/en-US/docs/Web/API/WebSocket/readyState
         socket.addEventListener('open', () => {
             // Become the host of this new room.
-            setHost(socket);
+            setHost(socket, objects);
             window.location.href = getRoomUrl(newRoomId);
         });
     };
