@@ -90,7 +90,7 @@
     const pi = Math.PI;
 
     // Make z the default up
-    THREE.Object3D.DefaultUp.set(0, 0, 1);
+    THREE.Object3D.DEFAULT_UP.set(0, 0, 1);
 
     camera.position.x = (gridMax * 2) / 2;
     camera.position.y = (-gridMax * 3) / 2;
