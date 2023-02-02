@@ -28,7 +28,7 @@
         color: "#FFDD33",
     };
 
-    let paramError = {
+    let paramErrors = {
         a: false,
         b: false,
         x: false,
@@ -133,23 +133,23 @@
 
         try {
             evalX = x.evaluate({ t: t });
-            paramError.x = false;
+            paramErrors.x = false;
         } catch (e) {
-            paramError.x = true;
+            paramErrors.x = true;
         }
 
         try {
             evalY = y.evaluate({ t: t });
-            paramError.y = false;
+            paramErrors.y = false;
         } catch (e) {
-            paramError.y = true;
+            paramErrors.y = true;
         }
 
         try {
             evalZ = z.evaluate({ t: t });
-            paramError.z = false;
+            paramErrors.z = false;
         } catch (e) {
-            paramError.z = true;
+            paramErrors.z = true;
         }
 
         return new THREE.Vector3(evalX, evalY, evalZ);
@@ -189,17 +189,17 @@
 
         try {
             A = math.parse(a).evaluate();
-            paramError.a = false;
+            paramErrors.a = false;
         } catch (e) {
-            paramError.a = true;
+            paramErrors.a = true;
             return;
         }
 
         try {
             B = math.parse(b).evaluate();
-            paramError.b = false;
+            paramErrors.b = false;
         } catch (e) {
-            paramError.b = true;
+            paramErrors.b = true;
             return;
         }
 
@@ -293,7 +293,7 @@
         let curvature = 0;
 
         const rVec = evalXYZ(x, y, z, T);
-        if (Object.values(paramError).some((x) => x === true)) {
+        if (Object.values(paramErrors).some((x) => x === true)) {
             // There's a param error. Don't finish updating the frame,
             // just return. The appropriate input will be set to
             // invalid state.
@@ -459,7 +459,7 @@
         <div class="container">
             <span class="box-1"><M size="sm">x(t) =</M></span>
             <ObjectParamInput
-                error={paramError.x}
+                error={paramErrors.x}
                 initialValue={params.x}
                 onBlur={(newVal) => {
                     params.x = newVal;
@@ -468,7 +468,7 @@
                 }} />
             <span class="box-1"><M size="sm">y(t) =</M></span>
             <ObjectParamInput
-                error={paramError.y}
+                error={paramErrors.y}
                 initialValue={params.y}
                 onBlur={(newVal) => {
                     params.y = newVal;
@@ -478,7 +478,7 @@
 
             <span class="box-1"><M size="sm">z(t) =</M></span>
             <ObjectParamInput
-                error={paramError.z}
+                error={paramErrors.z}
                 initialValue={params.z}
                 onBlur={(newVal) => {
                     params.z = newVal;
@@ -488,7 +488,7 @@
 
             <ObjectParamInput
                 className="form-control form-control-sm box"
-                error={paramError.a}
+                error={paramErrors.a}
                 initialValue={params.a}
                 onBlur={(newVal) => {
                     params.a = newVal;
@@ -498,7 +498,7 @@
             <span class="box box-3"><M size="sm">\leq t \leq</M></span>
             <ObjectParamInput
                 className="form-control form-control-sm box"
-                error={paramError.b}
+                error={paramErrors.b}
                 initialValue={params.b}
                 onBlur={(newVal) => {
                     params.b = newVal;
