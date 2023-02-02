@@ -273,6 +273,7 @@
         controls = new OrbitControls(camera, canvas);
         controls2 = new OrbitControls(camera2, canvas);
 
+        // Enable camera keyboard controls
         controls.listenToKeyEvents(window);
         controls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
         controls.dampingFactor = 0.05;
@@ -386,13 +387,11 @@
         }
 
         const inputarea = document.getElementsByClassName('objectBoxOuter')[0];
-        inputarea.addEventListener("focusin", () => {
+        inputarea.addEventListener('focusin', () => {
             controls.enabled = false;
-            controls2.enabled = false;
         })
-        inputarea.addEventListener("focusout", () => {
+        inputarea.addEventListener('focusout', () => {
             controls.enabled = true;
-            controls2.enabled = true;
         })
     });
 
@@ -654,7 +653,10 @@
                                         {scene}
                                         render={requestFrameIfNotRequested}
                                         params={b.params}
-                                        onClose={() => objects = removeObject(b.uuid, objects)}
+                                        onClose={() => {
+                                            controls.enabled = true;
+                                            objects = removeObject(b.uuid, objects);
+                                        }}
                                         onUpdate={() => objects = updateObject(b, objects)}
                                         bind:update={b.update}
                                         bind:animation={b.animation}
@@ -666,7 +668,10 @@
                                         {controls}
                                         render={requestFrameIfNotRequested}
                                         params={b.params}
-                                        onClose={() => objects = removeObject(b.uuid, objects)}
+                                        onClose={() => {
+                                            controls.enabled = true;
+                                            objects = removeObject(b.uuid, objects);
+                                        }}
                                         onUpdate={() => objects = updateObject(b, objects)}
                                         bind:shadeUp
                                         bind:update={b.update}
@@ -680,7 +685,10 @@
                                         camera={currentCamera}
                                         {controls}
                                         render={requestFrameIfNotRequested}
-                                        onClose={() => objects = removeObject(b.uuid, objects)}
+                                        onClose={() => {
+                                            controls.enabled = true;
+                                            objects = removeObject(b.uuid, objects);
+                                        }}
                                         onUpdate={() => objects = updateObject(b, objects)}
                                         params={b.params}
                                         bind:shadeUp
@@ -693,7 +701,10 @@
                                     <Curve
                                         {scene}
                                         render={requestFrameIfNotRequested}
-                                        onClose={() => objects = removeObject(b.uuid, objects)}
+                                        onClose={() => {
+                                            controls.enabled = true;
+                                            objects = removeObject(b.uuid, objects);
+                                        }}
                                         onUpdate={() => objects = updateObject(b, objects)}
                                         params={b.params}
                                         bind:update={b.update}
@@ -705,7 +716,10 @@
                                     <Field
                                         {scene}
                                         render={requestFrameIfNotRequested}
-                                        onClose={() => objects = removeObject(b.uuid, objects)}
+                                        onClose={() => {
+                                            controls.enabled = true;
+                                            objects = removeObject(b.uuid, objects);
+                                        }}
                                         onUpdate={() => objects = updateObject(b, objects)}
                                         bind:update={b.update}
                                         bind:animation={b.animation}
@@ -718,7 +732,10 @@
                                     <Vector
                                         {scene}
                                         render={requestFrameIfNotRequested}
-                                        onClose={() => objects = removeObject(b.uuid, objects)}
+                                        onClose={() => {
+                                            controls.enabled = true;
+                                            objects = removeObject(b.uuid, objects)
+                                        }}
                                         onUpdate={() => objects = updateObject(b, objects)}
                                         params={b.params}
                                         {gridStep}
