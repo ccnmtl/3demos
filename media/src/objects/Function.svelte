@@ -1,10 +1,14 @@
 <script>
     import { onMount, onDestroy, createEventDispatcher } from "svelte";
-    import {ParametricGeometry} from 'three/examples/jsm/geometries/ParametricGeometry.js';
-    import M from "../M.svelte";
-    import ObjHeader from "../ObjHeader.svelte";
     import * as THREE from "three";
     import { create, all } from "mathjs";
+    import {
+        ParametricGeometry
+    } from 'three/examples/jsm/geometries/ParametricGeometry.js';
+
+    import M from "../M.svelte";
+    import ObjHeader from "../ObjHeader.svelte";
+    import ObjectParamInput from '../form-components/ObjectParamInput.svelte';
 
     const config = {};
     const math = create(all, config);
@@ -834,43 +838,52 @@
             <span class="box-1">
                 <M size="sm">f(x,y[,t]) =</M>
             </span>
-            <input
-                type="text"
-                bind:value={params.z}
-                on:change={updateSurface}
-                on:input={() => {data.animateTime = false;}}
-                class="box box-2"
-            />
-            <input
-                type="text"
-                bind:value={params.a}
-                on:change={() => {onUpdate(); updateSurface();}}
-                class="box"
-            />
+            <ObjectParamInput
+                initialValue={params.z}
+                onBlur={(newVal) => {
+                    params.z = newVal;
+                    updateSurface();
+                    data.animateTime = false;
+                }} />
+            <ObjectParamInput
+                className="box"
+                initialValue={params.a}
+                onBlur={(newVal) => {
+                    params.a = newVal;
+                    onUpdate();
+                    updateSurface();
+                }} />
             <span class="box box-3">
                 <M size="sm">\leq x \leq</M>
             </span>
-            <input
-                type="text"
-                bind:value={params.b}
-                on:change={() => {onUpdate(); updateSurface();}}
-                class="box"
-            />
-            <input
-                type="text"
-                bind:value={params.c}
-                on:change={() => {onUpdate(); updateSurface();}}
-                class="box"
-            />
+            <ObjectParamInput
+                className="box"
+                initialValue={params.b}
+                onBlur={(newVal) => {
+                    params.b = newVal;
+                    onUpdate();
+                    updateSurface();
+                }} />
+
+            <ObjectParamInput
+                className="box"
+                initialValue={params.c}
+                onBlur={(newVal) => {
+                    params.c = newVal;
+                    onUpdate();
+                    updateSurface();
+                }} />
             <span class="box box-3">
                 <M size="sm">\leq y \leq</M>
             </span>
-            <input
-                type="text"
-                bind:value={params.d}
-                on:change={() => {onUpdate(); updateSurface()}}
-                class="box"
-            />
+            <ObjectParamInput
+                className="box"
+                initialValue={params.d}
+                onBlur={(newVal) => {
+                    params.d = newVal;
+                    onUpdate();
+                    updateSurface();
+                }} />
             <span class="box-1">
                 <M size="sm">x</M>-meshes
             </span>
@@ -944,11 +957,24 @@
                 />
                 <span class="slider round" />
             </label>
-            <input type="number" bind:value={params.t0} class="box" />
+            <ObjectParamInput
+                className="box"
+                type="number"
+                initialValue={params.t0}
+                onBlur={(newVal) => {
+                    params.t0 = newVal;
+                }} />
             <span class="box box-3">
                 <M size="sm">\leq t \leq</M>
             </span>
-            <input type="number" bind:value={params.t1} class="box" />
+            <ObjectParamInput
+                className="box"
+                type="number"
+                initialValue={params.t1}
+                onBlur={(newVal) => {
+                    params.t1 = newVal;
+                }} />
+
             <span class="box-1">
                 <M size="sm">t</M>
             </span>

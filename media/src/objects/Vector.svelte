@@ -1,15 +1,12 @@
 <script>
     import { onMount, onDestroy } from "svelte";
-    import M from "../M.svelte";
-    import ObjHeader from "../ObjHeader.svelte";
-
     import * as THREE from "three";
-
     import { create, all } from "mathjs";
 
-    import {
-        ArrowBufferGeometry
-    } from "../utils.js";
+    import M from "../M.svelte";
+    import ObjHeader from "../ObjHeader.svelte";
+    import {ArrowBufferGeometry} from "../utils.js";
+    import ObjectParamInput from '../form-components/ObjectParamInput.svelte';
 
     const config = {};
     const math = create(all, config);
@@ -142,69 +139,62 @@
     <div hidden={hidden}>
         <div class="container">
             <span class="box-1"><M size="sm">a =</M></span>
-            <input
-                type="text"
-                bind:value={params.a}
-                on:change={() => {
-            onUpdate()
-            updateCurve()
-            }}
-                class="box box-2"
-                />
+            <ObjectParamInput
+                initialValue={params.a}
+                onBlur={(newVal) => {
+                    // Set the new param in Vector once blur has happened
+                    params.a = newVal;
+                    onUpdate();
+                    updateCurve();
+                }} />
+
             <span class="box-1"><M size="sm">b =</M></span>
-            <input
-                type="text"
-                bind:value={params.b}
-                on:change={() => {
-            onUpdate()
-            updateCurve()
-            }}
-                class="box box-2"
-                />
+            <ObjectParamInput
+                initialValue={params.b}
+                onBlur={(newVal) => {
+                    params.b = newVal;
+                    onUpdate();
+                    updateCurve();
+                }} />
+
             <span class="box-1"><M size="sm">c =</M></span>
-            <input
-                type="text"
-                bind:value={params.c}
-                on:change={() => {
-            onUpdate()
-            updateCurve()
-            }}
-                class="box box-2"
-                />
+            <ObjectParamInput
+                initialValue={params.c}
+                onBlur={(newVal) => {
+                    params.c = newVal;
+                    onUpdate();
+                    updateCurve();
+                }} />
 
             Plot at position <M size="sm">(p_1, p_2, p_3)</M>:
 
             <span class="box-1"><M size="sm">p_1 =</M></span>
-            <input
-                type="text"
-                bind:value={params.x}
-                on:change={() => {
-            onUpdate()
-            updateCurve()
-            }}
-                class="box box-2"
-                />
+            <ObjectParamInput
+                initialValue={params.x}
+                onBlur={(newVal) => {
+                    params.x = newVal;
+                    onUpdate();
+                    updateCurve();
+                }} />
 
             <span class="box-1"><M size="sm">p_2 =</M></span>
-            <input
-                type="text"
-                bind:value={params.y}
-                on:change={() => {
-            onUpdate()
-            updateCurve()
-            }}
-                class="box box-2"
-                />
+            <ObjectParamInput
+                initialValue={params.y}
+                onBlur={(newVal) => {
+                    params.y = newVal;
+                    onUpdate();
+                    updateCurve();
+                }} />
+
             <span class="box-1"><M size="sm">p_3 =</M></span>
-            <input
-                type="text"
-                bind:value={params.z}
-                on:change={() => {
-                    onUpdate()
-                    updateCurve()
-                }}
-                class="box box-2"
-                />
+            <ObjectParamInput
+                initialValue={params.z}
+                onBlur={(newVal) => {
+                    params.z = newVal;
+                    onUpdate();
+                    updateCurve();
+                }} />
+
             <span class="box-1">Color</span>
             <span class="box box-2">
                 <input
