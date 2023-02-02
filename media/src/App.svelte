@@ -477,11 +477,6 @@
                     {#if currentMode !== 'session'}
                     <div class="object-box-title d-flex">
                         <ButtonDropdown class="mb-2">
-                            <DropdownToggle
-                                caret
-                                class="btn btn-light dropdown-toggle">
-                                Chapters
-                            </DropdownToggle>
                             <DropdownMenu>
                                 <DropdownItem
                                     on:click={() => (currentChapter = "Intro")}>
