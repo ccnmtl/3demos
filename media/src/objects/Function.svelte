@@ -40,6 +40,14 @@
         color: "#3232ff",
     };
 
+    let paramErrors = {
+        a: false,
+        b: false,
+        c: false,
+        d: false,
+        z: false
+    };
+
     let oldParams = Object.assign({}, params);
 
     // See Curve.svelte for explanation of this stuff
@@ -161,16 +169,28 @@
 
         const x = point.position.x;
         const y = point.position.y;
-        const Z = math.parse(params.z).compile();
 
-        const f0 = Z.evaluate({ x: x, y, t });
+        let Z, f0;
+        try {
+            Z = math.parse(params.z).compile();
+            f0 = Z.evaluate({ x: x, y, t });
+            paramErrors.z = false;
+        } catch (e) {
+            paramErrors.z = true;
+            return;
+        }
 
-        const fx =
-              (Z.evaluate({ x: x + dx, y, t }) - Z.evaluate({ x: x - dx, y, t })) /
-              (2 * dx);
-        const fy =
-              (Z.evaluate({ x, y: y + dx, t }) - Z.evaluate({ x, y: y - dx, t })) /
-              (2 * dx);
+        let fx, fy;
+        try {
+            fx = (Z.evaluate({ x: x + dx, y, t }) -
+                  Z.evaluate({ x: x - dx, y, t })) / (2 * dx);
+            fy = (Z.evaluate({ x, y: y + dx, t }) -
+                  Z.evaluate({ x, y: y - dx, t })) / (2 * dx);
+            paramErrors.z = false;
+        } catch (e) {
+            paramErrors.z = true;
+            return;
+        }
 
         for (let key of Object.keys(arrows)) {
             if (arrows[key].geometry.attributes.position !== undefined) {
@@ -290,24 +310,78 @@
 
     const updateSurface = function() {
         const { a, b, c, d, z, t0, t1 } = params;
+        let A, B;
 
         if (!checkValidParams(a, b, c, d)) {
             return;
         }
 
-        const A = math.evaluate(a),
-              B = math.evaluate(b);
+        try {
+            A = math.evaluate(a);
+            paramErrors.a = false;
+        } catch (e) {
+            paramErrors.a = true;
+            return;
+        }
+
+        try {
+            B = math.evaluate(b);
+            paramErrors.b = false;
+        } catch (e) {
+            paramErrors.b = true;
+            return;
+        }
+
         const [C, D, Z] = math.parse([c, d, z]);
+
         const geometry = new ParametricGeometry(
             (u, v, vec) => {
                 const U = A + (B - A) * u;
-                const V = (1 - v) * C.evaluate({ x: U }) + v * D.evaluate({ x: U });
-                vec.set(U, V, Z.evaluate({ x: U, y: V, t: t0 + (t1 - t0) * data.tau }));
+                let cU, dU, zU;
+
+                try {
+                    cU = C.evaluate({x: U});
+                    paramErrors.c = false;
+                } catch (e) {
+                    paramErrors.c = true;
+                    return;
+                }
+
+                try {
+                    dU = D.evaluate({x: U});
+                    paramErrors.d = false;
+                } catch (e) {
+                    paramErrors.d = true;
+                    return;
+                }
+
+                const V = (1 - v) * cU + v * dU;
+
+                try {
+                    zU = Z.evaluate({
+                        x: U,
+                        y: V,
+                        t: t0 + (t1 - t0) * data.tau
+                    })
+                    paramErrors.z = false;
+                } catch (e) {
+                    paramErrors.z = true;
+                    return;
+                }
+
+                vec.set(U, V, zU);
             },
             data.nX,
             data.nX
         );
         const meshGeometry = meshLines(params, data.rNum, data.cNum, data.nX);
+        if (!meshGeometry) {
+            // Geometry calculation failed, there must have been an
+            // input error.
+            console.error('Geometry calculation failed.');
+            return;
+        }
+
         let material = plusMaterial;
 
         if (surfaceMesh.children.length > 0) {
@@ -328,15 +402,21 @@
             surfaceMesh.add(new THREE.LineSegments(meshGeometry, whiteLineMaterial));
             scene.add(surfaceMesh);
         }
-        point.position.set(
-            0,
-            0,
-            Z.evaluate({
+
+        let zT;
+        try {
+            zT = Z.evaluate({
                 x: 0,
                 y: 0,
-                t: data.tau * (params.t1 - params.t0) + params.t0,
-            })
-        );
+                t: data.tau * (params.t1 - params.t0) + params.t0
+            });
+            paramErrors.z = false;
+        } catch (e) {
+            paramErrors.z = true;
+            return;
+        }
+
+        point.position.set(0, 0, zT);
 
         if (showLevelCurves) {
             updateLevels();
@@ -351,25 +431,80 @@
 
     const meshLines = function(rData, rNum = 10, cNum = 10, nX = 30) {
         let { a, b, c, d, z } = rData;
+        let A, B;
+
         if (!checkValidParams(a, b, c, d)) {
             return;
         }
 
         const time = params.t0 + data.tau * (params.t1 - params.t0);
-        const A = math.evaluate(a),
-              B = math.evaluate(b);
+        try {
+            A = math.evaluate(a);
+            paramErrors.a = false;
+        } catch (e) {
+            paramErrors.a = true;
+            return;
+        }
+
+        try {
+            B = math.evaluate(b);
+            paramErrors.b = false;
+        } catch (e) {
+            paramErrors.b = true;
+            return;
+        }
 
         const du = (B - A) / rNum;
         const dx = (B - A) / lcm(nX, cNum);
         const points = [];
-        const args = { x: A, y: math.evaluate(c, { x: A }), t: time };
+
+        let cA;
+        try {
+            cA = math.evaluate(c, { x: A });
+            paramErrors.c = false;
+        } catch (e) {
+            paramErrors.c = true;
+            return;
+        }
+
+        const args = {
+            x: A,
+            y: cA,
+            t: time
+        };
         for (let u = A; u <= B; u += du) {
-            const C = math.evaluate(c, { x: u }),
-                  D = math.evaluate(d, { x: u });
+            let C, D;
+
+            try {
+                C = math.evaluate(c, { x: u });
+                paramErrors.c = false;
+            } catch (e) {
+                paramErrors.c = true;
+                return;
+            }
+
+            try {
+                D = math.evaluate(d, { x: u });
+                paramErrors.d = false;
+            } catch (e) {
+                paramErrors.d = true;
+                return;
+            }
+
             const dy = (D - C) / lcm(nX, rNum);
             args.x = u;
             args.y = C;
-            points.push(new THREE.Vector3(u, C, math.evaluate(z, args)));
+
+            let evalZ;
+            try {
+                evalZ = math.evaluate(z, args);
+                paramErrors.z = false;
+            } catch (e) {
+                paramErrors.z = true;
+                return;
+            }
+
+            points.push(new THREE.Vector3(u, C, evalZ));
             for (let v = C + dy; v < D; v += dy) {
                 args.y = v;
                 points.push(new THREE.Vector3(u, v, math.evaluate(z, args)));
@@ -839,6 +974,7 @@
                 <M size="sm">f(x,y[,t]) =</M>
             </span>
             <ObjectParamInput
+                error={paramErrors.z}
                 initialValue={params.z}
                 onBlur={(newVal) => {
                     params.z = newVal;
@@ -846,7 +982,8 @@
                     data.animateTime = false;
                 }} />
             <ObjectParamInput
-                className="box"
+                className="form-control form-control-sm box"
+                error={paramErrors.a}
                 initialValue={params.a}
                 onBlur={(newVal) => {
                     params.a = newVal;
@@ -857,7 +994,8 @@
                 <M size="sm">\leq x \leq</M>
             </span>
             <ObjectParamInput
-                className="box"
+                className="form-control form-control-sm box"
+                error={paramErrors.b}
                 initialValue={params.b}
                 onBlur={(newVal) => {
                     params.b = newVal;
@@ -866,7 +1004,8 @@
                 }} />
 
             <ObjectParamInput
-                className="box"
+                className="form-control form-control-sm box"
+                error={paramErrors.c}
                 initialValue={params.c}
                 onBlur={(newVal) => {
                     params.c = newVal;
@@ -877,7 +1016,8 @@
                 <M size="sm">\leq y \leq</M>
             </span>
             <ObjectParamInput
-                className="box"
+                className="form-control form-control-sm box"
+                error={paramErrors.d}
                 initialValue={params.d}
                 onBlur={(newVal) => {
                     params.d = newVal;
