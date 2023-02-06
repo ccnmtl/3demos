@@ -24,6 +24,15 @@
         show: true,
     };
 
+    let paramErrors = {
+        a: false,
+        b: false,
+        c: false,
+        x: false,
+        y: false,
+        z: false
+    };
+
     if (!params.color) {
         params.color = "#FF0000";
     }
@@ -61,10 +70,57 @@
 
     const updateCurve = function() {
         const { a, b, c, x, y, z } = params;
+        const [pA, pB, pC, pX, pY, pZ] = math.parse([a, b, c, x, y, z]);
+        let A, B, C, X, Y, Z;
 
-        const [A, B, C, X, Y, Z] = math
-              .parse([a, b, c, x, y, z])
-              .map((item) => item.evaluate());
+        try {
+            A = pA.evaluate();
+            paramErrors.a = false;
+        } catch (e) {
+            paramErrors.a = true;
+            return;
+        }
+
+        try {
+            B = pB.evaluate();
+            paramErrors.b = false;
+        } catch (e) {
+            paramErrors.b = true;
+            return;
+        }
+
+        try {
+            C = pC.evaluate();
+            paramErrors.c = false;
+        } catch (e) {
+            paramErrors.c = true;
+            return;
+        }
+
+        try {
+            X = pX.evaluate();
+            paramErrors.x = false;
+        } catch (e) {
+            paramErrors.x = true;
+            return;
+        }
+
+        try {
+            Y = pY.evaluate();
+            paramErrors.y = false;
+        } catch (e) {
+            paramErrors.y = true;
+            return;
+        }
+
+        try {
+            Z = pZ.evaluate();
+            paramErrors.z = false;
+        } catch (e) {
+            paramErrors.z = true;
+            return;
+        }
+
 
         const v = new THREE.Vector3(A, B, C);
 
@@ -140,6 +196,7 @@
         <div class="container">
             <span class="box-1"><M size="sm">a =</M></span>
             <ObjectParamInput
+                error={paramErrors.a}
                 initialValue={params.a}
                 onBlur={(newVal) => {
                     // Set the new param in Vector once blur has happened
@@ -150,6 +207,7 @@
 
             <span class="box-1"><M size="sm">b =</M></span>
             <ObjectParamInput
+                error={paramErrors.b}
                 initialValue={params.b}
                 onBlur={(newVal) => {
                     params.b = newVal;
@@ -159,6 +217,7 @@
 
             <span class="box-1"><M size="sm">c =</M></span>
             <ObjectParamInput
+                error={paramErrors.c}
                 initialValue={params.c}
                 onBlur={(newVal) => {
                     params.c = newVal;
@@ -170,6 +229,7 @@
 
             <span class="box-1"><M size="sm">p_1 =</M></span>
             <ObjectParamInput
+                error={paramErrors.x}
                 initialValue={params.x}
                 onBlur={(newVal) => {
                     params.x = newVal;
@@ -179,6 +239,7 @@
 
             <span class="box-1"><M size="sm">p_2 =</M></span>
             <ObjectParamInput
+                error={paramErrors.y}
                 initialValue={params.y}
                 onBlur={(newVal) => {
                     params.y = newVal;
@@ -188,6 +249,7 @@
 
             <span class="box-1"><M size="sm">p_3 =</M></span>
             <ObjectParamInput
+                error={paramErrors.z}
                 initialValue={params.z}
                 onBlur={(newVal) => {
                     params.z = newVal;

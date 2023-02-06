@@ -28,6 +28,14 @@
         color: "#FFDD33",
     };
 
+    let paramErrors = {
+        a: false,
+        b: false,
+        x: false,
+        y: false,
+        z: false
+    };
+
     if (!params.color) {
         params.color = "#FFDD33";
     }
@@ -111,6 +119,42 @@
         updateFrame();
     };
 
+    /**
+     * Eval x, y, and z mathjs objects on the given t value.
+     *
+     * Catch mathjs errors as necessary.
+     *
+     * Returns a three.js Vector.
+     */
+    const evalXYZ = function(x, y, z, t) {
+        let evalX = 0;
+        let evalY = 0;
+        let evalZ = 0;
+
+        try {
+            evalX = x.evaluate({ t: t });
+            paramErrors.x = false;
+        } catch (e) {
+            paramErrors.x = true;
+        }
+
+        try {
+            evalY = y.evaluate({ t: t });
+            paramErrors.y = false;
+        } catch (e) {
+            paramErrors.y = true;
+        }
+
+        try {
+            evalZ = z.evaluate({ t: t });
+            paramErrors.z = false;
+        } catch (e) {
+            paramErrors.z = true;
+        }
+
+        return new THREE.Vector3(evalX, evalY, evalZ);
+    };
+
     let TNB = false
     let osculatingCircle = false;
     let hidden = false;
@@ -142,9 +186,24 @@
     const updateCurve = function() {
         const { a, b, x, y, z } = params;
         let A, B, X, Y, Z;
+
         try {
             A = math.parse(a).evaluate();
+            paramErrors.a = false;
+        } catch (e) {
+            paramErrors.a = true;
+            return;
+        }
+
+        try {
             B = math.parse(b).evaluate();
+            paramErrors.b = false;
+        } catch (e) {
+            paramErrors.b = true;
+            return;
+        }
+
+        try {
             [X, Y, Z] = math.parse([x, y, z]);
             goodParams["a"] = A;
             goodParams["b"] = B;
@@ -160,12 +219,9 @@
             startAnimation(false);
         }
 
-        const r = (t) =>
-              new THREE.Vector3(
-                  X.evaluate({ t: t }),
-                  Y.evaluate({ t: t }),
-                  Z.evaluate({ t: t })
-              );
+        const r = (t) => {
+            return evalXYZ(X, Y, Z, t);
+        }
 
         let path = new ParametricCurve(1, r, A, B);
         let geometry = new THREE.TubeGeometry(
@@ -236,12 +292,16 @@
         const T = a + (b - a) * tau;
         let curvature = 0;
 
+        const rVec = evalXYZ(x, y, z, T);
+        if (Object.values(paramErrors).some((x) => x === true)) {
+            // There's a param error. Don't finish updating the frame,
+            // just return. The appropriate input will be set to
+            // invalid state.
+            return;
+        }
+
         const dr = {
-            r: new THREE.Vector3(
-                x.evaluate({ t: T }),
-                y.evaluate({ t: T }),
-                z.evaluate({ t: T })
-            ),
+            r: rVec,
             v: new THREE.Vector3(
                 (x.evaluate({ t: T + dt / 2 }) - x.evaluate({ t: T - dt / 2 })) / dt,
                 (y.evaluate({ t: T + dt / 2 }) - y.evaluate({ t: T - dt / 2 })) / dt,
@@ -399,6 +459,7 @@
         <div class="container">
             <span class="box-1"><M size="sm">x(t) =</M></span>
             <ObjectParamInput
+                error={paramErrors.x}
                 initialValue={params.x}
                 onBlur={(newVal) => {
                     params.x = newVal;
@@ -407,6 +468,7 @@
                 }} />
             <span class="box-1"><M size="sm">y(t) =</M></span>
             <ObjectParamInput
+                error={paramErrors.y}
                 initialValue={params.y}
                 onBlur={(newVal) => {
                     params.y = newVal;
@@ -416,6 +478,7 @@
 
             <span class="box-1"><M size="sm">z(t) =</M></span>
             <ObjectParamInput
+                error={paramErrors.z}
                 initialValue={params.z}
                 onBlur={(newVal) => {
                     params.z = newVal;
@@ -424,7 +487,8 @@
                 }} />
 
             <ObjectParamInput
-                className="box"
+                className="form-control form-control-sm box"
+                error={paramErrors.a}
                 initialValue={params.a}
                 onBlur={(newVal) => {
                     params.a = newVal;
@@ -433,7 +497,8 @@
                 }} />
             <span class="box box-3"><M size="sm">\leq t \leq</M></span>
             <ObjectParamInput
-                className="box"
+                className="form-control form-control-sm box"
+                error={paramErrors.b}
                 initialValue={params.b}
                 onBlur={(newVal) => {
                     params.b = newVal;
