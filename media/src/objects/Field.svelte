@@ -331,7 +331,7 @@
             <span class="box-1"><M size="sm">P(x,y,z) =</M></span>
             <ObjectParamInput
                 initialValue={params.p}
-                onBlur={(newVal) => {
+                onChange={(newVal) => {
                     params.p = newVal;
                     onUpdate();
                     updateField();
@@ -339,7 +339,7 @@
             <span class="box-1"><M size="sm">Q(x,y,z) =</M></span>
             <ObjectParamInput
                 initialValue={params.q}
-                onBlur={(newVal) => {
+                onChange={(newVal) => {
                     params.q = newVal;
                     onUpdate();
                     updateField();
@@ -348,7 +348,7 @@
             <span class="box-1"><M size="sm">R(x,y,z) =</M></span>
             <ObjectParamInput
                 initialValue={params.r}
-                onBlur={(newVal) => {
+                onChange={(newVal) => {
                     params.r = newVal;
                     onUpdate();
                     updateField();

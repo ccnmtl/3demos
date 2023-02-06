@@ -198,7 +198,7 @@
             <ObjectParamInput
                 error={paramErrors.a}
                 initialValue={params.a}
-                onBlur={(newVal) => {
+                onChange={(newVal) => {
                     // Set the new param in Vector once blur has happened
                     params.a = newVal;
                     onUpdate();
@@ -209,7 +209,7 @@
             <ObjectParamInput
                 error={paramErrors.b}
                 initialValue={params.b}
-                onBlur={(newVal) => {
+                onChange={(newVal) => {
                     params.b = newVal;
                     onUpdate();
                     updateCurve();
@@ -219,7 +219,7 @@
             <ObjectParamInput
                 error={paramErrors.c}
                 initialValue={params.c}
-                onBlur={(newVal) => {
+                onChange={(newVal) => {
                     params.c = newVal;
                     onUpdate();
                     updateCurve();
@@ -231,7 +231,7 @@
             <ObjectParamInput
                 error={paramErrors.x}
                 initialValue={params.x}
-                onBlur={(newVal) => {
+                onChange={(newVal) => {
                     params.x = newVal;
                     onUpdate();
                     updateCurve();
@@ -241,7 +241,7 @@
             <ObjectParamInput
                 error={paramErrors.y}
                 initialValue={params.y}
-                onBlur={(newVal) => {
+                onChange={(newVal) => {
                     params.y = newVal;
                     onUpdate();
                     updateCurve();
@@ -251,7 +251,7 @@
             <ObjectParamInput
                 error={paramErrors.z}
                 initialValue={params.z}
-                onBlur={(newVal) => {
+                onChange={(newVal) => {
                     params.z = newVal;
                     onUpdate();
                     updateCurve();

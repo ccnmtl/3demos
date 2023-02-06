@@ -461,7 +461,7 @@
             <ObjectParamInput
                 error={paramErrors.x}
                 initialValue={params.x}
-                onBlur={(newVal) => {
+                onChange={(newVal) => {
                     params.x = newVal;
                     onUpdate();
                     updateCurve();
@@ -470,7 +470,7 @@
             <ObjectParamInput
                 error={paramErrors.y}
                 initialValue={params.y}
-                onBlur={(newVal) => {
+                onChange={(newVal) => {
                     params.y = newVal;
                     onUpdate();
                     updateCurve();
@@ -480,7 +480,7 @@
             <ObjectParamInput
                 error={paramErrors.z}
                 initialValue={params.z}
-                onBlur={(newVal) => {
+                onChange={(newVal) => {
                     params.z = newVal;
                     onUpdate();
                     updateCurve();
@@ -490,7 +490,7 @@
                 className="form-control form-control-sm box"
                 error={paramErrors.a}
                 initialValue={params.a}
-                onBlur={(newVal) => {
+                onChange={(newVal) => {
                     params.a = newVal;
                     onUpdate();
                     updateCurve();
@@ -500,7 +500,7 @@
                 className="form-control form-control-sm box"
                 error={paramErrors.b}
                 initialValue={params.b}
-                onBlur={(newVal) => {
+                onChange={(newVal) => {
                     params.b = newVal;
                     onUpdate();
                     updateCurve();
