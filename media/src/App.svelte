@@ -862,7 +862,7 @@
         display: flex;
         justify-content: flex-start;
         width: clamp(23ch, 30%, 45ch);
-        z-index: -1;
+        z-index: 10;
     }
 
     .raise-lower-button {
