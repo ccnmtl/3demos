@@ -24,6 +24,12 @@
         nVec: 6,
     };
 
+    let paramErrors = {
+        p: false,
+        q: false,
+        r: false
+    };
+
     let oldParams = Object.assign({}, params);
 
     $: {
@@ -277,13 +283,38 @@
 
     const updateField = function() {
         const { p, q, r } = params;
+
         const [P, Q, R] = [p, q, r].map((x) => math.parse(x).compile());
+
         fieldF = (x, y, z, vec) => {
-            vec.set(
-                P.evaluate({ x, y, z }),
-                Q.evaluate({ x, y, z }),
-                R.evaluate({ x, y, z })
-            );
+            let evalP, evalQ, evalR;
+
+            try {
+                evalP = P.evaluate({ x, y, z });
+                paramErrors.p = false;
+            } catch (e) {
+                paramErrors.p = true;
+                return vec;
+            }
+
+            try {
+                evalQ = Q.evaluate({ x, y, z });
+                paramErrors.q = false;
+            } catch (e) {
+                paramErrors.q = true;
+                return vec;
+            }
+
+            try {
+                evalR = R.evaluate({ x, y, z });
+                paramErrors.r = false;
+            } catch (e) {
+                paramErrors.r = true;
+                return vec;
+            }
+
+            vec.set(evalP, evalQ, evalR);
+
             return vec;
         };
     }
@@ -314,7 +345,14 @@
 
     // Set update function for animation
     update = (dt) => {
-        updateFlowArrows(flowArrows, fieldF, dt);
+        if (Object.values(paramErrors).some((x) => x === true)) {
+            // Don't animate when there are mathjs errors.
+            console.error('MathJS error: can\'t animate.');
+            animation = false;
+            return;
+        } else {
+            updateFlowArrows(flowArrows, fieldF, dt);
+        }
     };
 </script>
 
@@ -330,16 +368,20 @@
         <div class="container">
             <span class="box-1"><M size="sm">P(x,y,z) =</M></span>
             <ObjectParamInput
+                error={paramErrors.p}
                 initialValue={params.p}
                 onChange={(newVal) => {
+                    paramErrors.p = false;
                     params.p = newVal;
                     onUpdate();
                     updateField();
                 }} />
             <span class="box-1"><M size="sm">Q(x,y,z) =</M></span>
             <ObjectParamInput
+                error={paramErrors.q}
                 initialValue={params.q}
                 onChange={(newVal) => {
+                    paramErrors.q = false;
                     params.q = newVal;
                     onUpdate();
                     updateField();
@@ -347,8 +389,10 @@
 
             <span class="box-1"><M size="sm">R(x,y,z) =</M></span>
             <ObjectParamInput
+                error={paramErrors.r}
                 initialValue={params.r}
                 onChange={(newVal) => {
+                    paramErrors.r = false;
                     params.r = newVal;
                     onUpdate();
                     updateField();
