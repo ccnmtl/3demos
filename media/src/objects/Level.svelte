@@ -370,7 +370,7 @@
             <span class="box-1"><M size="sm">g(x,y,z) =</M></span>
             <ObjectParamInput
                 initialValue={params.g}
-                onBlur={(newVal) => {
+                onChange={(newVal) => {
                     params.g = newVal;
                     onUpdate();
                     updateLevel();
@@ -379,7 +379,7 @@
             <span class="box-1"><M size="sm">k =</M></span>
             <ObjectParamInput
                 initialValue={params.k}
-                onBlur={(newVal) => {
+                onChange={(newVal) => {
                     params.k = newVal;
                     onUpdate();
                     updateLevel();
@@ -389,7 +389,7 @@
                 type="number"
                 className="box"
                 initialValue={params.a}
-                onBlur={(newVal) => {
+                onChange={(newVal) => {
                     params.a = newVal;
                     onUpdate();
                     updateLevel();
@@ -399,7 +399,7 @@
                 type="number"
                 className="box"
                 initialValue={params.b}
-                onBlur={(newVal) => {
+                onChange={(newVal) => {
                     params.b = newVal;
                     onUpdate();
                     updateLevel();
@@ -409,7 +409,7 @@
                 type="number"
                 className="box"
                 initialValue={params.c}
-                onBlur={(newVal) => {
+                onChange={(newVal) => {
                     params.c = newVal;
                     onUpdate();
                     updateLevel();
@@ -419,7 +419,7 @@
                 type="number"
                 className="box"
                 initialValue={params.d}
-                onBlur={(newVal) => {
+                onChange={(newVal) => {
                     params.d = newVal;
                     onUpdate();
                     updateLevel();
@@ -429,7 +429,7 @@
                 type="number"
                 className="box"
                 initialValue={params.e}
-                onBlur={(newVal) => {
+                onChange={(newVal) => {
                     params.e = newVal;
                     onUpdate();
                     updateLevel();
@@ -439,7 +439,7 @@
                 type="number"
                 className="box"
                 initialValue={params.f}
-                onBlur={(newVal) => {
+                onChange={(newVal) => {
                     params.f = newVal;
                     onUpdate();
                     updateLevel();

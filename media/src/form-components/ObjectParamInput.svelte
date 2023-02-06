@@ -3,11 +3,11 @@
      * ObjectParamInput
      *
      * A svelte component that renders a text <input> that updates
-     * its value on blur.
+     * its value on change, and displays error state when appropriate.
      */
 
     export let initialValue;
-    export let onBlur;
+    export let onChange;
     export let type = 'text';
     export let className = 'form-control form-control-sm box box-2';
 
@@ -20,8 +20,8 @@
 <input
     type={type}
     class={className + (error ? ' is-invalid' : '')}
-    on:blur={(e) => {
+    on:change={(e) => {
         submittedValue = e.target.value;
-        onBlur(submittedValue);
+        onChange(submittedValue);
     }}
     value={submittedValue} />

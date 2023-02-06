@@ -291,7 +291,7 @@
             <span class="box-1"><M size="sm">x(u,v) =</M></span>
             <ObjectParamInput
                 initialValue={params.x}
-                onBlur={(newVal) => {
+                onChange={(newVal) => {
                     params.x = newVal;
                     onUpdate();
                     updateSurface();
@@ -300,7 +300,7 @@
             <span class="box-1"><M size="sm">y(u,v) =</M></span>
             <ObjectParamInput
                 initialValue={params.y}
-                onBlur={(newVal) => {
+                onChange={(newVal) => {
                     params.y = newVal;
                     onUpdate();
                     updateSurface();
@@ -309,7 +309,7 @@
             <span class="box-1"><M size="sm">z(u,v) =</M></span>
             <ObjectParamInput
                 initialValue={params.z}
-                onBlur={(newVal) => {
+                onChange={(newVal) => {
                     params.z = newVal;
                     onUpdate();
                     updateSurface();
@@ -318,7 +318,7 @@
             <ObjectParamInput
                 className="box"
                 initialValue={params.a}
-                onBlur={(newVal) => {
+                onChange={(newVal) => {
                     params.a = newVal;
                     onUpdate();
                     updateSurface();
@@ -327,7 +327,7 @@
             <ObjectParamInput
                 className="box"
                 initialValue={params.b}
-                onBlur={(newVal) => {
+                onChange={(newVal) => {
                     params.b = newVal;
                     onUpdate();
                     updateSurface();
@@ -336,7 +336,7 @@
             <ObjectParamInput
                 className="box"
                 initialValue={params.c}
-                onBlur={(newVal) => {
+                onChange={(newVal) => {
                     params.c = newVal;
                     onUpdate();
                     updateSurface();
@@ -345,7 +345,7 @@
             <ObjectParamInput
                 className="box"
                 initialValue={params.d}
-                onBlur={(newVal) => {
+                onChange={(newVal) => {
                     params.d = newVal;
                     onUpdate();
                     updateSurface();

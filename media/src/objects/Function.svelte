@@ -976,7 +976,7 @@
             <ObjectParamInput
                 error={paramErrors.z}
                 initialValue={params.z}
-                onBlur={(newVal) => {
+                onChange={(newVal) => {
                     params.z = newVal;
                     updateSurface();
                     data.animateTime = false;
@@ -985,7 +985,7 @@
                 className="form-control form-control-sm box"
                 error={paramErrors.a}
                 initialValue={params.a}
-                onBlur={(newVal) => {
+                onChange={(newVal) => {
                     params.a = newVal;
                     onUpdate();
                     updateSurface();
@@ -997,7 +997,7 @@
                 className="form-control form-control-sm box"
                 error={paramErrors.b}
                 initialValue={params.b}
-                onBlur={(newVal) => {
+                onChange={(newVal) => {
                     params.b = newVal;
                     onUpdate();
                     updateSurface();
@@ -1007,7 +1007,7 @@
                 className="form-control form-control-sm box"
                 error={paramErrors.c}
                 initialValue={params.c}
-                onBlur={(newVal) => {
+                onChange={(newVal) => {
                     params.c = newVal;
                     onUpdate();
                     updateSurface();
@@ -1019,7 +1019,7 @@
                 className="form-control form-control-sm box"
                 error={paramErrors.d}
                 initialValue={params.d}
-                onBlur={(newVal) => {
+                onChange={(newVal) => {
                     params.d = newVal;
                     onUpdate();
                     updateSurface();
@@ -1101,7 +1101,7 @@
                 className="box"
                 type="number"
                 initialValue={params.t0}
-                onBlur={(newVal) => {
+                onChange={(newVal) => {
                     params.t0 = newVal;
                 }} />
             <span class="box box-3">
@@ -1111,7 +1111,7 @@
                 className="box"
                 type="number"
                 initialValue={params.t1}
-                onBlur={(newVal) => {
+                onChange={(newVal) => {
                     params.t1 = newVal;
                 }} />
 
