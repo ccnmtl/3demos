@@ -7,13 +7,29 @@ class RoomsConsumer(AsyncWebsocketConsumer):
     active_users = {}
 
     # Send a room_event to everyone updating the active user count.
-    async def update_active_users(self, active_user_count, session_key):
+    async def update_active_users(self, session_key):
+        active_user_count = len(self.active_users[self.room_id])
         await self.channel_layer.group_send(
             self.room_group_name,
             {
                 'type': 'room_event',
                 'message': {
                     'updateActiveUsers': active_user_count
+                },
+                'session_key': session_key,
+            }
+        )
+
+    async def update_host_presence(
+            self, host_presence, session_key, scene, state):
+        state['hostPresence'] = host_presence
+        scene.save_state(state)
+        await self.channel_layer.group_send(
+            self.room_group_name,
+            {
+                'type': 'room_event',
+                'message': {
+                    'updateHostPresence': host_presence
                 },
                 'session_key': session_key,
             }
@@ -29,6 +45,19 @@ class RoomsConsumer(AsyncWebsocketConsumer):
             self.active_users[self.room_id] = [session_key]
         elif session_key not in self.active_users[self.room_id]:
             self.active_users[self.room_id].append(session_key)
+        # If host, notify others
+        scene = RedisScene(self.room_id)
+        state = scene.get_state()
+        # If a host already exists...
+        if 'host' in state:
+            # ...and the connecting user is the host, notify users.
+            if state['host'] == session_key:
+                await self.update_host_presence(
+                    True, session_key, scene, state)
+        else:
+            # Otherwise, this is a new room and the user becomes the host
+            state['host'] = session_key
+            await self.update_host_presence(True, session_key, scene, state)
 
         # Join room group
         await self.channel_layer.group_add(
@@ -38,14 +67,19 @@ class RoomsConsumer(AsyncWebsocketConsumer):
 
         # I've pretty much joined the room at this point. Send a
         # message to everyone else with the new user count.
-        active_user_count = len(self.active_users[self.room_id])
-        await self.update_active_users(active_user_count, session_key)
+        await self.update_active_users(session_key)
 
         await self.accept()
 
     async def disconnect(self, close_code):
         # Remove user from room count
         session_key = self.scope['session'].session_key
+        # If host, notify others
+        scene = RedisScene(self.room_id)
+        state = scene.get_state()
+        # Let users know if the host left
+        if 'host' in state and state['host'] == session_key:
+            await self.update_host_presence(False, session_key, scene, state)
         if self.room_id in self.active_users and \
            session_key in self.active_users[self.room_id]:
             # Remove my session key from the list
@@ -53,15 +87,14 @@ class RoomsConsumer(AsyncWebsocketConsumer):
                 lambda x: x != session_key,
                 self.active_users[self.room_id]))
 
+        # Update user count for this room
+        await self.update_active_users(session_key)
+
         # Leave room group
         await self.channel_layer.group_discard(
             self.room_group_name,
             self.channel_name
         )
-
-        # Update user count for this room
-        active_user_count = len(self.active_users[self.room_id])
-        await self.update_active_users(active_user_count, session_key)
 
     # Receive message from WebSocket
     async def receive(self, text_data):

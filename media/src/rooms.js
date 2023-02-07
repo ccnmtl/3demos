@@ -29,7 +29,7 @@ const makeSocket = function(roomId, handleMessage=null) {
             + window.location.host
             + '/ws/rooms/'
             + roomId
-          + '/';
+            + '/';
     const socket = new WebSocket(path);
 
     if (handleMessage) {

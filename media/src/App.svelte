@@ -328,6 +328,7 @@
     export let currentPoll = null;
     export let isHost = false;
     let activeUserCount = 0;
+    let hostPresent = false;
 
     let host = null;
 
@@ -345,6 +346,11 @@
 
     if (host && window.SESSION_KEY && host === window.SESSION_KEY) {
         isHost = true;
+        hostPresent = true;
+    }
+
+    if (window.SCENE_STATE && window.SCENE_STATE.hostPresence) {
+        hostPresent = window.SCENE_STATE.hostPresence;
     }
 
     export const blowUpObjects = () => {
@@ -442,6 +448,10 @@
         } else if (data.message.updateActiveUsers) {
             if (typeof data.message.updateActiveUsers === 'number') {
                 activeUserCount = data.message.updateActiveUsers;
+            }
+        } else if (data.message.updateHostPresence) {
+            if (typeof data.message.updateHostPresence === 'boolean') {
+                hostPresent = data.message.updateHostPresence;
             }
         } else {
             objects = handleSceneEvent(data, objects);
@@ -990,13 +1000,20 @@
     </div>
 
     {#if roomId}
-        <div
-            class="active-users-count"
-            title={activeUserCount + ' users in session'}
-        >
-            <i class="bi bi-person-fill" />
-            {activeUserCount}
-        </div>
+        <aside
+            class="upper-right">
+            <h4 class="icon-wrapper"
+               title={activeUserCount + ' users in session'}
+            >
+                <i class="bi bi-person-fill" />
+                {activeUserCount}
+            </h4>
+            <h4 class="px-3 icon-wrapper"
+                title="{hostPresent ? 'The host is present' : 'No host present'}"
+            >
+                <i class="bi mx-auto bi-person-{hostPresent ? 'vcard' : 'slash'}"></i>
+            </h4>
+        </aside>
         <a class="leave-room" href="/" title="Exit Room">
             <i class="fa fa-sign-out" />
         </a>
@@ -1090,14 +1107,18 @@
         -webkit-text-stroke: 1px;
     }
 
-    .active-users-count {
+    .upper-right {
         position: absolute;
         top: 10px;
         right: 10px;
         color: white;
+    }
+
+    .icon-wrapper {
         background-color: rgba(0, 0, 0, 0.6);
         border: 1px solid black;
         border-radius: 0.5em;
+        margin: 5px;
         padding: 5px;
     }
 
