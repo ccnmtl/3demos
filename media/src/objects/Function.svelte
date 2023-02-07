@@ -332,7 +332,15 @@
             return;
         }
 
-        const [C, D, Z] = math.parse([c, d, z]);
+        let C, D, Z;
+        try {
+            [C, D, Z] = math.parse([c, d, z]);
+            paramErrors.z = false;
+        } catch (e) {
+            paramErrors.z = true;
+            console.error('Parse error in main function!');
+            return;
+        }
 
         const geometry = new ParametricGeometry(
             (u, v, vec) => {
