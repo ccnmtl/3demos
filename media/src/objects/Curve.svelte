@@ -184,7 +184,6 @@
     circleTube.visible = false;
 
     const updateCurve = function () {
-        animation = false;
         const { a, b, x, y, z } = params;
         let A, B, X, Y, Z;
 
