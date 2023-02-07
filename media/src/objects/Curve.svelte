@@ -249,7 +249,15 @@
 
             const t = A + (B - A) * tau;
 
-            return (Math.round(100 * t) / 100).toString();
+            const outputString = (Math.round(100 * t) / 100).toString();
+            const parts = outputString.split(".");
+
+            if (parts.length < 2) {
+                return parts[0] + ".00";
+            } else {
+                return parts[0] + "." + parts[1] + "0".repeat(2 - parts[1].length)
+            }
+
         } catch (e) {
             console.error(e);
             return '';
