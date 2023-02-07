@@ -101,8 +101,10 @@ class RoomsConsumer(AsyncWebsocketConsumer):
             new_poll = message.get('broadcastPoll', {})
             state['poll'] = new_poll
         elif message.get('setHost'):
+            new_scene_objs = message.get('setHost', [])
             state = {
-                'host': session.session_key
+                'host': session.session_key,
+                'objects': new_scene_objs
             }
 
         scene.save_state(state)

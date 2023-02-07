@@ -42,6 +42,7 @@
         drawGrid,
         labelAxes,
         makeHSLColor,
+        convertToURLParams
     } from './utils';
     import {
         makeObject, removeObject, updateObject,
@@ -326,21 +327,18 @@
     const makeQueryStringObject = function() {
         const flattenedObjects = {
             currentChapter,
-            shadeUp,
-            flipInfo,
-            grid: gridMeshes.visible,
         };
-        objects.forEach((object, index) => {
-            const prefix = `obj${index}_`;
-            flattenedObjects[prefix + "kind"] = object.kind;
-            if (object.params) {
-                for (const [key, value] of Object.entries(object.params)) {
-                    flattenedObjects[prefix + "params_" + key] = value;
-                }
-            }
-        });
-        const urlParams = new URLSearchParams(flattenedObjects);
-        window.location.search = urlParams.toString();
+        if (flipInfo) {
+            flattenedObjects['flipInfo'] = true;
+        }
+        if (shadeUp) {
+            flattenedObjects['shadeUp'] = true;
+        }
+        if (gridMeshes.visible) {
+            flattenedObjects['grid'] = true;
+        }
+        window.location.search = convertToURLParams(
+            flattenedObjects, objects).toString();
     }
 
     onMount(() => {
@@ -362,7 +360,7 @@
                     currentChapter = val;
                 }
                 if (key === "shadeUp") {
-                    shadeUp = val;
+                    shadeUp = true;
                     if (canvas) {
                         canvas.focus();
                     }
@@ -371,7 +369,7 @@
                     gridMeshes.visible = val === "true";
                 }
                 if (key === "flipInfo") {
-                    flipInfo = val;
+                    flipInfo = true;
                 }
                 if (key.slice(0, 3) === "obj") {
                     const keyParts = key.split("_");
@@ -509,6 +507,7 @@
                         <Session
                             bind:roomId
                             bind:socket
+                            bind:objects
                             bind:isHost
                             bind:currentPoll />
                     {:else}

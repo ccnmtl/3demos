@@ -34,11 +34,11 @@ const makeSocket = function(roomId, handleMessage=null) {
     return socket;
 };
 
-const setHost = (socket=null) => {
+const setHost = (socket=null, objects=[]) => {
     if (socket) {
         socket.send(JSON.stringify({
             message: {
-                setHost: true
+                setHost: objects,
             }
         }));
     }
