@@ -439,7 +439,7 @@
         render();
     });
 
-    const texString1 = `t = ${stringifyT(params)}`;
+    $: texString1 = `t = ${stringifyT(params)}`;
 </script>
 
 <div class="boxItem">
