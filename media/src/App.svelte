@@ -363,6 +363,9 @@
                 }
                 if (key === "shadeUp") {
                     shadeUp = val;
+                    if (canvas) {
+                        canvas.focus();
+                    }
                 }
                 if (key === "grid") {
                     gridMeshes.visible = val === "true";
@@ -437,6 +440,9 @@
             switch(e.code) {
                 case "Space":
                     shadeUp = !shadeUp;
+                    if (canvas) {
+                        canvas.focus();
+                    }
                     break;
             }
         }
@@ -522,6 +528,9 @@
                     title={shadeUp ? 'Reveal Menu' : 'Hide Menu'}
                     on:click={() => {
                         shadeUp = !shadeUp;
+                        if (canvas) {
+                            canvas.focus();
+                        }
                     }}
                 >
                     <i class={`bi bi-chevron-${shadeUp ? 'down' : 'up'}`}></i>
@@ -745,11 +754,13 @@
                     </div>
                 </div>
                 <button class="btn btn-sm btn-light mt-1 raise-lower-button d-flex justify-content-center"
-                        title="Raise/Lower window"
+                        title={shadeUp ? 'Reveal Menu' : 'Hide Menu'}
                         on:click={() => {
                             shadeUp = !shadeUp;
-                        }}
-                >
+                            if (canvas) {
+                                canvas.focus();
+                            }
+                        }}>
                     <i class={`bi bi-chevron-${shadeUp ? 'down' : 'up'}`}></i>
                 </button>
             </div>
