@@ -1,7 +1,7 @@
 <script>
     import Poll from '../polls/Poll.svelte';
     import {getRoomUrl} from '../utils.js';
-    import {makeSocket, setHost} from '../rooms';
+    import {makeSocket, setHost, makeRoomId} from '../rooms';
 
     export let roomId;
     export let socket;
@@ -21,8 +21,7 @@
     };
 
     const onMakeRoom = () => {
-        // Generate random room ID between 1 and 100
-        const newRoomId = Math.round(Math.random() * 100) + 1;
+        const newRoomId = makeRoomId();
 
         socket = makeSocket(newRoomId);
         // Need to wait for socket's readyState to be open

@@ -10,6 +10,15 @@ const getRoomId = function(urlpath) {
 };
 
 /**
+ * Generate an ID for a new room.
+ *
+ * Returns a random number between 1 and 1000.
+ */
+const makeRoomId = function() {
+    return Math.round(Math.random() * 1000) + 1;
+};
+
+/**
  * makeSocket
  *
  * Make a WebSocket with the given room name. Connects to a
@@ -38,14 +47,17 @@ const setHost = (socket=null, objects=[]) => {
     if (socket) {
         socket.send(JSON.stringify({
             message: {
-                setHost: objects,
+                setHost: objects
             }
         }));
+    } else {
+        console.error('Can\'t set host: no socket present');
     }
 };
 
 export {
     getRoomId,
+    makeRoomId,
     makeSocket,
     setHost
 };
