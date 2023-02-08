@@ -467,7 +467,11 @@
                             class="me-2"
                             active={currentMode === 'session'}
                             on:click={onToggleSession}>
+                            {#if currentMode === 'session'}
+                            Information
+                            {:else}
                             Session
+                            {/if}
                         </Button>
                         <button
                             class="ms-auto btn btn-light px-2"
@@ -800,6 +804,9 @@
             <i class="bi bi-person-fill"></i>
             {activeUserCount}
         </div>
+        <a class="leave-room" href="/" title="Exit Room">
+                <i class="fa fa-sign-out" />
+        </a>
     {/if}
 </main>
 <style>
@@ -898,5 +905,16 @@
         border: 1px solid black;
         border-radius: 0.5em;
         padding: 5px;
+    }
+
+    .leave-room {
+        background-color: transparent;
+        border: 0;
+        bottom: 5px;
+        color: #333;
+        padding: 0;
+        position: absolute;
+        right: 10px;
+        font-size: 2rem;
     }
 </style>
