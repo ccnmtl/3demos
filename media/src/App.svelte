@@ -5,15 +5,15 @@
 
     import * as THREE from 'three';
     import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-    import {FontLoader} from 'three/examples/jsm/loaders/FontLoader.js';
-    import {TextGeometry} from 'three/examples/jsm/geometries/TextGeometry.js';
+    import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
+    import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 
     import {
         Button,
         ButtonDropdown,
         DropdownItem,
         DropdownMenu,
-        DropdownToggle
+        DropdownToggle,
     } from 'sveltestrap';
 
     // import components
@@ -34,22 +34,22 @@
     import Session from './modes/Session.svelte';
     import KeyboardControls from './KeyboardControls.svelte';
 
-    import {
-        getRoomId, makeSocket
-    } from './rooms';
+    import { getRoomId, makeSocket } from './rooms';
     import {
         drawAxes,
         drawGrid,
         labelAxes,
         makeHSLColor,
-        convertToURLParams
+        convertToURLParams,
     } from './utils';
     import {
-        makeObject, removeObject, updateObject,
+        makeObject,
+        removeObject,
+        updateObject,
         publishScene,
-        handleSceneEvent
+        handleSceneEvent,
     } from './sceneUtils';
-    import {handlePollEvent} from './polls/pollUtils';
+    import { handlePollEvent } from './polls/pollUtils';
 
     let debug = false,
         stats;
@@ -84,7 +84,28 @@
         100 * 2
     );
 
+    let controls, controls2;
+    let renderer;
+
     let orthoCamera = false;
+
+    $: currentCamera = orthoCamera ? camera2 : camera;
+    $: currentControls = orthoCamera ? controls2 : controls;
+
+    // Try a sane transfer between cameras instead of turning listeners for the two controls on and off.
+    $: if (orthoCamera) {
+        controls2?.target.copy(controls.target);
+        camera2?.position.copy(camera.position);
+        if (controls) {
+            controls.enableDamping = false;
+        }
+    } else {
+        controls?.target.copy(controls2.target);
+        camera?.position.copy(camera2.position);
+        if (controls) {
+            controls.enableDamping = true;
+        }
+    }
 
     let gridMax = 1,
         gridStep = 1 / 5;
@@ -105,8 +126,6 @@
     camera2.up.set(0, 0, 1);
     camera2.lookAt(0, 0, 0);
 
-    $: currentCamera = orthoCamera ? camera2 : camera;
-
     scene.background = new THREE.Color(0xddddef);
     // for greenscreen
     // scene.background = new THREE.Color(0x88ff88);
@@ -121,8 +140,14 @@
         for (let j = 0; j < 2; j++) {
             const light = new THREE.PointLight(0xffffff, 0.5, 1000);
             light.position.set(
-                20 * Math.cos((i * 2 * pi) / candles + (Math.pow(-1, j) * 1) / 2),
-                20 * Math.sin((i * 2 * pi) / candles + (Math.pow(-1, j) * 1) / 2),
+                20 *
+                    Math.cos(
+                        (i * 2 * pi) / candles + (Math.pow(-1, j) * 1) / 2
+                    ),
+                20 *
+                    Math.sin(
+                        (i * 2 * pi) / candles + (Math.pow(-1, j) * 1) / 2
+                    ),
                 Math.pow(-1, j) * 10
             );
             chandelier.add(light);
@@ -130,9 +155,6 @@
     }
     scene.add(chandelier);
 
-    let controls, controls2;
-
-    let renderer;
     let frameRequested = false;
 
     // Grid
@@ -152,22 +174,26 @@
     let axesHolder = drawAxes({ gridMax, gridStep, axesMaterial });
     scene.add(axesHolder);
 
-    const requestFrameIfNotRequested = function() {
+    const requestFrameIfNotRequested = function () {
         if (!frameRequested) {
             frameRequested = true;
             myReq = requestAnimationFrame(render);
         }
-    }
+    };
 
     // Fonts
     const fontLoader = new FontLoader();
-    let [axesText] = labelAxes({
-        scene,
-        render: requestFrameIfNotRequested,
-    }, fontLoader, TextGeometry);
+    let [axesText] = labelAxes(
+        {
+            scene,
+            render: requestFrameIfNotRequested,
+        },
+        fontLoader,
+        TextGeometry
+    );
 
     // from https://threejsfundamentals.org
-    const resizeRendererToDisplaySize = function(renderer) {
+    const resizeRendererToDisplaySize = function (renderer) {
         const canvas = renderer.domElement;
         const width = canvas.clientWidth;
         const height = canvas.clientHeight;
@@ -176,23 +202,22 @@
             renderer.setSize(width, height, false);
         }
         return needResize;
-    }
+    };
 
     let myReq,
         last,
         animating = false;
 
-
-    const animateIfNotAnimating = function() {
+    const animateIfNotAnimating = function () {
         if (!animating) {
             cancelAnimationFrame(myReq);
             frameRequested = true;
             myReq = requestAnimationFrame(animate);
             animating = true;
         }
-    }
+    };
 
-    const animate = (time=0) => {
+    const animate = (time = 0) => {
         if (debug) {
             stats.begin();
         }
@@ -214,8 +239,8 @@
             scaleUpdate(dt);
         }
 
-        controls.update();
-        renderer.render(scene, camera);
+        currentControls.update();
+        renderer.render(scene, currentCamera);
         if (debug) {
             stats.end();
         }
@@ -232,43 +257,35 @@
         }
     };
 
-    const render = function() {
+    const render = function () {
         frameRequested = false;
 
         for (let index = 0; index < axesText.length; index++) {
             const element = axesText[index];
-            element.lookAt(camera.position);
+            element.lookAt(currentCamera.position);
         }
 
         if (resizeRendererToDisplaySize(renderer)) {
             const canvas = renderer.domElement;
-            camera.aspect = canvas.clientWidth / canvas.clientHeight;
-            camera2.top = canvas.clientHeight / 2;
-            camera2.bottom = canvas.clientHeight / -2;
-            camera2.right = canvas.clientWidth / 2;
-            camera2.left = canvas.clientWidth / -2;
-            camera.updateProjectionMatrix();
-            camera2.updateProjectionMatrix();
+            if (orthoCamera) {
+                currentCamera.top = canvas.clientHeight / 2;
+                currentCamera.bottom = canvas.clientHeight / -2;
+                currentCamera.right = canvas.clientWidth / 2;
+                currentCamera.left = canvas.clientWidth / -2;
+            } else {
+                currentCamera.aspect = canvas.clientWidth / canvas.clientHeight;
+            }
+            currentCamera.updateProjectionMatrix();
         }
 
-        controls.update();
-        if (orthoCamera) {
-            renderer.render(scene, camera2);
-        } else {
-            renderer.render(scene, camera);
-        }
-    }
-
-    const resize = () => {
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
+        currentControls.update();
+        renderer.render(scene, currentCamera);
     };
 
     const createScene = (el) => {
         renderer = new THREE.WebGLRenderer({
             antialias: true,
-            canvas: el
+            canvas: el,
         });
 
         controls = new OrbitControls(camera, canvas);
@@ -276,17 +293,20 @@
 
         // Enable camera keyboard controls
         controls.listenToKeyEvents(window);
+        controls2.listenToKeyEvents(window);
+
         controls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
         controls.dampingFactor = 0.05;
 
         controls.screenSpacePanning = false;
 
         controls.maxPolarAngle = Math.PI;
+        controls2.maxPolarAngle = Math.PI;
 
-        controls.addEventListener("change", requestFrameIfNotRequested);
-        controls2.addEventListener("change", requestFrameIfNotRequested);
+        controls.addEventListener('change', requestFrameIfNotRequested);
+        controls2.addEventListener('change', requestFrameIfNotRequested);
 
-        resize();
+        // resize();
         requestFrameIfNotRequested();
     };
 
@@ -314,17 +334,16 @@
     }
 
     export const blowUpObjects = () => {
-        if(confirm('Remove all objects in the scene?')) {
+        if (confirm('Remove all objects in the scene?')) {
             objects = [];
         }
     };
 
-    window.addEventListener("resize", () => {
-        resize();
+    window.addEventListener('resize', () => {
         requestFrameIfNotRequested();
     });
 
-    const makeQueryStringObject = function() {
+    const makeQueryStringObject = function () {
         const flattenedObjects = {
             currentChapter,
         };
@@ -338,8 +357,10 @@
             flattenedObjects['grid'] = true;
         }
         window.location.search = convertToURLParams(
-            flattenedObjects, objects).toString();
-    }
+            flattenedObjects,
+            objects
+        ).toString();
+    };
 
     onMount(() => {
         createScene(canvas);
@@ -356,24 +377,24 @@
             urlParams.forEach((val, key) => {
                 // This is bad and stupid, and hopefully it will be done better.
                 // make a viewStatus object, maybe?
-                if (key === "currentChapter") {
+                if (key === 'currentChapter') {
                     currentChapter = val;
                 }
-                if (key === "shadeUp") {
+                if (key === 'shadeUp') {
                     shadeUp = true;
                     if (canvas) {
                         canvas.focus();
                     }
                 }
-                if (key === "grid") {
-                    gridMeshes.visible = val === "true";
+                if (key === 'grid') {
+                    gridMeshes.visible = val === 'true';
                 }
-                if (key === "flipInfo") {
+                if (key === 'flipInfo') {
                     flipInfo = true;
                 }
-                if (key.slice(0, 3) === "obj") {
-                    const keyParts = key.split("_");
-                    if (keyParts[1] === "kind") {
+                if (key.slice(0, 3) === 'obj') {
+                    const keyParts = key.split('_');
+                    if (keyParts[1] === 'kind') {
                         objectHolder[keyParts[0]] = { kind: val, params: {} };
                     } else {
                         objectHolder[keyParts[0]].params[keyParts[2]] = val;
@@ -382,21 +403,20 @@
             });
 
             for (const val of Object.values(objectHolder)) {
-                objects = makeObject(
-                    val.uuid, val.kind, val.params, objects);
+                objects = makeObject(val.uuid, val.kind, val.params, objects);
             }
         }
 
         const inputarea = document.getElementsByClassName('objectBoxOuter')[0];
         inputarea.addEventListener('focusin', () => {
             controls.enabled = false;
-        })
+        });
         inputarea.addEventListener('focusout', () => {
             controls.enabled = true;
-        })
+        });
     });
 
-    const onPublishScene = function() {
+    const onPublishScene = function () {
         publishScene(objects, socket);
     };
 
@@ -405,7 +425,7 @@
 
     let pollResponses = [];
 
-    const handleSocketMessage = function(e) {
+    const handleSocketMessage = function (e) {
         const data = JSON.parse(e.data);
 
         if (data.message.pollResponse) {
@@ -435,8 +455,8 @@
 
     const altDown = (e) => {
         if (e.altKey) {
-            switch(e.code) {
-                case "Space":
+            switch (e.code) {
+                case 'Space':
                     shadeUp = !shadeUp;
                     if (canvas) {
                         canvas.focus();
@@ -445,13 +465,13 @@
             }
         }
     };
-    window.addEventListener("keydown", altDown, false);
+    window.addEventListener('keydown', altDown, false);
 
-    const onToggleSession = function() {
-        currentMode = (currentMode !== 'session') ?
-            'session' : 'intro';
+    const onToggleSession = function () {
+        currentMode = currentMode !== 'session' ? 'session' : 'intro';
     };
 </script>
+
 <main>
     <canvas bind:this={canvas} id="c" />
 
@@ -461,51 +481,64 @@
                 <div class="collapse-info" hidden={shadeUp}>
                     <div class="d-flex mb-2">
                         <h1 class="flex-grow-1 px-2">
-                            <a class="titlefont" href="/" title="Home">3Demos (βeta)</a>
+                            <a class="titlefont" href="/" title="Home"
+                                >3Demos (βeta)</a
+                            >
                         </h1>
                         <Button
                             class="me-2"
                             active={currentMode === 'session'}
-                            on:click={onToggleSession}>
+                            on:click={onToggleSession}
+                        >
                             {#if currentMode === 'session'}
-                            Information
+                                Information
                             {:else}
-                            Session
+                                Session
                             {/if}
                         </Button>
                         <button
                             class="ms-auto btn btn-light px-2"
                             on:click={() => {
                                 flipInfo = !flipInfo;
-                            }}>
+                            }}
+                        >
                             Object List
                             <i class="fa fa-sliders" />
                         </button>
                     </div>
                     {#if currentMode !== 'session'}
-                    <div class="object-box-title d-flex">
-                        <ButtonDropdown class="mb-2">
-                            <DropdownMenu>
-                                <DropdownItem
-                                    on:click={() => (currentChapter = "Intro")}>
-                                    Introduction
-                                </DropdownItem>
-                                <DropdownItem
-                                    on:click={() => (currentChapter = "Keyboard Controls")}>
-                                    Keyboard Controls
-                                </DropdownItem>
-                                <DropdownItem divider />
-                                <DropdownItem
-                                    on:click={() => (currentChapter = "Chapter")}>
-                                    Arc Length & Curvature
-                                </DropdownItem>
-                                <DropdownItem
-                                    on:click={() => (currentChapter = "Linear")}>
-                                    Linearization
-                                </DropdownItem>
-                            </DropdownMenu>
-                        </ButtonDropdown>
-                    </div>
+                        <div class="object-box-title d-flex">
+                            <ButtonDropdown class="mb-2">
+                                <DropdownMenu>
+                                    <DropdownItem
+                                        on:click={() =>
+                                            (currentChapter = 'Intro')}
+                                    >
+                                        Introduction
+                                    </DropdownItem>
+                                    <DropdownItem
+                                        on:click={() =>
+                                            (currentChapter =
+                                                'Keyboard Controls')}
+                                    >
+                                        Keyboard Controls
+                                    </DropdownItem>
+                                    <DropdownItem divider />
+                                    <DropdownItem
+                                        on:click={() =>
+                                            (currentChapter = 'Chapter')}
+                                    >
+                                        Arc Length & Curvature
+                                    </DropdownItem>
+                                    <DropdownItem
+                                        on:click={() =>
+                                            (currentChapter = 'Linear')}
+                                    >
+                                        Linearization
+                                    </DropdownItem>
+                                </DropdownMenu>
+                            </ButtonDropdown>
+                        </div>
                     {/if}
                     {#if currentMode === 'session'}
                         <Session
@@ -513,17 +546,16 @@
                             bind:socket
                             bind:objects
                             bind:isHost
-                            bind:currentPoll />
-                    {:else}
-                        {#if currentChapter === "Intro"}
-                            <Intro />
-                        {:else if currentChapter === "Keyboard Controls"}
-                            <KeyboardControls />
-                        {:else if currentChapter === "Chapter"}
-                            <Chapter bind:objects />
-                        {:else if currentChapter === "Linear"}
-                            <Linear bind:objects />
-                        {/if}
+                            bind:currentPoll
+                        />
+                    {:else if currentChapter === 'Intro'}
+                        <Intro />
+                    {:else if currentChapter === 'Keyboard Controls'}
+                        <KeyboardControls />
+                    {:else if currentChapter === 'Chapter'}
+                        <Chapter bind:objects />
+                    {:else if currentChapter === 'Linear'}
+                        <Linear bind:objects />
                     {/if}
                 </div>
                 <button
@@ -536,7 +568,7 @@
                         }
                     }}
                 >
-                    <i class={`bi bi-chevron-${shadeUp ? 'down' : 'up'}`}></i>
+                    <i class={`bi bi-chevron-${shadeUp ? 'down' : 'up'}`} />
                 </button>
             </div>
 
@@ -554,7 +586,10 @@
                             <i class="fa fa-book" />
                         </button>
                     </div>
-                    <div class="btn-toolbar justify-content-between" role="toolbar">
+                    <div
+                        class="btn-toolbar justify-content-between"
+                        role="toolbar"
+                    >
                         <div class="btn-group mb-2">
                             <ButtonDropdown>
                                 <DropdownToggle color="primary">
@@ -562,135 +597,210 @@
                                     <i class="fa fa-plus" />
                                 </DropdownToggle>
                                 <DropdownMenu>
-                                    <DropdownItem on:click={() =>
-                                        objects = makeObject(null, "vector", {
-                                            a: "0.2",
-                                            b: "-0.3",
-                                            c: "0",
-                                            x: "0",
-                                            y: "0",
-                                            z: "0",
-                                            show: true,
-                                        }, objects)}
+                                    <DropdownItem
+                                        on:click={() =>
+                                            (objects = makeObject(
+                                                null,
+                                                'vector',
+                                                {
+                                                    a: '0.2',
+                                                    b: '-0.3',
+                                                    c: '0',
+                                                    x: '0',
+                                                    y: '0',
+                                                    z: '0',
+                                                    show: true,
+                                                },
+                                                objects
+                                            ))}
                                     >
-                                        Vector <M size="sm">\mathbf v = \langle a, b, c \rangle</M>
+                                        Vector <M size="sm"
+                                            >\mathbf v = \langle a, b, c \rangle</M
+                                        >
                                     </DropdownItem>
-                                    <DropdownItem on:click={() =>
-                                        objects = makeObject(null, "curve", {
-                                            a: "0",
-                                            b: "2*pi",
-                                            x: "cos(t)",
-                                            y: "sin(t)",
-                                            z: `cos(${Math.ceil(10 * Math.random()).toString()}*t)`,
-                                            tau: 0,
-                                            color: `#${makeHSLColor(Math.random()).getHexString()}`,
-                                        }, objects)}
+                                    <DropdownItem
+                                        on:click={() =>
+                                            (objects = makeObject(
+                                                null,
+                                                'curve',
+                                                {
+                                                    a: '0',
+                                                    b: '2*pi',
+                                                    x: 'cos(t)',
+                                                    y: 'sin(t)',
+                                                    z: `cos(${Math.ceil(
+                                                        10 * Math.random()
+                                                    ).toString()}*t)`,
+                                                    tau: 0,
+                                                    color: `#${makeHSLColor(
+                                                        Math.random()
+                                                    ).getHexString()}`,
+                                                },
+                                                objects
+                                            ))}
                                     >
-                                        Space Curve <M size="sm">\mathbf r(t)</M>
+                                        Space Curve <M size="sm">\mathbf r(t)</M
+                                        >
                                     </DropdownItem>
-                                    <DropdownItem on:click={() =>
-                                        objects = makeObject(null, "graph", {
-                                            a: "-2",
-                                            b: "2",
-                                            c: "-2",
-                                            d: "2",
-                                            z: `cos(${Math.ceil(
-                                            3 * Math.random()
-                                            ).toString()}*x + ${Math.ceil(
-                                            2 * Math.random()
-                                            ).toString()}*y)/(1 + x^2 + y^2)`,
-                                            tau: 0,
-                                        }, objects)}
+                                    <DropdownItem
+                                        on:click={() =>
+                                            (objects = makeObject(
+                                                null,
+                                                'graph',
+                                                {
+                                                    a: '-2',
+                                                    b: '2',
+                                                    c: '-2',
+                                                    d: '2',
+                                                    z: `cos(${Math.ceil(
+                                                        3 * Math.random()
+                                                    ).toString()}*x + ${Math.ceil(
+                                                        2 * Math.random()
+                                                    ).toString()}*y)/(1 + x^2 + y^2)`,
+                                                    tau: 0,
+                                                },
+                                                objects
+                                            ))}
                                     >
                                         Graph <M size="sm">z = f(x,y)</M>
                                     </DropdownItem>
-                                    <DropdownItem on:click={() =>
-                                        objects = makeObject(null, "level", {
-                                            g: "x^2 + 2 y^2 - z^2",
-                                            k: "1",
-                                            a: "-2",
-                                            b: "2",
-                                            c: "-2",
-                                            d: "2",
-                                            e: "-2",
-                                            f: "2",
-                                        }, objects)}
+                                    <DropdownItem
+                                        on:click={() =>
+                                            (objects = makeObject(
+                                                null,
+                                                'level',
+                                                {
+                                                    g: 'x^2 + 2 y^2 - z^2',
+                                                    k: '1',
+                                                    a: '-2',
+                                                    b: '2',
+                                                    c: '-2',
+                                                    d: '2',
+                                                    e: '-2',
+                                                    f: '2',
+                                                },
+                                                objects
+                                            ))}
                                     >
-                                        Level Surface <M size="sm">g(x,y,z) = k</M>
+                                        Level Surface <M size="sm"
+                                            >g(x,y,z) = k</M
+                                        >
                                     </DropdownItem>
-                                    <DropdownItem on:click={() =>
-                                        objects = makeObject(null, "parsurf", {
-                                            a: "0",
-                                            b: "2*pi",
-                                            c: "0",
-                                            d: "2*pi",
-                                            x: "cos(u)*(1 + sin(v)/3)",
-                                            y: "sin(u)*(1 + sin(v)/3)",
-                                            z: "cos(v)/3",
-                                        }, objects)}
+                                    <DropdownItem
+                                        on:click={() =>
+                                            (objects = makeObject(
+                                                null,
+                                                'parsurf',
+                                                {
+                                                    a: '0',
+                                                    b: '2*pi',
+                                                    c: '0',
+                                                    d: '2*pi',
+                                                    x: 'cos(u)*(1 + sin(v)/3)',
+                                                    y: 'sin(u)*(1 + sin(v)/3)',
+                                                    z: 'cos(v)/3',
+                                                },
+                                                objects
+                                            ))}
                                     >
-                                        Parametric Surface <M size="sm">\mathbf r(u,v)</M>
+                                        Parametric Surface <M size="sm"
+                                            >\mathbf r(u,v)</M
+                                        >
                                     </DropdownItem>
-                                    <DropdownItem on:click={() =>
-                                        objects = makeObject(null, "field", {
-                                            p: "x",
-                                            q: "y",
-                                            r: "-z",
-                                            nVec: 6,
-                                        }, objects)}
+                                    <DropdownItem
+                                        on:click={() =>
+                                            (objects = makeObject(
+                                                null,
+                                                'field',
+                                                {
+                                                    p: 'x',
+                                                    q: 'y',
+                                                    r: '-z',
+                                                    nVec: 6,
+                                                },
+                                                objects
+                                            ))}
                                     >
-                                        Vector Field<M size="sm">\mathbf F(x,y,z)</M>
+                                        Vector Field<M size="sm"
+                                            >\mathbf F(x,y,z)</M
+                                        >
                                     </DropdownItem>
                                 </DropdownMenu>
                             </ButtonDropdown>
-                            <button class="btn btn-danger" on:click={blowUpObjects}>
+                            <button
+                                class="btn btn-danger"
+                                on:click={blowUpObjects}
+                            >
                                 Clear Objects
                                 <i class="fa fa-trash" />
                             </button>
                         </div>
                         {#if currentMode === 'session' && isHost}
-                            <button class="btn btn-primary mb-2" on:click={onPublishScene}>
+                            <button
+                                class="btn btn-primary mb-2"
+                                on:click={onPublishScene}
+                            >
                                 Publish Scene
-                                <i class="bi bi-broadcast-pin"></i>
+                                <i class="bi bi-broadcast-pin" />
                             </button>
                         {/if}
                     </div>
 
                     <div class="objectBoxInner">
                         {#each objects as b}
-                            <div transition:slide={{ delay: 0, duration: 300, easing: quintOut }}>
-                                {#if b.kind === "parsurf"}
+                            <div
+                                transition:slide={{
+                                    delay: 0,
+                                    duration: 300,
+                                    easing: quintOut,
+                                }}
+                            >
+                                {#if b.kind === 'parsurf'}
                                     <ParSurf
                                         {scene}
                                         render={requestFrameIfNotRequested}
                                         params={b.params}
                                         onClose={() => {
                                             controls.enabled = true;
-                                            objects = removeObject(b.uuid, objects);
+                                            objects = removeObject(
+                                                b.uuid,
+                                                objects
+                                            );
                                         }}
-                                        onUpdate={() => objects = updateObject(b, objects)}
+                                        onUpdate={() =>
+                                            (objects = updateObject(
+                                                b,
+                                                objects
+                                            ))}
                                         bind:update={b.update}
                                         bind:animation={b.animation}
                                     />
-                                {:else if b.kind === "graph"}
+                                {:else if b.kind === 'graph'}
                                     <Function
                                         {scene}
                                         camera={currentCamera}
-                                        {controls}
+                                        controls={currentControls}
                                         render={requestFrameIfNotRequested}
                                         params={b.params}
                                         onClose={() => {
                                             controls.enabled = true;
-                                            objects = removeObject(b.uuid, objects);
+                                            objects = removeObject(
+                                                b.uuid,
+                                                objects
+                                            );
                                         }}
-                                        onUpdate={() => objects = updateObject(b, objects)}
+                                        onUpdate={() =>
+                                            (objects = updateObject(
+                                                b,
+                                                objects
+                                            ))}
                                         bind:shadeUp
                                         bind:update={b.update}
                                         bind:animation={b.animation}
                                         on:animate={animateIfNotAnimating}
                                         {gridStep}
                                     />
-                                {:else if b.kind === "level"}
+                                {:else if b.kind === 'level'}
                                     <Level
                                         {scene}
                                         camera={currentCamera}
@@ -698,9 +808,16 @@
                                         render={requestFrameIfNotRequested}
                                         onClose={() => {
                                             controls.enabled = true;
-                                            objects = removeObject(b.uuid, objects);
+                                            objects = removeObject(
+                                                b.uuid,
+                                                objects
+                                            );
                                         }}
-                                        onUpdate={() => objects = updateObject(b, objects)}
+                                        onUpdate={() =>
+                                            (objects = updateObject(
+                                                b,
+                                                objects
+                                            ))}
                                         params={b.params}
                                         bind:shadeUp
                                         bind:update={b.update}
@@ -708,30 +825,44 @@
                                         on:animate={animateIfNotAnimating}
                                         {gridStep}
                                     />
-                                {:else if b.kind === "curve"}
+                                {:else if b.kind === 'curve'}
                                     <Curve
                                         {scene}
                                         render={requestFrameIfNotRequested}
                                         onClose={() => {
                                             controls.enabled = true;
-                                            objects = removeObject(b.uuid, objects);
+                                            objects = removeObject(
+                                                b.uuid,
+                                                objects
+                                            );
                                         }}
-                                        onUpdate={() => objects = updateObject(b, objects)}
+                                        onUpdate={() =>
+                                            (objects = updateObject(
+                                                b,
+                                                objects
+                                            ))}
                                         params={b.params}
                                         bind:update={b.update}
                                         bind:animation={b.animation}
                                         on:animate={animateIfNotAnimating}
                                         {gridStep}
                                     />
-                                {:else if b.kind === "field"}
+                                {:else if b.kind === 'field'}
                                     <Field
                                         {scene}
                                         render={requestFrameIfNotRequested}
                                         onClose={() => {
                                             controls.enabled = true;
-                                            objects = removeObject(b.uuid, objects);
+                                            objects = removeObject(
+                                                b.uuid,
+                                                objects
+                                            );
                                         }}
-                                        onUpdate={() => objects = updateObject(b, objects)}
+                                        onUpdate={() =>
+                                            (objects = updateObject(
+                                                b,
+                                                objects
+                                            ))}
                                         bind:update={b.update}
                                         bind:animation={b.animation}
                                         on:animate={animateIfNotAnimating}
@@ -739,15 +870,22 @@
                                         {gridStep}
                                         {gridMax}
                                     />
-                                {:else if b.kind === "vector"}
+                                {:else if b.kind === 'vector'}
                                     <Vector
                                         {scene}
                                         render={requestFrameIfNotRequested}
                                         onClose={() => {
                                             controls.enabled = true;
-                                            objects = removeObject(b.uuid, objects)
+                                            objects = removeObject(
+                                                b.uuid,
+                                                objects
+                                            );
                                         }}
-                                        onUpdate={() => objects = updateObject(b, objects)}
+                                        onUpdate={() =>
+                                            (objects = updateObject(
+                                                b,
+                                                objects
+                                            ))}
                                         params={b.params}
                                         {gridStep}
                                     />
@@ -756,15 +894,17 @@
                         {/each}
                     </div>
                 </div>
-                <button class="btn btn-sm btn-light mt-1 raise-lower-button d-flex justify-content-center"
-                        title={shadeUp ? 'Reveal Menu' : 'Hide Menu'}
-                        on:click={() => {
-                            shadeUp = !shadeUp;
-                            if (canvas) {
-                                canvas.focus();
-                            }
-                        }}>
-                    <i class={`bi bi-chevron-${shadeUp ? 'down' : 'up'}`}></i>
+                <button
+                    class="btn btn-sm btn-light mt-1 raise-lower-button d-flex justify-content-center"
+                    title={shadeUp ? 'Reveal Menu' : 'Hide Menu'}
+                    on:click={() => {
+                        shadeUp = !shadeUp;
+                        if (canvas) {
+                            canvas.focus();
+                        }
+                    }}
+                >
+                    <i class={`bi bi-chevron-${shadeUp ? 'down' : 'up'}`} />
                 </button>
             </div>
         </div>
@@ -775,8 +915,7 @@
             bind:isHost
             {scene}
             {camera}
-            {controls}
-            {controls2}
+            controls={currentControls}
             bind:gridMax
             bind:gridStep
             {gridMeshes}
@@ -798,17 +937,19 @@
     </div>
 
     {#if roomId}
-        <div class="active-users-count"
-             title={activeUserCount + ' users in session'}
+        <div
+            class="active-users-count"
+            title={activeUserCount + ' users in session'}
         >
-            <i class="bi bi-person-fill"></i>
+            <i class="bi bi-person-fill" />
             {activeUserCount}
         </div>
         <a class="leave-room" href="/" title="Exit Room">
-                <i class="fa fa-sign-out" />
+            <i class="fa fa-sign-out" />
         </a>
     {/if}
 </main>
+
 <style>
     canvas {
         position: absolute;
