@@ -1,7 +1,7 @@
 /* eslint-env node */
 module.exports = {
     parserOptions: {
-        ecmaVersion: 2019,
+        ecmaVersion: 2020,
         sourceType: 'module'
     },
     env: {
