@@ -96,9 +96,15 @@
     $: if (orthoCamera) {
         controls2?.target.copy(controls.target);
         camera2?.position.copy(camera.position);
+        if (controls) {
+            controls.enableDamping = false;
+        }
     } else {
         controls?.target.copy(controls2.target);
         camera?.position.copy(camera2.position);
+        if (controls) {
+            controls.enableDamping = true;
+        }
     }
 
     let gridMax = 1,
