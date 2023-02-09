@@ -1,12 +1,12 @@
 <script>
-    import { onMount, onDestroy, createEventDispatcher } from "svelte";
-    import * as THREE from "three";
-    import { create, all } from "mathjs";
-    import { ParametricGeometry } from "three/examples/jsm/geometries/ParametricGeometry.js";
+    import { onMount, onDestroy, createEventDispatcher } from 'svelte';
+    import * as THREE from 'three';
+    import { create, all } from 'mathjs';
+    import { ParametricGeometry } from 'three/examples/jsm/geometries/ParametricGeometry.js';
 
-    import M from "../M.svelte";
-    import ObjHeader from "../ObjHeader.svelte";
-    import ObjectParamInput from "../form-components/ObjectParamInput.svelte";
+    import M from '../M.svelte';
+    import ObjHeader from '../ObjHeader.svelte';
+    import ObjectParamInput from '../form-components/ObjectParamInput.svelte';
 
     const config = {};
     const math = create(all, config);
@@ -19,7 +19,7 @@
         marchingSquares,
         ArrowBufferGeometry,
         blockGeometry,
-    } from "../utils.js";
+    } from '../utils.js';
 
     export let camera,
         controls,
@@ -28,14 +28,14 @@
         showLevelCurves = false;
 
     export let params = {
-        a: "-2",
-        b: "2",
-        c: "-2",
-        d: "1 + sin(pi*x)/4",
-        z: "exp(-(1 - (x^2 + y^2))^2)",
+        a: '-2',
+        b: '2',
+        c: '-2',
+        d: '1 + sin(pi*x)/4',
+        z: 'exp(-(1 - (x^2 + y^2))^2)',
         t0: 0,
         t1: 0,
-        color: "#3232ff",
+        color: '#3232ff',
     };
 
     let paramErrors = {
@@ -94,7 +94,7 @@
         params.t1 = 1;
     }
     if (!params.color) {
-        params.color = "#3232ff";
+        params.color = '#3232ff';
     }
 
     export let scene;
@@ -198,21 +198,21 @@
             if (arrows[key].geometry.attributes.position !== undefined) {
                 const geo = arrows[key].geometry;
                 switch (key) {
-                    case "u":
+                    case 'u':
                         geo.adjustHeight(Math.sqrt(1 + fx * fx));
                         arrows[key].lookAt(1 + x, 0 + y, fx + f0);
                         break;
 
-                    case "v":
+                    case 'v':
                         geo.adjustHeight(Math.sqrt(1 + fy * fy));
                         arrows[key].lookAt(0 + x, 1 + y, fy + f0);
                         break;
 
-                    case "n":
+                    case 'n':
                         arrows[key].lookAt(-fx + x, -fy + y, 1 + f0);
                         break;
 
-                    case "grad":
+                    case 'grad':
                         geo.adjustHeight(Math.sqrt(fx * fx + fy * fy));
                         arrows[key].lookAt(x + fx, y + fy, 0);
                         arrows[key].position.z = -f0;
@@ -300,12 +300,12 @@
      */
     const checkValidParams = function (a, b, c, d) {
         if (a === b) {
-            console.error("a and b cannot be equal");
+            console.error('a and b cannot be equal');
             return false;
         }
 
         if (c === d) {
-            console.error("c and d cannot be equal");
+            console.error('c and d cannot be equal');
             return false;
         }
 
@@ -392,7 +392,7 @@
         if (!meshGeometry) {
             // Geometry calculation failed, there must have been an
             // input error.
-            console.error("Geometry calculation failed.");
+            console.error('Geometry calculation failed.');
             return;
         }
 
@@ -548,7 +548,7 @@
                 B,
                 nX
             );
-            args["y"] = v;
+            args['y'] = v;
             let nextZero = zs.shift();
             for (let u = A; u <= B - dx + tol; u += dx) {
                 args.x = u;
@@ -616,7 +616,7 @@
         try {
             Z = math.parse(params.z).compile();
         } catch (error) {
-            console.error("evolve error", error);
+            console.error('evolve error', error);
             return;
         }
         boxMesh.visible = false;
@@ -906,8 +906,8 @@
         scene.remove(boxMesh);
 
         scene.remove(point);
-        window.removeEventListener("keydown", shiftDown);
-        window.removeEventListener("keyup", shiftUp);
+        window.removeEventListener('keydown', shiftDown);
+        window.removeEventListener('keyup', shiftUp);
         render();
     });
 
@@ -942,19 +942,19 @@
     const activateLevelElevator = function () {
         animation = true;
         data.levelDelta *= -1;
-        dispatch("animate");
+        dispatch('animate');
     };
 
     const shiftDown = (e) => {
         if (shadeUp) {
             switch (e.key) {
-                case "Shift":
-                    window.addEventListener("mousemove", onMouseMove, false);
+                case 'Shift':
+                    window.addEventListener('mousemove', onMouseMove, false);
                     break;
-                case "0":
+                case '0':
                     activateLevelElevator();
                     break;
-                case "c":
+                case 'c':
                     controls.target.set(
                         point.position.x,
                         point.position.y,
@@ -962,44 +962,44 @@
                     );
                     render();
                     break;
-                case "Backspace":
+                case 'Backspace':
                     surfaceMesh.visible = !surfaceMesh.visible;
                     render();
                     break;
-                case "t":
+                case 't':
                     point.visible = !point.visible;
                     render();
                     break;
-                case "y":
+                case 'y':
                     planeShard.visible = !planeShard.visible;
                     render();
                     break;
-                case "n":
+                case 'n':
                     arrows.n.visible = !arrows.n.visible;
                     render();
                     break;
-                case "b":
+                case 'b':
                     boxMesh.visible = !boxMesh.visible;
                     render();
                     break;
-                case ">":
+                case '>':
                     data.N = Math.min(101, data.N + 1);
                     updateBoxes();
                     render();
                     break;
-                case "<":
+                case '<':
                     data.N = Math.max(1, data.N - 1);
                     updateBoxes();
                     render();
                     break;
-                case "l":
+                case 'l':
                     showLevelCurves = !showLevelCurves;
                     break;
-                case "p":
+                case 'p':
                     data.animateTime = !data.animateTime;
                     if (data.animateTime) {
                         animation = true;
-                        dispatch("animate");
+                        dispatch('animate');
                         showLevelCurves = false;
                     }
                     break;
@@ -1008,13 +1008,13 @@
     };
 
     const shiftUp = (e) => {
-        if (e.key === "Shift") {
-            window.removeEventListener("mousemove", onMouseMove);
+        if (e.key === 'Shift') {
+            window.removeEventListener('mousemove', onMouseMove);
         }
     };
 
-    window.addEventListener("keydown", shiftDown, false);
-    window.addEventListener("keyup", shiftUp, false);
+    window.addEventListener('keydown', shiftDown, false);
+    window.addEventListener('keyup', shiftUp, false);
 </script>
 
 <div class="boxItem">
@@ -1213,7 +1213,7 @@
                         data.animateTime = !data.animateTime;
                         if (data.animateTime) {
                             animation = true;
-                            dispatch("animate");
+                            dispatch('animate');
                         }
                     }}
                 >
