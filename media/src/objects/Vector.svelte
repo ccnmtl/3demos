@@ -156,11 +156,11 @@
         }
 
         if (
-            oldParams.a !== params.a
-                || oldParams.b !== params.b
-                || oldParams.a !== params.a
-                || oldParams.x !== params.x
-                || oldParams.y !== params.y
+            oldParams.a !== params.a ||
+            oldParams.b !== params.b ||
+            oldParams.a !== params.a ||
+            oldParams.x !== params.x ||
+            oldParams.y !== params.y
         ) {
             updateCurve();
             oldParams.a = params.a;
@@ -269,7 +269,8 @@
                         updateColor();
                     }}
                     style="width:85%; padding: 1px 1px;"
-            />
+                />
+            </span>
         </div>
     </div>
 </div>

@@ -158,61 +158,61 @@
     hidden={!showSettings}
     id="settings-box"
     >
-    <span class="box-1">
-        <strong>Settings</strong>
-    </span>
-    <button
-        type="button"
-        class="btn btn-sm btn-light box-3"
-        style="margin-left: auto;"
-        on:click={() => {
-            showSettings = false;
-        }}
-    >
-        <i class="bi bi-x-lg"></i>
-    </button>
-
-    <label class="form-label" for="scale">Scale</label>
-    <span class="form-range">
-        <input
-            type="range"
-            name="scale"
-            id="scale"
-            min="-2"
-            max="3"
-            step=".02"
-            bind:value={scale}
-            on:change={rescale}
+    <div class="row justify-content-between">
+        <h3 class="col-auto">Settings</h3>
+        <button
+            type="button"
+            class="btn btn-sm btn-light mx-3"
+            on:click={() => {
+                showSettings = false;
+            }}
         >
-        <span class="output box-23 text-right">{scala}</span>
-    </span>
-
-    <div class="form-check form-switch">
-        <label class="form-check-label box-1" for="gridVisible">Grid</label>
-        <input
-            class="form-check-input box-1"
-            type="checkbox"
-            name="gridVisible"
-            id="gridVisible"
-            role="switch"
-            aria-checked="true"
-            bind:checked={gridMeshes.visible}
-            on:change={render}
-        />
+            <i class="bi bi-x-lg"></i>
+        </button>
+        <div class="col-12">
+            <label class="form-label" for="scale">Scale</label>
+            <span class="form-range">
+                <input
+                    type="range"
+                    name="scale"
+                    id="scale"
+                    min="-2"
+                    max="3"
+                    step=".02"
+                    bind:value={scale}
+                    on:change={rescale}
+                >
+                <span class="output text-right">{scala}</span>
+            </span>
+        </div>
     </div>
-
-    <div class="form-check form-switch">
-        <label class="form-check-label box-2" for="orthoCamera">Linear Perspective</label>
-        <input
-            class="form-check-input box-2"
-            type="checkbox"
-            role="switch"
-            aria-checked="false"
-            name="orthoCamera"
-            id="orthoCamera"
-            bind:checked={orthoCamera}
-            on:change={render}
-        />
+    <div class="form-check form-switch row">
+        <label class="form-check-label col-6" for="gridVisible">
+            Grid
+            <input
+                class="form-check-input"
+                type="checkbox"
+                name="gridVisible"
+                id="gridVisible"
+                role="switch"
+                aria-checked="true"
+                bind:checked={gridMeshes.visible}
+                on:change={render}
+            />
+        </label>
+        <label class="form-check-label col-auto" for="orthoCamera">
+            Orthographic View
+            <input
+                class="form-check-input"
+                type="checkbox"
+                role="switch"
+                aria-checked="false"
+                name="orthoCamera"
+                id="orthoCamera"
+                bind:checked={orthoCamera}
+                on:change={render}
+            />
+        </label>
     </div>
 </div>
 
@@ -224,7 +224,7 @@
 >
     <button
         type="button"
-        class="btn btn-sm btn-light box-3"
+        class="btn btn-sm btn-light"
         style="margin-left: auto;"
         on:click={() => {
             showUpload = false;
@@ -307,35 +307,14 @@
         border-width: 0rem;
     }
 
-    .grid {
-        display: grid;
-    }
-
     .settings-box {
         position: absolute;
-        grid-template-columns: repeat(3, 1fr);
-        left: 5px;
+        left: 10px;
         color: white;
-        bottom: 100px;
+        bottom: 50px;
         border: 1px solid black;
         background-color: rgb(0, 0, 0, 0.8);
-        width: minmax(23ch, 45ch);
-        gap: 3px;
-        padding: 5px;
-    }
-
-    .box-1 {
-        grid-column: 1 / 2;
-    }
-    .box-23 {
-        grid-column: 2 / 4;
-    }
-
-    .box-2 {
-        grid-column: 2 / 3;
-    }
-    .box-3 {
-        grid-column: 3 / 4;
+        padding: 1rem;
     }
 
     .text-right {

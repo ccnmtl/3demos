@@ -1,12 +1,13 @@
 <script>
     import Poll from '../polls/Poll.svelte';
     import {getRoomUrl} from '../utils.js';
-    import {makeSocket, setHost} from '../rooms';
+    import {makeSocket, setHost, makeRoomId} from '../rooms';
 
     export let roomId;
     export let socket;
     export let isHost;
     export let currentPoll;
+    export let objects;
 
     let role = 'student';
     if (isHost) {
@@ -20,8 +21,7 @@
     };
 
     const onMakeRoom = () => {
-        // Generate random room ID between 1 and 100
-        const newRoomId = Math.round(Math.random() * 100) + 1;
+        const newRoomId = makeRoomId();
 
         socket = makeSocket(newRoomId);
         // Need to wait for socket's readyState to be open
@@ -29,7 +29,7 @@
         // https://developer.mozilla.org/en-US/docs/Web/API/WebSocket/readyState
         socket.addEventListener('open', () => {
             // Become the host of this new room.
-            setHost(socket);
+            setHost(socket, objects);
             window.location.href = getRoomUrl(newRoomId);
         });
     };

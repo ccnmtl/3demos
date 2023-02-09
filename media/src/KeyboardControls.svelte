@@ -20,36 +20,41 @@
 <article hidden={hidden}>
 
     <p>
-        Keyboard Controls are active when the main menu is collapsed. To collapse the 
-        main menu click the up arrow beneath this text box. Keyboard Controls are 
-        currently implemented on the following objects:
+        <strong>Standard Controls</strong> are active when the main menu is collapsed. 
+        <strong>Alt/Option Controls</strong> can be triggered at any time by holding down the 
+        Alt/Option key.To collapse the main menu click the up arrow beneath 
+        this text box. Standard Features are currently implemented on the 
+        following objects:
     </p>
     <ul style="columns: 3; -webkit-columns: 3; -moz-columns: 3;">
         <li>Graph</li>
         <li>Level Surface</li>
     </ul>
 
-    <strong><u>Standard Features</u></strong>
+    <strong><u>Standard Controls</u></strong>
     <ul>
         <li>
-            <em>(Hold Shift, Hover cursor over object)</em> Move focus to a 
-            point on the object. In the event overlap focus is set to the 
-            nearest point to the viewer.
+            <em>(Hold Shift, Hover cursor over object)</em> Moves focus to a 
+            point on the object. In the event of overlapping forms focus is set 
+            to the nearest point to the viewer.
         </li>
         <li>
-            <em>(c)</em> Lock camera to focus point.
+            <em>(c)</em> Locks camera to focus point.
         </li>
-        <li><em>(t)</em> Show tangent elements. Make focus point visible.</li>
+        <li><em>(t)</em> Shows tangent elements. Makes the focus point visible.</li>
         <ul>
-            <li><em>(y)</em> Show tangent plane.</li>
-            <li><em>(n)</em> Show normal to the tangent plane.</li>
+            <li><em>(y)</em> Shows the tangent plane.</li>
+            <li><em>(n)</em> Shows the normal to the tangent plane.</li>
         </ul>
-        <strong><u>Alt/Option Functions</u></strong> - Hold Alt/Option
+    </ul>
+    <p>
+        
+    </p>
+    <strong><u>Alt/Option Controls</u></strong> - Hold Alt/Option
         <ul>
             <li><em>(Spacebar)</em> Hide/Reveal Main Menu</li>
         </ul>
-    </ul>
-    <strong><u>Additional Level Surface Features</u></strong>
+    <strong><u>Additional Level Surface Controls</u></strong>
     <ul>
         <li>
             <em>(p)</em> Play animation. Requires <strong>t</strong> variable.
