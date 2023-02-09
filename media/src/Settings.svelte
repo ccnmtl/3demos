@@ -1,24 +1,15 @@
 <script>
-    import { createEventDispatcher } from "svelte";
+    import { createEventDispatcher } from 'svelte';
     import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
-    import {
-        TextGeometry
-    } from 'three/examples/jsm/geometries/TextGeometry.js';
-    import {
-        drawAxes,
-        drawGrid,
-        labelAxes,
-        freeChildren
-    } from './utils';
+    import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
+    import { drawAxes, drawGrid, labelAxes, freeChildren } from './utils';
     import Polls from './polls/Polls.svelte';
-    import {
-        makeObject
-    } from './sceneUtils';
+    import { makeObject } from './sceneUtils';
 
     const dispatch = createEventDispatcher();
 
     export let isHost;
-    export let scene, camera, render, controls, controls2;
+    export let scene, camera, render, controls;
     export let gridMax, gridStep;
     export let axesHolder, axesText, gridMeshes, lineMaterial, axesMaterial;
     export let animation = false;
@@ -62,11 +53,15 @@
     let scale = 0;
 
     $: scala =
-    Math.round(
-        100 * Math.pow(10, Math.floor(scale)) * Math.floor(Math.pow(10, scale)
-        / Math.pow(10, Math.floor(scale)))) / 100;
+        Math.round(
+            100 *
+                Math.pow(10, Math.floor(scale)) *
+                Math.floor(
+                    Math.pow(10, scale) / Math.pow(10, Math.floor(scale))
+                )
+        ) / 100;
 
-    const rescale = function() {
+    const rescale = function () {
         if (scala !== gridMax) {
             oldGridMax = scaleState;
             gridMax = scala;
@@ -84,28 +79,32 @@
 
             // Fonts
             const fontLoader = new FontLoader();
-            [axesText] = labelAxes({
-                scene,
-                gridMax,
-                gridStep,
-                render,
-                axesText,
-            }, fontLoader, TextGeometry);
+            [axesText] = labelAxes(
+                {
+                    scene,
+                    gridMax,
+                    gridStep,
+                    render,
+                    axesText,
+                },
+                fontLoader,
+                TextGeometry
+            );
 
             if (gridMax !== oldGridMax) {
                 animation = true;
-                dispatch("animate");
+                dispatch('animate');
             }
         }
-    }
+    };
 
     let showSettings = false;
     let showUpload = false;
     let isPollsOpen = false;
 
-    const openPolls = function() {
+    const openPolls = function () {
         isPollsOpen = true;
-    }
+    };
 
     const togglePolls = () => (isPollsOpen = !isPollsOpen);
 
@@ -131,25 +130,24 @@
             } else {
                 alert('Object limit of 32 per upload.');
             }
-
         };
         reader.readAsText(e.target.files[0], 'utf-8');
-    }
+    };
 
     const makeFilename = () => {
         const formattedDate = new Date().toISOString().split('T')[0];
         return '3Demos-scene-' + formattedDate + '.json';
-    }
+    };
 
     const downloadScene = () => {
         let json = JSON.stringify(objects);
-        const blob = new Blob([json], {type: "application/json",});
+        const blob = new Blob([json], { type: 'application/json' });
         let a = document.createElement('a');
         a.download = makeFilename();
         a.href = window.URL.createObjectURL(blob);
         a.click();
         a.remove();
-    }
+    };
 </script>
 
 <div
@@ -157,7 +155,7 @@
     class:grid={showSettings}
     hidden={!showSettings}
     id="settings-box"
-    >
+>
     <div class="row justify-content-between">
         <h3 class="col-auto">Settings</h3>
         <button
@@ -167,7 +165,7 @@
                 showSettings = false;
             }}
         >
-            <i class="bi bi-x-lg"></i>
+            <i class="bi bi-x-lg" />
         </button>
         <div class="col-12">
             <label class="form-label" for="scale">Scale</label>
@@ -181,7 +179,7 @@
                     step=".02"
                     bind:value={scale}
                     on:change={rescale}
-                >
+                />
                 <span class="output text-right">{scala}</span>
             </span>
         </div>
@@ -230,12 +228,17 @@
             showUpload = false;
         }}
     >
-        <i class="bi bi-x-lg"></i>
+        <i class="bi bi-x-lg" />
     </button>
     <label for="upload">Upload a scene</label>
-    <input id="upload" type="file" accept="application/json"
-        on:change={(e) => {uploadScene(e);}}
-    >
+    <input
+        id="upload"
+        type="file"
+        accept="application/json"
+        on:change={(e) => {
+            uploadScene(e);
+        }}
+    />
 </div>
 
 <button
@@ -262,11 +265,7 @@
 >
     <i class="fa fa-upload" />
 </button>
-<button
-    class="button"
-    title="Download Scene"
-    on:click={downloadScene}
->
+<button class="button" title="Download Scene" on:click={downloadScene}>
     <i class="fa fa-download" />
 </button>
 <button
@@ -275,7 +274,7 @@
     title="Reset camera"
     on:click={() => {
         controls.target.set(0, 0, 0);
-        controls2.target.set(0, 0, 0);
+        // controls2.target.set(0, 0, 0);
         render();
     }}
 >
@@ -289,17 +288,12 @@
 </button>
 
 {#if currentMode === 'session' && isHost}
-    <button on:click={openPolls}
-            class="button" title="Polls">
+    <button on:click={openPolls} class="button" title="Polls">
         <i class="fa fa-list" />
     </button>
 {/if}
 
-<Polls
-    bind:socket
-    bind:pollResponses
-    isPollsOpen={isPollsOpen}
-    togglePolls={togglePolls} />
+<Polls bind:socket bind:pollResponses {isPollsOpen} {togglePolls} />
 
 <style>
     .button {
@@ -324,6 +318,6 @@
     .output {
         width: 2rem;
         text-align: right;
-        font-family: "Courier New", Courier, monospace;
+        font-family: 'Courier New', Courier, monospace;
     }
 </style>
