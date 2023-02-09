@@ -42,6 +42,7 @@
         drawGrid,
         labelAxes,
         makeHSLColor,
+        convertToURLParams
     } from './utils';
     import {
         makeObject, removeObject, updateObject,
@@ -326,21 +327,18 @@
     const makeQueryStringObject = function() {
         const flattenedObjects = {
             currentChapter,
-            shadeUp,
-            flipInfo,
-            grid: gridMeshes.visible,
         };
-        objects.forEach((object, index) => {
-            const prefix = `obj${index}_`;
-            flattenedObjects[prefix + "kind"] = object.kind;
-            if (object.params) {
-                for (const [key, value] of Object.entries(object.params)) {
-                    flattenedObjects[prefix + "params_" + key] = value;
-                }
-            }
-        });
-        const urlParams = new URLSearchParams(flattenedObjects);
-        window.location.search = urlParams.toString();
+        if (flipInfo) {
+            flattenedObjects['flipInfo'] = true;
+        }
+        if (shadeUp) {
+            flattenedObjects['shadeUp'] = true;
+        }
+        if (gridMeshes.visible) {
+            flattenedObjects['grid'] = true;
+        }
+        window.location.search = convertToURLParams(
+            flattenedObjects, objects).toString();
     }
 
     onMount(() => {
@@ -362,13 +360,16 @@
                     currentChapter = val;
                 }
                 if (key === "shadeUp") {
-                    shadeUp = val;
+                    shadeUp = true;
+                    if (canvas) {
+                        canvas.focus();
+                    }
                 }
                 if (key === "grid") {
                     gridMeshes.visible = val === "true";
                 }
                 if (key === "flipInfo") {
-                    flipInfo = val;
+                    flipInfo = true;
                 }
                 if (key.slice(0, 3) === "obj") {
                     const keyParts = key.split("_");
@@ -437,6 +438,9 @@
             switch(e.code) {
                 case "Space":
                     shadeUp = !shadeUp;
+                    if (canvas) {
+                        canvas.focus();
+                    }
                     break;
             }
         }
@@ -463,7 +467,11 @@
                             class="me-2"
                             active={currentMode === 'session'}
                             on:click={onToggleSession}>
+                            {#if currentMode === 'session'}
+                            Information
+                            {:else}
                             Session
+                            {/if}
                         </Button>
                         <button
                             class="ms-auto btn btn-light px-2"
@@ -480,8 +488,13 @@
                             <DropdownMenu>
                                 <DropdownItem
                                     on:click={() => (currentChapter = "Intro")}>
-                                    Intro
+                                    Introduction
                                 </DropdownItem>
+                                <DropdownItem
+                                    on:click={() => (currentChapter = "Keyboard Controls")}>
+                                    Keyboard Controls
+                                </DropdownItem>
+                                <DropdownItem divider />
                                 <DropdownItem
                                     on:click={() => (currentChapter = "Chapter")}>
                                     Arc Length & Curvature
@@ -489,10 +502,6 @@
                                 <DropdownItem
                                     on:click={() => (currentChapter = "Linear")}>
                                     Linearization
-                                </DropdownItem>
-                                <DropdownItem
-                                    on:click={() => (currentChapter = "Keyboard Controls")}>
-                                    Keyboard Controls
                                 </DropdownItem>
                             </DropdownMenu>
                         </ButtonDropdown>
@@ -502,25 +511,31 @@
                         <Session
                             bind:roomId
                             bind:socket
+                            bind:objects
                             bind:isHost
                             bind:currentPoll />
                     {:else}
-                        {#if currentChapter === "Chapter"}
+                        {#if currentChapter === "Intro"}
+                            <Intro />
+                        {:else if currentChapter === "Keyboard Controls"}
+                            <KeyboardControls />
+                        {:else if currentChapter === "Chapter"}
                             <Chapter bind:objects />
                         {:else if currentChapter === "Linear"}
                             <Linear bind:objects />
-                        {:else if currentChapter === "Keyboard Controls"}
-                            <KeyboardControls />
-                        {:else if currentChapter === "Intro"}
-                            <Intro />
                         {/if}
                     {/if}
                 </div>
-                <button class="btn btn-sm btn-light mt-1 raise-lower-button d-flex justify-content-center"
-                        title="Raise/Lower window"
-                        on:click={() => {
-                    shadeUp = !shadeUp;
-                    }}>
+                <button
+                    class="btn btn-sm btn-light mt-1 raise-lower-button d-flex justify-content-center"
+                    title={shadeUp ? 'Reveal Menu' : 'Hide Menu'}
+                    on:click={() => {
+                        shadeUp = !shadeUp;
+                        if (canvas) {
+                            canvas.focus();
+                        }
+                    }}
+                >
                     <i class={`bi bi-chevron-${shadeUp ? 'down' : 'up'}`}></i>
                 </button>
             </div>
@@ -549,82 +564,83 @@
                                 <DropdownMenu>
                                     <DropdownItem on:click={() =>
                                         objects = makeObject(null, "vector", {
-                                        a: "0.2",
-                                        b: "-0.3",
-                                        c: "0",
-                                        x: "0",
-                                        y: "0",
-                                        z: "0",
-                                        show: true,
-                                        }, objects)
-                                }>
-                                    Vector <M size="sm">\mathbf v = \langle a, b, c \rangle</M>
-                                </DropdownItem>
-                                <DropdownItem on:click={() =>
-                                    objects = makeObject(null, "curve", {
-                                        a: "0",
-                                        b: "2*pi",
-                                        x: "cos(t)",
-                                        y: "sin(t)",
-                                        z: `cos(${Math.ceil(10 * Math.random()).toString()}*t)`,
-                                        tau: 0,
-                                        color: `#${makeHSLColor(Math.random()).getHexString()}`,
-                                    },
-                                    objects
-                                )}
-                                >
-                                    Space Curve <M size="sm">\mathbf r(t)</M>
-                                </DropdownItem>
-                                <DropdownItem on:click={() =>
-                                    objects = makeObject(null, "graph", {
-                                        a: "-2",
-                                        b: "2",
-                                        c: "-2",
-                                        d: "2",
-                                        z: `cos(${Math.ceil(
-                                        3 * Math.random()
-                                        ).toString()}*x + ${Math.ceil(
-                                        2 * Math.random()
-                                        ).toString()}*y)/(1 + x^2 + y^2)`,
-                                        tau: 0,
-                                        // color: "#3232ff",
-                                    }, objects)}>
-                                    Graph <M size="sm">z = f(x,y)</M>
-                                </DropdownItem>
-                                <DropdownItem on:click={() =>
-                                    objects = makeObject(null, "level", {
-                                        g: "x^2 + 2 y^2 - z^2",
-                                        k: "1",
-                                        a: "-2",
-                                        b: "2",
-                                        c: "-2",
-                                        d: "2",
-                                        e: "-2",
-                                        f: "2",
-                                    }, objects)}>
-                                    Level Surface <M size="sm">g(x,y,z) = k</M>
-                                </DropdownItem>
-                                <DropdownItem on:click={() =>
-                                    objects = makeObject(null, "parsurf", {
-                                        a: "0",
-                                        b: "2*pi",
-                                        c: "0",
-                                        d: "2*pi",
-                                        x: "cos(u)*(1 + sin(v)/3)",
-                                        y: "sin(u)*(1 + sin(v)/3)",
-                                        z: "cos(v)/3",
-                                    }, objects)}>
-                                    Parametric Surface <M size="sm">\mathbf r(u,v)</M>
-                                </DropdownItem>
-                                <DropdownItem on:click={() =>
-                                    objects = makeObject(null, "field", {
-                                        p: "x",
-                                        q: "y",
-                                        r: "-z",
-                                        nVec: 6,
-                                    }, objects)}>
-                                    Vector Field<M size="sm">\mathbf F(x,y,z)</M>
-                                </DropdownItem>
+                                            a: "0.2",
+                                            b: "-0.3",
+                                            c: "0",
+                                            x: "0",
+                                            y: "0",
+                                            z: "0",
+                                            show: true,
+                                        }, objects)}
+                                    >
+                                        Vector <M size="sm">\mathbf v = \langle a, b, c \rangle</M>
+                                    </DropdownItem>
+                                    <DropdownItem on:click={() =>
+                                        objects = makeObject(null, "curve", {
+                                            a: "0",
+                                            b: "2*pi",
+                                            x: "cos(t)",
+                                            y: "sin(t)",
+                                            z: `cos(${Math.ceil(10 * Math.random()).toString()}*t)`,
+                                            tau: 0,
+                                            color: `#${makeHSLColor(Math.random()).getHexString()}`,
+                                        }, objects)}
+                                    >
+                                        Space Curve <M size="sm">\mathbf r(t)</M>
+                                    </DropdownItem>
+                                    <DropdownItem on:click={() =>
+                                        objects = makeObject(null, "graph", {
+                                            a: "-2",
+                                            b: "2",
+                                            c: "-2",
+                                            d: "2",
+                                            z: `cos(${Math.ceil(
+                                            3 * Math.random()
+                                            ).toString()}*x + ${Math.ceil(
+                                            2 * Math.random()
+                                            ).toString()}*y)/(1 + x^2 + y^2)`,
+                                            tau: 0,
+                                        }, objects)}
+                                    >
+                                        Graph <M size="sm">z = f(x,y)</M>
+                                    </DropdownItem>
+                                    <DropdownItem on:click={() =>
+                                        objects = makeObject(null, "level", {
+                                            g: "x^2 + 2 y^2 - z^2",
+                                            k: "1",
+                                            a: "-2",
+                                            b: "2",
+                                            c: "-2",
+                                            d: "2",
+                                            e: "-2",
+                                            f: "2",
+                                        }, objects)}
+                                    >
+                                        Level Surface <M size="sm">g(x,y,z) = k</M>
+                                    </DropdownItem>
+                                    <DropdownItem on:click={() =>
+                                        objects = makeObject(null, "parsurf", {
+                                            a: "0",
+                                            b: "2*pi",
+                                            c: "0",
+                                            d: "2*pi",
+                                            x: "cos(u)*(1 + sin(v)/3)",
+                                            y: "sin(u)*(1 + sin(v)/3)",
+                                            z: "cos(v)/3",
+                                        }, objects)}
+                                    >
+                                        Parametric Surface <M size="sm">\mathbf r(u,v)</M>
+                                    </DropdownItem>
+                                    <DropdownItem on:click={() =>
+                                        objects = makeObject(null, "field", {
+                                            p: "x",
+                                            q: "y",
+                                            r: "-z",
+                                            nVec: 6,
+                                        }, objects)}
+                                    >
+                                        Vector Field<M size="sm">\mathbf F(x,y,z)</M>
+                                    </DropdownItem>
                                 </DropdownMenu>
                             </ButtonDropdown>
                             <button class="btn btn-danger" on:click={blowUpObjects}>
@@ -741,10 +757,13 @@
                     </div>
                 </div>
                 <button class="btn btn-sm btn-light mt-1 raise-lower-button d-flex justify-content-center"
-                        title="Raise/Lower window"
+                        title={shadeUp ? 'Reveal Menu' : 'Hide Menu'}
                         on:click={() => {
-                    shadeUp = !shadeUp;
-                    }}>
+                            shadeUp = !shadeUp;
+                            if (canvas) {
+                                canvas.focus();
+                            }
+                        }}>
                     <i class={`bi bi-chevron-${shadeUp ? 'down' : 'up'}`}></i>
                 </button>
             </div>
@@ -775,15 +794,19 @@
             bind:orthoCamera
             bind:currentMode
             on:animate={animateIfNotAnimating}
-            />
+        />
     </div>
 
     {#if roomId}
         <div class="active-users-count"
-             title={activeUserCount + ' users in session'}>
+             title={activeUserCount + ' users in session'}
+        >
             <i class="bi bi-person-fill"></i>
             {activeUserCount}
         </div>
+        <a class="leave-room" href="/" title="Exit Room">
+                <i class="fa fa-sign-out" />
+        </a>
     {/if}
 </main>
 <style>
@@ -862,7 +885,7 @@
         display: flex;
         justify-content: flex-start;
         width: clamp(23ch, 30%, 45ch);
-        z-index: -1;
+        z-index: 10;
     }
 
     .raise-lower-button {
@@ -882,5 +905,16 @@
         border: 1px solid black;
         border-radius: 0.5em;
         padding: 5px;
+    }
+
+    .leave-room {
+        background-color: transparent;
+        border: 0;
+        bottom: 5px;
+        color: #333;
+        padding: 0;
+        position: absolute;
+        right: 10px;
+        font-size: 2rem;
     }
 </style>
