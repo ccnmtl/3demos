@@ -3,10 +3,9 @@ from selenium import webdriver
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service as ChromeService
-from webdriver_manager.chrome import ChromeDriverManager
-from webdriver_manager.core.utils import ChromeType
+from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.firefox.service import Service as FirefoxService
+from webdriver_manager.firefox import GeckoDriverManager
 
 
 class RoomTests(ChannelsLiveServerTestCase):
@@ -17,27 +16,12 @@ class RoomTests(ChannelsLiveServerTestCase):
         super().setUpClass()
         options = Options()
 
-        options.add_argument('--no-sandbox')
         options.add_argument('--headless')
-        options.add_argument('--disable-gpu')
-        options.add_argument('--disable-dev-shm-usage')
-        options.add_argument('--profile-directory=Default')
-        options.add_argument('--user-data-dir=~/.config/google-chrome')
 
-        try:
-            cdm = ChromeDriverManager(
-                chrome_type=ChromeType.CHROMIUM).install()
-        except ValueError:
-            # Fall back to Chrome
-            cdm = ChromeDriverManager().install()
-
-        try:
-            cls.driver = webdriver.Chrome(
-                service=ChromeService(cdm),
-                options=options)
-        except:  # noqa
-            super().tearDownClass()
-            raise
+        cls.driver = webdriver.Firefox(
+            service=FirefoxService(GeckoDriverManager().install()),
+            options=options
+        )
 
     @classmethod
     def tearDownClass(cls):
