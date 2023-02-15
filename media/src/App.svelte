@@ -294,12 +294,12 @@
             canvas: el,
         });
 
-        controls = new OrbitControls(camera, canvas);
-        controls2 = new OrbitControls(camera2, canvas);
+        controls = new OrbitControls(camera, el);
+        controls2 = new OrbitControls(camera2, el);
 
         // Enable camera keyboard controls
-        controls.listenToKeyEvents(window);
-        controls2.listenToKeyEvents(window);
+        controls.listenToKeyEvents(el);
+        controls2.listenToKeyEvents(el);
 
         controls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
         controls.dampingFactor = 0.05;
@@ -412,14 +412,6 @@
                 objects = makeObject(val.uuid, val.kind, val.params, objects);
             }
         }
-
-        const inputarea = document.getElementsByClassName('objectBoxOuter')[0];
-        inputarea.addEventListener('focusin', () => {
-            controls.enabled = false;
-        });
-        inputarea.addEventListener('focusout', () => {
-            controls.enabled = true;
-        });
     });
 
     const onPublishScene = function () {
@@ -479,7 +471,7 @@
 </script>
 
 <main>
-    <canvas bind:this={canvas} id="c" />
+    <canvas bind:this={canvas} id="c" tabIndex="0" />
 
     <div class="info">
         <div class="info-inner">
