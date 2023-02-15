@@ -67,6 +67,9 @@
 
     let canvas;
 
+    // When the shade goes up, focus on the canvas (for keydown events)
+    $: if (shadeUp) canvas?.focus();
+
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(
         75,
@@ -388,9 +391,6 @@
                 }
                 if (key === 'shadeUp') {
                     shadeUp = true;
-                    if (canvas) {
-                        canvas.focus();
-                    }
                 }
                 if (key === 'grid') {
                     gridMeshes.visible = val === 'true';
@@ -456,9 +456,6 @@
             switch (e.code) {
                 case 'Space':
                     shadeUp = !shadeUp;
-                    if (canvas) {
-                        canvas.focus();
-                    }
                     break;
             }
         }
@@ -561,9 +558,6 @@
                     title={shadeUp ? 'Reveal Menu' : 'Hide Menu'}
                     on:click={() => {
                         shadeUp = !shadeUp;
-                        if (canvas) {
-                            canvas.focus();
-                        }
                     }}
                 >
                     <i class={`bi bi-chevron-${shadeUp ? 'down' : 'up'}`} />
@@ -897,9 +891,6 @@
                     title={shadeUp ? 'Reveal Menu' : 'Hide Menu'}
                     on:click={() => {
                         shadeUp = !shadeUp;
-                        if (canvas) {
-                            canvas.focus();
-                        }
                     }}
                 >
                     <i class={`bi bi-chevron-${shadeUp ? 'down' : 'up'}`} />
