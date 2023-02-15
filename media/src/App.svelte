@@ -95,12 +95,18 @@
     // Try a sane transfer between cameras instead of turning listeners for the two controls on and off.
     $: if (orthoCamera) {
         controls2?.target.copy(controls.target);
+        controls2?.addEventListener('change', requestFrameIfNotRequested);
+
+        controls?.removeEventListener('change', requestFrameIfNotRequested);
         camera2?.position.copy(camera.position);
         if (controls) {
             controls.enableDamping = false;
         }
     } else {
         controls?.target.copy(controls2.target);
+        controls?.addEventListener('change', requestFrameIfNotRequested);
+
+        controls2?.removeEventListener('change', requestFrameIfNotRequested);
         camera?.position.copy(camera2.position);
         if (controls) {
             controls.enableDamping = true;
@@ -304,7 +310,7 @@
         controls2.maxPolarAngle = Math.PI;
 
         controls.addEventListener('change', requestFrameIfNotRequested);
-        controls2.addEventListener('change', requestFrameIfNotRequested);
+        // controls2.addEventListener('change', requestFrameIfNotRequested);
 
         // resize();
         requestFrameIfNotRequested();
