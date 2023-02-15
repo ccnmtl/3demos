@@ -1,13 +1,11 @@
 <script>
-    import { onMount, onDestroy, createEventDispatcher } from "svelte";
-    import * as THREE from "three";
-    import { create, all } from "mathjs";
-    import {
-        ParametricGeometry
-    } from 'three/examples/jsm/geometries/ParametricGeometry.js';
+    import { onMount, onDestroy, createEventDispatcher } from 'svelte';
+    import * as THREE from 'three';
+    import { create, all } from 'mathjs';
+    import { ParametricGeometry } from 'three/examples/jsm/geometries/ParametricGeometry.js';
 
-    import M from "../M.svelte";
-    import ObjHeader from "../ObjHeader.svelte";
+    import M from '../M.svelte';
+    import ObjHeader from '../ObjHeader.svelte';
     import ObjectParamInput from '../form-components/ObjectParamInput.svelte';
 
     const config = {};
@@ -21,23 +19,23 @@
         marchingSquares,
         ArrowBufferGeometry,
         blockGeometry,
-    } from "../utils.js";
+    } from '../utils.js';
 
     export let camera,
-    controls,
-    animation = false,
-    gridStep,
-    showLevelCurves = false;
+        controls,
+        animation = false,
+        gridStep,
+        showLevelCurves = false;
 
     export let params = {
-        a: "-2",
-        b: "2",
-        c: "-2",
-        d: "1 + sin(pi*x)/4",
-        z: "exp(-(1 - (x^2 + y^2))^2)",
+        a: '-2',
+        b: '2',
+        c: '-2',
+        d: '1 + sin(pi*x)/4',
+        z: 'exp(-(1 - (x^2 + y^2))^2)',
         t0: 0,
         t1: 0,
-        color: "#3232ff",
+        color: '#3232ff',
     };
 
     let paramErrors = {
@@ -45,7 +43,7 @@
         b: false,
         c: false,
         d: false,
-        z: false
+        z: false,
     };
 
     let oldParams = Object.assign({}, params);
@@ -58,12 +56,12 @@
         }
 
         if (
-            oldParams.a !== params.a
-                || oldParams.b !== params.b
-                || oldParams.a !== params.a
-                || oldParams.c !== params.c
-                || oldParams.d !== params.d
-                || oldParams.z !== params.z
+            oldParams.a !== params.a ||
+            oldParams.b !== params.b ||
+            oldParams.a !== params.a ||
+            oldParams.c !== params.c ||
+            oldParams.d !== params.d ||
+            oldParams.z !== params.z
         ) {
             updateSurface();
             oldParams.a = params.a;
@@ -96,7 +94,7 @@
         params.t1 = 1;
     }
     if (!params.color) {
-        params.color = "#3232ff";
+        params.color = '#3232ff';
     }
 
     export let scene;
@@ -157,7 +155,7 @@
     point.visible = false;
     scene.add(point);
 
-    const tangentVectors = function() {
+    const tangentVectors = function () {
         const arrowParams = {
             radiusTop: gridStep / 10,
             radiusBottom: gridStep / 20,
@@ -165,7 +163,7 @@
         };
 
         const dx = 0.001,
-              t = params.t0 + data.tau * (params.t1 - params.t0);
+            t = params.t0 + data.tau * (params.t1 - params.t0);
 
         const x = point.position.x;
         const y = point.position.y;
@@ -182,10 +180,14 @@
 
         let fx, fy;
         try {
-            fx = (Z.evaluate({ x: x + dx, y, t }) -
-                  Z.evaluate({ x: x - dx, y, t })) / (2 * dx);
-            fy = (Z.evaluate({ x, y: y + dx, t }) -
-                  Z.evaluate({ x, y: y - dx, t })) / (2 * dx);
+            fx =
+                (Z.evaluate({ x: x + dx, y, t }) -
+                    Z.evaluate({ x: x - dx, y, t })) /
+                (2 * dx);
+            fy =
+                (Z.evaluate({ x, y: y + dx, t }) -
+                    Z.evaluate({ x, y: y - dx, t })) /
+                (2 * dx);
             paramErrors.z = false;
         } catch (e) {
             paramErrors.z = true;
@@ -196,21 +198,21 @@
             if (arrows[key].geometry.attributes.position !== undefined) {
                 const geo = arrows[key].geometry;
                 switch (key) {
-                    case "u":
+                    case 'u':
                         geo.adjustHeight(Math.sqrt(1 + fx * fx));
                         arrows[key].lookAt(1 + x, 0 + y, fx + f0);
                         break;
 
-                    case "v":
+                    case 'v':
                         geo.adjustHeight(Math.sqrt(1 + fy * fy));
                         arrows[key].lookAt(0 + x, 1 + y, fy + f0);
                         break;
 
-                    case "n":
+                    case 'n':
                         arrows[key].lookAt(-fx + x, -fy + y, 1 + f0);
                         break;
 
-                    case "grad":
+                    case 'grad':
                         geo.adjustHeight(Math.sqrt(fx * fx + fy * fy));
                         arrows[key].lookAt(x + fx, y + fy, 0);
                         arrows[key].position.z = -f0;
@@ -235,7 +237,7 @@
         const tangentPlaneGeometry = new ParametricGeometry(
             (u, v, vec) => {
                 const U = -2 + 4 * u,
-                      V = -2 + 4 * v;
+                    V = -2 + 4 * v;
 
                 vec.set(U, V, U * fx + V * fy);
                 vec.add(new THREE.Vector3(0, 0, 0.0001));
@@ -245,7 +247,7 @@
         );
 
         planeShard.geometry = tangentPlaneGeometry;
-    }
+    };
 
     const whiteLineMaterial = new THREE.LineBasicMaterial({
         color: 0xffffff,
@@ -282,7 +284,11 @@
     {
         const hsl = {};
         plusMaterial.color.getHSL(hsl);
-        minusMaterial.color.setHSL((hsl.h + 0.618033988749895) % 1, hsl.s, hsl.l);
+        minusMaterial.color.setHSL(
+            (hsl.h + 0.618033988749895) % 1,
+            hsl.s,
+            hsl.l
+        );
     }
 
     let cMin, dMax; // make these globals as useful for tangents.
@@ -292,7 +298,7 @@
     /**
      * Returns true if given params are valid.
      */
-    const checkValidParams = function(a, b, c, d) {
+    const checkValidParams = function (a, b, c, d) {
         if (a === b) {
             console.error('a and b cannot be equal');
             return false;
@@ -308,7 +314,7 @@
 
     let surfaceMesh = new THREE.Object3D();
 
-    const updateSurface = function() {
+    const updateSurface = function () {
         const { a, b, c, d, z, t0, t1 } = params;
         let A, B;
 
@@ -348,7 +354,7 @@
                 let cU, dU, zU;
 
                 try {
-                    cU = C.evaluate({x: U});
+                    cU = C.evaluate({ x: U });
                     paramErrors.c = false;
                 } catch (e) {
                     paramErrors.c = true;
@@ -356,7 +362,7 @@
                 }
 
                 try {
-                    dU = D.evaluate({x: U});
+                    dU = D.evaluate({ x: U });
                     paramErrors.d = false;
                 } catch (e) {
                     paramErrors.d = true;
@@ -369,8 +375,8 @@
                     zU = Z.evaluate({
                         x: U,
                         y: V,
-                        t: t0 + (t1 - t0) * data.tau
-                    })
+                        t: t0 + (t1 - t0) * data.tau,
+                    });
                     paramErrors.z = false;
                 } catch (e) {
                     paramErrors.z = true;
@@ -407,7 +413,9 @@
 
             surfaceMesh.add(frontMesh);
             surfaceMesh.add(backMesh);
-            surfaceMesh.add(new THREE.LineSegments(meshGeometry, whiteLineMaterial));
+            surfaceMesh.add(
+                new THREE.LineSegments(meshGeometry, whiteLineMaterial)
+            );
             scene.add(surfaceMesh);
         }
 
@@ -416,7 +424,7 @@
             zT = Z.evaluate({
                 x: 0,
                 y: 0,
-                t: data.tau * (params.t1 - params.t0) + params.t0
+                t: data.tau * (params.t1 - params.t0) + params.t0,
             });
             paramErrors.z = false;
         } catch (e) {
@@ -435,9 +443,9 @@
         }
 
         render();
-    }
+    };
 
-    const meshLines = function(rData, rNum = 10, cNum = 10, nX = 30) {
+    const meshLines = function (rData, rNum = 10, cNum = 10, nX = 30) {
         let { a, b, c, d, z } = rData;
         let A, B;
 
@@ -478,7 +486,7 @@
         const args = {
             x: A,
             y: cA,
-            t: time
+            t: time,
         };
         for (let u = A; u <= B; u += du) {
             let C, D;
@@ -534,41 +542,65 @@
         for (let v = cMin; v <= dMax; v += (dMax - cMin) / cNum) {
             const zs = marchingSegments(
                 (x) =>
-                (math.evaluate(c, { x: x }) - v) * (v - math.evaluate(d, { x: x })),
+                    (math.evaluate(c, { x: x }) - v) *
+                    (v - math.evaluate(d, { x: x })),
                 A,
                 B,
                 nX
             );
-            args["y"] = v;
+            args['y'] = v;
             let nextZero = zs.shift();
             for (let u = A; u <= B - dx + tol; u += dx) {
                 args.x = u;
-                if (math.evaluate(c, args) <= v && v <= math.evaluate(d, args)) {
+                if (
+                    math.evaluate(c, args) <= v &&
+                    v <= math.evaluate(d, args)
+                ) {
                     points.push(
-                        new THREE.Vector3(args.x, args.y, math.evaluate(z, args))
+                        new THREE.Vector3(
+                            args.x,
+                            args.y,
+                            math.evaluate(z, args)
+                        )
                     );
                     if (nextZero < u + dx) {
                         args.x = nextZero;
                         points.push(
-                            new THREE.Vector3(args.x, args.y, math.evaluate(z, args))
+                            new THREE.Vector3(
+                                args.x,
+                                args.y,
+                                math.evaluate(z, args)
+                            )
                         );
                         nextZero = zs.shift();
                     } else {
                         args.x = u + dx;
                         points.push(
-                            new THREE.Vector3(args.x, args.y, math.evaluate(z, args))
+                            new THREE.Vector3(
+                                args.x,
+                                args.y,
+                                math.evaluate(z, args)
+                            )
                         );
                     }
                 } else {
                     if (nextZero < u + dx) {
                         args.x = nextZero;
                         points.push(
-                            new THREE.Vector3(args.x, args.y, math.evaluate(z, args))
+                            new THREE.Vector3(
+                                args.x,
+                                args.y,
+                                math.evaluate(z, args)
+                            )
                         );
                         nextZero = zs.shift();
                         args.x = u + dx;
                         points.push(
-                            new THREE.Vector3(args.x, args.y, math.evaluate(z, args))
+                            new THREE.Vector3(
+                                args.x,
+                                args.y,
+                                math.evaluate(z, args)
+                            )
                         );
                     }
                 }
@@ -577,9 +609,9 @@
 
         const geometry = new THREE.BufferGeometry().setFromPoints(points);
         return geometry;
-    }
+    };
 
-    const evolveSurface = function(t) {
+    const evolveSurface = function (t) {
         let Z;
         try {
             Z = math.parse(params.z).compile();
@@ -596,7 +628,7 @@
             let index = 0;
             for (let i = 0; i < positions.length / 3; i++) {
                 const x = positions[index++],
-                      y = positions[index++];
+                    y = positions[index++];
                 positions[index++] = Z.evaluate({ x, y, t });
             }
 
@@ -605,7 +637,7 @@
             if (j === 0) {
                 const normals = geometry.attributes.normal.array;
                 const vec = new THREE.Vector3(),
-                      dx = 0.001;
+                    dx = 0.001;
                 let index = 0;
                 for (let i = 0; i < normals.length / 3; i++) {
                     const ix = index++;
@@ -613,12 +645,14 @@
                     const iz = index++;
 
                     const x = positions[ix],
-                          y = positions[iy];
+                        y = positions[iy];
 
                     const fx =
-                          Z.evaluate({ x: x + dx, y, t }) - Z.evaluate({ x: x - dx, y, t });
+                        Z.evaluate({ x: x + dx, y, t }) -
+                        Z.evaluate({ x: x - dx, y, t });
                     const fy =
-                          Z.evaluate({ x, y: y + dx, t }) - Z.evaluate({ x, y: y - dx, t });
+                        Z.evaluate({ x, y: y + dx, t }) -
+                        Z.evaluate({ x, y: y - dx, t });
 
                     vec.set(-fx, -fy, 2 * dx).normalize();
                     normals[ix] = vec.x;
@@ -640,7 +674,7 @@
 
             tangentVectors();
         }
-    }
+    };
 
     const levelHolder = new THREE.Object3D();
     scene.add(levelHolder);
@@ -651,15 +685,15 @@
     );
     scene.add(curveBall);
 
-    const shiftInterpolation = function(t, L) {
+    const shiftInterpolation = function (t, L) {
         if (t < 2) {
             return L - (L / 2) * t;
         } else {
             return (L / 2) * ((3 - t) ** 3 - (3 - t) ** 2);
         }
-    }
+    };
 
-    const updateColor = function() {
+    const updateColor = function () {
         plusMaterial.color.set(params.color);
         const col = new THREE.Color(params.color);
         const hsl = {};
@@ -667,7 +701,7 @@
         hsl.h = (hsl.h + 0.618033988749895) % 1;
         minusMaterial.color.setHSL(hsl.h, hsl.s, hsl.l);
         render();
-    }
+    };
 
     update = function (dt) {
         if (data.animateTime) {
@@ -680,7 +714,7 @@
 
         if (
             (data.shiftLevel < 3 && data.levelDelta > 0) ||
-                (data.shiftLevel > 0 && data.levelDelta < 0)
+            (data.shiftLevel > 0 && data.levelDelta < 0)
         ) {
             const newLevel = data.shiftLevel + data.levelDelta * dt;
             data.shiftLevel = Math.max(0, Math.min(3, newLevel));
@@ -703,14 +737,14 @@
         render();
     };
 
-    const changeLevels = function(t) {
+    const changeLevels = function (t) {
         for (let index = 0; index < levelHolder.children.length; index++) {
             const element = levelHolder.children[index];
             element.position.set(0, 0, shiftInterpolation(t, element.level));
         }
-    }
+    };
 
-    const updateLevels = function() {
+    const updateLevels = function () {
         for (let index = levelHolder.children.length - 1; index >= 0; index--) {
             const element = levelHolder.children[index];
             element.geometry.dispose();
@@ -724,8 +758,14 @@
             zMax = 0;
         const [A, B] = [math.evaluate(a), math.evaluate(b)];
         for (let i = 0; i <= data.nL; i++) {
-            C = Math.min(C, math.evaluate(c, { x: A + ((B - A) * i) / data.nL }));
-            D = Math.max(D, math.evaluate(d, { x: A + ((B - A) * i) / data.nL }));
+            C = Math.min(
+                C,
+                math.evaluate(c, { x: A + ((B - A) * i) / data.nL })
+            );
+            D = Math.max(
+                D,
+                math.evaluate(d, { x: A + ((B - A) * i) / data.nL })
+            );
             for (let j = 0; j <= data.nL; j++) {
                 const Z = math.evaluate(z, {
                     x: A + ((B - A) * i) / data.nL,
@@ -775,7 +815,11 @@
                 );
 
                 levelMesh.level = lev;
-                levelMesh.position.set(0, 0, shiftInterpolation(data.shiftLevel, lev));
+                levelMesh.position.set(
+                    0,
+                    0,
+                    shiftInterpolation(data.shiftLevel, lev)
+                );
 
                 levelHolder.add(levelMesh);
             }
@@ -787,8 +831,21 @@
             0,
             shiftInterpolation(data.shiftLevel, curveBall.level)
         );
+    };
+
+    $: {
+        if (showLevelCurves) {
+            updateLevels();
+            levelHolder.visible = true;
+        } else {
+            levelHolder.visible = false;
+        }
+        render();
     }
 
+    // For drawing Riemann sums
+    //  - Construct boxes overdomain of function with height given
+    // by the function value at that location
     const boxMesh = new THREE.Mesh();
     boxMesh.material = colorMaterial;
     boxMesh.visible = false;
@@ -799,7 +856,7 @@
     );
     boxMesh.add(boxMeshEdges);
 
-    const updateBoxes = function() {
+    const updateBoxes = function () {
         const { a, b, c, d, z } = params;
         const t = params.t0 + data.tau * (params.t1 - params.t0);
         const [A, B, C, D] = [
@@ -827,7 +884,7 @@
             data.t
         );
         boxMeshEdges.geometry = new THREE.EdgesGeometry(boxMesh.geometry);
-    }
+    };
 
     onMount(() => {
         updateSurface();
@@ -849,8 +906,8 @@
         scene.remove(boxMesh);
 
         scene.remove(point);
-        window.removeEventListener("keydown", shiftDown);
-        window.removeEventListener("keyup", shiftUp);
+        window.removeEventListener('keydown', shiftDown);
+        window.removeEventListener('keyup', shiftUp);
         render();
     });
 
@@ -858,7 +915,7 @@
 
     let mouseVector = new THREE.Vector2();
 
-    const onMouseMove = function(e) {
+    const onMouseMove = function (e) {
         // normalized mouse coordinates
         mouseVector.x = 2 * (e.clientX / window.innerWidth) - 1;
         mouseVector.y = 1 - 2 * (e.clientY / window.innerHeight);
@@ -880,24 +937,24 @@
 
             render();
         }
-    }
+    };
 
-    const activateLevelElevator = function() {
+    const activateLevelElevator = function () {
         animation = true;
         data.levelDelta *= -1;
-        dispatch("animate");
-    }
+        dispatch('animate');
+    };
 
     const shiftDown = (e) => {
         if (shadeUp) {
             switch (e.key) {
-                case "Shift":
-                    window.addEventListener("mousemove", onMouseMove, false);
+                case 'Shift':
+                    window.addEventListener('mousemove', onMouseMove, false);
                     break;
-                case "0":
+                case '0':
                     activateLevelElevator();
                     break;
-                case "c":
+                case 'c':
                     controls.target.set(
                         point.position.x,
                         point.position.y,
@@ -905,53 +962,45 @@
                     );
                     render();
                     break;
-                case "Backspace":
+                case 'Backspace':
                     surfaceMesh.visible = !surfaceMesh.visible;
                     render();
                     break;
-                case "t":
+                case 't':
                     point.visible = !point.visible;
                     render();
                     break;
-                case "y":
+                case 'y':
                     planeShard.visible = !planeShard.visible;
                     render();
                     break;
-                case "n":
+                case 'n':
                     arrows.n.visible = !arrows.n.visible;
                     render();
                     break;
-                case "b":
+                case 'b':
                     boxMesh.visible = !boxMesh.visible;
                     render();
                     break;
-                case ">":
+                case '>':
                     data.N = Math.min(101, data.N + 1);
                     updateBoxes();
                     render();
                     break;
-                case "<":
+                case '<':
                     data.N = Math.max(1, data.N - 1);
                     updateBoxes();
                     render();
                     break;
-                case "l":
+                case 'l':
                     showLevelCurves = !showLevelCurves;
-                    if (showLevelCurves) {
-                        updateLevels();
-                        levelHolder.visible = true;
-                    } else {
-                        levelHolder.visible = false;
-                    }
-                    render();
                     break;
-                case "p":
+                case 'p':
                     data.animateTime = !data.animateTime;
                     if (data.animateTime) {
                         animation = true;
-                        dispatch("animate");
+                        dispatch('animate');
                         showLevelCurves = false;
-                        levelHolder.visible = false;
                     }
                     break;
             }
@@ -959,24 +1008,21 @@
     };
 
     const shiftUp = (e) => {
-        if (e.key === "Shift") {
-            window.removeEventListener("mousemove", onMouseMove);
+        if (e.key === 'Shift') {
+            window.removeEventListener('mousemove', onMouseMove);
         }
     };
 
-    window.addEventListener("keydown", shiftDown, false);
-    window.addEventListener("keyup", shiftUp, false);
+    window.addEventListener('keydown', shiftDown, false);
+    window.addEventListener('keyup', shiftUp, false);
 </script>
 
 <div class="boxItem">
     <div class="box-title">
         <strong>Graph of function</strong>
-        <ObjHeader
-            bind:hidden={hidden}
-            bind:onClose={onClose}
-        />
+        <ObjHeader bind:hidden bind:onClose />
     </div>
-    <div hidden={hidden}>
+    <div {hidden}>
         <div class="container">
             <span class="box-1">
                 <M size="sm">f(x,y[,t]) =</M>
@@ -988,7 +1034,8 @@
                     params.z = newVal;
                     updateSurface();
                     data.animateTime = false;
-                }} />
+                }}
+            />
             <ObjectParamInput
                 className="form-control form-control-sm box"
                 error={paramErrors.a}
@@ -997,7 +1044,8 @@
                     params.a = newVal;
                     onUpdate();
                     updateSurface();
-                }} />
+                }}
+            />
             <span class="box box-3">
                 <M size="sm">\leq x \leq</M>
             </span>
@@ -1009,7 +1057,8 @@
                     params.b = newVal;
                     onUpdate();
                     updateSurface();
-                }} />
+                }}
+            />
 
             <ObjectParamInput
                 className="form-control form-control-sm box"
@@ -1019,7 +1068,8 @@
                     params.c = newVal;
                     onUpdate();
                     updateSurface();
-                }} />
+                }}
+            />
             <span class="box box-3">
                 <M size="sm">\leq y \leq</M>
             </span>
@@ -1031,7 +1081,8 @@
                     params.d = newVal;
                     onUpdate();
                     updateSurface();
-                }} />
+                }}
+            />
             <span class="box-1">
                 <M size="sm">x</M>-meshes
             </span>
@@ -1045,7 +1096,11 @@
                     const mesh = surfaceMesh.children[2];
                     mesh.geometry.dispose();
                     mesh.geometry = meshLines(
-                        params, data.rNum, data.cNum, data.nX);
+                        params,
+                        data.rNum,
+                        data.cNum,
+                        data.nX
+                    );
                     render();
                 }}
                 class="box box-2"
@@ -1063,14 +1118,16 @@
                     const mesh = surfaceMesh.children[2];
                     mesh.geometry.dispose();
                     mesh.geometry = meshLines(
-                        params, data.rNum, data.cNum, data.nX);
+                        params,
+                        data.rNum,
+                        data.cNum,
+                        data.nX
+                    );
                     render();
                 }}
                 class="box box-2"
             />
-            <span class="box-1">
-                Resolution
-            </span>
+            <span class="box-1"> Resolution </span>
             <input
                 type="range"
                 bind:value={data.nX}
@@ -1080,11 +1137,22 @@
                 on:input={updateSurface}
                 class="box box-2"
             />
-            <span class="box-1">
-                Levels
-            </span>
-            <span class="box-2">
-                <button class="btn box-2" on:click={activateLevelElevator}>
+            <span class="box-1"> Levels </span>
+            <label class="switch box box-3">
+                <input
+                    type="checkbox"
+                    name="showLevels"
+                    id="showLevels"
+                    bind:checked={showLevelCurves}
+                />
+                <span class="slider round" />
+            </label>
+            <span class="box-4">
+                <button
+                    class="btn box-4"
+                    on:click={activateLevelElevator}
+                    class:hidden={!showLevelCurves}
+                >
                     {#if data.levelDelta === 1}
                         Up <i class="fa fa-caret-up" />
                     {:else}
@@ -1092,9 +1160,7 @@
                     {/if}
                 </button>
             </span>
-            <span class="box-1">
-                View Graph
-            </span>
+            <span class="box-1"> View Graph </span>
             <label class="switch box box-2">
                 <input
                     type="checkbox"
@@ -1111,7 +1177,8 @@
                 initialValue={params.t0}
                 onChange={(newVal) => {
                     params.t0 = newVal;
-                }} />
+                }}
+            />
             <span class="box box-3">
                 <M size="sm">\leq t \leq</M>
             </span>
@@ -1121,7 +1188,8 @@
                 initialValue={params.t1}
                 onChange={(newVal) => {
                     params.t1 = newVal;
-                }} />
+                }}
+            />
 
             <span class="box-1">
                 <M size="sm">t</M>
@@ -1139,41 +1207,42 @@
                 class="box box-2"
             />
             <span class="play-buttons box-4">
-                <button class="btn box-1"
+                <button
+                    class="btn box-1"
                     on:click={() => {
-                    data.animateTime = !data.animateTime;
-                    if (data.animateTime) {
-                    animation = true;
-                    dispatch("animate");
-                    }
+                        data.animateTime = !data.animateTime;
+                        if (data.animateTime) {
+                            animation = true;
+                            dispatch('animate');
+                        }
                     }}
-                    >
+                >
                     {#if !data.animateTime}
                         <i class="fa fa-play" />
                     {:else}
                         <i class="fa fa-pause" />
                     {/if}
                 </button>
-                <button class="btn box-3"
+                <button
+                    class="btn box-3"
                     on:click={() => {
-                    data.animateTime = false;
-                    render();
+                        data.animateTime = false;
+                        render();
                     }}
-                    >
+                >
                     <i class="fa fa-stop" />
                 </button>
-                <button class="btn box-4"
+                <button
+                    class="btn box-4"
                     on:click={() => {
-                    data.tau = 0;
-                    evolveSurface(params.t0);
+                        data.tau = 0;
+                        evolveSurface(params.t0);
                     }}
-                    >
+                >
                     <i class="fa fa-fast-backward" />
                 </button>
             </span>
-            <span class="box-1">
-                Tangents
-            </span>
+            <span class="box-1"> Tangents </span>
             <label class="switch box box-2">
                 <input
                     type="checkbox"
@@ -1197,9 +1266,7 @@
                     style="width:85%; padding: 1px 1px;"
                 />
             </span>
-            <span class="box-1">
-                Integrate
-            </span>
+            <span class="box-1"> Integrate </span>
             <label class="switch box box-2">
                 <input
                     type="checkbox"
@@ -1207,7 +1274,9 @@
                     id="doIntegral"
                     bind:checked={boxMesh.visible}
                     on:change={() => {
-                        if (boxMesh.visible) {updateBoxes();}
+                        if (boxMesh.visible) {
+                            updateBoxes();
+                        }
                         render();
                     }}
                 />
@@ -1252,3 +1321,10 @@
         </div>
     </div>
 </div>
+
+<style>
+    .hidden {
+        display: none;
+        background-color: aliceblue;
+    }
+</style>
