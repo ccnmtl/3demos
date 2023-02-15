@@ -67,6 +67,9 @@
 
     let canvas;
 
+    // When the shade goes up, focus on the canvas (for keydown events)
+    $: if (shadeUp) canvas?.focus();
+
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(
         75,
@@ -95,12 +98,18 @@
     // Try a sane transfer between cameras instead of turning listeners for the two controls on and off.
     $: if (orthoCamera) {
         controls2?.target.copy(controls.target);
+        controls2?.addEventListener('change', requestFrameIfNotRequested);
+
+        controls?.removeEventListener('change', requestFrameIfNotRequested);
         camera2?.position.copy(camera.position);
         if (controls) {
             controls.enableDamping = false;
         }
     } else {
         controls?.target.copy(controls2.target);
+        controls?.addEventListener('change', requestFrameIfNotRequested);
+
+        controls2?.removeEventListener('change', requestFrameIfNotRequested);
         camera?.position.copy(camera2.position);
         if (controls) {
             controls.enableDamping = true;
@@ -288,12 +297,12 @@
             canvas: el,
         });
 
-        controls = new OrbitControls(camera, canvas);
-        controls2 = new OrbitControls(camera2, canvas);
+        controls = new OrbitControls(camera, el);
+        controls2 = new OrbitControls(camera2, el);
 
         // Enable camera keyboard controls
-        controls.listenToKeyEvents(window);
-        controls2.listenToKeyEvents(window);
+        controls.listenToKeyEvents(el);
+        controls2.listenToKeyEvents(el);
 
         controls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
         controls.dampingFactor = 0.05;
@@ -304,7 +313,7 @@
         controls2.maxPolarAngle = Math.PI;
 
         controls.addEventListener('change', requestFrameIfNotRequested);
-        controls2.addEventListener('change', requestFrameIfNotRequested);
+        // controls2.addEventListener('change', requestFrameIfNotRequested);
 
         // resize();
         requestFrameIfNotRequested();
@@ -382,9 +391,6 @@
                 }
                 if (key === 'shadeUp') {
                     shadeUp = true;
-                    if (canvas) {
-                        canvas.focus();
-                    }
                 }
                 if (key === 'grid') {
                     gridMeshes.visible = val === 'true';
@@ -406,14 +412,6 @@
                 objects = makeObject(val.uuid, val.kind, val.params, objects);
             }
         }
-
-        const inputarea = document.getElementsByClassName('objectBoxOuter')[0];
-        inputarea.addEventListener('focusin', () => {
-            controls.enabled = false;
-        });
-        inputarea.addEventListener('focusout', () => {
-            controls.enabled = true;
-        });
     });
 
     const onPublishScene = function () {
@@ -458,9 +456,6 @@
             switch (e.code) {
                 case 'Space':
                     shadeUp = !shadeUp;
-                    if (canvas) {
-                        canvas.focus();
-                    }
                     break;
             }
         }
@@ -473,7 +468,7 @@
 </script>
 
 <main>
-    <canvas bind:this={canvas} id="c" />
+    <canvas bind:this={canvas} id="c" tabIndex="0" />
 
     <div class="info">
         <div class="info-inner">
@@ -563,9 +558,6 @@
                     title={shadeUp ? 'Reveal Menu' : 'Hide Menu'}
                     on:click={() => {
                         shadeUp = !shadeUp;
-                        if (canvas) {
-                            canvas.focus();
-                        }
                     }}
                 >
                     <i class={`bi bi-chevron-${shadeUp ? 'down' : 'up'}`} />
@@ -899,9 +891,6 @@
                     title={shadeUp ? 'Reveal Menu' : 'Hide Menu'}
                     on:click={() => {
                         shadeUp = !shadeUp;
-                        if (canvas) {
-                            canvas.focus();
-                        }
                     }}
                 >
                     <i class={`bi bi-chevron-${shadeUp ? 'down' : 'up'}`} />
