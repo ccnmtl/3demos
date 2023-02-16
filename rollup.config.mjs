@@ -11,7 +11,7 @@ const production = !process.env.ROLLUP_WATCH;
 export default {
     input: "media/src/main.js",
     output: {
-        sourcemap: false,
+        sourcemap: !production,
         format: "iife",
         name: "app",
         file: "media/mathplayground/build/bundle.js",
@@ -36,7 +36,7 @@ export default {
             browser: true,
             dedupe: ["svelte"],
         }),
-        commonjs({sourceMap: production}),
+        commonjs({sourceMap: !production}),
         production && terser()
     ],
     watch: {
