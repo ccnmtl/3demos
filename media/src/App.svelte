@@ -64,10 +64,10 @@
     let shadeUp = false;
     let scaleAnimation = false;
     let scaleUpdate;
-    let selection = null;
+    let selectedObject = null;
 
     const selectObject = (uuid) => {
-        selection = uuid;
+        selectedObject = uuid;
     }
 
     let canvas;
@@ -463,31 +463,31 @@
             if (e.code === "Space") {
                 shadeUp = !shadeUp;
             } else if (objects.length > 0) {
-                if (!selection) {
+                if (!selectedObject) {
                     switch (e.code) {
                         case "BracketRight":
-                            selection = objects[objects.length-1].uuid;
+                            selectedObject = objects[objects.length-1].uuid;
                             break;
                         case "BracketLeft":
-                            selection = objects[0].uuid;
+                            selectedObject = objects[0].uuid;
                             break;
                     }
                 } else {
-                    while (i < objects.length && objects[i].uuid !== selection) { i++; }
+                    while (i < objects.length && objects[i].uuid !== selectedObject) { i++; }
                     switch(e.code) {
                         case "BracketRight":
                             if (i === 0) {
-                                selection = objects[objects.length-1].uuid;
+                                selectedObject = objects[objects.length-1].uuid;
                                 break;
                             }
-                            selection = objects[i-1].uuid;
+                            selectedObject = objects[i-1].uuid;
                             break;
                         case "BracketLeft":
                             if (i > objects.length-2) {
-                                selection = objects[0].uuid
+                                selectedObject = objects[0].uuid
                                 break;
                             }
-                            selection = objects[i+1].uuid;
+                            selectedObject = objects[i+1].uuid;
                             break;
                     }
                 }
@@ -800,7 +800,7 @@
                                             ))}
                                         bind:update={b.update}
                                         bind:animation={b.animation}
-                                        bind:selected={selection}
+                                        bind:selected={selectedObject}
                                         on:click={selectObject(b.uuid)}
                                         on:keydown={altDown}
                                         uuid={b.uuid}
@@ -828,7 +828,7 @@
                                         bind:update={b.update}
                                         bind:animation={b.animation}
                                         on:animate={animateIfNotAnimating}
-                                        bind:selected={selection}
+                                        bind:selected={selectedObject}
                                         on:click={selectObject(b.uuid)}
                                         on:keydown={altDown}
                                         uuid={b.uuid}
@@ -857,7 +857,7 @@
                                         bind:update={b.update}
                                         bind:animation={b.animation}
                                         on:animate={animateIfNotAnimating}
-                                        bind:selected={selection}
+                                        bind:selected={selectedObject}
                                         on:click={selectObject(b.uuid)}
                                         on:keydown={altDown}
                                         uuid={b.uuid}
@@ -883,7 +883,7 @@
                                         bind:update={b.update}
                                         bind:animation={b.animation}
                                         on:animate={animateIfNotAnimating}
-                                        bind:selected={selection}
+                                        bind:selected={selectedObject}
                                         on:click={selectObject(b.uuid)}
                                         on:keydown={altDown}
                                         uuid={b.uuid}
@@ -909,7 +909,7 @@
                                         bind:animation={b.animation}
                                         on:animate={animateIfNotAnimating}
                                         params={b.params}
-                                        bind:selected={selection}
+                                        bind:selected={selectedObject}
                                         on:click={selectObject(b.uuid)}
                                         on:keydown={altDown}
                                         uuid={b.uuid}
@@ -933,7 +933,7 @@
                                                 objects
                                             ))}
                                         params={b.params}
-                                        bind:selected={selection}
+                                        bind:selected={selectedObject}
                                         on:click={selectObject(b.uuid)}
                                         on:keydown={altDown}
                                         uuid={b.uuid}
