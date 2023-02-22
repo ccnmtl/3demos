@@ -88,9 +88,12 @@
     }
 
     export let scene;
+    export let shadeUp;
     export let render = () => {};
     export let onClose = () => {};
     export let onUpdate = () => {};
+    export let controls;
+    export let camera;
     export let gridStep;
     export let animation = false;
     export let selected;
@@ -440,10 +443,91 @@
         scene.remove(circleTube);
         scene.remove(frame);
 
+        window.removeEventListener('keydown', shiftDown);
+        window.removeEventListener('keyup', shiftUp);
         render();
     });
 
     $: texString1 = `t = ${stringifyT(params)}`;
+
+    const raycaster = new THREE.Raycaster();
+
+    let mouseVector = new THREE.Vector2();
+
+    const onMouseMove = function (e) {
+        // normalized mouse coordinates
+        mouseVector.x = 2 * (e.clientX / window.innerWidth) - 1;
+        mouseVector.y = 1 - 2 * (e.clientY / window.innerHeight);
+
+        raycaster.setFromCamera(mouseVector, camera);
+
+        const intersects = raycaster.intersectObjects(
+            tube,
+            true
+        );
+
+        if (intersects.length > 0) {
+            const intersect = intersects[0];
+            point.position.x = intersect.point.x;
+            point.position.y = intersect.point.y;
+            point.position.z = intersect.point.z;
+
+            render();
+        }
+    };
+
+    const shiftDown = (e) => {
+        if (shadeUp) {
+            switch (e.key) {
+                case 'Backspace':
+                    if(tube.visible) {
+                        tube.visible = false;
+                        circleTube.visible = false;
+                    } else {
+                        tube.visible = true;
+                        circleTube.visible = osculatingCircle;
+                    }
+                    render();
+                    break;
+                case 'Shift':
+                    window.addEventListener('mousemove', onMouseMove, false);
+                    frame.visible = true;
+                    break;
+                case 'c':
+                    controls.target.set(
+                        point.position.x,
+                        point.position.y,
+                        point.position.z
+                    );
+                    render();
+                    break;
+                case 'o':
+                    osculatingCircle = !osculatingCircle;
+                    render();
+                    break;
+                case 'p':
+                    startAnimation(true);
+                    break;
+                case 'r':
+                    TNB = !TNB;
+                    render();
+                    break;
+                case 't':
+                    frame.visible = !frame.visible;
+                    render();
+                    break;
+            }
+        }
+    };
+
+    const shiftUp = (e) => {
+        if (e.key === 'Shift') {
+            window.removeEventListener('mousemove', onMouseMove);
+        }
+    };
+
+    window.addEventListener('keydown', shiftDown, false);
+    window.addEventListener('keyup', shiftUp, false);
 </script>
 
 <div class={'boxItem' + (selected ? ' selected': '')} on:click on:keydown>

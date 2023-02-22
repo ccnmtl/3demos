@@ -39,7 +39,7 @@
             to the nearest point to the viewer.
         </li>
         <li>
-            <em>(c)</em> Locks camera to focus point.
+            <em>(c)</em> Sets the camera focus to the focus point.
         </li>
         <li><em>(t)</em> Shows tangent elements. Makes the focus point visible.</li>
         <ul>
@@ -62,10 +62,10 @@
         <li><em>(b)</em> Show integration boxes.</li>
         <ul>
             <li>
-                <em>(&lt;)</em> Decrease the number of intagral divisions.
+                <em>(&lt;)</em> Decrease the number of integral divisions.
             </li>
             <li>
-                <em>(&gt;)</em> Increase the number of intagral divisions.
+                <em>(&gt;)</em> Increase the number of integral divisions.
             </li>
         </ul>
         <li><em>(l)</em> Turn on topography</li>

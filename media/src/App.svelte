@@ -784,6 +784,8 @@
                                 {#if b.kind === 'parsurf'}
                                     <ParSurf
                                         {scene}
+                                        camera={currentCamera}
+                                        controls={currentControls}
                                         render={requestFrameIfNotRequested}
                                         params={b.params}
                                         onClose={() => {
@@ -798,8 +800,10 @@
                                                 b,
                                                 objects
                                             ))}
+                                        bind:shadeUp
                                         bind:update={b.update}
                                         bind:animation={b.animation}
+                                        {gridStep}
                                         selected={selectedObject === b.uuid}
                                         on:click={selectObject(b.uuid)}
                                         on:keydown={altDown}
@@ -862,6 +866,8 @@
                                 {:else if b.kind === 'curve'}
                                     <Curve
                                         {scene}
+                                        camera={currentCamera}
+                                        {controls}
                                         render={requestFrameIfNotRequested}
                                         onClose={() => {
                                             controls.enabled = true;
@@ -876,6 +882,7 @@
                                                 objects
                                             ))}
                                         params={b.params}
+                                        bind:shadeUp
                                         bind:update={b.update}
                                         bind:animation={b.animation}
                                         on:animate={animateIfNotAnimating}
@@ -902,6 +909,7 @@
                                             ))}
                                         bind:update={b.update}
                                         bind:animation={b.animation}
+                                        bind:shadeUp
                                         on:animate={animateIfNotAnimating}
                                         params={b.params}
                                         selected={selectedObject === b.uuid}
@@ -913,6 +921,7 @@
                                 {:else if b.kind === 'vector'}
                                     <Vector
                                         {scene}
+                                        bind:shadeUp={shadeUp}
                                         render={requestFrameIfNotRequested}
                                         onClose={() => {
                                             controls.enabled = true;

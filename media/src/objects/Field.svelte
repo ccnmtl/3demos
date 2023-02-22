@@ -50,6 +50,7 @@
     $: nCubed = Math.pow(params.nVec, 3);
 
     export let scene;
+    export let shadeUp;
     export let update = () => {};
     export let render = () => {};
     export let animation = false;
@@ -341,6 +342,7 @@
         );
 
         freeTrails();
+        window.removeEventListener("keydown", shiftDown, false);
         render();
     });
 
@@ -355,6 +357,32 @@
             updateFlowArrows(flowArrows, fieldF, dt);
         }
     };
+
+    const shiftDown = (e) => {
+        if (shadeUp) {
+            switch (e.key) {
+                case 'Backspace':
+                    flowArrows.visible = !flowArrows.visible;
+                    render();
+                    break;
+                case "t":
+                    trails.visible = !trails.visible;
+                    freeTrails();
+                    render();
+                    break;
+                case "p":
+                    flowArrows.visible = true;
+                    animation = !animation;
+                    if (animation) {
+                        dispatch("animate")
+                    }
+                    render();
+                    break;
+            }
+        }
+    };
+
+    window.addEventListener("keydown", shiftDown, false);
 </script>
 
 <div class={'boxItem' + (selected ? ' selected': '')} on:click on:keydown>
