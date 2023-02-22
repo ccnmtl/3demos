@@ -60,7 +60,6 @@
     export let onClose = () => {};
     export let onUpdate = () => {};
     export let selected;
-    export let uuid;
 
     export let camera,
     controls,
@@ -314,7 +313,7 @@
     }
 
     const shiftDown = (e) => {
-        if (shadeUp && selected === uuid) {
+        if (shadeUp && selected) {
             switch (e.key) {
                 case "Shift":
                     window.addEventListener("mousemove", onMouseMove, false);
@@ -353,7 +352,7 @@
     window.addEventListener("keyup", shiftUp, false);
 </script>
 
-<div class={'boxItem' + (selected === uuid ? ' selected': '')} on:click on:keydown>
+<div class={'boxItem' + (selected ? ' selected': '')} on:click on:keydown>
     <div class="box-title">
         <span>
             <strong>Level surface </strong>
