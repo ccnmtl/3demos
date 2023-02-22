@@ -803,7 +803,7 @@
                                         bind:selected={selection}
                                         on:click={selectObject(b.uuid)}
                                         on:keydown={altDown}
-                                        objID={b.uuid}
+                                        uuid={b.uuid}
                                     />
                                 {:else if b.kind === 'graph'}
                                     <Function
@@ -831,7 +831,7 @@
                                         bind:selected={selection}
                                         on:click={selectObject(b.uuid)}
                                         on:keydown={altDown}
-                                        objID={b.uuid}
+                                        uuid={b.uuid}
                                         {gridStep}
                                     />
                                 {:else if b.kind === 'level'}
@@ -860,7 +860,7 @@
                                         bind:selected={selection}
                                         on:click={selectObject(b.uuid)}
                                         on:keydown={altDown}
-                                        objID={b.uuid}
+                                        uuid={b.uuid}
                                         {gridStep}
                                     />
                                 {:else if b.kind === 'curve'}
@@ -886,7 +886,7 @@
                                         bind:selected={selection}
                                         on:click={selectObject(b.uuid)}
                                         on:keydown={altDown}
-                                        objID={b.uuid}
+                                        uuid={b.uuid}
                                         {gridStep}
                                     />
                                 {:else if b.kind === 'field'}
@@ -912,7 +912,7 @@
                                         bind:selected={selection}
                                         on:click={selectObject(b.uuid)}
                                         on:keydown={altDown}
-                                        objID={b.uuid}
+                                        uuid={b.uuid}
                                         {gridStep}
                                         {gridMax}
                                     />
@@ -936,7 +936,7 @@
                                         bind:selected={selection}
                                         on:click={selectObject(b.uuid)}
                                         on:keydown={altDown}
-                                        objID={b.uuid}
+                                        uuid={b.uuid}
                                         {gridStep}
                                     />
                                 {/if}

@@ -104,7 +104,7 @@
     export let onUpdate = () => {};
     export let update = () => {};
     export let selected;
-    export let objID;
+    export let uuid;
 
     let hidden = false;
 
@@ -948,7 +948,7 @@
     };
 
     const shiftDown = (e) => {
-        if (shadeUp && selected === objID) {
+        if (shadeUp && selected === uuid) {
             switch (e.key) {
                 case 'Shift':
                     window.addEventListener('mousemove', onMouseMove, false);
@@ -1019,7 +1019,7 @@
     window.addEventListener('keyup', shiftUp, false);
 </script>
 
-<div class={'boxItem' + (selected === objID ? ' selected': '')} on:click on:keydown>
+<div class={'boxItem' + (selected === uuid ? ' selected': '')} on:click on:keydown>
     <div class="box-title">
         <strong>Graph of function</strong>
         <ObjHeader bind:hidden bind:onClose />
