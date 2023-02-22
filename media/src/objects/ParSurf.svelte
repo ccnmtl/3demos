@@ -57,7 +57,6 @@
     export let onClose = () => {};
     export let onUpdate = () => {};
     export let selected;
-    export let uuid;
 
     let hidden = false;
 
@@ -280,7 +279,7 @@
     })
 </script>
 
-<div class={'boxItem' + (selected === uuid ? ' selected': '')} on:click on:keydown>
+<div class={'boxItem' + (selected ? ' selected': '')} on:click on:keydown>
     <div class="box-title">
         <strong>Parametric surface</strong>
         <ObjHeader
