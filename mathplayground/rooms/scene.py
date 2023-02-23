@@ -1,4 +1,5 @@
 import json
+from datetime import timedelta
 import redis
 from django.conf import settings
 from django.utils.encoding import smart_str
@@ -21,7 +22,11 @@ class RedisScene:
 
     def save_state(self, state):
         key = '{}{}'.format(SCENE_PREFIX, self.room_id)
-        self.r.set(key, json.dumps(state))
+
+        # Expire this key 24 hours from now
+        # https://redis-py.readthedocs.io/en/stable/commands.html
+        #   #redis.commands.cluster.RedisClusterCommands.set
+        self.r.set(key, json.dumps(state), ex=timedelta(hours=24))
 
     def get_state(self, parse_json=True):
         key = '{}{}'.format(SCENE_PREFIX, self.room_id)
