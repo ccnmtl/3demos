@@ -1,4 +1,5 @@
 <script>
+    import * as d3 from 'd3';
     import BarChart from '../d3/BarChart';
     import Histogram from '../d3/Histogram';
 
@@ -22,6 +23,9 @@
             return BarChart(data, {
                 x: d => d[0],
                 y: d => d[1],
+                xDomain: d3.groupSort(
+                    data, () => -1, d => d[0]
+                ),
                 // sort by descending frequency
                 yLabel: 'Responses',
                 color: 'steelblue'
