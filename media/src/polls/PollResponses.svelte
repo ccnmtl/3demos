@@ -1,5 +1,4 @@
 <script>
-    import * as d3 from 'd3';
     import BarChart from '../d3/BarChart';
     import Histogram from '../d3/Histogram';
 
@@ -7,22 +6,22 @@
     export let currentPollType;
     let el;
     let chart;
+    let pollEntries;
 
     const makeGraph = function(data, pollType) {
         if (pollType === 0) {
             // Numerical poll
             return Histogram(data, {
+                x: d => d[0],
+                y: d => d[1],
                 label: 'Response',
                 color: 'steelblue'
             });
         } else if (pollType === 1) {
             // Multiple choice
             return BarChart(data, {
-                x: d => d,
-                y: () => 1,
-                xDomain: d3.groupSort(
-                    data, () => -1, d => d
-                ),
+                x: d => d[0],
+                y: d => d[1],
                 // sort by descending frequency
                 yLabel: 'Responses',
                 color: 'steelblue'
@@ -54,9 +53,12 @@
         }
     };
 
-    $: refreshChart(pollResponses, currentPollType);
+    $: {
+        pollEntries = Object.entries(pollResponses);
+        refreshChart(pollEntries, currentPollType);
+    }
 </script>
 
-{pollResponses.length} responses
+{pollEntries.length} responses
 
 <div bind:this={el}></div>

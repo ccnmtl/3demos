@@ -426,13 +426,17 @@
     let currentChapter = 'Intro';
     let currentMode = 'intro';
 
-    let pollResponses = [];
+    let pollResponses = {};
 
     const handleSocketMessage = function (e) {
         const data = JSON.parse(e.data);
-
         if (data.message.pollResponse) {
-            pollResponses = [...pollResponses, data.message.pollResponse];
+            let choice = data.message.pollResponse;
+            if (choice in pollResponses){
+                pollResponses[choice]++;
+            } else {
+                pollResponses[choice] = 1;
+            }
         } else if (data.message.broadcastPoll) {
             currentPoll = handlePollEvent(data);
         } else if (data.message.updateActiveUsers) {
