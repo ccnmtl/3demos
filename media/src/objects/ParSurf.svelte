@@ -10,7 +10,11 @@
     const math = create(all, config);
 
     import {
-        lcm, marchingSegments, ParametricGeometry
+        // ArrowBufferGeometry,
+        lcm,
+        marchingSegments,
+        // marchingCubes,
+        ParametricGeometry
     } from "../utils.js";
     import ObjectParamInput from '../form-components/ObjectParamInput.svelte';
 
@@ -53,6 +57,10 @@
     }
 
     export let scene;
+    export let shadeUp;
+    export let controls;
+    export let camera;
+    // export let gridStep;
     export let render = () => {};
     export let onClose = () => {};
     export let onUpdate = () => {};
@@ -275,8 +283,202 @@
             child.material && child.material.dispose();
         }
         scene.remove(surfaceMesh)
+        window.removeEventListener("keydown", shiftDown, false);
+        window.removeEventListener("keyup", shiftUp, false);
         render()
     })
+
+    // Select a point
+    const tanFrame = new THREE.Object3D();
+    const arrows = {
+        u: new THREE.Mesh(),
+        v: new THREE.Mesh(),
+        n: new THREE.Mesh(),
+    };
+    const ruColors = { u: 0x992525, v: 0x252599, n: 0xb6b6b6 };
+    for (let key of Object.keys(arrows)) {
+        arrows[key].material = new THREE.MeshBasicMaterial({
+            color: ruColors[key],
+        });
+        tanFrame.add(arrows[key]);
+    }
+
+    const pointMaterial = new THREE.MeshLambertMaterial({ color: 0xffff33 });
+    const point = new THREE.Mesh(
+        new THREE.SphereGeometry(0.2 / 8, 16, 16),
+        pointMaterial
+    );
+
+    tanFrame.add(point);
+
+    const shardMaterial = new THREE.MeshPhongMaterial({
+        color: 0x4b4b4b,
+        shininess: 80,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.5,
+    });
+    const planeShard = new THREE.Mesh(new THREE.BufferGeometry(), shardMaterial);
+    tanFrame.add(planeShard);
+    planeShard.visible = true;
+
+    tanFrame.visible = false;
+
+    scene.add(tanFrame);
+
+    // const nFrame = function({
+    //             f = (x, y, z) => math.evaluate(params.z, { x, y, z }),
+    //             point = point,
+    //             eps = 1e-4,
+    //         } = {}) {
+    //     const [u, v, w] = [point.position.x, point.position.y, point.position.z];
+
+    //     let h;
+
+    //     h = Math.max(u * eps, (2 * eps) ** 2);
+    //     const fx = (f(u + h / 2, v, w) - f(u - h / 2, v, w)) / h;
+    //     h = Math.max(v * eps, (2 * eps) ** 2);
+    //     const fy = (f(u, v + h / 2, w) - f(u, v - h / 2, w)) / h;
+    //     h = Math.max(w * eps, (2 * eps) ** 2);
+    //     const fz = (f(u, v, w + h / 2) - f(u, v, w - h / 2)) / h;
+        
+    //     return { p: point.position, n: new THREE.Vector3(fx, fy, fz) };
+    // }
+
+    // Construct tangent vectors at a point u,v (both 0 to 1)
+    // const tangentVectors = function({ point, eps = 1e-4, plane = true } = {}) {
+    //     const { p, n } = nFrame({
+    //         point,
+    //         eps,
+    //     });
+        
+    //     // point.position.copy(dr.p);
+
+    //     const arrowParams = {
+    //         radiusTop: gridStep / 10,
+    //         radiusBottom: gridStep / 20,
+    //         heightTop: gridStep / 7,
+    //     };
+
+    //     const arrow = arrows.n;
+    //     const pos = p.clone();
+    //     arrow.position.copy(pos);
+    //     if (arrow.geometry) arrow.geometry.dispose();
+    //     arrow.geometry = new ArrowBufferGeometry({
+    //         ...arrowParams,
+    //         height: n.length(),
+    //     });
+    //     arrow.lookAt(pos.add(n));
+
+    //     planeShard.geometry.dispose();
+
+    //     if (plane) {
+    //         const { a, b, c, d, e, f } = params;
+
+    //         const tangentPlaneGeometry = marchingCubes({
+    //             f: (x, y, z) => {
+    //                 const xVec = new THREE.Vector3(x, y, z);
+    //                 return xVec.dot(n);
+    //             },
+    //             level: n.dot(p) + 1e-8, // offset to avoid overlap artifacts
+    //             xMin: math.evaluate(String(a)),
+    //             xMax: math.evaluate(String(b)),
+    //             yMin: math.evaluate(String(c)),
+    //             yMax: math.evaluate(String(d)),
+    //             zMin: math.evaluate(String(e)),
+    //             zMax: math.evaluate(String(f)),
+    //             N: 2,
+    //         });
+
+    //         planeShard.geometry = tangentPlaneGeometry;
+    //     }
+    // }
+
+    const raycaster = new THREE.Raycaster();
+
+    let mouseVector = new THREE.Vector2();
+
+    const onMouseMove = function(e) {
+        // normalized mouse coordinates
+        mouseVector.x = 2 * (e.clientX / window.innerWidth) - 1;
+        mouseVector.y = 1 - 2 * (e.clientY / window.innerHeight);
+
+        raycaster.setFromCamera(mouseVector, camera);
+
+        const intersects = raycaster.intersectObjects(
+            [surfaceMesh.children[0], surfaceMesh.children[1]],
+            true
+        );
+
+        if (intersects.length > 0) {
+            const intersect = intersects[0];
+            point.position.x = intersect.point.x;
+            point.position.y = intersect.point.y;
+            point.position.z = intersect.point.z;
+
+            // // Disabled until we can resolve a xyz/uv formula conversion
+            // // in the nFrame function
+
+            // tangentVectors({ point });
+
+            render();
+        }
+    }
+
+    const shiftDown = (e) => {
+        if (shadeUp) {
+            switch (e.key) {
+                case 'Backspace':
+                    surfaceMesh.visible = !surfaceMesh.visible;
+                    render();
+                    break;
+                case "Shift":
+                    window.addEventListener("mousemove", onMouseMove, false);
+                    tanFrame.visible = true;
+                    break;
+                case "c":
+                    controls.target.set(
+                        point.position.x,
+                        point.position.y,
+                        point.position.z
+                    );
+                    render();
+                    break;
+                case "t":
+                    tanFrame.visible = !tanFrame.visible;
+                    render();
+                    break;
+                case "y":
+                    if (!planeShard.visible) {
+                        tanFrame.visible = true;
+                        planeShard.visible = true;
+                    } else {
+                        planeShard.visible = false;
+                    }
+                    render();
+                    break;
+                case "n":
+                if (!arrows.n.visible) {
+                        tanFrame.visible = true;
+                        arrows.n.visible = true;
+                    } else {
+                        arrows.n.visible = false;
+                    }
+                    
+                    render();
+                    break;
+            }
+        }
+    };
+
+    const shiftUp = (e) => {
+        if (e.key === "Shift") {
+            window.removeEventListener("mousemove", onMouseMove);
+        }
+    };
+
+    window.addEventListener("keydown", shiftDown, false);
+    window.addEventListener("keyup", shiftUp, false);
 </script>
 
 <div class={'boxItem' + (selected ? ' selected': '')} on:click on:keydown>

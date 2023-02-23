@@ -951,6 +951,7 @@
             switch (e.key) {
                 case 'Shift':
                     window.addEventListener('mousemove', onMouseMove, false);
+                    point.visible = true;
                     break;
                 case '0':
                     activateLevelElevator();
@@ -979,7 +980,7 @@
                     arrows.n.visible = !arrows.n.visible;
                     render();
                     break;
-                case 'b':
+                case 'i':
                     boxMesh.visible = !boxMesh.visible;
                     render();
                     break;

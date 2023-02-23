@@ -176,6 +176,8 @@
         minusMaterial.dispose();
         scene.remove(mesh);
         scene.remove(tanFrame);
+        window.removeEventListener("keydown", shiftDown, false);
+        window.removeEventListener("keyup", shiftUp, false);
         render();
     });
 
@@ -315,8 +317,13 @@
     const shiftDown = (e) => {
         if (shadeUp && selected) {
             switch (e.key) {
+                case 'Backspace':
+                    mesh.visible = !mesh.visible;
+                    render();
+                    break;
                 case "Shift":
                     window.addEventListener("mousemove", onMouseMove, false);
+                    tanFrame.visible = true;
                     break;
                 case "c":
                     controls.target.set(
@@ -331,11 +338,22 @@
                     render();
                     break;
                 case "y":
-                    planeShard.visible = !planeShard.visible;
+                    if (!planeShard.visible) {
+                        tanFrame.visible = true;
+                        planeShard.visible = true;
+                    } else {
+                        planeShard.visible = false;
+                    }
                     render();
                     break;
                 case "n":
-                    arrows.n.visible = !arrows.n.visible;
+                if (!arrows.n.visible) {
+                        tanFrame.visible = true;
+                        arrows.n.visible = true;
+                    } else {
+                        arrows.n.visible = false;
+                    }
+                    
                     render();
                     break;
             }

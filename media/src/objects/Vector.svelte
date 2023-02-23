@@ -44,6 +44,7 @@
     }
 
     export let scene;
+    export let shadeUp;
     export let render = () => {};
     export let onClose = () => {};
     export let onUpdate = () => {};
@@ -181,8 +182,22 @@
             arrow.material && arrow.material.dispose();
         }
         scene.remove(arrow);
+        window.removeEventListener("keydown", shiftDown, false);
         render();
     });
+
+    const shiftDown = (e) => {
+        if (shadeUp) {
+            switch (e.key) {
+                case 'Backspace':
+                    arrow.visible = !arrow.visible;
+                    render();
+                    break;
+            }
+        }
+    };
+
+    window.addEventListener('keydown', shiftDown, false);
 </script>
 
 <div class={'boxItem' + (selected ? ' selected': '')} hidden={!params.show} on:click on:keydown>
