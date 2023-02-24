@@ -14,7 +14,12 @@ class Poll {
     }
 }
 
+const setIdCounter = (i) => {
+    idx = i + 1;
+};
+
 export {
     POLL_TYPES,
-    Poll
+    Poll,
+    setIdCounter
 }
