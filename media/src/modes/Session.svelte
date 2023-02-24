@@ -9,6 +9,9 @@
     export let currentPoll;
     export let objects;
 
+    let isLoading = false;
+    let errorMessage = null;
+
     let role = 'student';
     if (isHost) {
         role = 'host';
@@ -23,6 +26,9 @@
     const onMakeRoom = () => {
         const newRoomId = makeRoomId();
 
+        isLoading = true;
+        errorMessage = null;
+
         socket = makeSocket(newRoomId);
         // Need to wait for socket's readyState to be open
         // to send messages.
@@ -31,6 +37,12 @@
             // Become the host of this new room.
             setHost(socket, objects);
             window.location.href = getRoomUrl(newRoomId);
+            isLoading = false;
+        });
+
+        socket.addEventListener('error', (e) => {
+            errorMessage = 'Error making WebSocket';
+            isLoading = false;
         });
     };
 </script>
@@ -62,9 +74,21 @@
 
     <hr />
 
+    {#if errorMessage}
+        <div class="alert alert-danger" role="alert">
+            {errorMessage}
+        </div>
+    {/if}
     <button
         type="button" class="btn btn-primary"
+        disabled={isLoading}
         on:click={onMakeRoom}>
-        Make Room
+        {#if isLoading}
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        {:else}
+            Make Room
+        {/if}
     </button>
 {/if}
