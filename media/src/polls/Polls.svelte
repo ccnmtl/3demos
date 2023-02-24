@@ -10,16 +10,22 @@
     import PollForm from './PollForm.svelte';
     import {POLL_TYPES, Poll} from './Poll.js';
     import {broadcastPoll} from './pollUtils';
+    import {loadPolls} from './utils';
     import {querySelectorIncludesText} from '../utils';
 
     export let isPollsOpen, togglePolls;
     export let socket;
-    export let polls = [
-        new Poll(1, 'Question test', ['a', 'b', 'c']),
-        new Poll(1, 'Question test 2', ['a', 'b', 'c', 'd']),
-        new Poll(0, 'What is the square root of 2?')
-    ];
     export let pollResponses;
+
+    let polls = loadPolls();
+    // Init empty polls to some basic examples
+    if (polls.length === 0) {
+        polls = [
+            new Poll(1, 'Question test', ['a', 'b', 'c']),
+            new Poll(1, 'Question test 2', ['a', 'b', 'c', 'd']),
+            new Poll(0, 'What is the square root of 2?')
+        ];
+    }
 
     let currentPollType = null;
     let activeTab = 'polls';
@@ -39,9 +45,12 @@
 
     const onSavePoll = function(e, pollObj) {
         e.preventDefault();
+        isEditing = false;
+
         polls = polls.map(p => p.id === pollObj.id ? pollObj : p);
 
-        isEditing = false;
+        // Save to localStorage
+        window.localStorage.setItem('polls', JSON.stringify(polls));
     };
 
     const onClickBroadcast = function(e, p) {
