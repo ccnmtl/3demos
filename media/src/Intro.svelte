@@ -35,8 +35,9 @@
     </p>
 
     <p>
-        This site is an open source project released under the MIT License. See the
-        github repository for more information. Much credit must go to the authors
+        This site is an open source project released under the GPL license. See the
+        <a href="https://github.com/ccnmtl/mathplayground/">github repository</a>
+        for more information. Much credit must go to the authors
         and contributors of the brilliant <a href="https://threejs.org/">three.js</a
                                                                                      >
         library for the graphics (and, by extension, WebGL itself) as well as
