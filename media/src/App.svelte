@@ -427,10 +427,12 @@
     let currentMode = 'intro';
 
     let pollResponses = {};
+    let userResponseList = {};
 
     const handleSocketMessage = function (e) {
         const data = JSON.parse(e.data);
-        if (data.message.pollResponse) {
+        if (data.message.pollResponse && !(data.session_key in userResponseList)) {
+            userResponseList[data.session_key] = true;
             let choice = data.message.pollResponse;
             if (choice in pollResponses){
                 pollResponses[choice]++;
