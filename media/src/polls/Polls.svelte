@@ -76,12 +76,8 @@
     };
 
     const onClickBroadcast = function(e, p) {
+        pollResponses = {};
         currentPollType = p.type;
-
-        // Clear current poll responses
-        // This causes the weird property bug where currentPollType
-        // is not updated.
-        //pollResponses = [];
 
         // Send the given poll to session participants
         broadcastPoll(p, socket);
