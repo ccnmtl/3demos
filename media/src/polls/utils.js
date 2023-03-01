@@ -18,7 +18,7 @@ const loadPolls = function() {
         polls = [];
     }
 
-    return polls;
+    return polls || [];
 };
 
 export {

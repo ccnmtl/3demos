@@ -19,7 +19,7 @@
 
     let polls = loadPolls();
     // Init empty polls to some basic examples
-    if (polls.length === 0) {
+    if (polls && polls.length === 0) {
         polls = [
             new Poll(1, 'Question test', ['a', 'b', 'c']),
             new Poll(1, 'Question test 2', ['a', 'b', 'c', 'd']),
