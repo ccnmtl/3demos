@@ -1,7 +1,6 @@
 <script>
     import Poll from '../polls/Poll.svelte';
     import {getRoomUrl} from '../utils.js';
-    import {makeSocket, setHost, makeRoomId} from '../rooms';
 
     export let roomId;
     export let socket;
@@ -16,22 +15,11 @@
 
     let joinRoomId = '';
 
+    const csrfToken = document.querySelector(
+        'meta[name="csrf-token"]').content;
+
     const onJoinRoom = (joinRoomId) => {
         window.location.href = getRoomUrl(joinRoomId);
-    };
-
-    const onMakeRoom = () => {
-        const newRoomId = makeRoomId();
-
-        socket = makeSocket(newRoomId);
-        // Need to wait for socket's readyState to be open
-        // to send messages.
-        // https://developer.mozilla.org/en-US/docs/Web/API/WebSocket/readyState
-        socket.addEventListener('open', () => {
-            // Become the host of this new room.
-            setHost(socket, objects);
-            window.location.href = getRoomUrl(newRoomId);
-        });
     };
 </script>
 
@@ -62,9 +50,13 @@
 
     <hr />
 
-    <button
-        type="button" class="btn btn-primary"
-        on:click={onMakeRoom}>
-        Make Room
-    </button>
+    <form method="post">
+        <input type="hidden" name="csrfmiddlewaretoken" value={csrfToken} />
+
+        <input type="hidden" name="objects" value={JSON.stringify(objects)} />
+
+        <button type="submit" class="btn btn-primary">
+            Make Room
+        </button>
+    </form>
 {/if}

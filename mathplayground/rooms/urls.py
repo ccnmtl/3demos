@@ -1,8 +1,10 @@
 from django.urls import path
 
+from mathplayground.main.views import index
 from . import views
 
+
 urlpatterns = [
-    path('', views.index, name='index'),
+    path('', index, name='index'),
     path('<int:room_id>/', views.room, name='room'),
 ]
