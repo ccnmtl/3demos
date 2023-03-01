@@ -1,4 +1,5 @@
 import {forceNumber} from './utils.js';
+import ReconnectingWebSocket from 'reconnecting-websocket';
 
 const getRoomId = function(urlpath) {
     let m = urlpath.match(/^\/?rooms\/(\d+)\/?/);
@@ -30,7 +31,7 @@ const makeSocket = function(roomId, handleMessage=null) {
             + '/ws/rooms/'
             + roomId
           + '/';
-    const socket = new WebSocket(path);
+    const socket = new ReconnectingWebSocket(path);
 
     if (handleMessage) {
         socket.onmessage = handleMessage;
