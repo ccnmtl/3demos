@@ -14,18 +14,45 @@ const math = create(all, config);
  *
  * Returns a Promise.
  */
-export function updateParams(params) {
-    const { g, a, b, c, d, e, f, k } = params;
+export function updateParams(gc, params) {
+    const { a, b, c, d, e, f, k } = params;
+    let paramErrors = {
+        g: false,
+        k: false
+    };
 
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
         setTimeout(() => {
-            const gc = math.parse(g).compile();
-            const func = (x, y, z) => gc.evaluate({x, y, z});
+            const func = (x, y, z) => {
+                try {
+                    return gc.evaluate({x, y, z});
+                } catch (err) {
+                    paramErrors.g = true;
+                    return reject(paramErrors);
+                }
+            }
+
+            // Test compiled g eval with some basic xyz params, for
+            // validation purposes.
+            try {
+                gc.evaluate({x: -2, y: -2, z: -2});
+            } catch (err) {
+                paramErrors.g = true;
+                return reject(paramErrors);
+            }
+
+            let kE = null;
+            try {
+                kE = math.evaluate(String(k));
+            } catch (err) {
+                paramErrors.k = true;
+                return reject(paramErrors);
+            }
 
             const { normals, vertices, traceSegments } =
                   marchingCubesWithTraces({
                       f: func,
-                      level: math.evaluate(String(k)),
+                      level: kE,
                       xMin: math.evaluate(String(a)),
                       xMax: math.evaluate(String(b)),
                       yMin: math.evaluate(String(c)),

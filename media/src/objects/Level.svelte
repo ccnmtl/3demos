@@ -28,6 +28,11 @@
         f: "2",
     };
 
+    let paramErrors = {
+        g: false,
+        k: false
+    }
+
     let oldParams = Object.assign({}, params);
 
     $: {
@@ -105,9 +110,26 @@
 
     const updateLevel = function() {
         loading = true;
-        updateParams(params).then((data) => {
-            levelWorkerSuccessHandler(data);
-        });
+        paramErrors.g = false;
+        paramErrors.k = false;
+
+        let gc = null;
+
+        try {
+            gc = math.parse(params.g).compile();
+        } catch (e) {
+            paramErrors.g = true;
+            return;
+        }
+
+        updateParams(gc, params)
+            .then((data) => {
+                levelWorkerSuccessHandler(data);
+            })
+            .catch((pE) => {
+                paramErrors.g = pE.g;
+                paramErrors.k = pE.k;
+            });
     }
 
     updateLevel();
@@ -219,7 +241,17 @@
     scene.add(tanFrame);
 
     const nFrame = function({
-        f = (x, y, z) => math.evaluate(params.g, { x, y, z }),
+        f = (x, y, z) => {
+            let G = null;
+            try {
+                G = math.evaluate(params.g, { x, y, z });
+            } catch (e) {
+                paramErrors.g = true;
+                return;
+            }
+
+            return G;
+        },
         point = point,
         eps = 1e-4,
     } = {}) {
@@ -353,7 +385,7 @@
                     } else {
                         arrows.n.visible = false;
                     }
-                    
+
                     render();
                     break;
             }
@@ -388,6 +420,7 @@
         <div class="container">
             <span class="box-1"><M size="sm">g(x,y,z) =</M></span>
             <ObjectParamInput
+                error={paramErrors.g}
                 initialValue={params.g}
                 onChange={(newVal) => {
                     params.g = newVal;
@@ -397,6 +430,7 @@
 
             <span class="box-1"><M size="sm">k =</M></span>
             <ObjectParamInput
+                error={paramErrors.k}
                 initialValue={params.k}
                 onChange={(newVal) => {
                     params.k = newVal;
