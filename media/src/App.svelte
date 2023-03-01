@@ -49,7 +49,7 @@
         publishScene,
         handleSceneEvent,
     } from './sceneUtils';
-    import { handlePollEvent } from './polls/pollUtils';
+    import { handlePollEvent } from './polls/utils';
 
     let debug = false,
         stats;

@@ -9,8 +9,7 @@
     import PollResponses from './PollResponses.svelte';
     import PollForm from './PollForm.svelte';
     import {POLL_TYPES, Poll, setIdCounter} from './Poll.js';
-    import {broadcastPoll} from './pollUtils';
-    import {loadPolls} from './utils';
+    import {broadcastPoll, loadPolls} from './utils';
     import {querySelectorIncludesText} from '../utils';
 
     export let isPollsOpen, togglePolls;
