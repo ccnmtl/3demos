@@ -2,10 +2,6 @@ from django.shortcuts import render
 from mathplayground.rooms.scene import RedisScene
 
 
-def index(request):
-    return render(request, 'index.html')
-
-
 def room(request, room_id):
     # Make sure the user's session is created.
     if not request.session.session_key:

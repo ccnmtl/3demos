@@ -19,6 +19,10 @@ MEDIA_URL = S3_URL + 'uploads/'
 AWS_LOCATION = 'media/'
 AWS_QUERYSTRING_AUTH = False
 
+CSRF_TRUSTED_ORIGINS = [
+    'https://3demos.stage.ctl.columbia.edu'
+]
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
