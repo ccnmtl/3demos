@@ -68,7 +68,7 @@
 
     const selectObject = (uuid) => {
         selectedObject = uuid;
-    }
+    };
 
     let canvas;
 
@@ -432,7 +432,7 @@
         const data = JSON.parse(e.data);
         if (data.message.pollResponse) {
             let choice = data.message.pollResponse;
-            if (choice in pollResponses){
+            if (choice in pollResponses) {
                 pollResponses[choice]++;
             } else {
                 pollResponses[choice] = 1;
@@ -464,34 +464,40 @@
         if (e.altKey) {
             e.preventDefault;
             let i = 0;
-            if (e.code === "Space") {
+            if (e.code === 'Space') {
                 shadeUp = !shadeUp;
             } else if (objects.length > 0) {
                 if (!selectedObject) {
                     switch (e.code) {
-                        case "BracketRight":
-                            selectedObject = objects[objects.length-1].uuid;
+                        case 'BracketRight':
+                            selectedObject = objects[objects.length - 1].uuid;
                             break;
-                        case "BracketLeft":
+                        case 'BracketLeft':
                             selectedObject = objects[0].uuid;
                             break;
                     }
                 } else {
-                    while (i < objects.length && objects[i].uuid !== selectedObject) { i++; }
-                    switch(e.code) {
-                        case "BracketRight":
+                    while (
+                        i < objects.length &&
+                        objects[i].uuid !== selectedObject
+                    ) {
+                        i++;
+                    }
+                    switch (e.code) {
+                        case 'BracketRight':
                             if (i === 0) {
-                                selectedObject = objects[objects.length-1].uuid;
+                                selectedObject =
+                                    objects[objects.length - 1].uuid;
                                 break;
                             }
-                            selectedObject = objects[i-1].uuid;
+                            selectedObject = objects[i - 1].uuid;
                             break;
-                        case "BracketLeft":
-                            if (i > objects.length-2) {
-                                selectedObject = objects[0].uuid
+                        case 'BracketLeft':
+                            if (i > objects.length - 2) {
+                                selectedObject = objects[0].uuid;
                                 break;
                             }
-                            selectedObject = objects[i+1].uuid;
+                            selectedObject = objects[i + 1].uuid;
                             break;
                     }
                 }
@@ -728,7 +734,7 @@
                                                     d: '2*pi',
                                                     x: 'cos(u)*(1 + sin(v)/3)',
                                                     y: 'sin(u)*(1 + sin(v)/3)',
-                                                    z: 'cos(v)/3',
+                                                    z: '-cos(v)/3',
                                                 },
                                                 objects
                                             ))}
@@ -925,7 +931,7 @@
                                 {:else if b.kind === 'vector'}
                                     <Vector
                                         {scene}
-                                        bind:shadeUp={shadeUp}
+                                        bind:shadeUp
                                         render={requestFrameIfNotRequested}
                                         onClose={() => {
                                             controls.enabled = true;
