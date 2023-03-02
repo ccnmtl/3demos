@@ -125,7 +125,7 @@
                                     <th scope="row">{poll.id}</th>
                                     <td>{poll.prompt}</td>
                                     <td>{POLL_TYPES[poll.type]}</td>
-                                    <td>
+                                    <td style="white-space: nowrap;">
                                         <button
                                             type="button"
                                             class="btn btn-secondary btn-sm"
@@ -133,7 +133,6 @@
                                             on:click={(e) => onClickEdit(e, poll)}>
                                             <i class="bi bi-pencil" /> Edit
                                         </button>
-
                                         <button
                                             type="button"
                                             class="btn btn-primary btn-sm"
