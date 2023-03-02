@@ -2,7 +2,7 @@
     import { onMount, onDestroy } from 'svelte';
     import * as THREE from 'three';
     import { create, all } from 'mathjs';
-    import { beforeUpdate } from 'svelte';
+    // import { beforeUpdate } from 'svelte';
 
     import M from '../M.svelte';
     import ObjHeader from '../ObjHeader.svelte';
@@ -19,7 +19,7 @@
         // marchingCubes,
         ParametricGeometry,
     } from '../utils.js';
-    import ObjectParamInput from '../form-components/ObjectParamInput.svelte';
+    // import ObjectParamInput from '../form-components/ObjectParamInput.svelte';
 
     export let params = {
         a: '-2',
@@ -102,7 +102,7 @@
     export let gridStep;
     export let render = () => {};
     export let onClose = () => {};
-    export let onUpdate = () => {};
+    // export let onUpdate = () => {};
     export let selected;
 
     let hidden = false;
@@ -406,7 +406,7 @@
 
     // Construct tangent vectors at a point u,v (both 0 to 1)
     const tangentVectors = function ({ uv, eps = 1e-4, plane = true } = {}) {
-        const { a, b, c, d, x, y, z } = params;
+        const { a, b, c, d } = params;
         const A = math.parse(a).evaluate(),
             B = math.parse(b).evaluate();
         const [C, D] = math.parse([c, d]);
