@@ -19,6 +19,7 @@
         // marchingCubes,
         ParametricGeometry,
     } from '../utils.js';
+    import InputChecker from '../form-components/InputChecker.svelte';
     // import ObjectParamInput from '../form-components/ObjectParamInput.svelte';
 
     export let params = {
@@ -56,44 +57,19 @@
 
     // Check midpoint of parameter space and see if all is ok.
     const chickenParms = (val, { a, b, c, d }) => {
+        let valuation;
         try {
             const [A, B, C, D, V] = math.parse([a, b, c, d, val]);
             const u = (A.evaluate() + B.evaluate()) / 2;
             const v = (C.evaluate({ u }) + D.evaluate({ u })) / 2;
-            V.evaluate({ u, v });
+            valuation = V.evaluate({ u, v });
         } catch (error) {
             console.log('ParseError in evaluation.', error);
             return false;
         }
-        return true;
+        console.log('Evaluation got here.', Number.isNaN(valuation), valuation);
+        return !Number.isNaN(valuation);
     };
-
-    // let oldParams = Object.assign({}, params);
-
-    // // See Curve.svelte for explanation of this stuff
-    // $: {
-    //     if (
-    //         oldParams.a !== params.a ||
-    //         oldParams.b !== params.b ||
-    //         // oldParams.a !== params.a ||
-    //         oldParams.c !== params.c ||
-    //         oldParams.d !== params.d ||
-    //         oldParams.x !== params.x ||
-    //         oldParams.y !== params.y ||
-    //         oldParams.z !== params.z
-    //     ) {
-    //         // xyz;
-    //         updateSurface();
-    //         // oldParams = { ...params };
-    //         oldParams.a = params.a;
-    //         oldParams.b = params.b;
-    //         oldParams.c = params.c;
-    //         oldParams.d = params.d;
-    //         oldParams.x = params.x;
-    //         oldParams.y = params.y;
-    //         oldParams.z = params.z;
-    //     }
-    // }
 
     export let scene;
     export let shadeUp;
@@ -144,7 +120,6 @@
     let surfaceMesh;
 
     const updateSurface = function () {
-        console.log(`I called it ${updateCounter++}.`);
         const { a, b, c, d, x, y, z } = params;
         const A = math.parse(a).evaluate(),
             B = math.parse(b).evaluate();
@@ -574,55 +549,19 @@
     </div>
     <div {hidden}>
         <div class="container">
-            <span class="box-1"><M size="sm">x(u,v) =</M></span>
-            <input
-                class="form-control form-control-sm box box-2"
-                value={params.x}
-                on:change={(e) => {
-                    const val = e.target.value;
-                    if (chickenParms(val, params)) {
-                        params.x = val;
-                        e.target.classList.remove('is-invalid');
-                        updateSurface();
-                    } else {
-                        e.target.classList.add('is-invalid');
-                    }
-                }}
-            />
+            {#each ['x', 'y', 'z'] as name}
+                <span class="box-1"><M size="sm">{name}(u,v) =</M></span>
+                <InputChecker
+                    initialValue={params[name]}
+                    checker={chickenParms}
+                    {name}
+                    {params}
+                    on:cleared={updateSurface}
+                />
+            {/each}
 
-            <span class="box-1"><M size="sm">y(u,v) =</M></span>
             <input
-                class="form-control form-control-sm box box-2"
-                value={params.y}
-                on:change={(e) => {
-                    const val = e.target.value;
-                    if (chickenParms(val, params)) {
-                        params.y = val;
-                        e.target.classList.remove('is-invalid');
-                        updateSurface();
-                    } else {
-                        e.target.classList.add('is-invalid');
-                    }
-                }}
-            />
-
-            <span class="box-1"><M size="sm">z(u,v) =</M></span>
-            <input
-                class="form-control form-control-sm box box-2"
-                value={params.z}
-                on:change={(e) => {
-                    const val = e.target.value;
-                    if (chickenParms(val, params)) {
-                        params.z = val;
-                        e.target.classList.remove('is-invalid');
-                        updateSurface();
-                    } else {
-                        e.target.classList.add('is-invalid');
-                    }
-                }}
-            />
-            <input
-                class="form-control form-control-sm box box-2"
+                class="form-control form-control-sm box box-1"
                 value={params.a}
                 on:change={(e) => {
                     const val = e.target.value;
@@ -638,7 +577,7 @@
 
             <span class="box box-3"><M size="sm">\leq u \leq</M></span>
             <input
-                class="form-control form-control-sm box box-2"
+                class="form-control form-control-sm box box-4"
                 value={params.b}
                 on:change={(e) => {
                     const val = e.target.value;
@@ -653,7 +592,7 @@
             />
 
             <input
-                class="form-control form-control-sm box box-2"
+                class="form-control form-control-sm box box-1"
                 value={params.c}
                 on:change={(e) => {
                     const val = e.target.value;
@@ -668,7 +607,7 @@
             />
             <span class="box box-3"><M size="sm">\leq v \leq</M></span>
             <input
-                class="form-control form-control-sm box box-2"
+                class="form-control form-control-sm box box-4"
                 value={params.d}
                 on:change={(e) => {
                     const val = e.target.value;
