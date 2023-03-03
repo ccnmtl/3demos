@@ -48,6 +48,7 @@
         updateObject,
         publishScene,
         handleSceneEvent,
+        findPointerIntersects
     } from './sceneUtils';
     import { handlePollEvent } from './polls/utils';
 
@@ -65,10 +66,11 @@
     let scaleAnimation = false;
     let scaleUpdate;
     let selectedObject = null;
+    let hoveredObject = null;
 
     const selectObject = (uuid) => {
         selectedObject = uuid;
-    }
+    };
 
     let canvas;
 
@@ -82,6 +84,8 @@
         0.001,
         1000
     );
+    const raycaster = new THREE.Raycaster();
+    const pointerCoords = new THREE.Vector2();
 
     const camera2 = new THREE.OrthographicCamera(
         -2,
@@ -296,6 +300,9 @@
         renderer.render(scene, currentCamera);
     };
 
+    /**
+     * Create the three.js scene. Returns the three.js renderer.
+     */
     const createScene = (el) => {
         renderer = new THREE.WebGLRenderer({
             antialias: true,
@@ -322,9 +329,18 @@
 
         // resize();
         requestFrameIfNotRequested();
+
+        return renderer;
     };
 
+    // The objects array is the declarative data that the scene is based on.
     export let objects = [];
+
+    // sceneObjects is the array of three.js objects present in the
+    // scene. It's derived from the objects array, as a result of how
+    // the data gets rendered by our svelte components
+    let sceneObjects = [];
+
     export let currentPoll = null;
     export let isHost = false;
     let activeUserCount = 0;
@@ -376,8 +392,67 @@
         ).toString();
     };
 
+    /**
+     * onRenderObject
+     *
+     * This callback is intended to be called when the svelte
+     * component's three.js object is rendered. This function takes a
+     * variable number of visible instances of THREE.Mesh or THREE.Group.
+     */
+    const onRenderObject = function(...meshes) {
+        for (let mesh of meshes) {
+            // Remove this object if it exists.
+            if (sceneObjects.some((x) => x.uuid === mesh.uuid)) {
+                sceneObjects = sceneObjects.filter(x => x.uuid !== mesh.uuid);
+            }
+
+            sceneObjects.push(mesh);
+        }
+    };
+
+    /**
+     * Given a parent three.js object, remove it from the sceneObjects
+     * array. This is intended to be called when the svelte component
+     * is destroyed.
+     */
+    const onDestroyObject = function(...meshes) {
+        for (let mesh of meshes) {
+            sceneObjects = sceneObjects.filter(x => x.uuid !== mesh.uuid);
+        }
+    };
+
+    const onPointerMove = function(e, renderer) {
+        e.preventDefault();
+
+        pointerCoords.x = (
+            e.offsetX / renderer.domElement.clientWidth) * 2 - 1;
+        pointerCoords.y = -(
+            e.offsetY / renderer.domElement.clientHeight) * 2 + 1;
+
+        const intersects = findPointerIntersects(
+            sceneObjects, pointerCoords,
+            currentCamera, raycaster);
+        if (intersects.length > 0) {
+            if (intersects[0].object) {
+                let obj = intersects[0].object;
+                let uuid = obj.name || obj.parent.name;
+                if (uuid) {
+                    document.body.style.cursor = 'pointer';
+                    hoveredObject = uuid;
+                }
+            }
+        } else {
+            document.body.style.cursor = 'default';
+            hoveredObject = null;
+        }
+    }
+
+    const onClick = function() {
+        selectedObject = hoveredObject;
+    };
+
     onMount(() => {
-        createScene(canvas);
+        const renderer = createScene(canvas);
 
         // If any of the loaded objects are currently animating, call
         // the animate() function.
@@ -417,6 +492,11 @@
                 objects = makeObject(val.uuid, val.kind, val.params, objects);
             }
         }
+
+        renderer.domElement.addEventListener(
+            'pointermove', (e) => onPointerMove(e, renderer));
+        renderer.domElement.addEventListener(
+            'click', onClick);
     });
 
     const onPublishScene = function () {
@@ -815,9 +895,12 @@
                                 {:else if b.kind === 'graph'}
                                     <Function
                                         {scene}
+                                        {onRenderObject}
+                                        {onDestroyObject}
                                         camera={currentCamera}
                                         controls={currentControls}
                                         render={requestFrameIfNotRequested}
+                                        uuid={b.uuid}
                                         params={b.params}
                                         onClose={() => {
                                             controls.enabled = true;
