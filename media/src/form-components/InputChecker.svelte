@@ -1,4 +1,8 @@
 <script>
+    /**
+     * A svelte component for parameter inputs.
+     * Input value is checked on change against the parameters. If validated (via a user-supplied checker), dispatch a cleared function, else alert the user with error message.
+     */
     import { onMount } from 'svelte';
     import { createEventDispatcher } from 'svelte';
 
@@ -6,39 +10,29 @@
 
     export let name;
     export let type = 'text';
-    export let initialValue = '';
+    export let value = '';
     export let className = 'form-control form-control-sm box box-2';
     export let params;
-    let okParse = true;
     let inputElement;
-    export let checker = (val, params) => {
-        try {
-            math.parse(val);
-        } catch (e) {
-            console.log('Parsing error.', e);
-            return false;
-        }
-        return true;
+    export let checker = (val) => {
+        return Number.isFinite(val);
     };
-    onMount(() => {
-        inputElement.value = initialValue;
-    });
+    // onMount(() => {
+    //     inputElement.value = initialValue;
+    // });
 </script>
 
 <input
     {type}
     {name}
+    {value}
     bind:this={inputElement}
     class={className}
     on:change={(e) => {
         const val = e.target.value;
-        okParse = checker(val, params);
-        if (okParse) {
+        if (checker(val, params)) {
             inputElement.classList.remove('is-invalid');
-            params[name] = val;
-            dispatch('cleared', {
-                text: "Yo, that's smooth",
-            });
+            dispatch('cleared', val);
         } else {
             inputElement.classList.add('is-invalid');
         }
