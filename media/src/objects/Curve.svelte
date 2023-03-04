@@ -1,27 +1,21 @@
 <script>
-    import {
-        onMount,
-        onDestroy,
-        beforeUpdate,
-        createEventDispatcher,
-    } from 'svelte';
+    import { onMount, onDestroy, createEventDispatcher } from 'svelte';
     import * as THREE from 'three';
     import { create, all } from 'mathjs';
 
     import M from '../M.svelte';
     import ObjHeader from '../ObjHeader.svelte';
-    import { ArrowBufferGeometry, ParametricCurve } from '../utils.js';
-    import ObjectParamInput from '../form-components/ObjectParamInput.svelte';
+    import {
+        ArrowBufferGeometry,
+        ParametricCurve,
+        checksum,
+    } from '../utils.js';
+    import InputChecker from '../form-components/InputChecker.svelte';
 
     const config = {};
     const math = create(all, config);
 
     const dispatch = createEventDispatcher();
-
-    // export let paramString;
-    beforeUpdate(() => {
-        console.log('Ima a curve. My params are ', params);
-    });
 
     export let params = {
         a: '-1',
@@ -29,82 +23,61 @@
         x: 't',
         y: 't^2',
         z: 't^3',
-        tau: 0,
-        color: '#FFDD33',
     };
 
-    let paramErrors = {
-        a: false,
-        b: false,
-        x: false,
-        y: false,
-        z: false,
-    };
+    let xyz;
 
-    if (!params.color) {
-        params.color = '#FFDD33';
-    }
-
-    let oldParams = Object.assign({}, params);
-
-    // This pattern mimicks the componentDidUpdate/prevState stuff
-    // that's used in React. The goal here is to only call the
-    // expensive render methods when absolutely necessary.
-    //
-    // This allows for WebSocket listeners to see updated objects
-    // in their scene when new params come through.
-    //
-    // This is a more intricate alternative to the simple way of
-    // doing things, which would be:
-    // $: params && updateCurve();
-    // $: params && updateColor();
-    //
-    // The problem with listening for all `params` updates like this
-    // is that the `params` object is updated way too often,
-    // because of the nature of the input bindings in this component.
-    //
-    // This scheme is really dependent on how the Svelte/Three.js
-    // component is organized, and it's not always necessary,
-    // for example, see the Box component for a simpler pattern that
-    // works in that scenario.
-    //
-    // It may be possible to refactor this into a more general function,
-    // which would be nice.
     $: {
-        if (oldParams.color !== params.color) {
-            updateColor();
-            oldParams.color = params.color;
-        }
-
-        if (
-            oldParams.a !== params.a ||
-            oldParams.b !== params.b ||
-            oldParams.a !== params.a ||
-            oldParams.x !== params.x ||
-            oldParams.y !== params.y
-        ) {
-            updateCurve();
-            oldParams.a = params.a;
-            oldParams.b = params.b;
-            oldParams.x = params.x;
-            oldParams.y = params.y;
-            oldParams.z = params.z;
-        }
+        const [x, y, z] = [params.x, params.y, params.z].map((f) =>
+            math.parse(f).compile()
+        );
+        xyz = (t) =>
+            new THREE.Vector3(
+                x.evaluate({ t }),
+                y.evaluate({ t }),
+                z.evaluate({ t })
+            );
     }
+
+    // Only run the update if the params have changed.
+    $: hashTag = checksum(JSON.stringify(params));
+    $: hashTag, updateCurve();
+
+    // Check midpoint of parameter space and see if all is ok.
+    const chickenParms = (val, { a, b }) => {
+        let valuation;
+        try {
+            const [A, B, V] = math.parse([a, b, val]);
+            const t = (A.evaluate() + B.evaluate()) / 2;
+            valuation = V.evaluate({ t });
+        } catch (error) {
+            console.log('ParseError in evaluation.', error);
+            return false;
+        }
+        if (Number.isFinite(valuation)) {
+            return true;
+        } else {
+            console.log('Evaluation error. Incomplete expression, maybe.');
+            return false;
+        }
+    };
+
+    // Meta-parameters
+    export let color = '#FFDD33';
+    export let tau = 0;
 
     export let scene;
     export let shadeUp;
     export let render = () => {};
     export let onClose = () => {};
-    export let onUpdate = () => {};
     export let controls;
     export let camera;
     export let gridStep;
     export let animation = false;
     export let selected;
     export const update = (dt) => {
-        const { a, b, x, y, z } = goodParams;
-        const T = a + (b - a) * params.tau;
+        const { a, b, x, y, z } = params;
+        const T = a + (b - a) * tau;
         if (TNB) {
             const vel = new THREE.Vector3(
                 (x.evaluate({ t: T + 0.01 / 2 }) -
@@ -117,10 +90,10 @@
                     z.evaluate({ t: T - 0.01 / 2 })) /
                     0.01
             );
-            params.tau += dt / vel.length() / (b - a);
+            tau += dt / vel.length() / (b - a);
         } else {
             try {
-                params.tau +=
+                tau +=
                     dt /
                     (math.parse(params.b).evaluate() -
                         math.parse(params.a).evaluate());
@@ -128,7 +101,7 @@
                 console.error('update parse error', e);
             }
         }
-        params.tau %= 1;
+        tau %= 1;
         updateFrame();
     };
 
@@ -139,48 +112,25 @@
      *
      * Returns a three.js Vector.
      */
-    const evalXYZ = function (x, y, z, t) {
-        let evalX = 0;
-        let evalY = 0;
-        let evalZ = 0;
-
-        try {
-            evalX = x.evaluate({ t: t });
-            paramErrors.x = false;
-        } catch (e) {
-            paramErrors.x = true;
-        }
-
-        try {
-            evalY = y.evaluate({ t: t });
-            paramErrors.y = false;
-        } catch (e) {
-            paramErrors.y = true;
-        }
-
-        try {
-            evalZ = z.evaluate({ t: t });
-            paramErrors.z = false;
-        } catch (e) {
-            paramErrors.z = true;
-        }
-
-        return new THREE.Vector3(evalX, evalY, evalZ);
-    };
 
     let TNB = false;
     let osculatingCircle = false;
     let hidden = false;
     let stopButton, rewButton;
-    const goodParams = {};
 
     const curveMaterial = new THREE.MeshPhongMaterial({
-        color: params.color,
+        color: color,
         shininess: 80,
         side: THREE.DoubleSide,
         vertexColors: false,
         transparent: false,
     });
+
+    // Keep updated
+    $: {
+        curveMaterial.color.set(color);
+        render();
+    }
 
     const grayMaterial = new THREE.MeshPhongMaterial({
         color: new THREE.Color(0.39, 0.34, 0.35),
@@ -197,46 +147,15 @@
     circleTube.visible = false;
 
     const updateCurve = function () {
-        const { a, b, x, y, z } = params;
-        let A, B, X, Y, Z;
-
-        try {
-            A = math.parse(a).evaluate();
-            paramErrors.a = false;
-        } catch (e) {
-            paramErrors.a = true;
-            return;
-        }
-
-        try {
-            B = math.parse(b).evaluate();
-            paramErrors.b = false;
-        } catch (e) {
-            paramErrors.b = true;
-            return;
-        }
-
-        try {
-            [X, Y, Z] = math.parse([x, y, z]);
-            goodParams['a'] = A;
-            goodParams['b'] = B;
-            goodParams['x'] = X.compile();
-            goodParams['y'] = Y.compile();
-            goodParams['z'] = Z.compile();
-        } catch (e) {
-            animation = false;
-            return;
-        }
+        const { a, b } = params;
+        const A = math.parse(a).evaluate();
+        const B = math.parse(b).evaluate();
 
         if (animation) {
             startAnimation(false);
         }
 
-        const r = (t) => {
-            return evalXYZ(X, Y, Z, t);
-        };
-
-        let path = new ParametricCurve(1, r, A, B);
+        let path = new ParametricCurve(1, xyz, A, B);
         let geometry = new THREE.TubeGeometry(
             path,
             1000,
@@ -256,7 +175,7 @@
     };
 
     const stringifyT = function (params) {
-        const { a, b, tau } = params;
+        const { a, b } = params;
         try {
             const [A, B] = [a, b].map((x) => math.parse(x).evaluate());
 
@@ -300,46 +219,24 @@
     frame.add(point);
 
     const updateFrame = function ({ dt = 0.01 } = {}) {
-        const { a, b, x, y, z } = goodParams;
-        const tau = params.tau;
-        const T = a + (b - a) * tau;
+        const { a, b } = params;
+        const [A, B] = [a, b].map((x) => math.parse(x).evaluate());
+
+        const T = A + (B - A) * tau;
+
         let curvature = 0;
 
-        const rVec = evalXYZ(x, y, z, T);
-        if (Object.values(paramErrors).some((x) => x === true)) {
-            // There's a param error. Don't finish updating the frame,
-            // just return. The appropriate input will be set to
-            // invalid state.
-            return;
-        }
+        const rVec = xyz(T);
 
         const dr = {
             r: rVec,
-            v: new THREE.Vector3(
-                (x.evaluate({ t: T + dt / 2 }) -
-                    x.evaluate({ t: T - dt / 2 })) /
-                    dt,
-                (y.evaluate({ t: T + dt / 2 }) -
-                    y.evaluate({ t: T - dt / 2 })) /
-                    dt,
-                (z.evaluate({ t: T + dt / 2 }) -
-                    z.evaluate({ t: T - dt / 2 })) /
-                    dt
-            ),
-            a: new THREE.Vector3(
-                (x.evaluate({ t: T + dt }) -
-                    2 * x.evaluate({ t: T }) +
-                    x.evaluate({ t: T - dt })) /
-                    (dt * dt),
-                (y.evaluate({ t: T + dt }) -
-                    2 * y.evaluate({ t: T }) +
-                    y.evaluate({ t: T - dt })) /
-                    (dt * dt),
-                (z.evaluate({ t: T + dt }) -
-                    2 * z.evaluate({ t: T }) +
-                    z.evaluate({ t: T - dt })) /
-                    (dt * dt)
-            ),
+            v: xyz(T + dt / 2)
+                .sub(xyz(T - dt / 2))
+                .divideScalar(dt),
+            a: xyz(T + dt)
+                .add(rVec.clone().multiplyScalar(2))
+                .sub(xyz(T - dt))
+                .divideScalar(dt * dt),
         };
 
         if (osculatingCircle) {
@@ -428,11 +325,6 @@
                 arrow.visible = false;
             }
         }
-        render();
-    };
-
-    const updateColor = function () {
-        curveMaterial.color.set(params.color);
         render();
     };
 
@@ -561,57 +453,59 @@
     </div>
     <div {hidden}>
         <div class="container">
-            <span class="box-1"><M size="sm">x(t) =</M></span>
-            <ObjectParamInput
-                error={paramErrors.x}
-                initialValue={params.x}
-                onChange={(newVal) => {
-                    params.x = newVal;
-                    onUpdate();
-                    updateCurve();
-                }}
-            />
-            <span class="box-1"><M size="sm">y(t) =</M></span>
-            <ObjectParamInput
-                error={paramErrors.y}
-                initialValue={params.y}
-                onChange={(newVal) => {
-                    params.y = newVal;
-                    onUpdate();
-                    updateCurve();
-                }}
-            />
+            {#each ['x', 'y', 'z'] as name}
+                <span class="box-1"><M size="sm">{name}(t) =</M></span>
+                <InputChecker
+                    value={params[name]}
+                    checker={chickenParms}
+                    {name}
+                    {params}
+                    on:cleared={(e) => {
+                        params[name] = e.detail;
+                        // updateSurface();
+                    }}
+                />
+            {/each}
 
-            <span class="box-1"><M size="sm">z(t) =</M></span>
-            <ObjectParamInput
-                error={paramErrors.z}
-                initialValue={params.z}
-                onChange={(newVal) => {
-                    params.z = newVal;
-                    onUpdate();
-                    updateCurve();
+            <InputChecker
+                className="form-control form-control-sm box box-1"
+                value={params.a}
+                checker={(val, { b }) => {
+                    try {
+                        return (
+                            math.parse(val).evaluate() <=
+                            math.parse(b).evaluate()
+                        );
+                    } catch (e) {
+                        console.log('Parsing error', e);
+                        return false;
+                    }
                 }}
-            />
-
-            <ObjectParamInput
-                className="form-control form-control-sm box"
-                error={paramErrors.a}
-                initialValue={params.a}
-                onChange={(newVal) => {
-                    params.a = newVal;
-                    onUpdate();
-                    updateCurve();
+                name="a"
+                {params}
+                on:cleared={(e) => {
+                    params.a = e.detail;
                 }}
             />
             <span class="box box-3"><M size="sm">\leq t \leq</M></span>
-            <ObjectParamInput
-                className="form-control form-control-sm box"
-                error={paramErrors.b}
-                initialValue={params.b}
-                onChange={(newVal) => {
-                    params.b = newVal;
-                    onUpdate();
-                    updateCurve();
+            <InputChecker
+                className="form-control form-control-sm box box-4"
+                value={params.b}
+                checker={(val, { a }) => {
+                    try {
+                        return (
+                            math.parse(a).evaluate() <=
+                            math.parse(val).evaluate()
+                        );
+                    } catch (e) {
+                        console.log('Parsing error', e);
+                        return false;
+                    }
+                }}
+                name="b"
+                {params}
+                on:cleared={(e) => {
+                    params.b = e.detail;
                 }}
             />
 
@@ -620,7 +514,7 @@
             </span>
             <input
                 type="range"
-                bind:value={params.tau}
+                bind:value={tau}
                 min="0"
                 max="1"
                 step="0.001"
@@ -659,7 +553,7 @@
                 <button
                     class="btn box-4"
                     on:click={() => {
-                        params.tau = 0;
+                        tau = 0;
                         updateFrame();
                     }}
                     bind:this={rewButton}
@@ -697,11 +591,7 @@
                     type="color"
                     name="colorPicker"
                     id="colorPicker"
-                    bind:value={params.color}
-                    on:change={() => {
-                        onUpdate();
-                        updateColor();
-                    }}
+                    bind:value={color}
                     style="width:85%; padding: 1px 1px;"
                 />
             </span>

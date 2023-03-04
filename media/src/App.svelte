@@ -42,13 +42,7 @@
         makeHSLColor,
         convertToURLParams,
     } from './utils';
-    import {
-        makeObject,
-        removeObject,
-        updateObject,
-        publishScene,
-        handleSceneEvent,
-    } from './sceneUtils';
+    import { makeObject, publishScene, handleSceneEvent } from './sceneUtils';
     import { handlePollEvent } from './polls/pollUtils';
 
     let debug = false,
@@ -462,7 +456,7 @@
 
     const altDown = (e) => {
         if (e.altKey) {
-            e.preventDefault;
+            e.preventDefault();
             let i = 0;
             if (e.code === 'Space') {
                 shadeUp = !shadeUp;
@@ -655,25 +649,34 @@
                                         >
                                     </DropdownItem>
                                     <DropdownItem
-                                        on:click={() =>
-                                            (objects = makeObject(
-                                                null,
-                                                'curve',
+                                        on:click={() => {
+                                            objects = [
+                                                ...objects,
                                                 {
-                                                    a: '0',
-                                                    b: '2*pi',
-                                                    x: 'cos(t)',
-                                                    y: 'sin(t)',
-                                                    z: `cos(${Math.ceil(
-                                                        10 * Math.random()
-                                                    ).toString()}*t)`,
-                                                    tau: 0,
+                                                    uuid: crypto.randomUUID(),
+                                                    kind: 'curve',
+                                                    params: {
+                                                        a: '0',
+                                                        b: '2*pi',
+                                                        x: 'cos(t)',
+                                                        y: 'sin(t)',
+                                                        z: `${
+                                                            1 / 4 +
+                                                            Math.round(
+                                                                100 *
+                                                                    Math.random()
+                                                            ) /
+                                                                100
+                                                        } * cos(${Math.ceil(
+                                                            10 * Math.random()
+                                                        ).toString()}*t)`,
+                                                    },
                                                     color: `#${makeHSLColor(
                                                         Math.random()
                                                     ).getHexString()}`,
                                                 },
-                                                objects
-                                            ))}
+                                            ];
+                                        }}
                                     >
                                         Space Curve <M size="sm">\mathbf r(t)</M
                                         >
@@ -744,18 +747,21 @@
                                         >
                                     </DropdownItem>
                                     <DropdownItem
-                                        on:click={() =>
-                                            (objects = makeObject(
-                                                null,
-                                                'field',
+                                        on:click={() => {
+                                            objects = [
+                                                ...objects,
                                                 {
-                                                    p: 'x',
-                                                    q: 'y',
-                                                    r: '-z',
-                                                    nVec: 6,
+                                                    uuid: crypto.randomUUID(),
+                                                    kind: 'field',
+                                                    params: {
+                                                        p: 'y',
+                                                        q: 'z',
+                                                        r: 'x',
+                                                        nVec: 6,
+                                                    },
                                                 },
-                                                objects
-                                            ))}
+                                            ];
+                                        }}
                                     >
                                         Vector Field<M size="sm"
                                             >\mathbf F(x,y,z)</M
@@ -783,7 +789,7 @@
                     </div>
 
                     <div class="objectBoxInner">
-                        {#each objects as b (b.uuid)}
+                        {#each objects as { uuid, kind, params, update, color, animation } (uuid)}
                             <div
                                 transition:slide={{
                                     delay: 0,
@@ -791,159 +797,123 @@
                                     easing: quintOut,
                                 }}
                             >
-                                {#if b.kind === 'parsurf'}
+                                {#if kind === 'parsurf'}
                                     <ParSurf
                                         {scene}
                                         camera={currentCamera}
                                         controls={currentControls}
                                         render={requestFrameIfNotRequested}
-                                        params={b.params}
+                                        {params}
                                         onClose={() => {
-                                            controls.enabled = true;
-                                            objects = removeObject(
-                                                b.uuid,
-                                                objects
+                                            objects = objects.filter(
+                                                (b) => b.uuid !== uuid
                                             );
                                         }}
                                         bind:shadeUp
-                                        bind:update={b.update}
-                                        bind:animation={b.animation}
-                                        myId={b.uuid}
+                                        bind:update
+                                        bind:animation
+                                        myId={uuid}
                                         {gridStep}
-                                        selected={selectedObject === b.uuid}
-                                        on:click={selectObject(b.uuid)}
+                                        selected={selectedObject === uuid}
+                                        on:click={selectObject(uuid)}
                                         on:keydown={altDown}
                                     />
-                                {:else if b.kind === 'graph'}
+                                {:else if kind === 'graph'}
                                     <Function
                                         {scene}
                                         camera={currentCamera}
                                         controls={currentControls}
                                         render={requestFrameIfNotRequested}
-                                        params={b.params}
+                                        {params}
                                         onClose={() => {
-                                            controls.enabled = true;
-                                            objects = removeObject(
-                                                b.uuid,
-                                                objects
+                                            objects = objects.filter(
+                                                (b) => b.uuid !== uuid
                                             );
                                         }}
-                                        onUpdate={() =>
-                                            (objects = updateObject(
-                                                b,
-                                                objects
-                                            ))}
                                         bind:shadeUp
-                                        bind:update={b.update}
-                                        bind:animation={b.animation}
+                                        bind:update
+                                        bind:animation
                                         on:animate={animateIfNotAnimating}
-                                        selected={selectedObject === b.uuid}
-                                        on:click={selectObject(b.uuid)}
+                                        selected={selectedObject === uuid}
+                                        on:click={selectObject(uuid)}
                                         on:keydown={altDown}
                                     />
-                                {:else if b.kind === 'level'}
+                                {:else if kind === 'level'}
                                     <Level
                                         {scene}
                                         camera={currentCamera}
                                         {controls}
                                         render={requestFrameIfNotRequested}
                                         onClose={() => {
-                                            controls.enabled = true;
-                                            objects = removeObject(
-                                                b.uuid,
-                                                objects
+                                            objects = objects.filter(
+                                                (b) => b.uuid !== uuid
                                             );
                                         }}
-                                        onUpdate={() =>
-                                            (objects = updateObject(
-                                                b,
-                                                objects
-                                            ))}
-                                        params={b.params}
+                                        {params}
                                         bind:shadeUp
-                                        bind:update={b.update}
-                                        bind:animation={b.animation}
+                                        bind:update
+                                        bind:animation
                                         on:animate={animateIfNotAnimating}
-                                        selected={selectedObject === b.uuid}
-                                        on:click={selectObject(b.uuid)}
+                                        selected={selectedObject === uuid}
+                                        on:click={selectObject(uuid)}
                                         on:keydown={altDown}
                                         {gridStep}
                                     />
-                                {:else if b.kind === 'curve'}
+                                {:else if kind === 'curve'}
                                     <Curve
                                         {scene}
                                         camera={currentCamera}
                                         {controls}
                                         render={requestFrameIfNotRequested}
                                         onClose={() => {
-                                            controls.enabled = true;
-                                            objects = removeObject(
-                                                b.uuid,
-                                                objects
+                                            objects = objects.filter(
+                                                (b) => b.uuid !== uuid
                                             );
                                         }}
-                                        onUpdate={() =>
-                                            (objects = updateObject(
-                                                b,
-                                                objects
-                                            ))}
-                                        params={b.params}
+                                        {params}
+                                        {color}
                                         bind:shadeUp
-                                        bind:update={b.update}
-                                        bind:animation={b.animation}
+                                        bind:update
+                                        bind:animation
                                         on:animate={animateIfNotAnimating}
-                                        selected={selectedObject === b.uuid}
-                                        on:click={selectObject(b.uuid)}
+                                        selected={selectedObject === uuid}
+                                        on:click={selectObject(uuid)}
                                         on:keydown={altDown}
                                         {gridStep}
                                     />
-                                {:else if b.kind === 'field'}
+                                {:else if kind === 'field'}
                                     <Field
+                                        {params}
                                         {scene}
                                         render={requestFrameIfNotRequested}
                                         onClose={() => {
-                                            controls.enabled = true;
-                                            objects = removeObject(
-                                                b.uuid,
-                                                objects
+                                            objects = objects.filter(
+                                                (b) => b.uuid !== uuid
                                             );
                                         }}
-                                        onUpdate={() =>
-                                            (objects = updateObject(
-                                                b,
-                                                objects
-                                            ))}
-                                        bind:update={b.update}
-                                        bind:animation={b.animation}
                                         bind:shadeUp
+                                        bind:update
+                                        bind:animation
                                         on:animate={animateIfNotAnimating}
-                                        params={b.params}
-                                        selected={selectedObject === b.uuid}
-                                        on:click={selectObject(b.uuid)}
+                                        selected={selectedObject === uuid}
+                                        on:click={selectObject(uuid)}
                                         on:keydown={altDown}
                                         {gridStep}
                                         {gridMax}
                                     />
-                                {:else if b.kind === 'vector'}
+                                {:else if kind === 'vector'}
                                     <Vector
                                         {scene}
                                         bind:shadeUp
                                         render={requestFrameIfNotRequested}
                                         onClose={() => {
-                                            controls.enabled = true;
-                                            objects = removeObject(
-                                                b.uuid,
-                                                objects
+                                            objects = objects.filter(
+                                                (b) => b.uuid !== uuid
                                             );
                                         }}
-                                        onUpdate={() =>
-                                            (objects = updateObject(
-                                                b,
-                                                objects
-                                            ))}
-                                        params={b.params}
-                                        selected={selectedObject === b.uuid}
-                                        on:click={selectObject(b.uuid)}
+                                        {params}
+                                        selected={selectedObject === uuid}
+                                        on:click={selectObject(uuid)}
                                         on:keydown={altDown}
                                         {gridStep}
                                     />
@@ -956,19 +926,19 @@
                         <button
                             on:click={() => {
                                 objects = [
-                                    // {
-                                    //     uuid: 34,
-                                    //     kind: 'curve',
-                                    //     params: {
-                                    //         a: '0',
-                                    //         b: '2*pi',
-                                    //         x: 'cos(t)',
-                                    //         y: 'sin(t)',
-                                    //         z: '0',
-                                    //         color: '#bba36a',
-                                    //         tau: 0,
-                                    //     },
-                                    // },
+                                    {
+                                        uuid: 34,
+                                        kind: 'curve',
+                                        params: {
+                                            a: '0',
+                                            b: '2*pi',
+                                            x: 'cos(t)',
+                                            y: 'sin(t)',
+                                            z: '0',
+                                            color: '#bba36a',
+                                            tau: 0,
+                                        },
+                                    },
                                     {
                                         uuid: '42ee3',
                                         kind: 'parsurf',

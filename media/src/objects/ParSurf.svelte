@@ -38,12 +38,6 @@
 
     let xyz;
 
-    // See how often the DOM updates.
-    //
-    // beforeUpdate((arg) => {
-    //     console.log("I'm being updated", params, 'again.');
-    // });
-
     $: {
         const [x, y, z] = [params.x, params.y, params.z].map((f) =>
             math.parse(f).compile()
@@ -87,7 +81,6 @@
     export let gridStep;
     export let render = () => {};
     export let onClose = () => {};
-    // export let onUpdate = () => {};
     export let selected;
 
     let hidden = false;
