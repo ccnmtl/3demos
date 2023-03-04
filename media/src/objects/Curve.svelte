@@ -244,8 +244,8 @@
                 .sub(xyz(T - dt / 2))
                 .divideScalar(dt),
             a: xyz(T + dt)
-                .add(rVec.clone().multiplyScalar(2))
-                .sub(xyz(T - dt))
+                .sub(rVec.clone().multiplyScalar(2))
+                .add(xyz(T - dt))
                 .divideScalar(dt * dt),
         };
 
