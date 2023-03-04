@@ -783,7 +783,7 @@
                     </div>
 
                     <div class="objectBoxInner">
-                        {#each objects as b}
+                        {#each objects as b (b.uuid)}
                             <div
                                 transition:slide={{
                                     delay: 0,
@@ -805,14 +805,10 @@
                                                 objects
                                             );
                                         }}
-                                        onUpdate={() =>
-                                            (objects = updateObject(
-                                                b,
-                                                objects
-                                            ))}
                                         bind:shadeUp
                                         bind:update={b.update}
                                         bind:animation={b.animation}
+                                        myId={b.uuid}
                                         {gridStep}
                                         selected={selectedObject === b.uuid}
                                         on:click={selectObject(b.uuid)}
@@ -954,6 +950,103 @@
                                 {/if}
                             </div>
                         {/each}
+                    </div>
+                    <!-- debug buttons -->
+                    <div class:hidden={!debug}>
+                        <button
+                            on:click={() => {
+                                objects = [
+                                    // {
+                                    //     uuid: 34,
+                                    //     kind: 'curve',
+                                    //     params: {
+                                    //         a: '0',
+                                    //         b: '2*pi',
+                                    //         x: 'cos(t)',
+                                    //         y: 'sin(t)',
+                                    //         z: '0',
+                                    //         color: '#bba36a',
+                                    //         tau: 0,
+                                    //     },
+                                    // },
+                                    {
+                                        uuid: '42ee3',
+                                        kind: 'parsurf',
+                                        params: {
+                                            a: '-1',
+                                            b: '1',
+                                            c: '-1',
+                                            d: '1',
+                                            x: 'sin(u)*cos(v)',
+                                            y: 'sin(u)*sin(v)',
+                                            z: 'cos(u)',
+                                            nX: 80,
+                                        },
+                                    },
+                                    {
+                                        uuid: '423',
+                                        kind: 'parsurf',
+                                        params: {
+                                            a: '0',
+                                            b: '2*pi',
+                                            c: '0',
+                                            d: '2*pi',
+                                            x: 'u',
+                                            y: 'v - 3 + u^2/5',
+                                            z: '-cos(v 5)/3',
+                                            nX: 80,
+                                        },
+                                    },
+                                ];
+                            }}>Reset 1</button
+                        >
+                        <button
+                            on:click={() => {
+                                objects = [
+                                    {
+                                        uuid: '423',
+                                        kind: 'parsurf',
+                                        params: {
+                                            a: '-2',
+                                            b: '2',
+                                            c: '-2',
+                                            d: '2',
+                                            x: 'u + v',
+                                            y: 'u - v',
+                                            z: '-cos(v 5)/3',
+                                            nX: 80,
+                                        },
+                                    },
+                                    {
+                                        uuid: '42ee3',
+                                        kind: 'parsurf',
+                                        params: {
+                                            a: '-1',
+                                            b: '1',
+                                            c: '-1',
+                                            d: '1',
+                                            x: 'sin(u)*cos(v)',
+                                            y: 'sin(u)*sin(v)',
+                                            z: 'cos(u)',
+                                            nX: 80,
+                                        },
+                                    },
+                                    // {
+                                    //     uuid: 34,
+                                    //     kind: 'curve',
+                                    //     params: {
+                                    //         a: '0',
+                                    //         b: '2*pi',
+                                    //         x: 'cos(2 * t)',
+                                    //         y: 'sin(2 * t)',
+                                    //         z: 't / (2 * pi)',
+                                    //         color: '#ff332a',
+                                    //         tau: 0.699,
+                                    //     },
+                                    // },
+                                ];
+                            }}>Reset 2</button
+                        >
                     </div>
                 </div>
                 <button
