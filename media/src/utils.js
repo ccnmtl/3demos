@@ -1692,6 +1692,20 @@ const querySelectorIncludesText = function(selector, text){
         .find(el => el.textContent.includes(text));
 };
 
+function checksum(s)
+/**
+ * A simple checksum for strings. 
+ */
+{
+  let chk = 0x12345678;
+  const len = s.length;
+  for (let i = 0; i < len; i++) {
+      chk += (s.charCodeAt(i) * (i + 1));
+  }
+
+  return (chk & 0xffffffff).toString(16);
+}
+
 export {
     joinUrl,
     getRoomUrl,
@@ -1714,5 +1728,6 @@ export {
     makeHSLColor,
     blockGeometry,
     forceNumber,
-    querySelectorIncludesText
+    querySelectorIncludesText,
+    checksum
 };
