@@ -1,14 +1,16 @@
 <script>
-    import { onMount, onDestroy, createEventDispatcher } from "svelte";
-    import * as THREE from "three";
-    import { create, all } from "mathjs";
-
-    import M from "../M.svelte";
-    import ObjHeader from "../ObjHeader.svelte";
     import {
-        ArrowBufferGeometry,
-        ParametricCurve,
-    } from "../utils.js";
+        onMount,
+        onDestroy,
+        beforeUpdate,
+        createEventDispatcher,
+    } from 'svelte';
+    import * as THREE from 'three';
+    import { create, all } from 'mathjs';
+
+    import M from '../M.svelte';
+    import ObjHeader from '../ObjHeader.svelte';
+    import { ArrowBufferGeometry, ParametricCurve } from '../utils.js';
     import ObjectParamInput from '../form-components/ObjectParamInput.svelte';
 
     const config = {};
@@ -17,15 +19,18 @@
     const dispatch = createEventDispatcher();
 
     // export let paramString;
+    beforeUpdate(() => {
+        console.log('Ima a curve. My params are ', params);
+    });
 
     export let params = {
-        a: "-1",
-        b: "1",
-        x: "t",
-        y: "t^2",
-        z: "t^3",
+        a: '-1',
+        b: '1',
+        x: 't',
+        y: 't^2',
+        z: 't^3',
         tau: 0,
-        color: "#FFDD33",
+        color: '#FFDD33',
     };
 
     let paramErrors = {
@@ -33,11 +38,11 @@
         b: false,
         x: false,
         y: false,
-        z: false
+        z: false,
     };
 
     if (!params.color) {
-        params.color = "#FFDD33";
+        params.color = '#FFDD33';
     }
 
     let oldParams = Object.assign({}, params);
@@ -102,11 +107,14 @@
         const T = a + (b - a) * params.tau;
         if (TNB) {
             const vel = new THREE.Vector3(
-                (x.evaluate({ t: T + 0.01 / 2 }) - x.evaluate({ t: T - 0.01 / 2 })) /
+                (x.evaluate({ t: T + 0.01 / 2 }) -
+                    x.evaluate({ t: T - 0.01 / 2 })) /
                     0.01,
-                (y.evaluate({ t: T + 0.01 / 2 }) - y.evaluate({ t: T - 0.01 / 2 })) /
+                (y.evaluate({ t: T + 0.01 / 2 }) -
+                    y.evaluate({ t: T - 0.01 / 2 })) /
                     0.01,
-                (z.evaluate({ t: T + 0.01 / 2 }) - z.evaluate({ t: T - 0.01 / 2 })) /
+                (z.evaluate({ t: T + 0.01 / 2 }) -
+                    z.evaluate({ t: T - 0.01 / 2 })) /
                     0.01
             );
             params.tau += dt / vel.length() / (b - a);
@@ -114,9 +122,10 @@
             try {
                 params.tau +=
                     dt /
-                    (math.parse(params.b).evaluate() - math.parse(params.a).evaluate());
+                    (math.parse(params.b).evaluate() -
+                        math.parse(params.a).evaluate());
             } catch (e) {
-                console.error("update parse error", e);
+                console.error('update parse error', e);
             }
         }
         params.tau %= 1;
@@ -130,7 +139,7 @@
      *
      * Returns a three.js Vector.
      */
-    const evalXYZ = function(x, y, z, t) {
+    const evalXYZ = function (x, y, z, t) {
         let evalX = 0;
         let evalY = 0;
         let evalZ = 0;
@@ -209,11 +218,11 @@
 
         try {
             [X, Y, Z] = math.parse([x, y, z]);
-            goodParams["a"] = A;
-            goodParams["b"] = B;
-            goodParams["x"] = X.compile();
-            goodParams["y"] = Y.compile();
-            goodParams["z"] = Z.compile();
+            goodParams['a'] = A;
+            goodParams['b'] = B;
+            goodParams['x'] = X.compile();
+            goodParams['y'] = Y.compile();
+            goodParams['z'] = Z.compile();
         } catch (e) {
             animation = false;
             return;
@@ -225,10 +234,16 @@
 
         const r = (t) => {
             return evalXYZ(X, Y, Z, t);
-        }
+        };
 
         let path = new ParametricCurve(1, r, A, B);
-        let geometry = new THREE.TubeGeometry(path, 1000, gridStep / 20, 8, false);
+        let geometry = new THREE.TubeGeometry(
+            path,
+            1000,
+            gridStep / 20,
+            8,
+            false
+        );
         if (tube) {
             tube.geometry.dispose();
             tube.geometry = geometry;
@@ -250,7 +265,7 @@
             return (Math.round(100 * t) / 100).toString();
         } catch (e) {
             console.error(e);
-        return "";
+            return '';
         }
     };
 
@@ -301,9 +316,15 @@
         const dr = {
             r: rVec,
             v: new THREE.Vector3(
-                (x.evaluate({ t: T + dt / 2 }) - x.evaluate({ t: T - dt / 2 })) / dt,
-                (y.evaluate({ t: T + dt / 2 }) - y.evaluate({ t: T - dt / 2 })) / dt,
-                (z.evaluate({ t: T + dt / 2 }) - z.evaluate({ t: T - dt / 2 })) / dt
+                (x.evaluate({ t: T + dt / 2 }) -
+                    x.evaluate({ t: T - dt / 2 })) /
+                    dt,
+                (y.evaluate({ t: T + dt / 2 }) -
+                    y.evaluate({ t: T - dt / 2 })) /
+                    dt,
+                (z.evaluate({ t: T + dt / 2 }) -
+                    z.evaluate({ t: T - dt / 2 })) /
+                    dt
             ),
             a: new THREE.Vector3(
                 (x.evaluate({ t: T + dt }) -
@@ -323,8 +344,8 @@
 
         if (osculatingCircle) {
             const R = dr.r.clone(),
-                  V = dr.v.clone(),
-                  A = dr.a.clone();
+                V = dr.v.clone(),
+                A = dr.a.clone();
             const Av = A.clone().cross(V).length();
             let path;
             if (Av > 0) {
@@ -346,13 +367,13 @@
             } else {
                 V.normalize();
                 path = new ParametricCurve(
-                1,
-                (t) => {
-                    const vec = R.clone().addScaledVector(V, t);
-                    return vec;
-                },
-                -gridStep * 30,
-                gridStep * 30
+                    1,
+                    (t) => {
+                        const vec = R.clone().addScaledVector(V, t);
+                        return vec;
+                    },
+                    -gridStep * 30,
+                    gridStep * 30
                 );
             }
             const geometry = new THREE.TubeGeometry(
@@ -387,7 +408,7 @@
             const pos = dr.r.clone();
             if (arrow.geometry) arrow.geometry.dispose();
 
-            if (key === "r") {
+            if (key === 'r') {
                 arrow.position.set(0, 0, 0);
                 arrow.geometry = new ArrowBufferGeometry({
                     ...arrowParams,
@@ -403,7 +424,7 @@
                 });
                 arrow.lookAt(pos.add(dr[key]));
             }
-            if (key === "n") {
+            if (key === 'n') {
                 arrow.visible = false;
             }
         }
@@ -415,7 +436,7 @@
         render();
     };
 
-    const startAnimation = (toggleState=false) => {
+    const startAnimation = (toggleState = false) => {
         frame.visible = true;
         if (toggleState) {
             animation = !animation;
@@ -427,6 +448,7 @@
 
     onMount(updateCurve);
     onDestroy(() => {
+        console.log("I'm curve-destroyed.");
         if (tube) {
             tube.geometry && tube.geometry.dispose();
             tube.material && tube.material.dispose();
@@ -461,10 +483,7 @@
 
         raycaster.setFromCamera(mouseVector, camera);
 
-        const intersects = raycaster.intersectObjects(
-            tube,
-            true
-        );
+        const intersects = raycaster.intersectObjects(tube, true);
 
         if (intersects.length > 0) {
             const intersect = intersects[0];
@@ -480,7 +499,7 @@
         if (shadeUp) {
             switch (e.key) {
                 case 'Backspace':
-                    if(tube.visible) {
+                    if (tube.visible) {
                         tube.visible = false;
                         circleTube.visible = false;
                     } else {
@@ -530,7 +549,7 @@
     window.addEventListener('keyup', shiftUp, false);
 </script>
 
-<div class={'boxItem' + (selected ? ' selected': '')} on:click on:keydown>
+<div class={'boxItem' + (selected ? ' selected' : '')} on:click on:keydown>
     <div class="box-title">
         <span>
             <strong style="color: {params.color};">
@@ -550,7 +569,8 @@
                     params.x = newVal;
                     onUpdate();
                     updateCurve();
-                }} />
+                }}
+            />
             <span class="box-1"><M size="sm">y(t) =</M></span>
             <ObjectParamInput
                 error={paramErrors.y}
@@ -559,7 +579,8 @@
                     params.y = newVal;
                     onUpdate();
                     updateCurve();
-                }} />
+                }}
+            />
 
             <span class="box-1"><M size="sm">z(t) =</M></span>
             <ObjectParamInput
@@ -569,7 +590,8 @@
                     params.z = newVal;
                     onUpdate();
                     updateCurve();
-                }} />
+                }}
+            />
 
             <ObjectParamInput
                 className="form-control form-control-sm box"
@@ -579,7 +601,8 @@
                     params.a = newVal;
                     onUpdate();
                     updateCurve();
-                }} />
+                }}
+            />
             <span class="box box-3"><M size="sm">\leq t \leq</M></span>
             <ObjectParamInput
                 className="form-control form-control-sm box"
@@ -589,7 +612,8 @@
                     params.b = newVal;
                     onUpdate();
                     updateCurve();
-                }} />
+                }}
+            />
 
             <span class="box-1">
                 <M size="sm">{texString1}</M>
@@ -615,15 +639,15 @@
                 <span class="slider round" />
             </label>
             <span class="play-buttons box-4">
-                <button class="btn box-1"
-                    on:click={() => startAnimation(true)}>
+                <button class="btn box-1" on:click={() => startAnimation(true)}>
                     {#if !animation}
                         <i class="fa fa-play" />
                     {:else}
                         <i class="fa fa-pause" />
                     {/if}
                 </button>
-                <button class="btn box-3"
+                <button
+                    class="btn box-3"
                     on:click={() => {
                         animation = false;
                         render();
@@ -632,7 +656,8 @@
                 >
                     <i class="fa fa-stop" />
                 </button>
-                <button class="btn box-4"
+                <button
+                    class="btn box-4"
                     on:click={() => {
                         params.tau = 0;
                         updateFrame();
@@ -643,43 +668,43 @@
                 </button>
             </span>
 
-        <span class="box-1">Reparamterize by <M>s</M></span>
-        <label class="switch box box-2">
-            <input
-                type="checkbox"
-                name="reparamByArcLength"
-                id="reparamByArcLength"
-                bind:checked={TNB}
-                on:change={updateFrame}
-            />
-            <span class="slider round" />
-        </label>
+            <span class="box-1">Reparamterize by <M>s</M></span>
+            <label class="switch box box-2">
+                <input
+                    type="checkbox"
+                    name="reparamByArcLength"
+                    id="reparamByArcLength"
+                    bind:checked={TNB}
+                    on:change={updateFrame}
+                />
+                <span class="slider round" />
+            </label>
 
-        <span class="box-1">Osculating Circle</span>
-        <label class="switch box box-2">
-            <input
-                type="checkbox"
-                name="osculatingCircle"
-                id="osculatingCircle"
-                bind:checked={osculatingCircle}
-                on:change={updateFrame}
-            />
-            <span class="slider round" />
-        </label>
-        <span class="box-1">Color</span>
-        <span class="box box-2">
-            <input
-                type="color"
-                name="colorPicker"
-                id="colorPicker"
-                bind:value={params.color}
-                on:change={() => {
-                    onUpdate();
-                    updateColor();
-                }}
-                style="width:85%; padding: 1px 1px;"
-            />
-        </span>
+            <span class="box-1">Osculating Circle</span>
+            <label class="switch box box-2">
+                <input
+                    type="checkbox"
+                    name="osculatingCircle"
+                    id="osculatingCircle"
+                    bind:checked={osculatingCircle}
+                    on:change={updateFrame}
+                />
+                <span class="slider round" />
+            </label>
+            <span class="box-1">Color</span>
+            <span class="box box-2">
+                <input
+                    type="color"
+                    name="colorPicker"
+                    id="colorPicker"
+                    bind:value={params.color}
+                    on:change={() => {
+                        onUpdate();
+                        updateColor();
+                    }}
+                    style="width:85%; padding: 1px 1px;"
+                />
+            </span>
         </div>
     </div>
 </div>
