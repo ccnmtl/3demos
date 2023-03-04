@@ -45,8 +45,8 @@
     import { makeObject, publishScene, handleSceneEvent } from './sceneUtils';
     import { handlePollEvent } from './polls/pollUtils';
 
-    let debug = false,
-        stats;
+    let debug = false;
+    let stats;
     // stats window for debugging
     if (debug) {
         stats = new Stats();
@@ -393,6 +393,10 @@
                 }
                 if (key === 'grid') {
                     gridMeshes.visible = val === 'true';
+                }
+                if (key === 'debug') {
+                    debug = val === 'true';
+                    console.log('debuggery: ', debug);
                 }
                 if (key === 'flipInfo') {
                     flipInfo = true;
@@ -922,7 +926,7 @@
                         {/each}
                     </div>
                     <!-- debug buttons -->
-                    <div class:hidden={!debug}>
+                    <div hidden={!debug}>
                         <button
                             on:click={() => {
                                 objects = [
@@ -935,8 +939,6 @@
                                             x: 'cos(t)',
                                             y: 'sin(t)',
                                             z: '0',
-                                            color: '#bba36a',
-                                            tau: 0,
                                         },
                                     },
                                     {
@@ -1001,19 +1003,18 @@
                                             nX: 80,
                                         },
                                     },
-                                    // {
-                                    //     uuid: 34,
-                                    //     kind: 'curve',
-                                    //     params: {
-                                    //         a: '0',
-                                    //         b: '2*pi',
-                                    //         x: 'cos(2 * t)',
-                                    //         y: 'sin(2 * t)',
-                                    //         z: 't / (2 * pi)',
-                                    //         color: '#ff332a',
-                                    //         tau: 0.699,
-                                    //     },
-                                    // },
+                                    {
+                                        uuid: 34,
+                                        kind: 'curve',
+                                        params: {
+                                            a: '0',
+                                            b: '2*pi',
+                                            x: 'cos(2 * t)',
+                                            y: 'sin(2 * t)',
+                                            z: 't / (2 * pi)',
+                                        },
+                                        color: '#ff332a',
+                                    },
                                 ];
                             }}>Reset 2</button
                         >
