@@ -1,5 +1,10 @@
 <script>
-    import { onMount, onDestroy, createEventDispatcher } from 'svelte';
+    import {
+        onMount,
+        onDestroy,
+        createEventDispatcher,
+        beforeUpdate,
+    } from 'svelte';
     import * as THREE from 'three';
     import { create, all } from 'mathjs';
 
@@ -126,6 +131,11 @@
         transparent: false,
     });
 
+    beforeUpdate(() => {
+        // This fixes an artificial case where color was dropped as a prop when the params were re-assigned.
+        // Would like to drop it.
+        color = color ? color : '#FFA3BB';
+    });
     // Keep updated
     $: {
         curveMaterial.color.set(color);
