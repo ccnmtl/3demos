@@ -10,13 +10,12 @@
     const config = {};
     const math = create(all, config);
 
-    let updateCounter = 0;
-
     import {
         ArrowBufferGeometry,
         lcm,
         marchingSegments,
         // marchingCubes,
+        checksum,
         ParametricGeometry,
     } from '../utils.js';
     import InputChecker from '../form-components/InputChecker.svelte';
@@ -34,6 +33,8 @@
         cNum: 10,
         nX: 30,
     };
+
+    export let myId;
 
     let xyz;
 
@@ -55,6 +56,10 @@
             );
     }
 
+    // Only run the update if the params have changed.
+    $: hashTag = checksum(JSON.stringify(params));
+    $: hashTag, updateSurface();
+
     // Check midpoint of parameter space and see if all is ok.
     const chickenParms = (val, { a, b, c, d }) => {
         let valuation;
@@ -67,8 +72,12 @@
             console.log('ParseError in evaluation.', error);
             return false;
         }
-        console.log('Evaluation got here.', Number.isNaN(valuation), valuation);
-        return !Number.isNaN(valuation);
+        if (Number.isFinite(valuation)) {
+            return true;
+        } else {
+            console.log('Evaluation error. Incomplete expression, maybe.');
+            return false;
+        }
     };
 
     export let scene;
@@ -120,6 +129,7 @@
     let surfaceMesh;
 
     const updateSurface = function () {
+        console.log(`I'm ${myId} and I'm updatin'.`);
         const { a, b, c, d, x, y, z } = params;
         const A = math.parse(a).evaluate(),
             B = math.parse(b).evaluate();
@@ -174,6 +184,7 @@
         }
 
         tanFrame.visible = false;
+        tangentVectors({ uv: new THREE.Vector2(0, 0) });
         render();
     };
 
@@ -302,8 +313,13 @@
         return geometry;
     };
 
-    onMount(updateSurface);
+    // onMount(updateSurface);
+    onMount(() => console.log(`${myId} mounted`));
+    // afterUpdate(() => {
+    //     console.log('Ima a surface. My params are ', params);
+    // });
     onDestroy(() => {
+        console.log("Ugh. I'm parsurf-destroyed.");
         for (const child of surfaceMesh.children) {
             child.geometry && child.geometry.dispose();
             child.material && child.material.dispose();
@@ -542,7 +558,7 @@
     window.addEventListener('keyup', shiftUp, false);
 </script>
 
-<div class={'boxItem' + (selected ? ' selected' : '')} on:click on:keydown>
+<div class="boxItem" class:selected on:click on:keydown>
     <div class="box-title">
         <strong>Parametric surface</strong>
         <ObjHeader bind:hidden bind:onClose />
@@ -552,11 +568,14 @@
             {#each ['x', 'y', 'z'] as name}
                 <span class="box-1"><M size="sm">{name}(u,v) =</M></span>
                 <InputChecker
-                    initialValue={params[name]}
+                    value={params[name]}
                     checker={chickenParms}
                     {name}
                     {params}
-                    on:cleared={updateSurface}
+                    on:cleared={(e) => {
+                        params[name] = e.detail;
+                        // updateSurface();
+                    }}
                 />
             {/each}
 
@@ -568,7 +587,7 @@
                     if (chickenParms(params.x, params)) {
                         params.a = val;
                         e.target.classList.remove('is-invalid');
-                        updateSurface();
+                        // updateSurface();
                     } else {
                         e.target.classList.add('is-invalid');
                     }
@@ -584,7 +603,7 @@
                     if (chickenParms(params.x, params)) {
                         params.b = val;
                         e.target.classList.remove('is-invalid');
-                        updateSurface();
+                        // updateSurface();
                     } else {
                         e.target.classList.add('is-invalid');
                     }
@@ -599,7 +618,7 @@
                     if (chickenParms(params.x, params)) {
                         params.c = val;
                         e.target.classList.remove('is-invalid');
-                        updateSurface();
+                        // updateSurface();
                     } else {
                         e.target.classList.add('is-invalid');
                     }
@@ -614,7 +633,7 @@
                     if (chickenParms(params.x, params)) {
                         params.d = val;
                         e.target.classList.remove('is-invalid');
-                        updateSurface();
+                        // updateSurface();
                     } else {
                         e.target.classList.add('is-invalid');
                     }
@@ -628,7 +647,6 @@
                 min="0"
                 max="20"
                 step="1"
-                on:input={updateSurface}
                 class="box box-2"
             />
             <span class="box-1"><M size="sm">v</M>-meshes</span>
@@ -638,7 +656,6 @@
                 min="0"
                 max="20"
                 step="1"
-                on:input={updateSurface}
                 class="box box-2"
             />
             <span class="box-1">Resolution</span>
@@ -646,9 +663,8 @@
                 type="range"
                 bind:value={params.nX}
                 min="10"
-                max="60"
+                max="80"
                 step="5"
-                on:input={updateSurface}
                 class="box box-2"
             />
         </div>
@@ -662,5 +678,8 @@
         text-align: center;
 
         grid-column: 2 / 3;
+    }
+    input {
+        color: black;
     }
 </style>
