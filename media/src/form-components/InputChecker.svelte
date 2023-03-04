@@ -3,7 +3,6 @@
      * A svelte component for parameter inputs.
      * Input value is checked on change against the parameters. If validated (via a user-supplied checker), dispatch a cleared function, else alert the user with error message.
      */
-    import { onMount } from 'svelte';
     import { createEventDispatcher } from 'svelte';
 
     const dispatch = createEventDispatcher();
@@ -17,9 +16,6 @@
     export let checker = (val) => {
         return Number.isFinite(val);
     };
-    // onMount(() => {
-    //     inputElement.value = initialValue;
-    // });
 </script>
 
 <input
