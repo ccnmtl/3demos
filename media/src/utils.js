@@ -1053,7 +1053,7 @@ class ArrowBufferGeometry extends THREE.BufferGeometry {
             }
             index++;
         }
-
+        this.parameters.height = newHeight;
         this.attributes.position.needsUpdate = true;
     }
 }
@@ -1074,6 +1074,7 @@ function adjustArrowHeight(geometry, newHeight) {
         index++;
     }
 
+    geometry.parameters.height = newHeight;
     geometry.attributes.position.needsUpdate = true;
 }
 

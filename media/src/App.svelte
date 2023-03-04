@@ -45,14 +45,11 @@
     import { makeObject, publishScene, handleSceneEvent } from './sceneUtils';
     import { handlePollEvent } from './polls/pollUtils';
 
+    //import stores
+    import { tickTock } from './stores.js';
+
     let debug = false;
     let stats;
-    // stats window for debugging
-    if (debug) {
-        stats = new Stats();
-        stats.showPanel(1); // 0: fps, 1: ms, 2: mb, 3+: custom
-        document.body.appendChild(stats.dom);
-    }
 
     let flipInfo = false;
     let shadeUp = false;
@@ -235,13 +232,16 @@
         const dt = (time - last) / 1000;
         last = time;
 
-        for (const b of objects.filter((b) => b.animation)) {
-            if (typeof b.update === 'function') {
-                b.update(dt);
-            } else {
-                console.error('b.update is not callable', b);
-            }
-        }
+        // for (const b of objects.filter((b) => b.animation)) {
+        //     if (typeof b.update === 'function') {
+        //         b.update(dt);
+        //     } else {
+        //         console.error('b.update is not callable', b);
+        //     }
+        // }
+
+        // FYI, the linter doesn't like +=
+        $tickTock = $tickTock + dt;
 
         if (scaleAnimation) {
             scaleUpdate(dt);
@@ -373,12 +373,6 @@
     onMount(() => {
         createScene(canvas);
 
-        // If any of the loaded objects are currently animating, call
-        // the animate() function.
-        if (objects.some((b) => b.animation)) {
-            animate();
-        }
-
         const urlParams = new URLSearchParams(location.search);
         if (urlParams.keys()) {
             const objectHolder = {};
@@ -414,6 +408,18 @@
             for (const val of Object.values(objectHolder)) {
                 objects = makeObject(val.uuid, val.kind, val.params, objects);
             }
+        }
+
+        // stats window for debugging
+        if (debug) {
+            stats = new Stats();
+            stats.showPanel(1); // 0: fps, 1: ms, 2: mb, 3+: custom
+            document.body.appendChild(stats.dom);
+        }
+        // If any of the loaded objects are currently animating, call
+        // the animate() function.
+        if (objects.some((b) => b.animation)) {
+            animate();
         }
     });
 
@@ -700,7 +706,6 @@
                                                     ).toString()}*x + ${Math.ceil(
                                                         2 * Math.random()
                                                     ).toString()}*y)/(1 + x^2 + y^2)`,
-                                                    tau: 0,
                                                 },
                                                 objects
                                             ))}

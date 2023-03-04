@@ -17,6 +17,8 @@
     } from '../utils.js';
     import InputChecker from '../form-components/InputChecker.svelte';
 
+    import { tickTock } from '../stores';
+
     const config = {};
     const math = create(all, config);
 
@@ -80,35 +82,28 @@
     export let gridStep;
     export let animation = false;
     export let selected;
-    export const update = (dt) => {
-        const { a, b, x, y, z } = params;
-        const T = a + (b - a) * tau;
+    let last;
+
+    const update = (dt = 0) => {
+        const { a, b } = params;
+        const A = math.parse(a).evaluate();
+        const B = math.parse(b).evaluate();
+
         if (TNB) {
-            const vel = new THREE.Vector3(
-                (x.evaluate({ t: T + 0.01 / 2 }) -
-                    x.evaluate({ t: T - 0.01 / 2 })) /
-                    0.01,
-                (y.evaluate({ t: T + 0.01 / 2 }) -
-                    y.evaluate({ t: T - 0.01 / 2 })) /
-                    0.01,
-                (z.evaluate({ t: T + 0.01 / 2 }) -
-                    z.evaluate({ t: T - 0.01 / 2 })) /
-                    0.01
-            );
-            tau += dt / vel.length() / (b - a);
+            tau += dt / arrows.v.geometry.parameters.height / (B - A);
         } else {
-            try {
-                tau +=
-                    dt /
-                    (math.parse(params.b).evaluate() -
-                        math.parse(params.a).evaluate());
-            } catch (e) {
-                console.error('update parse error', e);
-            }
+            tau += dt / (B - A);
         }
         tau %= 1;
-        updateFrame();
+        const T = A + (B - A) * tau;
+        updateFrame({ T });
     };
+    // Should be reactive
+    $: if (animation) {
+        const currentTime = $tickTock;
+        update(currentTime - last);
+        last = currentTime;
+    }
 
     /**
      * Eval x, y, and z mathjs objects on the given t value.
@@ -184,7 +179,7 @@
         updateFrame();
     };
 
-    const stringifyT = function (params) {
+    const stringifyT = function (tau) {
         const { a, b } = params;
         try {
             const [A, B] = [a, b].map((x) => math.parse(x).evaluate());
@@ -228,11 +223,11 @@
 
     frame.add(point);
 
-    const updateFrame = function ({ dt = 0.01 } = {}) {
-        const { a, b } = params;
-        const [A, B] = [a, b].map((x) => math.parse(x).evaluate());
+    const updateFrame = function ({ T = 0, dt = 0.01 } = {}) {
+        // const { a, b } = params;
+        // const [A, B] = [a, b].map((x) => math.parse(x).evaluate());
 
-        const T = A + (B - A) * tau;
+        // const T = A + (B - A) * tau;
 
         let curvature = 0;
 
@@ -291,7 +286,7 @@
                 false
             );
 
-            circleTube.geometry.dispose();
+            circleTube.geometry?.dispose();
             circleTube.geometry = geometry;
 
             circleTube.visible = true;
@@ -340,6 +335,7 @@
 
     const startAnimation = (toggleState = false) => {
         frame.visible = true;
+        last = $tickTock;
         if (toggleState) {
             animation = !animation;
         }
@@ -372,7 +368,7 @@
         render();
     });
 
-    $: texString1 = `t = ${stringifyT(params)}`;
+    $: texString1 = `t = ${stringifyT(tau)}`;
 
     const raycaster = new THREE.Raycaster();
 
@@ -528,7 +524,13 @@
                 min="0"
                 max="1"
                 step="0.001"
-                on:input={updateFrame}
+                on:input={() => {
+                    const { a, b } = params;
+                    const A = math.parse(a).evaluate();
+                    const B = math.parse(b).evaluate();
+
+                    updateFrame({ T: A + tau * (B - A) });
+                }}
                 class="box box-2"
             />
             <span class="box-1">Frame</span>
@@ -564,7 +566,7 @@
                     class="btn box-4"
                     on:click={() => {
                         tau = 0;
-                        updateFrame();
+                        update(0);
                     }}
                     bind:this={rewButton}
                 >
