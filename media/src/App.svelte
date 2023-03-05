@@ -397,16 +397,20 @@
                 }
                 if (key.slice(0, 3) === 'obj') {
                     const keyParts = key.split('_');
-                    if (keyParts[1] === 'kind') {
-                        objectHolder[keyParts[0]] = { kind: val, params: {} };
+                    const obj = objectHolder[keyParts[0]] || { params: {} };
+                    if (keyParts[1] === 'params') {
+                        obj.params[keyParts[2]] = val;
                     } else {
-                        objectHolder[keyParts[0]].params[keyParts[2]] = val;
+                        obj[keyParts[1]] = val;
                     }
+                    objectHolder[keyParts[0]] = obj;
                 }
             });
 
             for (const val of Object.values(objectHolder)) {
-                objects = makeObject(val.uuid, val.kind, val.params, objects);
+                // objects = makeObject(val.uuid, val.kind, val.params, objects);
+                objects = [...objects, { uuid: crypto.randomUUID(), ...val }];
+                console.log(objects);
             }
         }
 
@@ -894,9 +898,8 @@
                                             );
                                         }}
                                         {params}
-                                        {color}
+                                        bind:color
                                         bind:shadeUp
-                                        bind:update
                                         bind:animation
                                         on:animate={animateIfNotAnimating}
                                         selected={selectedObject === uuid}
@@ -935,7 +938,16 @@
                                             );
                                         }}
                                         {params}
-                                        {color}
+                                        bind:color
+                                        bind:animation
+                                        on:animate={(e) => {
+                                            console.log(
+                                                'vect anim',
+                                                animation,
+                                                e
+                                            );
+                                            animateIfNotAnimating();
+                                        }}
                                         selected={selectedObject === uuid}
                                         on:click={selectObject(uuid)}
                                         on:keydown={altDown}

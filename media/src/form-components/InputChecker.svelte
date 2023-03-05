@@ -11,7 +11,7 @@
     export let type = 'text';
     export let value = '';
     export let className = 'form-control form-control-sm box box-2';
-    export let params;
+    export let params = {};
     let inputElement;
     export let checker = (val) => {
         return Number.isFinite(val);
