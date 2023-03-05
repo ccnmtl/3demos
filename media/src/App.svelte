@@ -638,21 +638,35 @@
                                 </DropdownToggle>
                                 <DropdownMenu>
                                     <DropdownItem
-                                        on:click={() =>
-                                            (objects = makeObject(
-                                                null,
-                                                'vector',
+                                        on:click={() => {
+                                            objects = [
+                                                ...objects,
                                                 {
-                                                    a: '0.2',
-                                                    b: '-0.3',
-                                                    c: '0',
-                                                    x: '0',
-                                                    y: '0',
-                                                    z: '0',
-                                                    show: true,
+                                                    uuid: crypto.randomUUID(),
+                                                    kind: 'vector',
+                                                    params: {
+                                                        a: `${
+                                                            2 * Math.random() -
+                                                            1
+                                                        }`.slice(0, 5),
+                                                        b: `${
+                                                            2 * Math.random() -
+                                                            1
+                                                        }`.slice(0, 5),
+                                                        c: `${
+                                                            2 * Math.random() -
+                                                            1
+                                                        }`.slice(0, 5),
+                                                        x: '0',
+                                                        y: '0',
+                                                        z: '0',
+                                                    },
+                                                    color: `#${makeHSLColor(
+                                                        Math.random()
+                                                    ).getHexString()}`,
                                                 },
-                                                objects
-                                            ))}
+                                            ];
+                                        }}
                                     >
                                         Vector <M size="sm"
                                             >\mathbf v = \langle a, b, c \rangle</M
@@ -921,6 +935,7 @@
                                             );
                                         }}
                                         {params}
+                                        {color}
                                         selected={selectedObject === uuid}
                                         on:click={selectObject(uuid)}
                                         on:keydown={altDown}

@@ -1,12 +1,13 @@
 <script>
-    import { onMount, onDestroy } from "svelte";
-    import * as THREE from "three";
-    import { create, all } from "mathjs";
+    import { onMount, onDestroy } from 'svelte';
+    import * as THREE from 'three';
+    import { create, all } from 'mathjs';
+    // import { tickTock } from '../stores';
 
-    import M from "../M.svelte";
-    import ObjHeader from "../ObjHeader.svelte";
-    import {ArrowBufferGeometry} from "../utils.js";
-    import ObjectParamInput from '../form-components/ObjectParamInput.svelte';
+    import M from '../M.svelte';
+    import ObjHeader from '../ObjHeader.svelte';
+    import { ArrowBufferGeometry, checksum } from '../utils.js';
+    import InputChecker from '../form-components/InputChecker.svelte';
 
     const config = {};
     const math = create(all, config);
@@ -14,30 +15,19 @@
     // export let paramString;
 
     export let params = {
-        a: "-1",
-        b: "1",
-        c: "2",
-        x: "0",
-        y: "0",
-        z: "0",
-        nX: 30,
-        show: true,
+        a: '-1',
+        b: '1',
+        c: '2',
+        x: '0',
+        y: '0',
+        z: '0',
     };
 
-    let paramErrors = {
-        a: false,
-        b: false,
-        c: false,
-        x: false,
-        y: false,
-        z: false
-    };
+    export let color = '#FF0000';
 
-    if (!params.color) {
-        params.color = "#FF0000";
-    }
-
-    let oldParams = Object.assign({}, params);
+    // display controls in objects panel
+    // considered for Chapters that add many objects that need not be user-configurable.
+    export let show = true;
 
     if (!('show' in params)) {
         params.show = true;
@@ -47,14 +37,13 @@
     export let shadeUp;
     export let render = () => {};
     export let onClose = () => {};
-    export let onUpdate = () => {};
     export let gridStep;
     export let selected;
 
     let hidden = false;
 
     const arrowMaterial = new THREE.MeshPhongMaterial({
-        color: params.color,
+        color: color,
         shininess: 80,
         side: THREE.DoubleSide,
         vertexColors: false,
@@ -68,121 +57,46 @@
         heightTop: vfScale / 8,
     };
 
-    let arrow;
+    const arrow = new THREE.Mesh(
+        new ArrowBufferGeometry({
+            ...arrowArgs,
+            height: 1,
+        }),
+        arrowMaterial
+    );
 
-    const updateCurve = function() {
+    scene.add(arrow);
+
+    const updateCurve = function (t = 0) {
         const { a, b, c, x, y, z } = params;
-        const [pA, pB, pC, pX, pY, pZ] = math.parse([a, b, c, x, y, z]);
-        let A, B, C, X, Y, Z;
-
-        try {
-            A = pA.evaluate();
-            paramErrors.a = false;
-        } catch (e) {
-            paramErrors.a = true;
-            return;
-        }
-
-        try {
-            B = pB.evaluate();
-            paramErrors.b = false;
-        } catch (e) {
-            paramErrors.b = true;
-            return;
-        }
-
-        try {
-            C = pC.evaluate();
-            paramErrors.c = false;
-        } catch (e) {
-            paramErrors.c = true;
-            return;
-        }
-
-        try {
-            X = pX.evaluate();
-            paramErrors.x = false;
-        } catch (e) {
-            paramErrors.x = true;
-            return;
-        }
-
-        try {
-            Y = pY.evaluate();
-            paramErrors.y = false;
-        } catch (e) {
-            paramErrors.y = true;
-            return;
-        }
-
-        try {
-            Z = pZ.evaluate();
-            paramErrors.z = false;
-        } catch (e) {
-            paramErrors.z = true;
-            return;
-        }
-
+        const [A, B, C, X, Y, Z] = math
+            .parse([a, b, c, x, y, z])
+            .map((s) => s.evaluate({ t }));
 
         const v = new THREE.Vector3(A, B, C);
 
-        let geometry = new ArrowBufferGeometry({
-            ...arrowArgs,
-            height: v.length(),
-        });
-
-        if (arrow) {
-            arrow.geometry.dispose();
-            arrow.geometry = geometry;
-        } else {
-            arrow = new THREE.Mesh(geometry, arrowMaterial);
-            scene.add(arrow);
-        }
         arrow.position.set(X, Y, Z);
+
+        arrow.geometry.adjustHeight(v.length());
 
         arrow.lookAt(v.add(arrow.position));
 
         render();
     };
 
-    const updateColor = function() {
-        arrowMaterial.color.set(params.color);
-        render();
-    }
-
     // call updateCurve() when params change
-    $: {
-        if (oldParams.color !== params.color) {
-            updateColor();
-            oldParams.color = params.color;
-        }
+    $: hashTag = checksum(JSON.stringify(params));
+    $: hashTag, updateCurve();
 
-        if (
-            oldParams.a !== params.a ||
-            oldParams.b !== params.b ||
-            oldParams.a !== params.a ||
-            oldParams.x !== params.x ||
-            oldParams.y !== params.y
-        ) {
-            updateCurve();
-            oldParams.a = params.a;
-            oldParams.b = params.b;
-            oldParams.x = params.x;
-            oldParams.y = params.y;
-            oldParams.z = params.z;
-        }
-    }
-    // Exercises
-    //
+    // recolor on demand
+    $: arrowMaterial.color.set(color);
 
     onMount(updateCurve);
     onDestroy(() => {
-        if (arrow) {
-            arrow.geometry && arrow.geometry.dispose();
-            arrow.material && arrow.material.dispose();
-        }
+        arrow.geometry && arrow.geometry?.dispose();
+        arrow.material?.dispose();
         scene.remove(arrow);
-        window.removeEventListener("keydown", shiftDown, false);
+        window.removeEventListener('keydown', shiftDown, false);
         render();
     });
 
@@ -198,80 +112,58 @@
     };
 
     window.addEventListener('keydown', shiftDown, false);
+
+    // make display name more consistent
+    const varNames = {
+        a: 'v_1',
+        b: 'v_2',
+        c: 'v_3',
+        x: 'p_1',
+        y: 'p_2',
+        z: 'p_3',
+    };
+
+    const chickenParms = (val) => {
+        try {
+            math.parse(val);
+        } catch (e) {
+            console.log('Parse error in expression', val, e);
+            return false;
+        }
+        return true;
+    };
 </script>
 
-<div class={'boxItem' + (selected ? ' selected': '')} hidden={!params.show} on:click on:keydown>
+<div
+    class={'boxItem' + (selected ? ' selected' : '')}
+    hidden={!show}
+    on:click
+    on:keydown
+>
     <div class="box-title">
-        <span><strong>Vector</strong> <M size="sm">\langle a, b, c \rangle</M></span>
-        <ObjHeader
-            bind:hidden={hidden}
-            bind:onClose={onClose}
-        />
+        <span style="color: {color};"
+            ><strong>Vector</strong>
+            <M size="sm">\langle v_1, v_2, v_3 \rangle</M></span
+        >
+        <ObjHeader bind:hidden bind:onClose />
     </div>
-    <div hidden={hidden}>
+    <div {hidden}>
         <div class="container">
-            <span class="box-1"><M size="sm">a =</M></span>
-            <ObjectParamInput
-                error={paramErrors.a}
-                initialValue={params.a}
-                onChange={(newVal) => {
-                    // Set the new param in Vector once blur has happened
-                    params.a = newVal;
-                    onUpdate();
-                    updateCurve();
-                }} />
-
-            <span class="box-1"><M size="sm">b =</M></span>
-            <ObjectParamInput
-                error={paramErrors.b}
-                initialValue={params.b}
-                onChange={(newVal) => {
-                    params.b = newVal;
-                    onUpdate();
-                    updateCurve();
-                }} />
-
-            <span class="box-1"><M size="sm">c =</M></span>
-            <ObjectParamInput
-                error={paramErrors.c}
-                initialValue={params.c}
-                onChange={(newVal) => {
-                    params.c = newVal;
-                    onUpdate();
-                    updateCurve();
-                }} />
-
-            Plot at position <M size="sm">(p_1, p_2, p_3)</M>:
-
-            <span class="box-1"><M size="sm">p_1 =</M></span>
-            <ObjectParamInput
-                error={paramErrors.x}
-                initialValue={params.x}
-                onChange={(newVal) => {
-                    params.x = newVal;
-                    onUpdate();
-                    updateCurve();
-                }} />
-
-            <span class="box-1"><M size="sm">p_2 =</M></span>
-            <ObjectParamInput
-                error={paramErrors.y}
-                initialValue={params.y}
-                onChange={(newVal) => {
-                    params.y = newVal;
-                    onUpdate();
-                    updateCurve();
-                }} />
-
-            <span class="box-1"><M size="sm">p_3 =</M></span>
-            <ObjectParamInput
-                error={paramErrors.z}
-                initialValue={params.z}
-                onChange={(newVal) => {
-                    params.z = newVal;
-                    onUpdate();
-                    updateCurve();
-                }} />
+            {#each ['a', 'b', 'c', 'x', 'y', 'z'] as name}
+                {#if name === 'x'}
+                    Plot at position <M size="sm">(p_1, p_2, p_3)</M>:
+                {/if}
+                <span class="box-1"><M size="sm">{varNames[name]} =</M></span>
+                <InputChecker
+                    value={params[name]}
+                    checker={chickenParms}
+                    {name}
+                    {params}
+                    on:cleared={(e) => {
+                        params[name] = e.detail;
+                    }}
+                />
+            {/each}
 
             <span class="box-1">Color</span>
             <span class="box box-2">
@@ -279,11 +171,7 @@
                     type="color"
                     name="colorPicker"
                     id="colorPicker"
-                    bind:value={params.color}
-                    on:change={() => {
-                        onUpdate();
-                        updateColor();
-                    }}
+                    bind:value={color}
                     style="width:85%; padding: 1px 1px;"
                 />
             </span>
