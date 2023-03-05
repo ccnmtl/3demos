@@ -450,7 +450,7 @@
 <div class={'boxItem' + (selected ? ' selected' : '')} on:click on:keydown>
     <div class="box-title">
         <span>
-            <strong style="color: {params.color};">
+            <strong style="color: {color};">
                 <i class="fa fa-square" />
             </strong>
             <strong>Space Curve</strong>
