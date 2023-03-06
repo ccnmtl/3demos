@@ -353,11 +353,7 @@
             scene.add(surfaceMesh);
         }
 
-        point.position.set(
-            A,
-            C.evaluate({ x: A }),
-            func(A, C.evaluate({ x: A }), time)
-        );
+        point.position.z = func(point.position.x, point.position.y, time);
 
         tangentVectors();
 
