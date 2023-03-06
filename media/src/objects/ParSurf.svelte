@@ -351,8 +351,8 @@
         color: 0x4b4b4b,
         shininess: 80,
         side: THREE.DoubleSide,
-        transparent: true,
-        opacity: 0.3,
+        transparent: false,
+        opacity: 1,
     });
     const planeShard = new THREE.Mesh(
         new THREE.BufferGeometry(),

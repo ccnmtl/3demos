@@ -724,6 +724,8 @@
                                                     ).toString()}*x + ${Math.ceil(
                                                         2 * Math.random()
                                                     ).toString()}*y)/(1 + x^2 + y^2)`,
+                                                    t0: '0',
+                                                    t1: '1',
                                                 },
                                                 objects
                                             ))}
@@ -837,7 +839,6 @@
                                             );
                                         }}
                                         bind:shadeUp
-                                        bind:update
                                         bind:animation
                                         myId={uuid}
                                         {gridStep}
@@ -857,8 +858,8 @@
                                                 (b) => b.uuid !== uuid
                                             );
                                         }}
+                                        {gridStep}
                                         bind:shadeUp
-                                        bind:update
                                         bind:animation
                                         on:animate={animateIfNotAnimating}
                                         selected={selectedObject === uuid}

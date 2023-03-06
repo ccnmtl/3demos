@@ -15,11 +15,12 @@
             return nodes.some((node) => node.name === ch);
         });
 
-    console.log('Depends test', dependsOn({ x: 'sin(t) + 5' }));
+    // console.log('Depends test', dependsOn({ x: 'sin(t) + 5' }));
 </script>
 
 <script>
     import { onMount, onDestroy } from 'svelte';
+    // import { slide } from 'svelte/transition';
     import * as THREE from 'three';
     import { tickTock } from '../stores';
 
@@ -41,7 +42,7 @@
     };
 
     export let color = '#FF0000';
-    export let tau = 0;
+    let tau = 0;
     let last;
     let texString1 = `t = 0`;
 
@@ -144,10 +145,10 @@
         z: 'p_3',
     };
 
+    /**
+     *  "Check parameters"
+     * */
     const chickenParms = (val) => {
-        /**
-         *  "Check parameters"
-         * */
         let valuation;
         try {
             const localParms = {};
@@ -226,9 +227,10 @@
             {/each}
 
             {#if isDynamic}
+                <!-- <div class="dynamic-container" transition:slide> -->
                 {#each ['t0', 't1'] as name}
                     {#if name === 't1'}
-                        <span class="box-3"
+                        <span class="box box-3"
                             ><M size="sm">{'\\leq t \\leq '}</M></span
                         >
                     {/if}
@@ -269,6 +271,7 @@
                     }}
                     on:rew={() => (tau = 0)}
                 />
+                <!-- </div> -->
             {/if}
 
             <span class="box-1">Color</span>
@@ -284,3 +287,9 @@
         </div>
     </div>
 </div>
+
+<style>
+    .dynamic-container {
+        grid-column: 0 / 5;
+    }
+</style>
