@@ -872,6 +872,9 @@
                         animation = true;
                         dispatch('animate');
                         showLevelCurves = false;
+                    } else {
+                        animation = false;
+                        data.last = null;
                     }
                     break;
             }
