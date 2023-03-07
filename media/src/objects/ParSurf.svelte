@@ -33,12 +33,13 @@
         x: 'u',
         y: 'v',
         z: '1 - sin(u^2 - v^2)/2',
-        rNum: 10,
-        cNum: 10,
-        nX: 30,
     };
+    export let color = '#3232ff';
+    let rNum = 10;
+    let cNum = 10;
+    let nX = 60;
 
-    export let myId;
+    // export let myId;
 
     let xyz;
 
@@ -89,10 +90,7 @@
 
     let hidden = false;
 
-    // params['rNum'] = 10;
-    // params['cNum'] = 10;
-    // params['nX'] = 60;
-    params = { ...params, rNum: 10, cNum: 10, nX: 60 };
+    // params = { ...params, rNum: 10, cNum: 10, nX: 60 };
 
     const whiteLineMaterial = new THREE.LineBasicMaterial({
         color: 0xffffff,
@@ -111,13 +109,23 @@
         opacity: 0.7,
     });
     const plusMaterial = new THREE.MeshPhongMaterial({
-        color: 0x3232ff,
+        color: color,
         shininess: 80,
         side: THREE.FrontSide,
         vertexColors: false,
         transparent: true,
         opacity: 0.7,
     });
+
+    // Keep color fresh
+    $: {
+        plusMaterial.color.set(color);
+        const hsl = {};
+        plusMaterial.color.getHSL(hsl);
+        hsl.h = (hsl.h + 0.618033988749895) % 1;
+        minusMaterial.color.setHSL(hsl.h, hsl.s, hsl.l);
+        render();
+    }
 
     let cMin, dMax; // make these globals as useful for tangents.
 
@@ -126,7 +134,7 @@
     let surfaceMesh;
 
     const updateSurface = function () {
-        console.log(`I'm ${myId} and I'm updatin'.`);
+        // console.log(`I'm ${myId} and I'm updatin'.`);
         const { a, b, c, d, x, y, z } = params;
         const A = math.parse(a).evaluate(),
             B = math.parse(b).evaluate();
@@ -142,15 +150,10 @@
                 };
                 vec.set(X.evaluate(uv), Y.evaluate(uv), Z.evaluate(uv));
             },
-            params.nX || 30,
-            params.nX || 30
+            nX || 30,
+            nX || 30
         );
-        const meshGeometry = meshLines(
-            params,
-            params.rNum,
-            params.cNum,
-            params.nX
-        );
+        const meshGeometry = meshLines(params, rNum, cNum, nX);
         // let material = plusMaterial;
 
         if (surfaceMesh) {
@@ -192,7 +195,7 @@
         render();
     };
 
-    const meshLines = function (rData, rNum = 10, cNum = 10, nX = 30) {
+    const meshLines = function (rData, rNum = 10, cNum = 10, nX = 60) {
         let { a, b, c, d, x, y, z } = rData;
         // const N = lcm(lcm(rNum, cNum), nX);
         const A = math.parse(a).evaluate(),
@@ -318,7 +321,7 @@
     };
 
     // onMount(updateSurface);
-    onMount(() => console.log(`${myId} mounted`));
+    onMount(() => {});
     // afterUpdate(() => {
     //     console.log('Ima a surface. My params are ', params);
     // });
@@ -647,7 +650,7 @@
             <span class="box-1"><M size="sm">u</M>-meshes</span>
             <input
                 type="range"
-                bind:value={params.rNum}
+                bind:value={rNum}
                 min="0"
                 max="20"
                 step="1"
@@ -656,7 +659,7 @@
             <span class="box-1"><M size="sm">v</M>-meshes</span>
             <input
                 type="range"
-                bind:value={params.cNum}
+                bind:value={cNum}
                 min="0"
                 max="20"
                 step="1"
@@ -665,12 +668,22 @@
             <span class="box-1">Resolution</span>
             <input
                 type="range"
-                bind:value={params.nX}
+                bind:value={nX}
                 min="10"
                 max="80"
                 step="5"
                 class="box box-2"
             />
+
+            <span class="box box-2">
+                <input
+                    type="color"
+                    name="colorPicker"
+                    id="colorPicker"
+                    bind:value={color}
+                    style="width:85%; padding: 1px 1px;"
+                />
+            </span>
         </div>
     </div>
 </div>
