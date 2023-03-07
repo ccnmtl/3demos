@@ -368,7 +368,7 @@
         render();
     });
 
-    $: texString1 = `t = ${stringifyT(tau)}`;
+    $: texString1 = `${stringifyT(tau)}`;
 
     const raycaster = new THREE.Raycaster();
 
@@ -516,7 +516,7 @@
             />
 
             <span class="box-1">
-                <M size="sm">{texString1}</M>
+                <span class="t-box">t = {texString1}</span>
             </span>
             <input
                 type="range"
@@ -610,3 +610,11 @@
         </div>
     </div>
 </div>
+
+<style>
+    .t-box {
+        display: inline-block;
+        width: 40%;
+        text-align: left;
+    }
+</style>
