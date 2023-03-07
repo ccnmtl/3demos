@@ -28,11 +28,6 @@
     export let uuid;
     export let onRenderObject = function () {};
     export let onDestroyObject = function () {};
-    export let camera,
-        controls,
-        animation = false,
-        gridStep,
-        showLevelCurves = false;
 
     export let params = {
         a: '-2',
