@@ -283,6 +283,7 @@
             child.material && child.material.dispose();
         }
         scene.remove(surfaceMesh)
+        scene.remove(tanFrame);
         window.removeEventListener("keydown", shiftDown, false);
         window.removeEventListener("keyup", shiftUp, false);
         render()
