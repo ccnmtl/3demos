@@ -39,7 +39,6 @@
 
     let hidden = false;
     let flowTrails = true;
-    let stopButton, rewButton;
 
     class FlowArrowMesh extends THREE.Mesh {
         constructor(geometry, material, lim = 1) {

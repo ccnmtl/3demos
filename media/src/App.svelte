@@ -818,7 +818,7 @@
                     </div>
 
                     <div class="objectBoxInner">
-                        {#each objects as { uuid, kind, params, update, color, animation } (uuid)}
+                        {#each objects as { uuid, kind, params, color, animation } (uuid)}
                             <div
                                 transition:slide={{
                                     delay: 0,
