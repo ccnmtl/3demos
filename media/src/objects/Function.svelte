@@ -283,15 +283,15 @@
     });
 
     // Set other side a complementary color.
-    {
-        const hsl = {};
-        plusMaterial.color.getHSL(hsl);
-        minusMaterial.color.setHSL(
-            (hsl.h + 0.618033988749895) % 1,
-            hsl.s,
-            hsl.l
-        );
-    }
+    // {
+    //     const hsl = {};
+    //     plusMaterial.color.getHSL(hsl);
+    //     minusMaterial.color.setHSL(
+    //         (hsl.h + 0.618033988749895) % 1,
+    //         hsl.s,
+    //         hsl.l
+    //     );
+    // }
 
     let cMin, dMax; // make these globals as useful for tangents.
     const tol = 1e-12; //tolerance for comparisons
@@ -547,11 +547,10 @@
     $: hashTag, updateSurface();
 
     // Keep color fresh
-    $: col = new THREE.Color(color);
     $: {
         plusMaterial.color.set(color);
         const hsl = {};
-        col.getHSL(hsl);
+        plusMaterial.color.getHSL(hsl);
         hsl.h = (hsl.h + 0.618033988749895) % 1;
         minusMaterial.color.setHSL(hsl.h, hsl.s, hsl.l);
         render();

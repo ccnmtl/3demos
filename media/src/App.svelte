@@ -878,8 +878,8 @@
                                             );
                                         }}
                                         {params}
+                                        bind:color
                                         bind:shadeUp
-                                        bind:update
                                         bind:animation
                                         on:animate={animateIfNotAnimating}
                                         selected={selectedObject === uuid}
@@ -918,8 +918,8 @@
                                                 (b) => b.uuid !== uuid
                                             );
                                         }}
+                                        bind:color
                                         bind:shadeUp
-                                        bind:update
                                         bind:animation
                                         on:animate={animateIfNotAnimating}
                                         selected={selectedObject === uuid}
