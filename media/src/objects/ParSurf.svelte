@@ -18,6 +18,10 @@
     } from "../utils.js";
     import ObjectParamInput from '../form-components/ObjectParamInput.svelte';
 
+    export let uuid;
+    export let onRenderObject = function() {};
+    export let onDestroyObject = function() {};
+
     export let params = {
         a: "-2",
         b: "2",
@@ -140,6 +144,13 @@
             surfaceMesh = new THREE.Object3D();
             const backMesh = new THREE.Mesh(geometry, minusMaterial);
             const frontMesh = new THREE.Mesh(geometry, material);
+
+            // Pass in the 3demos-generated uuid so we can keep track
+            // of which object this belongs to.
+            backMesh.name = uuid;
+            frontMesh.name = uuid;
+            onRenderObject(backMesh, frontMesh);
+
             // mesh.add(new THREE.Mesh( geometry, wireMaterial ))
             surfaceMesh.add(frontMesh);
             surfaceMesh.add(backMesh);
@@ -147,6 +158,7 @@
             // mesh.visible = false;
             scene.add(surfaceMesh);
         }
+
         render();
     }
 
@@ -278,6 +290,7 @@
 
     onMount(updateSurface);
     onDestroy(() => {
+        onDestroyObject(...surfaceMesh.children);
         for (const child of surfaceMesh.children) {
             child.geometry && child.geometry.dispose();
             child.material && child.material.dispose();
@@ -342,7 +355,7 @@
     //     const fy = (f(u, v + h / 2, w) - f(u, v - h / 2, w)) / h;
     //     h = Math.max(w * eps, (2 * eps) ** 2);
     //     const fz = (f(u, v, w + h / 2) - f(u, v, w - h / 2)) / h;
-        
+
     //     return { p: point.position, n: new THREE.Vector3(fx, fy, fz) };
     // }
 
@@ -352,7 +365,7 @@
     //         point,
     //         eps,
     //     });
-        
+
     //     // point.position.copy(dr.p);
 
     //     const arrowParams = {
@@ -465,7 +478,7 @@
                     } else {
                         arrows.n.visible = false;
                     }
-                    
+
                     render();
                     break;
             }
