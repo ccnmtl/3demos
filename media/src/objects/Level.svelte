@@ -1,70 +1,41 @@
 <script>
-    import { onDestroy } from "svelte";
-    import * as THREE from "three";
-    import { create, all } from "mathjs";
+    import { onDestroy } from 'svelte';
+    import * as THREE from 'three';
+    import { create, all } from 'mathjs';
 
-    import M from "../M.svelte";
-    import ObjHeader from "../ObjHeader.svelte";
+    import M from '../M.svelte';
+    import ObjHeader from '../ObjHeader.svelte';
     import ObjectParamInput from '../form-components/ObjectParamInput.svelte';
+    import InputChecker from '../form-components/InputChecker.svelte';
 
     const config = {};
     const math = create(all, config);
 
-    import {updateParams} from './levelWorker.js';
+    import { updateParams } from './levelWorker.js';
 
-    import {
-        marchingCubes,
-        ArrowBufferGeometry
-    } from "../utils.js";
+    import { marchingCubes, ArrowBufferGeometry, checksum } from '../utils.js';
 
     export let params = {
-        g: "x^2 - y^2 + z^2",
-        k: "1",
-        a: "-2",
-        b: "2",
-        c: "-2",
-        d: "2",
-        e: "-2",
-        f: "2",
+        g: 'x^2 - y^2 + z^2',
+        k: '1',
+        a: '-2',
+        b: '2',
+        c: '-2',
+        d: '2',
+        e: '-2',
+        f: '2',
     };
-
-    let oldParams = Object.assign({}, params);
-
-    $: {
-        if (
-            oldParams.g !== params.g
-                || oldParams.k !== params.k
-                || oldParams.a !== params.a
-                || oldParams.b !== params.b
-                || oldParams.a !== params.a
-                || oldParams.c !== params.c
-                || oldParams.d !== params.d
-                || oldParams.e !== params.e
-                || oldParams.f !== params.f
-        ) {
-            updateLevel();
-            oldParams.g = params.g;
-            oldParams.k = params.k;
-            oldParams.a = params.a;
-            oldParams.b = params.b;
-            oldParams.c = params.c;
-            oldParams.d = params.d;
-            oldParams.e = params.e;
-            oldParams.f = params.f;
-        }
-    }
 
     export let scene;
     export let shadeUp;
     export let render = () => {};
     export let onClose = () => {};
-    export let onUpdate = () => {};
     export let selected;
 
     export let camera,
-    controls,
-    // animation = false,
-    gridStep;
+        controls,
+        // animation = false,
+        gridStep;
     // showLevelCurves = false;
 
     let hidden = false;
@@ -92,6 +63,16 @@
         opacity: 0.7,
     });
 
+    // $: col = new THREE.Color(color);
+    $: {
+        plusMaterial.color.set(color);
+        const hsl = {};
+        plusMaterial.color.getHSL(hsl);
+        hsl.h = (hsl.h + 0.618033988749895) % 1;
+        minusMaterial.color.setHSL(hsl.h, hsl.s, hsl.l);
+        render();
+    }
+
     const whiteLineMaterial = new THREE.LineBasicMaterial({
         color: 0xffffff,
         linewidth: 2,
@@ -103,23 +84,49 @@
     mesh.visible = false;
     scene.add(mesh);
 
-    const updateLevel = function() {
+    const updateLevel = function () {
         loading = true;
         updateParams(params).then((data) => {
             levelWorkerSuccessHandler(data);
         });
-    }
+    };
 
-    updateLevel();
+    /**
+     *  "Check parameters"
+     * */
+    const chickenParms = (val, params) => {
+        let valuation;
+        try {
+            const { a, b, c, d, e, f } = params;
+
+            const parsedVal = math.parse(val);
+
+            valuation = Number.isFinite(
+                parsedVal.evaluate({
+                    x: (a + b) / 2,
+                    y: (c + d) / 2,
+                    z: (e + f) / 2,
+                })
+            );
+        } catch (e) {
+            console.log('Parse error in expression', val, e);
+            return false;
+        }
+        return valuation;
+    };
+    export let color = '#3232ff';
+
+    $: hashTag = checksum(JSON.stringify(params));
+    $: hashTag, updateLevel();
 
     const levelWorkerSuccessHandler = (data) => {
         const { normals, vertices, xpts, ypts, zpts } = data;
         geometry.setAttribute(
-            "position",
+            'position',
             new THREE.Float32BufferAttribute(vertices, 3)
         );
         geometry.setAttribute(
-            "normal",
+            'normal',
             new THREE.Float32BufferAttribute(normals, 3)
         );
 
@@ -127,11 +134,14 @@
 
         {
             xTraceGeometry.setAttribute(
-                "position",
+                'position',
                 new THREE.Float32BufferAttribute(xpts, 3)
             );
 
-            const trace = new THREE.LineSegments(xTraceGeometry, whiteLineMaterial);
+            const trace = new THREE.LineSegments(
+                xTraceGeometry,
+                whiteLineMaterial
+            );
 
             trace.rotation.y = Math.PI / 2;
             trace.rotation.z = Math.PI / 2;
@@ -140,11 +150,14 @@
         }
         {
             yTraceGeometry.setAttribute(
-                "position",
+                'position',
                 new THREE.Float32BufferAttribute(ypts, 3)
             );
 
-            const trace = new THREE.LineSegments(yTraceGeometry, whiteLineMaterial);
+            const trace = new THREE.LineSegments(
+                yTraceGeometry,
+                whiteLineMaterial
+            );
 
             trace.rotation.x = -Math.PI / 2;
             trace.rotation.z = -Math.PI / 2;
@@ -153,11 +166,14 @@
         }
         {
             zTraceGeometry.setAttribute(
-                "position",
+                'position',
                 new THREE.Float32BufferAttribute(zpts, 3)
             );
 
-            const trace = new THREE.LineSegments(zTraceGeometry, whiteLineMaterial);
+            const trace = new THREE.LineSegments(
+                zTraceGeometry,
+                whiteLineMaterial
+            );
 
             mesh.add(trace);
         }
@@ -176,8 +192,8 @@
         minusMaterial.dispose();
         scene.remove(mesh);
         scene.remove(tanFrame);
-        window.removeEventListener("keydown", shiftDown, false);
-        window.removeEventListener("keyup", shiftUp, false);
+        window.removeEventListener('keydown', shiftDown, false);
+        window.removeEventListener('keyup', shiftUp, false);
         render();
     });
 
@@ -211,19 +227,26 @@
         transparent: true,
         opacity: 0.5,
     });
-    const planeShard = new THREE.Mesh(new THREE.BufferGeometry(), shardMaterial);
+    const planeShard = new THREE.Mesh(
+        new THREE.BufferGeometry(),
+        shardMaterial
+    );
     tanFrame.add(planeShard);
 
     tanFrame.visible = false;
 
     scene.add(tanFrame);
 
-    const nFrame = function({
+    const nFrame = function ({
         f = (x, y, z) => math.evaluate(params.g, { x, y, z }),
         point = point,
         eps = 1e-4,
     } = {}) {
-        const [u, v, w] = [point.position.x, point.position.y, point.position.z];
+        const [u, v, w] = [
+            point.position.x,
+            point.position.y,
+            point.position.z,
+        ];
 
         let h;
 
@@ -235,10 +258,10 @@
         const fz = (f(u, v, w + h / 2) - f(u, v, w - h / 2)) / h;
 
         return { p: point.position, n: new THREE.Vector3(fx, fy, fz) };
-    }
+    };
 
     // Construct tangent vectors at a point u,v (both 0 to 1)
-    const tangentVectors = function({ point, eps = 1e-4, plane = true } = {}) {
+    const tangentVectors = function ({ point, eps = 1e-4, plane = true } = {}) {
         const { p, n } = nFrame({
             point,
             eps,
@@ -284,13 +307,13 @@
 
             planeShard.geometry = tangentPlaneGeometry;
         }
-    }
+    };
 
     const raycaster = new THREE.Raycaster();
 
     let mouseVector = new THREE.Vector2();
 
-    const onMouseMove = function(e) {
+    const onMouseMove = function (e) {
         // normalized mouse coordinates
         mouseVector.x = 2 * (e.clientX / window.innerWidth) - 1;
         mouseVector.y = 1 - 2 * (e.clientY / window.innerHeight);
@@ -312,7 +335,7 @@
 
             render();
         }
-    }
+    };
 
     const shiftDown = (e) => {
         if (shadeUp && selected) {
@@ -321,11 +344,11 @@
                     mesh.visible = !mesh.visible;
                     render();
                     break;
-                case "Shift":
-                    window.addEventListener("mousemove", onMouseMove, false);
+                case 'Shift':
+                    window.addEventListener('mousemove', onMouseMove, false);
                     tanFrame.visible = true;
                     break;
-                case "c":
+                case 'c':
                     controls.target.set(
                         point.position.x,
                         point.position.y,
@@ -333,11 +356,11 @@
                     );
                     render();
                     break;
-                case "t":
+                case 't':
                     tanFrame.visible = !tanFrame.visible;
                     render();
                     break;
-                case "y":
+                case 'y':
                     if (!planeShard.visible) {
                         tanFrame.visible = true;
                         planeShard.visible = true;
@@ -346,14 +369,14 @@
                     }
                     render();
                     break;
-                case "n":
-                if (!arrows.n.visible) {
+                case 'n':
+                    if (!arrows.n.visible) {
                         tanFrame.visible = true;
                         arrows.n.visible = true;
                     } else {
                         arrows.n.visible = false;
                     }
-                    
+
                     render();
                     break;
             }
@@ -361,16 +384,16 @@
     };
 
     const shiftUp = (e) => {
-        if (e.key === "Shift") {
-            window.removeEventListener("mousemove", onMouseMove);
+        if (e.key === 'Shift') {
+            window.removeEventListener('mousemove', onMouseMove);
         }
     };
 
-    window.addEventListener("keydown", shiftDown, false);
-    window.addEventListener("keyup", shiftUp, false);
+    window.addEventListener('keydown', shiftDown, false);
+    window.addEventListener('keyup', shiftUp, false);
 </script>
 
-<div class={'boxItem' + (selected ? ' selected': '')} on:click on:keydown>
+<div class={'boxItem' + (selected ? ' selected' : '')} on:click on:keydown>
     <div class="box-title">
         <span>
             <strong>Level surface </strong>
@@ -379,30 +402,31 @@
                 <span class="sr-only">Loading...</span>
             </span>
         </span>
-        <ObjHeader
-            bind:hidden={hidden}
-            bind:onClose={onClose}
-        />
+        <ObjHeader bind:hidden bind:onClose />
     </div>
-    <div hidden={hidden}>
+    <div {hidden}>
         <div class="container">
             <span class="box-1"><M size="sm">g(x,y,z) =</M></span>
-            <ObjectParamInput
-                initialValue={params.g}
-                onChange={(newVal) => {
-                    params.g = newVal;
-                    onUpdate();
-                    updateLevel();
-                }} />
+            <InputChecker
+                value={params['g']}
+                checker={chickenParms}
+                name={'g'}
+                {params}
+                on:cleared={(e) => {
+                    params['g'] = e.detail;
+                }}
+            />
 
             <span class="box-1"><M size="sm">k =</M></span>
-            <ObjectParamInput
-                initialValue={params.k}
-                onChange={(newVal) => {
-                    params.k = newVal;
-                    onUpdate();
-                    updateLevel();
-                }} />
+            <InputChecker
+                value={params['k']}
+                checker={(val) => Number.isFinite(math.parse(val).evaluate())}
+                name={'k'}
+                {params}
+                on:cleared={(e) => {
+                    params['k'] = e.detail;
+                }}
+            />
 
             <ObjectParamInput
                 type="number"
@@ -410,9 +434,8 @@
                 initialValue={params.a}
                 onChange={(newVal) => {
                     params.a = newVal;
-                    onUpdate();
-                    updateLevel();
-                }} />
+                }}
+            />
             <span class="box box-3"><M size="sm">\leq x \leq</M></span>
             <ObjectParamInput
                 type="number"
@@ -420,9 +443,8 @@
                 initialValue={params.b}
                 onChange={(newVal) => {
                     params.b = newVal;
-                    onUpdate();
-                    updateLevel();
-                }} />
+                }}
+            />
 
             <ObjectParamInput
                 type="number"
@@ -430,19 +452,17 @@
                 initialValue={params.c}
                 onChange={(newVal) => {
                     params.c = newVal;
-                    onUpdate();
-                    updateLevel();
-                }} />
-                <span class="box box-3"><M size="sm">\leq y \leq</M></span>
+                }}
+            />
+            <span class="box box-3"><M size="sm">\leq y \leq</M></span>
             <ObjectParamInput
                 type="number"
                 className="box"
                 initialValue={params.d}
                 onChange={(newVal) => {
                     params.d = newVal;
-                    onUpdate();
-                    updateLevel();
-                }} />
+                }}
+            />
 
             <ObjectParamInput
                 type="number"
@@ -450,9 +470,8 @@
                 initialValue={params.e}
                 onChange={(newVal) => {
                     params.e = newVal;
-                    onUpdate();
-                    updateLevel();
-                }} />
+                }}
+            />
             <span class="box box-3"><M size="sm">\leq z \leq</M></span>
             <ObjectParamInput
                 type="number"
@@ -460,11 +479,20 @@
                 initialValue={params.f}
                 onChange={(newVal) => {
                     params.f = newVal;
-                    onUpdate();
-                    updateLevel();
-                }} />
+                }}
+            />
 
-            <span class="box-1">Tangents</span>
+            <span class="box box-2">
+                <input
+                    type="color"
+                    name="colorPicker"
+                    id="colorPicker"
+                    bind:value={color}
+                    style="width:85%; padding: 1px 1px;"
+                />
+            </span>
+
+            <span class="box-1">Tangent plane </span>
             <label class="switch box box-2">
                 <input
                     type="checkbox"
@@ -473,7 +501,7 @@
                     id="frameVisible"
                     bind:checked={tanFrame.visible}
                     on:change={render}
-                    />
+                />
                 <span class="slider round" />
             </label>
         </div>
