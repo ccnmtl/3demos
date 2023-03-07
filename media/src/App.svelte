@@ -859,7 +859,7 @@
                     </div>
 
                     <div class="objectBoxInner">
-                        {#each objects as b}
+                        {#each objects as b (b.uuid)}
                             <div
                                 transition:slide={{
                                     delay: 0,
