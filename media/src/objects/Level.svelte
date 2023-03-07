@@ -440,7 +440,7 @@
 
             <ObjectParamInput
                 type="number"
-                className="box"
+                className="form-control box"
                 initialValue={params.a}
                 onChange={(newVal) => {
                     params.a = newVal;
@@ -450,7 +450,7 @@
             <span class="box box-3"><M size="sm">\leq x \leq</M></span>
             <ObjectParamInput
                 type="number"
-                className="box"
+                className="form-control box"
                 initialValue={params.b}
                 onChange={(newVal) => {
                     params.b = newVal;
@@ -460,7 +460,7 @@
 
             <ObjectParamInput
                 type="number"
-                className="box"
+                className="form-control box"
                 initialValue={params.c}
                 onChange={(newVal) => {
                     params.c = newVal;
@@ -470,7 +470,7 @@
                 <span class="box box-3"><M size="sm">\leq y \leq</M></span>
             <ObjectParamInput
                 type="number"
-                className="box"
+                className="form-control box"
                 initialValue={params.d}
                 onChange={(newVal) => {
                     params.d = newVal;
@@ -480,7 +480,7 @@
 
             <ObjectParamInput
                 type="number"
-                className="box"
+                className="form-control box"
                 initialValue={params.e}
                 onChange={(newVal) => {
                     params.e = newVal;
@@ -490,7 +490,7 @@
             <span class="box box-3"><M size="sm">\leq z \leq</M></span>
             <ObjectParamInput
                 type="number"
-                className="box"
+                className="form-control box"
                 initialValue={params.f}
                 onChange={(newVal) => {
                     params.f = newVal;
