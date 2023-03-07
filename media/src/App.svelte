@@ -44,22 +44,19 @@
     } from './utils';
     import {
         makeObject,
-        removeObject,
-        updateObject,
+        // removeObject,
+        // updateObject,
         publishScene,
         handleSceneEvent,
-        findPointerIntersects
+        findPointerIntersects,
     } from './sceneUtils';
     import { handlePollEvent } from './polls/utils';
 
-    let debug = false,
-        stats;
-    // stats window for debugging
-    if (debug) {
-        stats = new Stats();
-        stats.showPanel(1); // 0: fps, 1: ms, 2: mb, 3+: custom
-        document.body.appendChild(stats.dom);
-    }
+    //import stores
+    import { tickTock } from './stores.js';
+
+    let debug = false;
+    let stats;
 
     let flipInfo = false;
     let shadeUp = false;
@@ -245,13 +242,16 @@
         const dt = (time - last) / 1000;
         last = time;
 
-        for (const b of objects.filter((b) => b.animation)) {
-            if (typeof b.update === 'function') {
-                b.update(dt);
-            } else {
-                console.error('b.update is not callable', b);
-            }
-        }
+        // for (const b of objects.filter((b) => b.animation)) {
+        //     if (typeof b.update === 'function') {
+        //         b.update(dt);
+        //     } else {
+        //         console.error('b.update is not callable', b);
+        //     }
+        // }
+
+        // FYI, the linter doesn't like +=
+        $tickTock = $tickTock + dt;
 
         if (scaleAnimation) {
             scaleUpdate(dt);
@@ -399,11 +399,11 @@
      * component's three.js object is rendered. This function takes a
      * variable number of visible instances of THREE.Mesh or THREE.Group.
      */
-    const onRenderObject = function(...meshes) {
+    const onRenderObject = function (...meshes) {
         for (let mesh of meshes) {
             // Remove this object if it exists.
             if (sceneObjects.some((x) => x.uuid === mesh.uuid)) {
-                sceneObjects = sceneObjects.filter(x => x.uuid !== mesh.uuid);
+                sceneObjects = sceneObjects.filter((x) => x.uuid !== mesh.uuid);
             }
 
             sceneObjects.push(mesh);
@@ -415,23 +415,25 @@
      * array. This is intended to be called when the svelte component
      * is destroyed.
      */
-    const onDestroyObject = function(...meshes) {
+    const onDestroyObject = function (...meshes) {
         for (let mesh of meshes) {
-            sceneObjects = sceneObjects.filter(x => x.uuid !== mesh.uuid);
+            sceneObjects = sceneObjects.filter((x) => x.uuid !== mesh.uuid);
         }
     };
 
-    const onPointerMove = function(e, renderer) {
+    const onPointerMove = function (e, renderer) {
         e.preventDefault();
 
-        pointerCoords.x = (
-            e.offsetX / renderer.domElement.clientWidth) * 2 - 1;
-        pointerCoords.y = -(
-            e.offsetY / renderer.domElement.clientHeight) * 2 + 1;
+        pointerCoords.x = (e.offsetX / renderer.domElement.clientWidth) * 2 - 1;
+        pointerCoords.y =
+            -(e.offsetY / renderer.domElement.clientHeight) * 2 + 1;
 
         const intersects = findPointerIntersects(
-            sceneObjects, pointerCoords,
-            currentCamera, raycaster);
+            sceneObjects,
+            pointerCoords,
+            currentCamera,
+            raycaster
+        );
         if (intersects.length > 0) {
             if (intersects[0].object) {
                 let obj = intersects[0].object;
@@ -445,20 +447,14 @@
             document.body.style.cursor = 'default';
             hoveredObject = null;
         }
-    }
+    };
 
-    const onClick = function() {
+    const onClick = function () {
         selectedObject = hoveredObject;
     };
 
     onMount(() => {
         const renderer = createScene(canvas);
-
-        // If any of the loaded objects are currently animating, call
-        // the animate() function.
-        if (objects.some((b) => b.animation)) {
-            animate();
-        }
 
         const urlParams = new URLSearchParams(location.search);
         if (urlParams.keys()) {
@@ -475,28 +471,48 @@
                 if (key === 'grid') {
                     gridMeshes.visible = val === 'true';
                 }
+                if (key === 'debug') {
+                    debug = val === 'true';
+                    console.log('debuggery: ', debug);
+                }
                 if (key === 'flipInfo') {
                     flipInfo = true;
                 }
                 if (key.slice(0, 3) === 'obj') {
                     const keyParts = key.split('_');
-                    if (keyParts[1] === 'kind') {
-                        objectHolder[keyParts[0]] = { kind: val, params: {} };
+                    const obj = objectHolder[keyParts[0]] || { params: {} };
+                    if (keyParts[1] === 'params') {
+                        obj.params[keyParts[2]] = val;
                     } else {
-                        objectHolder[keyParts[0]].params[keyParts[2]] = val;
+                        obj[keyParts[1]] = val;
                     }
+                    objectHolder[keyParts[0]] = obj;
                 }
             });
 
             for (const val of Object.values(objectHolder)) {
-                objects = makeObject(val.uuid, val.kind, val.params, objects);
+                // objects = makeObject(val.uuid, val.kind, val.params, objects);
+                objects = [...objects, { uuid: crypto.randomUUID(), ...val }];
+                console.log(objects);
             }
         }
 
-        renderer.domElement.addEventListener(
-            'pointermove', (e) => onPointerMove(e, renderer));
-        renderer.domElement.addEventListener(
-            'click', onClick);
+        // stats window for debugging
+        if (debug) {
+            stats = new Stats();
+            stats.showPanel(1); // 0: fps, 1: ms, 2: mb, 3+: custom
+            document.body.appendChild(stats.dom);
+        }
+        // If any of the loaded objects are currently animating, call
+        // the animate() function.
+        if (objects.some((b) => b.animation)) {
+            animate();
+        }
+
+        renderer.domElement.addEventListener('pointermove', (e) =>
+            onPointerMove(e, renderer)
+        );
+        renderer.domElement.addEventListener('click', onClick);
     });
 
     const onPublishScene = function () {
@@ -511,10 +527,13 @@
 
     const handleSocketMessage = function (e) {
         const data = JSON.parse(e.data);
-        if (data.message.pollResponse && !(data.session_key in userResponseList)) {
+        if (
+            data.message.pollResponse &&
+            !(data.session_key in userResponseList)
+        ) {
             userResponseList[data.session_key] = true;
             let choice = data.message.pollResponse;
-            if (choice in pollResponses){
+            if (choice in pollResponses) {
                 pollResponses[choice]++;
             } else {
                 pollResponses[choice] = 1;
@@ -544,36 +563,42 @@
 
     const altDown = (e) => {
         if (e.altKey) {
-            e.preventDefault;
+            e.preventDefault();
             let i = 0;
-            if (e.code === "Space") {
+            if (e.code === 'Space') {
                 shadeUp = !shadeUp;
             } else if (objects.length > 0) {
                 if (!selectedObject) {
                     switch (e.code) {
-                        case "BracketRight":
-                            selectedObject = objects[objects.length-1].uuid;
+                        case 'BracketRight':
+                            selectedObject = objects[objects.length - 1].uuid;
                             break;
-                        case "BracketLeft":
+                        case 'BracketLeft':
                             selectedObject = objects[0].uuid;
                             break;
                     }
                 } else {
-                    while (i < objects.length && objects[i].uuid !== selectedObject) { i++; }
-                    switch(e.code) {
-                        case "BracketRight":
+                    while (
+                        i < objects.length &&
+                        objects[i].uuid !== selectedObject
+                    ) {
+                        i++;
+                    }
+                    switch (e.code) {
+                        case 'BracketRight':
                             if (i === 0) {
-                                selectedObject = objects[objects.length-1].uuid;
+                                selectedObject =
+                                    objects[objects.length - 1].uuid;
                                 break;
                             }
-                            selectedObject = objects[i-1].uuid;
+                            selectedObject = objects[i - 1].uuid;
                             break;
-                        case "BracketLeft":
-                            if (i > objects.length-2) {
-                                selectedObject = objects[0].uuid
+                        case 'BracketLeft':
+                            if (i > objects.length - 2) {
+                                selectedObject = objects[0].uuid;
                                 break;
                             }
-                            selectedObject = objects[i+1].uuid;
+                            selectedObject = objects[i + 1].uuid;
                             break;
                     }
                 }
@@ -710,46 +735,71 @@
                                 </DropdownToggle>
                                 <DropdownMenu>
                                     <DropdownItem
-                                        on:click={() =>
-                                            (objects = makeObject(
-                                                null,
-                                                'vector',
+                                        on:click={() => {
+                                            objects = [
+                                                ...objects,
                                                 {
-                                                    a: '0.2',
-                                                    b: '-0.3',
-                                                    c: '0',
-                                                    x: '0',
-                                                    y: '0',
-                                                    z: '0',
-                                                    show: true,
+                                                    uuid: crypto.randomUUID(),
+                                                    kind: 'vector',
+                                                    params: {
+                                                        a: `${
+                                                            2 * Math.random() -
+                                                            1
+                                                        }`.slice(0, 5),
+                                                        b: `${
+                                                            2 * Math.random() -
+                                                            1
+                                                        }`.slice(0, 5),
+                                                        c: `${
+                                                            2 * Math.random() -
+                                                            1
+                                                        }`.slice(0, 5),
+                                                        x: '0',
+                                                        y: '0',
+                                                        z: '0',
+                                                        t0: '0',
+                                                        t1: '1',
+                                                    },
+                                                    color: `#${makeHSLColor(
+                                                        Math.random()
+                                                    ).getHexString()}`,
                                                 },
-                                                objects
-                                            ))}
+                                            ];
+                                        }}
                                     >
                                         Vector <M size="sm"
                                             >\mathbf v = \langle a, b, c \rangle</M
                                         >
                                     </DropdownItem>
                                     <DropdownItem
-                                        on:click={() =>
-                                            (objects = makeObject(
-                                                null,
-                                                'curve',
+                                        on:click={() => {
+                                            objects = [
+                                                ...objects,
                                                 {
-                                                    a: '0',
-                                                    b: '2*pi',
-                                                    x: 'cos(t)',
-                                                    y: 'sin(t)',
-                                                    z: `cos(${Math.ceil(
-                                                        10 * Math.random()
-                                                    ).toString()}*t)`,
-                                                    tau: 0,
+                                                    uuid: crypto.randomUUID(),
+                                                    kind: 'curve',
+                                                    params: {
+                                                        a: '0',
+                                                        b: '2*pi',
+                                                        x: 'cos(t)',
+                                                        y: 'sin(t)',
+                                                        z: `${
+                                                            1 / 4 +
+                                                            Math.round(
+                                                                100 *
+                                                                    Math.random()
+                                                            ) /
+                                                                100
+                                                        } * cos(${Math.ceil(
+                                                            10 * Math.random()
+                                                        ).toString()}*t)`,
+                                                    },
                                                     color: `#${makeHSLColor(
                                                         Math.random()
                                                     ).getHexString()}`,
                                                 },
-                                                objects
-                                            ))}
+                                            ];
+                                        }}
                                     >
                                         Space Curve <M size="sm">\mathbf r(t)</M
                                         >
@@ -769,7 +819,8 @@
                                                     ).toString()}*x + ${Math.ceil(
                                                         2 * Math.random()
                                                     ).toString()}*y)/(1 + x^2 + y^2)`,
-                                                    tau: 0,
+                                                    t0: '0',
+                                                    t1: '1',
                                                 },
                                                 objects
                                             ))}
@@ -810,7 +861,7 @@
                                                     d: '2*pi',
                                                     x: 'cos(u)*(1 + sin(v)/3)',
                                                     y: 'sin(u)*(1 + sin(v)/3)',
-                                                    z: 'cos(v)/3',
+                                                    z: '-cos(v)/3',
                                                 },
                                                 objects
                                             ))}
@@ -820,18 +871,21 @@
                                         >
                                     </DropdownItem>
                                     <DropdownItem
-                                        on:click={() =>
-                                            (objects = makeObject(
-                                                null,
-                                                'field',
+                                        on:click={() => {
+                                            objects = [
+                                                ...objects,
                                                 {
-                                                    p: 'x',
-                                                    q: 'y',
-                                                    r: '-z',
-                                                    nVec: 6,
+                                                    uuid: crypto.randomUUID(),
+                                                    kind: 'field',
+                                                    params: {
+                                                        p: 'y',
+                                                        q: 'z',
+                                                        r: 'x',
+                                                        nVec: 6,
+                                                    },
                                                 },
-                                                objects
-                                            ))}
+                                            ];
+                                        }}
                                     >
                                         Vector Field<M size="sm"
                                             >\mathbf F(x,y,z)</M
@@ -859,7 +913,7 @@
                     </div>
 
                     <div class="objectBoxInner">
-                        {#each objects as b (b.uuid)}
+                        {#each objects as { uuid, kind, params, color, animation } (uuid)}
                             <div
                                 transition:slide={{
                                     delay: 0,
@@ -867,7 +921,7 @@
                                     easing: quintOut,
                                 }}
                             >
-                                {#if b.kind === 'parsurf'}
+                                {#if kind === 'parsurf'}
                                     <ParSurf
                                         {scene}
                                         {onRenderObject}
@@ -875,29 +929,22 @@
                                         camera={currentCamera}
                                         controls={currentControls}
                                         render={requestFrameIfNotRequested}
-                                        uuid={b.uuid}
-                                        params={b.params}
+                                        {params}
                                         onClose={() => {
-                                            controls.enabled = true;
-                                            objects = removeObject(
-                                                b.uuid,
-                                                objects
+                                            objects = objects.filter(
+                                                (b) => b.uuid !== uuid
                                             );
                                         }}
-                                        onUpdate={() =>
-                                            (objects = updateObject(
-                                                b,
-                                                objects
-                                            ))}
+                                        bind:color
                                         bind:shadeUp
-                                        bind:update={b.update}
-                                        bind:animation={b.animation}
+                                        bind:animation
+                                        {uuid}
                                         {gridStep}
-                                        selected={selectedObject === b.uuid}
-                                        on:click={selectObject(b.uuid)}
+                                        selected={selectedObject === uuid}
+                                        on:click={selectObject(uuid)}
                                         on:keydown={altDown}
                                     />
-                                {:else if b.kind === 'graph'}
+                                {:else if kind === 'graph'}
                                     <Function
                                         {scene}
                                         {onRenderObject}
@@ -905,60 +952,46 @@
                                         camera={currentCamera}
                                         controls={currentControls}
                                         render={requestFrameIfNotRequested}
-                                        uuid={b.uuid}
-                                        params={b.params}
+                                        {uuid}
+                                        {params}
                                         onClose={() => {
-                                            controls.enabled = true;
-                                            objects = removeObject(
-                                                b.uuid,
-                                                objects
+                                            objects = objects.filter(
+                                                (b) => b.uuid !== uuid
                                             );
                                         }}
-                                        onUpdate={() =>
-                                            (objects = updateObject(
-                                                b,
-                                                objects
-                                            ))}
+                                        {gridStep}
                                         bind:shadeUp
-                                        bind:update={b.update}
-                                        bind:animation={b.animation}
+                                        bind:animation
                                         on:animate={animateIfNotAnimating}
-                                        selected={selectedObject === b.uuid}
-                                        on:click={selectObject(b.uuid)}
+                                        selected={selectedObject === uuid}
+                                        on:click={selectObject(uuid)}
                                         on:keydown={altDown}
                                     />
-                                {:else if b.kind === 'level'}
+                                {:else if kind === 'level'}
                                     <Level
                                         {scene}
                                         {onRenderObject}
                                         {onDestroyObject}
                                         camera={currentCamera}
                                         {controls}
-                                        uuid={b.uuid}
+                                        {uuid}
                                         render={requestFrameIfNotRequested}
                                         onClose={() => {
-                                            controls.enabled = true;
-                                            objects = removeObject(
-                                                b.uuid,
-                                                objects
+                                            objects = objects.filter(
+                                                (b) => b.uuid !== uuid
                                             );
                                         }}
-                                        onUpdate={() =>
-                                            (objects = updateObject(
-                                                b,
-                                                objects
-                                            ))}
-                                        params={b.params}
+                                        {params}
+                                        bind:color
                                         bind:shadeUp
-                                        bind:update={b.update}
-                                        bind:animation={b.animation}
+                                        bind:animation
                                         on:animate={animateIfNotAnimating}
-                                        selected={selectedObject === b.uuid}
-                                        on:click={selectObject(b.uuid)}
+                                        selected={selectedObject === uuid}
+                                        on:click={selectObject(uuid)}
                                         on:keydown={altDown}
                                         {gridStep}
                                     />
-                                {:else if b.kind === 'curve'}
+                                {:else if kind === 'curve'}
                                     <Curve
                                         {scene}
                                         {onRenderObject}
@@ -967,87 +1000,169 @@
                                         {controls}
                                         render={requestFrameIfNotRequested}
                                         onClose={() => {
-                                            controls.enabled = true;
-                                            objects = removeObject(
-                                                b.uuid,
-                                                objects
+                                            objects = objects.filter(
+                                                (b) => b.uuid !== uuid
                                             );
                                         }}
-                                        onUpdate={() =>
-                                            (objects = updateObject(
-                                                b,
-                                                objects
-                                            ))}
-                                        uuid={b.uuid}
-                                        params={b.params}
+                                        {params}
+                                        bind:color
                                         bind:shadeUp
-                                        bind:update={b.update}
-                                        bind:animation={b.animation}
+                                        bind:animation
                                         on:animate={animateIfNotAnimating}
-                                        selected={selectedObject === b.uuid}
-                                        on:click={selectObject(b.uuid)}
+                                        selected={selectedObject === uuid}
+                                        on:click={selectObject(uuid)}
                                         on:keydown={altDown}
                                         {gridStep}
                                     />
-                                {:else if b.kind === 'field'}
+                                {:else if kind === 'field'}
                                     <Field
+                                        {params}
                                         {scene}
                                         {onRenderObject}
                                         {onDestroyObject}
                                         render={requestFrameIfNotRequested}
                                         onClose={() => {
-                                            controls.enabled = true;
-                                            objects = removeObject(
-                                                b.uuid,
-                                                objects
+                                            objects = objects.filter(
+                                                (b) => b.uuid !== uuid
                                             );
                                         }}
-                                        onUpdate={() =>
-                                            (objects = updateObject(
-                                                b,
-                                                objects
-                                            ))}
-                                        bind:update={b.update}
-                                        bind:animation={b.animation}
+                                        {uuid}
+                                        bind:color
                                         bind:shadeUp
+                                        bind:animation
                                         on:animate={animateIfNotAnimating}
-                                        uuid={b.uuid}
-                                        params={b.params}
-                                        selected={selectedObject === b.uuid}
-                                        on:click={selectObject(b.uuid)}
+                                        selected={selectedObject === uuid}
+                                        on:click={selectObject(uuid)}
                                         on:keydown={altDown}
                                         {gridStep}
                                         {gridMax}
                                     />
-                                {:else if b.kind === 'vector'}
+                                {:else if kind === 'vector'}
                                     <Vector
                                         {scene}
                                         {onRenderObject}
                                         {onDestroyObject}
-                                        bind:shadeUp={shadeUp}
+                                        bind:shadeUp
                                         render={requestFrameIfNotRequested}
-                                        uuid={b.uuid}
+                                        {uuid}
                                         onClose={() => {
-                                            controls.enabled = true;
-                                            objects = removeObject(
-                                                b.uuid,
-                                                objects
+                                            objects = objects.filter(
+                                                (b) => b.uuid !== uuid
                                             );
                                         }}
-                                        onUpdate={() =>
-                                            (objects = updateObject(
-                                                b,
-                                                objects
-                                            ))}
-                                        params={b.params}
-                                        selected={selectedObject === b.uuid}
-                                        on:click={selectObject(b.uuid)}
+                                        {params}
+                                        bind:color
+                                        bind:animation
+                                        on:animate={(e) => {
+                                            console.log(
+                                                'vect anim',
+                                                animation,
+                                                e
+                                            );
+                                            animateIfNotAnimating();
+                                        }}
+                                        selected={selectedObject === uuid}
+                                        on:click={selectObject(uuid)}
                                         on:keydown={altDown}
                                         {gridStep}
                                     />
                                 {/if}
                             </div>
                         {/each}
+                    </div>
+                    <!-- debug buttons -->
+                    <div hidden={!debug}>
+                        <button
+                            on:click={() => {
+                                objects = [
+                                    {
+                                        uuid: 34,
+                                        kind: 'curve',
+                                        params: {
+                                            a: '0',
+                                            b: '2*pi',
+                                            x: 'cos(t)',
+                                            y: 'sin(t)',
+                                            z: '0',
+                                        },
+                                    },
+                                    {
+                                        uuid: '42ee3',
+                                        kind: 'parsurf',
+                                        params: {
+                                            a: '-1',
+                                            b: '1',
+                                            c: '-1',
+                                            d: '1',
+                                            x: 'sin(u)*cos(v)',
+                                            y: 'sin(u)*sin(v)',
+                                            z: 'cos(u)',
+                                            nX: 80,
+                                        },
+                                    },
+                                    {
+                                        uuid: '423',
+                                        kind: 'parsurf',
+                                        params: {
+                                            a: '0',
+                                            b: '2*pi',
+                                            c: '0',
+                                            d: '2*pi',
+                                            x: 'u',
+                                            y: 'v - 3 + u^2/5',
+                                            z: '-cos(v 5)/3',
+                                            nX: 80,
+                                        },
+                                    },
+                                ];
+                            }}>Reset 1</button
+                        >
+                        <button
+                            on:click={() => {
+                                objects = [
+                                    {
+                                        uuid: '423',
+                                        kind: 'parsurf',
+                                        params: {
+                                            a: '-2',
+                                            b: '2',
+                                            c: '-2',
+                                            d: '2',
+                                            x: 'u + v',
+                                            y: 'u - v',
+                                            z: '-cos(v 5)/3',
+                                            nX: 80,
+                                        },
+                                    },
+                                    {
+                                        uuid: '42ee3',
+                                        kind: 'parsurf',
+                                        params: {
+                                            a: '-1',
+                                            b: '1',
+                                            c: '-1',
+                                            d: '1',
+                                            x: 'sin(u)*cos(v)',
+                                            y: 'sin(u)*sin(v)',
+                                            z: 'cos(u)',
+                                            nX: 80,
+                                        },
+                                    },
+                                    {
+                                        uuid: 34,
+                                        kind: 'curve',
+                                        params: {
+                                            a: '0',
+                                            b: '2*pi',
+                                            x: 'cos(2 * t)',
+                                            y: 'sin(2 * t)',
+                                            z: 't / (2 * pi)',
+                                        },
+                                        color: '#ff332a',
+                                    },
+                                ];
+                            }}>Reset 2</button
+                        >
                     </div>
                 </div>
                 <button

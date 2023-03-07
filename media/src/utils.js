@@ -37,6 +37,7 @@ const convertToURLParams = function(params, objects) {
     objects.forEach((object, index) => {
         const prefix = `obj${index}_`;
         params[prefix + "kind"] = object.kind;
+        params[prefix + "color"] = object.color;
         if (object.params) {
             for (const [key, value] of Object.entries(object.params)) {
                 params[prefix + "params_" + key] = value;
@@ -1053,7 +1054,7 @@ class ArrowBufferGeometry extends THREE.BufferGeometry {
             }
             index++;
         }
-
+        this.parameters.height = newHeight;
         this.attributes.position.needsUpdate = true;
     }
 }
@@ -1074,6 +1075,7 @@ function adjustArrowHeight(geometry, newHeight) {
         index++;
     }
 
+    geometry.parameters.height = newHeight;
     geometry.attributes.position.needsUpdate = true;
 }
 
@@ -1692,6 +1694,20 @@ const querySelectorIncludesText = function(selector, text){
         .find(el => el.textContent.includes(text));
 };
 
+function checksum(s)
+/**
+ * A simple checksum for strings. 
+ */
+{
+  let chk = 0x12345678;
+  const len = s.length;
+  for (let i = 0; i < len; i++) {
+      chk += (s.charCodeAt(i) * (i + 1));
+  }
+
+  return (chk & 0xffffffff).toString(16);
+}
+
 export {
     joinUrl,
     getRoomUrl,
@@ -1714,5 +1730,6 @@ export {
     makeHSLColor,
     blockGeometry,
     forceNumber,
-    querySelectorIncludesText
+    querySelectorIncludesText,
+    checksum
 };

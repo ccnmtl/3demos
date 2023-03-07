@@ -1,80 +1,96 @@
 <script>
-    import {onMount, onDestroy} from 'svelte';
-    import * as THREE from "three";
-    import { create, all } from "mathjs";
+    import { onMount, onDestroy } from 'svelte';
+    import * as THREE from 'three';
+    import { create, all } from 'mathjs';
+    // import { beforeUpdate } from 'svelte';
 
-    import M from "../M.svelte";
-    import ObjHeader from "../ObjHeader.svelte";
+    import M from '../M.svelte';
+    import ObjHeader from '../ObjHeader.svelte';
 
     const config = {};
     const math = create(all, config);
 
     import {
-        // ArrowBufferGeometry,
+        ArrowBufferGeometry,
         lcm,
         marchingSegments,
         // marchingCubes,
-        ParametricGeometry
-    } from "../utils.js";
-    import ObjectParamInput from '../form-components/ObjectParamInput.svelte';
+        checksum,
+        ParametricGeometry,
+    } from '../utils.js';
+    import InputChecker from '../form-components/InputChecker.svelte';
+    // import ObjectParamInput from '../form-components/ObjectParamInput.svelte';
 
     export let uuid;
-    export let onRenderObject = function() {};
-    export let onDestroyObject = function() {};
+    export let onRenderObject = function () {};
+    export let onDestroyObject = function () {};
 
     export let params = {
-        a: "-2",
-        b: "2",
-        c: "-2",
-        d: "1 + sin(pi*u)/2",
-        x: "u",
-        y: "v",
-        z: "1 - sin(u^2 - v^2)/2",
-        rNum: 10,
-        cNum: 10,
-        nX: 30,
+        a: '-2',
+        b: '2',
+        c: '-2',
+        d: '1 + sin(pi*u)/2',
+        x: 'u',
+        y: 'v',
+        z: '1 - sin(u^2 - v^2)/2',
     };
+    export let color = '#3232ff';
+    let rNum = 10;
+    let cNum = 10;
+    let nX = 60;
 
-    let oldParams = Object.assign({}, params);
+    // export let myId;
 
-    // See Curve.svelte for explanation of this stuff
+    let xyz;
+
     $: {
-        if (
-            oldParams.a !== params.a
-                || oldParams.b !== params.b
-                || oldParams.a !== params.a
-                || oldParams.c !== params.c
-                || oldParams.d !== params.d
-                || oldParams.x !== params.x
-                || oldParams.y !== params.y
-                || oldParams.z !== params.z
-        ) {
-            updateSurface();
-            oldParams.a = params.a;
-            oldParams.b = params.b;
-            oldParams.c = params.c;
-            oldParams.d = params.d;
-            oldParams.x = params.x;
-            oldParams.y = params.y;
-            oldParams.z = params.z;
-        }
+        const [x, y, z] = [params.x, params.y, params.z].map((f) =>
+            math.parse(f).compile()
+        );
+        xyz = (u, v, vec) =>
+            vec.set(
+                x.evaluate({ u, v }),
+                y.evaluate({ u, v }),
+                z.evaluate({ u, v })
+            );
     }
+
+    // Only run the update if the params have changed.
+    $: hashTag = checksum(JSON.stringify(params));
+    $: hashTag, updateSurface();
+
+    // Check midpoint of parameter space and see if all is ok.
+    const chickenParms = (val, { a, b, c, d }) => {
+        let valuation;
+        try {
+            const [A, B, C, D, V] = math.parse([a, b, c, d, val]);
+            const u = (A.evaluate() + B.evaluate()) / 2;
+            const v = (C.evaluate({ u }) + D.evaluate({ u })) / 2;
+            valuation = V.evaluate({ u, v });
+        } catch (error) {
+            console.log('ParseError in evaluation.', error);
+            return false;
+        }
+        if (Number.isFinite(valuation)) {
+            return true;
+        } else {
+            console.log('Evaluation error. Incomplete expression, maybe.');
+            return false;
+        }
+    };
 
     export let scene;
     export let shadeUp;
     export let controls;
     export let camera;
-    // export let gridStep;
+    export let gridStep;
     export let render = () => {};
     export let onClose = () => {};
-    export let onUpdate = () => {};
     export let selected;
 
     let hidden = false;
 
-    params["rNum"] = 10;
-    params["cNum"] = 10;
-    params["nX"] = 60;
+    // params = { ...params, rNum: 10, cNum: 10, nX: 60 };
 
     const whiteLineMaterial = new THREE.LineBasicMaterial({
         color: 0xffffff,
@@ -93,7 +109,7 @@
         opacity: 0.7,
     });
     const plusMaterial = new THREE.MeshPhongMaterial({
-        color: 0x3232ff,
+        color: color,
         shininess: 80,
         side: THREE.FrontSide,
         vertexColors: false,
@@ -101,49 +117,62 @@
         opacity: 0.7,
     });
 
+    // Keep color fresh
+    $: {
+        plusMaterial.color.set(color);
+        const hsl = {};
+        plusMaterial.color.getHSL(hsl);
+        hsl.h = (hsl.h + 0.618033988749895) % 1;
+        minusMaterial.color.setHSL(hsl.h, hsl.s, hsl.l);
+        render();
+    }
+
     let cMin, dMax; // make these globals as useful for tangents.
 
-    const tol = 1e-12 //tolerance for comparisons
+    const tol = 1e-12; //tolerance for comparisons
 
     let surfaceMesh;
 
-    const updateSurface = function() {
+    const updateSurface = function () {
+        // console.log(`I'm ${myId} and I'm updatin'.`);
         const { a, b, c, d, x, y, z } = params;
         const A = math.parse(a).evaluate(),
-              B = math.parse(b).evaluate();
+            B = math.parse(b).evaluate();
         const [C, D, X, Y, Z] = math.parse([c, d, x, y, z]);
         const geometry = new ParametricGeometry(
             (u, v, vec) => {
                 const U = A + (B - A) * u;
                 const uv = {
                     u: U,
-                    v: (1 - v) * C.evaluate({ u: U }) + v * D.evaluate({ u: U }),
+                    v:
+                        (1 - v) * C.evaluate({ u: U }) +
+                        v * D.evaluate({ u: U }),
                 };
                 vec.set(X.evaluate(uv), Y.evaluate(uv), Z.evaluate(uv));
             },
-            params.nX || 30,
-            params.nX || 30
+            nX || 30,
+            nX || 30
         );
-        const meshGeometry = meshLines(params, params.rNum, params.cNum, params.nX);
-        let material = plusMaterial;
+        const meshGeometry = meshLines(params, rNum, cNum, nX);
+        // let material = plusMaterial;
 
         if (surfaceMesh) {
             for (let i = 0; i < surfaceMesh.children.length; i++) {
                 const mesh = surfaceMesh.children[i];
                 mesh.geometry.dispose();
                 mesh.geometry = i < 2 ? geometry : meshGeometry;
-                if (i < 1) {
-                    mesh.material = material;
-                }
+                // if (i < 1) {
+                //     mesh.material = material;
+                // }
 
-                if (i === 1) {
-                    mesh.visible = true;
-                }
+                // if (i === 1) {
+                //     mesh.visible = true;
+                // }
             }
         } else {
             surfaceMesh = new THREE.Object3D();
             const backMesh = new THREE.Mesh(geometry, minusMaterial);
-            const frontMesh = new THREE.Mesh(geometry, material);
+            const frontMesh = new THREE.Mesh(geometry, plusMaterial);
 
             // Pass in the 3demos-generated uuid so we can keep track
             // of which object this belongs to.
@@ -154,19 +183,23 @@
             // mesh.add(new THREE.Mesh( geometry, wireMaterial ))
             surfaceMesh.add(frontMesh);
             surfaceMesh.add(backMesh);
-            surfaceMesh.add(new THREE.LineSegments(meshGeometry, whiteLineMaterial));
+            surfaceMesh.add(
+                new THREE.LineSegments(meshGeometry, whiteLineMaterial)
+            );
             // mesh.visible = false;
             scene.add(surfaceMesh);
         }
 
+        tanFrame.visible = false;
+        tangentVectors({ uv: new THREE.Vector2(0, 0) });
         render();
-    }
+    };
 
-    const meshLines = function(rData, rNum = 10, cNum = 10, nX = 30) {
+    const meshLines = function (rData, rNum = 10, cNum = 10, nX = 60) {
         let { a, b, c, d, x, y, z } = rData;
         // const N = lcm(lcm(rNum, cNum), nX);
         const A = math.parse(a).evaluate(),
-              B = math.parse(b).evaluate();
+            B = math.parse(b).evaluate();
         [c, d, x, y, z] = math.parse([c, d, x, y, z]);
 
         const du = (B - A) / rNum;
@@ -174,7 +207,7 @@
         const points = [];
         for (let u = A; u <= B; u += du) {
             const C = c.evaluate({ u: u }),
-                  D = d.evaluate({ u: u });
+                D = d.evaluate({ u: u });
             const dy = (D - C) / lcm(nX, rNum);
             const params = { u: u, v: C };
             points.push(
@@ -285,22 +318,25 @@
 
         const geometry = new THREE.BufferGeometry().setFromPoints(points);
         return geometry;
+    };
 
-    }
-
-    onMount(updateSurface);
+    // onMount(updateSurface);
+    onMount(() => {});
+    // afterUpdate(() => {
+    //     console.log('Ima a surface. My params are ', params);
+    // });
     onDestroy(() => {
         onDestroyObject(...surfaceMesh.children);
         for (const child of surfaceMesh.children) {
             child.geometry && child.geometry.dispose();
             child.material && child.material.dispose();
         }
-        scene.remove(surfaceMesh)
+        scene.remove(surfaceMesh);
         scene.remove(tanFrame);
-        window.removeEventListener("keydown", shiftDown, false);
-        window.removeEventListener("keyup", shiftUp, false);
-        render()
-    })
+        window.removeEventListener('keydown', shiftDown, false);
+        window.removeEventListener('keyup', shiftUp, false);
+        render();
+    });
 
     // Select a point
     const tanFrame = new THREE.Object3D();
@@ -329,90 +365,125 @@
         color: 0x4b4b4b,
         shininess: 80,
         side: THREE.DoubleSide,
-        transparent: true,
-        opacity: 0.5,
+        transparent: false,
+        opacity: 1,
     });
-    const planeShard = new THREE.Mesh(new THREE.BufferGeometry(), shardMaterial);
+    const planeShard = new THREE.Mesh(
+        new THREE.BufferGeometry(),
+        shardMaterial
+    );
     tanFrame.add(planeShard);
-    planeShard.visible = true;
 
+    // initial visibility
+    planeShard.visible = false;
+    arrows.n.visible = false;
     tanFrame.visible = false;
 
     scene.add(tanFrame);
 
-    // const nFrame = function({
-    //             f = (x, y, z) => math.evaluate(params.z, { x, y, z }),
-    //             point = point,
-    //             eps = 1e-4,
-    //         } = {}) {
-    //     const [u, v, w] = [point.position.x, point.position.y, point.position.z];
+    const rFrame = function ({
+        r = (u, v) => new THREE.Vector3(u, v, u * u + v * v),
+        uv = [1, 1],
+        eps = 1e-4,
+    } = {}) {
+        const [u, v] = uv;
 
-    //     let h;
+        let h;
 
-    //     h = Math.max(u * eps, (2 * eps) ** 2);
-    //     const fx = (f(u + h / 2, v, w) - f(u - h / 2, v, w)) / h;
-    //     h = Math.max(v * eps, (2 * eps) ** 2);
-    //     const fy = (f(u, v + h / 2, w) - f(u, v - h / 2, w)) / h;
-    //     h = Math.max(w * eps, (2 * eps) ** 2);
-    //     const fz = (f(u, v, w + h / 2) - f(u, v, w - h / 2)) / h;
-
-    //     return { p: point.position, n: new THREE.Vector3(fx, fy, fz) };
-    // }
+        h = Math.max(u * eps, (2 * eps) ** 2); // dumb way of dealing with floating point arithmetic issues
+        const ru = r(u + h / 2, v)
+            .sub(r(u - h / 2, v))
+            .divideScalar(h);
+        h = Math.max(v * eps, (2 * eps) ** 2);
+        const rv = r(u, v + h / 2)
+            .sub(r(u, v - h / 2))
+            .divideScalar(h);
+        const n = ru.clone().cross(rv);
+        return { p: r(u, v), ru, rv, n };
+    };
 
     // Construct tangent vectors at a point u,v (both 0 to 1)
-    // const tangentVectors = function({ point, eps = 1e-4, plane = true } = {}) {
-    //     const { p, n } = nFrame({
-    //         point,
-    //         eps,
-    //     });
+    const tangentVectors = function ({ uv, eps = 1e-4, plane = true } = {}) {
+        const { a, b, c, d } = params;
+        const A = math.parse(a).evaluate(),
+            B = math.parse(b).evaluate();
+        const [C, D] = math.parse([c, d]);
+        const U = A + (B - A) * uv.x;
+        const uvs = [
+            U,
+            (1 - uv.y) * C.evaluate({ u: U }) + uv.y * D.evaluate({ u: U }),
+        ];
+        const { p, ru, rv, n } = rFrame({
+            r: (u, v) => {
+                const out = new THREE.Vector3();
+                xyz(u, v, out);
+                return out;
+            },
+            uv: uvs,
+            eps,
+        });
 
-    //     // point.position.copy(dr.p);
+        // point.position.copy(dr.p);
 
-    //     const arrowParams = {
-    //         radiusTop: gridStep / 10,
-    //         radiusBottom: gridStep / 20,
-    //         heightTop: gridStep / 7,
-    //     };
+        const arrowParams = {
+            radiusTop: gridStep / 10,
+            radiusBottom: gridStep / 20,
+            heightTop: gridStep / 7,
+        };
 
-    //     const arrow = arrows.n;
-    //     const pos = p.clone();
-    //     arrow.position.copy(pos);
-    //     if (arrow.geometry) arrow.geometry.dispose();
-    //     arrow.geometry = new ArrowBufferGeometry({
-    //         ...arrowParams,
-    //         height: n.length(),
-    //     });
-    //     arrow.lookAt(pos.add(n));
+        // const arrow = arrows.n;
+        Object.keys(arrows).forEach((key) => {
+            const arrow = arrows[key];
+            let vec;
+            switch (key) {
+                case 'u':
+                    vec = ru;
+                    break;
+                case 'v':
+                    vec = rv;
+                    break;
+                case 'n':
+                    vec = n;
+                    break;
 
-    //     planeShard.geometry.dispose();
+                default:
+                    break;
+            }
+            const pos = p.clone();
+            arrow.position.copy(pos);
+            arrow.geometry?.dispose();
 
-    //     if (plane) {
-    //         const { a, b, c, d, e, f } = params;
+            arrow.geometry = new ArrowBufferGeometry({
+                ...arrowParams,
+                height: vec.length(),
+            });
+            arrow.lookAt(pos.add(vec));
+        });
 
-    //         const tangentPlaneGeometry = marchingCubes({
-    //             f: (x, y, z) => {
-    //                 const xVec = new THREE.Vector3(x, y, z);
-    //                 return xVec.dot(n);
-    //             },
-    //             level: n.dot(p) + 1e-8, // offset to avoid overlap artifacts
-    //             xMin: math.evaluate(String(a)),
-    //             xMax: math.evaluate(String(b)),
-    //             yMin: math.evaluate(String(c)),
-    //             yMax: math.evaluate(String(d)),
-    //             zMin: math.evaluate(String(e)),
-    //             zMax: math.evaluate(String(f)),
-    //             N: 2,
-    //         });
+        // tangent plane
 
-    //         planeShard.geometry = tangentPlaneGeometry;
-    //     }
-    // }
+        if (plane) {
+            planeShard.geometry?.dispose();
+            const tangentPlaneGeometry = new ParametricGeometry(
+                (u, v, vec) => {
+                    vec.copy(p)
+                        .add(ru.clone().multiplyScalar(u))
+                        .add(rv.clone().multiplyScalar(v));
+                    // vec.add(new THREE.Vector3(0, 0, 0.0001*gridStep)); //
+                },
+                2,
+                2
+            );
+
+            planeShard.geometry = tangentPlaneGeometry;
+        }
+    };
 
     const raycaster = new THREE.Raycaster();
 
-    let mouseVector = new THREE.Vector2();
+    const mouseVector = new THREE.Vector2();
 
-    const onMouseMove = function(e) {
+    const onMouseMove = function (e) {
         // normalized mouse coordinates
         mouseVector.x = 2 * (e.clientX / window.innerWidth) - 1;
         mouseVector.y = 1 - 2 * (e.clientY / window.innerHeight);
@@ -430,14 +501,13 @@
             point.position.y = intersect.point.y;
             point.position.z = intersect.point.z;
 
-            // // Disabled until we can resolve a xyz/uv formula conversion
-            // // in the nFrame function
+            const uv = intersect.uv;
 
-            // tangentVectors({ point });
+            tangentVectors({ uv });
 
             render();
         }
-    }
+    };
 
     const shiftDown = (e) => {
         if (shadeUp) {
@@ -446,11 +516,11 @@
                     surfaceMesh.visible = !surfaceMesh.visible;
                     render();
                     break;
-                case "Shift":
-                    window.addEventListener("mousemove", onMouseMove, false);
+                case 'Shift':
+                    window.addEventListener('mousemove', onMouseMove, false);
                     tanFrame.visible = true;
                     break;
-                case "c":
+                case 'c':
                     controls.target.set(
                         point.position.x,
                         point.position.y,
@@ -458,11 +528,11 @@
                     );
                     render();
                     break;
-                case "t":
+                case 't':
                     tanFrame.visible = !tanFrame.visible;
                     render();
                     break;
-                case "y":
+                case 'y':
                     if (!planeShard.visible) {
                         tanFrame.visible = true;
                         planeShard.visible = true;
@@ -471,8 +541,8 @@
                     }
                     render();
                     break;
-                case "n":
-                if (!arrows.n.visible) {
+                case 'n':
+                    if (!arrows.n.visible) {
                         tanFrame.visible = true;
                         arrows.n.visible = true;
                     } else {
@@ -486,96 +556,137 @@
     };
 
     const shiftUp = (e) => {
-        if (e.key === "Shift") {
-            window.removeEventListener("mousemove", onMouseMove);
+        if (e.key === 'Shift') {
+            window.removeEventListener('mousemove', onMouseMove);
         }
     };
 
-    window.addEventListener("keydown", shiftDown, false);
-    window.addEventListener("keyup", shiftUp, false);
+    window.addEventListener('keydown', shiftDown, false);
+    window.addEventListener('keyup', shiftUp, false);
 </script>
 
-<div class={'boxItem' + (selected ? ' selected': '')} on:click on:keydown>
+<div class="boxItem" class:selected on:click on:keydown>
     <div class="box-title">
         <strong>Parametric surface</strong>
-        <ObjHeader
-            bind:hidden={hidden}
-            bind:onClose={onClose}
-        />
+        <ObjHeader bind:hidden bind:onClose />
     </div>
-    <div hidden={hidden}>
+    <div {hidden}>
         <div class="container">
-            <span class="box-1"><M size="sm">x(u,v) =</M></span>
-            <ObjectParamInput
-                initialValue={params.x}
-                onChange={(newVal) => {
-                    params.x = newVal;
-                    onUpdate();
-                    updateSurface();
-                }} />
+            {#each ['x', 'y', 'z'] as name}
+                <span class="box-1"><M size="sm">{name}(u,v) =</M></span>
+                <InputChecker
+                    value={params[name]}
+                    checker={chickenParms}
+                    {name}
+                    {params}
+                    on:cleared={(e) => {
+                        params[name] = e.detail;
+                        // updateSurface();
+                    }}
+                />
+            {/each}
 
-            <span class="box-1"><M size="sm">y(u,v) =</M></span>
-            <ObjectParamInput
-                initialValue={params.y}
-                onChange={(newVal) => {
-                    params.y = newVal;
-                    onUpdate();
-                    updateSurface();
-                }} />
+            <input
+                class="form-control form-control-sm box box-1"
+                value={params.a}
+                on:change={(e) => {
+                    const val = e.target.value;
+                    if (chickenParms(params.x, params)) {
+                        params.a = val;
+                        e.target.classList.remove('is-invalid');
+                        // updateSurface();
+                    } else {
+                        e.target.classList.add('is-invalid');
+                    }
+                }}
+            />
 
-            <span class="box-1"><M size="sm">z(u,v) =</M></span>
-            <ObjectParamInput
-                initialValue={params.z}
-                onChange={(newVal) => {
-                    params.z = newVal;
-                    onUpdate();
-                    updateSurface();
-                }} />
-
-            <ObjectParamInput
-                className="box"
-                initialValue={params.a}
-                onChange={(newVal) => {
-                    params.a = newVal;
-                    onUpdate();
-                    updateSurface();
-                }} />
             <span class="box box-3"><M size="sm">\leq u \leq</M></span>
-            <ObjectParamInput
-                className="box"
-                initialValue={params.b}
-                onChange={(newVal) => {
-                    params.b = newVal;
-                    onUpdate();
-                    updateSurface();
-                }} />
+            <input
+                class="form-control form-control-sm box box-4"
+                value={params.b}
+                on:change={(e) => {
+                    const val = e.target.value;
+                    if (chickenParms(params.x, params)) {
+                        params.b = val;
+                        e.target.classList.remove('is-invalid');
+                        // updateSurface();
+                    } else {
+                        e.target.classList.add('is-invalid');
+                    }
+                }}
+            />
 
-            <ObjectParamInput
-                className="box"
-                initialValue={params.c}
-                onChange={(newVal) => {
-                    params.c = newVal;
-                    onUpdate();
-                    updateSurface();
-                }} />
+            <input
+                class="form-control form-control-sm box box-1"
+                value={params.c}
+                on:change={(e) => {
+                    const val = e.target.value;
+                    if (chickenParms(params.x, params)) {
+                        params.c = val;
+                        e.target.classList.remove('is-invalid');
+                        // updateSurface();
+                    } else {
+                        e.target.classList.add('is-invalid');
+                    }
+                }}
+            />
             <span class="box box-3"><M size="sm">\leq v \leq</M></span>
-            <ObjectParamInput
-                className="box"
-                initialValue={params.d}
-                onChange={(newVal) => {
-                    params.d = newVal;
-                    onUpdate();
-                    updateSurface();
-                }} />
+            <input
+                class="form-control form-control-sm box box-4"
+                value={params.d}
+                on:change={(e) => {
+                    const val = e.target.value;
+                    if (chickenParms(params.x, params)) {
+                        params.d = val;
+                        e.target.classList.remove('is-invalid');
+                        // updateSurface();
+                    } else {
+                        e.target.classList.add('is-invalid');
+                    }
+                }}
+            />
 
             <span class="box-1"><M size="sm">u</M>-meshes</span>
-            <input type="range" bind:value={params.rNum} min="0" max = "20" step="1" on:input={updateSurface} class="box box-2" />
+            <input
+                type="range"
+                bind:value={rNum}
+                min="0"
+                max="20"
+                step="1"
+                class="box box-2"
+            />
             <span class="box-1"><M size="sm">v</M>-meshes</span>
-            <input type="range" bind:value={params.cNum} min="0" max = "20" step="1" on:input={updateSurface} class="box box-2" />
+            <input
+                type="range"
+                bind:value={cNum}
+                min="0"
+                max="20"
+                step="1"
+                class="box box-2"
+            />
             <span class="box-1">Resolution</span>
-            <input type="range" bind:value={params.nX} min="10" max = "60" step="5" on:input={updateSurface} class="box box-2" />
+            <input
+                type="range"
+                bind:value={nX}
+                min="10"
+                max="80"
+                step="5"
+                class="box box-2"
+            />
+
+            <span class="box box-2">
+                <input
+                    type="color"
+                    name="colorPicker"
+                    id="colorPicker"
+                    bind:value={color}
+                    style="width:85%; padding: 1px 1px;"
+                />
+            </span>
         </div>
-</div></div>
+    </div>
+</div>
 
 <style>
     .box-3 {
@@ -584,5 +695,8 @@
         text-align: center;
 
         grid-column: 2 / 3;
+    }
+    input {
+        color: black;
     }
 </style>
