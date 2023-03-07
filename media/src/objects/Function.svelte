@@ -1185,7 +1185,7 @@
                 <span class="slider round" />
             </label>
             <ObjectParamInput
-                className="box"
+                className="form-control box"
                 type="number"
                 initialValue={params.t0}
                 onChange={(newVal) => {
@@ -1196,7 +1196,7 @@
                 <M size="sm">\leq t \leq</M>
             </span>
             <ObjectParamInput
-                className="box"
+                className="form-control box"
                 type="number"
                 initialValue={params.t1}
                 onChange={(newVal) => {
