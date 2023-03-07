@@ -935,9 +935,10 @@
                                                 (b) => b.uuid !== uuid
                                             );
                                         }}
+                                        bind:color
                                         bind:shadeUp
                                         bind:animation
-                                        myId={uuid}
+                                        {uuid}
                                         {gridStep}
                                         selected={selectedObject === uuid}
                                         on:click={selectObject(uuid)}
@@ -1025,6 +1026,7 @@
                                                 (b) => b.uuid !== uuid
                                             );
                                         }}
+                                        {uuid}
                                         bind:color
                                         bind:shadeUp
                                         bind:animation
