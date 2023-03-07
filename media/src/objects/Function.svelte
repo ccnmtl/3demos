@@ -334,20 +334,18 @@
             return;
         }
 
-        let material = plusMaterial;
-
         if (surfaceMesh.children.length > 0) {
             for (let i = 0; i < surfaceMesh.children.length; i++) {
                 const mesh = surfaceMesh.children[i];
                 mesh.geometry.dispose();
                 mesh.geometry = i < 2 ? geometry : meshGeometry;
                 if (i < 1) {
-                    mesh.material = material;
+                    mesh.material = plusMaterial;
                 }
             }
         } else {
             const backMesh = new THREE.Mesh(geometry, minusMaterial);
-            const frontMesh = new THREE.Mesh(geometry, material);
+            const frontMesh = new THREE.Mesh(geometry, plusMaterial);
 
             // Pass in the 3demos-generated uuid so we can keep track
             // of which object this belongs to.
