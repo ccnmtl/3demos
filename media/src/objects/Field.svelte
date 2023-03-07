@@ -17,6 +17,10 @@
 
     const dispatch = createEventDispatcher();
 
+    export let uuid;
+    export let onRenderObject = function() {};
+    export let onDestroyObject = function() {};
+
     export let params = {
         p: "x",
         q: "y",
@@ -322,6 +326,8 @@
     }
 
     let maxLength = 2;
+    flowArrows.name = uuid;
+    onRenderObject(flowArrows);
     scene.add(flowArrows);
     scene.add(trails);
 
@@ -332,6 +338,7 @@
         render();
     });
     onDestroy(() => {
+        onDestroyObject(flowArrows);
         freeChildren(flowArrows);
         freeChildren(trails);
         scene.remove(flowArrows);

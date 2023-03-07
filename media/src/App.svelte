@@ -870,9 +870,12 @@
                                 {#if b.kind === 'parsurf'}
                                     <ParSurf
                                         {scene}
+                                        {onRenderObject}
+                                        {onDestroyObject}
                                         camera={currentCamera}
                                         controls={currentControls}
                                         render={requestFrameIfNotRequested}
+                                        uuid={b.uuid}
                                         params={b.params}
                                         onClose={() => {
                                             controls.enabled = true;
@@ -927,8 +930,11 @@
                                 {:else if b.kind === 'level'}
                                     <Level
                                         {scene}
+                                        {onRenderObject}
+                                        {onDestroyObject}
                                         camera={currentCamera}
                                         {controls}
+                                        uuid={b.uuid}
                                         render={requestFrameIfNotRequested}
                                         onClose={() => {
                                             controls.enabled = true;
@@ -955,6 +961,8 @@
                                 {:else if b.kind === 'curve'}
                                     <Curve
                                         {scene}
+                                        {onRenderObject}
+                                        {onDestroyObject}
                                         camera={currentCamera}
                                         {controls}
                                         render={requestFrameIfNotRequested}
@@ -970,6 +978,7 @@
                                                 b,
                                                 objects
                                             ))}
+                                        uuid={b.uuid}
                                         params={b.params}
                                         bind:shadeUp
                                         bind:update={b.update}
@@ -983,6 +992,8 @@
                                 {:else if b.kind === 'field'}
                                     <Field
                                         {scene}
+                                        {onRenderObject}
+                                        {onDestroyObject}
                                         render={requestFrameIfNotRequested}
                                         onClose={() => {
                                             controls.enabled = true;
@@ -1000,6 +1011,7 @@
                                         bind:animation={b.animation}
                                         bind:shadeUp
                                         on:animate={animateIfNotAnimating}
+                                        uuid={b.uuid}
                                         params={b.params}
                                         selected={selectedObject === b.uuid}
                                         on:click={selectObject(b.uuid)}
@@ -1010,8 +1022,11 @@
                                 {:else if b.kind === 'vector'}
                                     <Vector
                                         {scene}
+                                        {onRenderObject}
+                                        {onDestroyObject}
                                         bind:shadeUp={shadeUp}
                                         render={requestFrameIfNotRequested}
+                                        uuid={b.uuid}
                                         onClose={() => {
                                             controls.enabled = true;
                                             objects = removeObject(
