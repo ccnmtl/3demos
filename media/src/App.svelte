@@ -421,6 +421,13 @@
         }
     };
 
+    /**
+     * onPointerMove
+     *
+     * Object selection listener.
+     * This callback finds the 3demos objects that interact with the
+     * current mouse pointer position.
+     */
     const onPointerMove = function(e, renderer) {
         e.preventDefault();
 
