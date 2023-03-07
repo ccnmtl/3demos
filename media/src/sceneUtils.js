@@ -105,10 +105,21 @@ const handleSceneEvent = function(data, objects) {
     return objects;
 };
 
+/**
+ * Given the scene setup and a pointer/mouse event, return the notable
+ * objects in the scene that intersect with this mouse event.
+ */
+const findPointerIntersects = function(objects, pointer, camera, raycaster) {
+    raycaster.setFromCamera(pointer, camera);
+    const intersects = raycaster.intersectObjects(objects, true);
+    return intersects;
+};
+
 export {
     makeObject,
     removeObject,
     updateObject,
     publishScene,
-    handleSceneEvent
+    handleSceneEvent,
+    findPointerIntersects
 };

@@ -1,4 +1,5 @@
 import json
+import random
 from datetime import timedelta
 import redis
 from django.conf import settings
@@ -102,3 +103,21 @@ class RedisScene:
 
         state['objects'] = objects
         return state
+
+
+def make_room_id():
+    return round(random.random() * 1000) + 1
+
+
+def make_room(objects=[], session_key=None):
+    """Make a new room from scratch. Record host's session key."""
+    room_id = make_room_id()
+
+    scene = RedisScene(room_id)
+    state = {
+        'host': session_key,
+        'objects': json.loads(objects),
+    }
+    scene.save_state(state)
+
+    return room_id

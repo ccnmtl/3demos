@@ -9,8 +9,7 @@
     import PollResponses from './PollResponses.svelte';
     import PollForm from './PollForm.svelte';
     import {POLL_TYPES, Poll, setIdCounter} from './Poll.js';
-    import {broadcastPoll} from './pollUtils';
-    import {loadPolls} from './utils';
+    import {broadcastPoll, loadPolls} from './utils';
     import {querySelectorIncludesText} from '../utils';
 
     export let isPollsOpen, togglePolls;
@@ -76,12 +75,8 @@
     };
 
     const onClickBroadcast = function(e, p) {
+        pollResponses = {};
         currentPollType = p.type;
-
-        // Clear current poll responses
-        // This causes the weird property bug where currentPollType
-        // is not updated.
-        //pollResponses = [];
 
         // Send the given poll to session participants
         broadcastPoll(p, socket);
@@ -130,7 +125,7 @@
                                     <th scope="row">{poll.id}</th>
                                     <td>{poll.prompt}</td>
                                     <td>{POLL_TYPES[poll.type]}</td>
-                                    <td>
+                                    <td style="white-space: nowrap;">
                                         <button
                                             type="button"
                                             class="btn btn-secondary btn-sm"
@@ -138,7 +133,6 @@
                                             on:click={(e) => onClickEdit(e, poll)}>
                                             <i class="bi bi-pencil" /> Edit
                                         </button>
-
                                         <button
                                             type="button"
                                             class="btn btn-primary btn-sm"

@@ -25,6 +25,15 @@
         checksum,
     } from '../utils.js';
 
+    export let uuid;
+    export let onRenderObject = function () {};
+    export let onDestroyObject = function () {};
+    export let camera,
+        controls,
+        animation = false,
+        gridStep,
+        showLevelCurves = false;
+
     export let params = {
         a: '-2',
         b: '2',
@@ -344,6 +353,12 @@
         } else {
             const backMesh = new THREE.Mesh(geometry, minusMaterial);
             const frontMesh = new THREE.Mesh(geometry, material);
+
+            // Pass in the 3demos-generated uuid so we can keep track
+            // of which object this belongs to.
+            backMesh.name = uuid;
+            frontMesh.name = uuid;
+            onRenderObject(backMesh, frontMesh);
 
             surfaceMesh.add(frontMesh);
             surfaceMesh.add(backMesh);
@@ -760,6 +775,8 @@
         updateBoxes();
     });
     onDestroy(() => {
+        onDestroyObject(...surfaceMesh.children);
+
         for (const child of surfaceMesh.children) {
             child.geometry && child.geometry.dispose();
             child.material && child.material.dispose();

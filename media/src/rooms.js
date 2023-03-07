@@ -1,4 +1,5 @@
 import {forceNumber} from './utils.js';
+import ReconnectingWebSocket from 'reconnecting-websocket';
 
 const getRoomId = function(urlpath) {
     let m = urlpath.match(/^\/?rooms\/(\d+)\/?/);
@@ -7,15 +8,6 @@ const getRoomId = function(urlpath) {
     }
 
     return null;
-};
-
-/**
- * Generate an ID for a new room.
- *
- * Returns a random number between 1 and 1000.
- */
-const makeRoomId = function() {
-    return Math.round(Math.random() * 1000) + 1;
 };
 
 /**
@@ -30,7 +22,7 @@ const makeSocket = function(roomId, handleMessage=null) {
             + '/ws/rooms/'
             + roomId
           + '/';
-    const socket = new WebSocket(path);
+    const socket = new ReconnectingWebSocket(path);
 
     if (handleMessage) {
         socket.onmessage = handleMessage;
@@ -39,21 +31,7 @@ const makeSocket = function(roomId, handleMessage=null) {
     return socket;
 };
 
-const setHost = (socket=null, objects=[]) => {
-    if (socket) {
-        socket.send(JSON.stringify({
-            message: {
-                setHost: objects
-            }
-        }));
-    } else {
-        console.error('Can\'t set host: no socket present');
-    }
-};
-
 export {
     getRoomId,
-    makeRoomId,
-    makeSocket,
-    setHost
+    makeSocket
 };
