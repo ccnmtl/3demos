@@ -1,6 +1,5 @@
 <script>
     import M from "./M.svelte";
-    import { v4 as uuidv4 } from "uuid";
     import { create, all } from "mathjs";
     import {
         ButtonDropdown,
@@ -104,7 +103,7 @@
         texStrings.b = B.toTex();
 
         objects = objects.filter((b) => b.uuid !== exId);
-        exId = uuidv4();
+        exId = crypto.randomUUID();
         objects = [...objects, { uuid: exId, kind: "curve", params }];
         addVectors(nVects);
     };
@@ -138,7 +137,7 @@
                 z1 = Z.evaluate({ t: a + (i + 1) * dt });
 
                 vecs.push({
-                    uuid: uuidv4(),
+                    uuid: crypto.randomUUID(),
                     kind: "vector",
                     params: {
                         a: (x1 - x0).toString(),

@@ -1,5 +1,3 @@
-import { v4 as uuidv4 } from 'uuid';
-
 /**
  * Make a three.js object with the given parameters.
  *
@@ -9,7 +7,7 @@ const makeObject = (
     uuid=null, thing="box", params=null, objects=[], socket=null
 ) => {
     if (uuid === null) {
-        uuid = uuidv4();
+        uuid = crypto.randomUUID();
     }
 
     const newObject = { uuid: uuid, kind: thing, params: params };
