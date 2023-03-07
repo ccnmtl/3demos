@@ -169,7 +169,7 @@
         } else {
             surfaceMesh = new THREE.Object3D();
             const backMesh = new THREE.Mesh(geometry, minusMaterial);
-            const frontMesh = new THREE.Mesh(geometry, material);
+            const frontMesh = new THREE.Mesh(geometry, plusMaterial);
 
             // Pass in the 3demos-generated uuid so we can keep track
             // of which object this belongs to.

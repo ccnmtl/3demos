@@ -44,8 +44,8 @@
     } from './utils';
     import {
         makeObject,
-        removeObject,
-        updateObject,
+        // removeObject,
+        // updateObject,
         publishScene,
         handleSceneEvent,
         findPointerIntersects,
@@ -973,7 +973,7 @@
                                         {onDestroyObject}
                                         camera={currentCamera}
                                         {controls}
-                                        uuid={b.uuid}
+                                        {uuid}
                                         render={requestFrameIfNotRequested}
                                         onClose={() => {
                                             objects = objects.filter(

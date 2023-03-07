@@ -208,7 +208,6 @@
         const t = A + (B - A) * tau;
 
         return (Math.round(100 * t) / 100).toString();
-        return 0;
     };
 
     $: texString1 = `${stringifyT(tau)}`;
