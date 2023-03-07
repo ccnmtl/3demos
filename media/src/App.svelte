@@ -924,6 +924,8 @@
                                 {#if kind === 'parsurf'}
                                     <ParSurf
                                         {scene}
+                                        {onRenderObject}
+                                        {onDestroyObject}
                                         camera={currentCamera}
                                         controls={currentControls}
                                         render={requestFrameIfNotRequested}
@@ -967,8 +969,11 @@
                                 {:else if kind === 'level'}
                                     <Level
                                         {scene}
+                                        {onRenderObject}
+                                        {onDestroyObject}
                                         camera={currentCamera}
                                         {controls}
+                                        uuid={b.uuid}
                                         render={requestFrameIfNotRequested}
                                         onClose={() => {
                                             objects = objects.filter(
@@ -988,6 +993,8 @@
                                 {:else if kind === 'curve'}
                                     <Curve
                                         {scene}
+                                        {onRenderObject}
+                                        {onDestroyObject}
                                         camera={currentCamera}
                                         {controls}
                                         render={requestFrameIfNotRequested}
@@ -1010,6 +1017,8 @@
                                     <Field
                                         {params}
                                         {scene}
+                                        {onRenderObject}
+                                        {onDestroyObject}
                                         render={requestFrameIfNotRequested}
                                         onClose={() => {
                                             objects = objects.filter(
@@ -1029,8 +1038,11 @@
                                 {:else if kind === 'vector'}
                                     <Vector
                                         {scene}
+                                        {onRenderObject}
+                                        {onDestroyObject}
                                         bind:shadeUp
                                         render={requestFrameIfNotRequested}
+                                        {uuid}
                                         onClose={() => {
                                             objects = objects.filter(
                                                 (b) => b.uuid !== uuid

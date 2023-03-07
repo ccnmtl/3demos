@@ -32,6 +32,10 @@
 
     // export let paramString;
 
+    export let uuid;
+    export let onRenderObject = function () {};
+    export let onDestroyObject = function () {};
+
     export let params = {
         a: '-1',
         b: '1',
@@ -118,6 +122,8 @@
 
         arrow.lookAt(v.add(arrow.position));
 
+        arrow.name = uuid;
+        onRenderObject(arrow);
         render();
     };
 
@@ -134,8 +140,11 @@
 
     onMount(() => {});
     onDestroy(() => {
-        arrow.geometry && arrow.geometry?.dispose();
-        arrow.material?.dispose();
+        onDestroyObject(arrow);
+        if (arrow) {
+            arrow.geometry && arrow.geometry.dispose();
+            arrow.material && arrow.material.dispose();
+        }
         scene.remove(arrow);
         window.removeEventListener('keydown', shiftDown, false);
         render();

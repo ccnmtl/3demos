@@ -24,6 +24,12 @@
 
     const dispatch = createEventDispatcher();
 
+    export let uuid;
+    export let onRenderObject = function () {};
+    export let onDestroyObject = function () {};
+
+    // export let paramString;
+
     export let params = {
         a: '-1',
         b: '1',
@@ -145,8 +151,8 @@
         transparent: false,
     });
 
-    let tube,
-        circleTube = new THREE.Mesh(new THREE.BufferGeometry(), grayMaterial);
+    let tube;
+    let circleTube = new THREE.Mesh(new THREE.BufferGeometry(), grayMaterial);
 
     scene.add(circleTube);
     circleTube.visible = false;
@@ -174,6 +180,9 @@
         } else {
             tube = new THREE.Mesh(geometry, curveMaterial);
             scene.add(tube);
+
+            tube.name = uuid;
+            onRenderObject(tube);
         }
 
         updateFrame();
@@ -346,7 +355,8 @@
 
     onMount(updateCurve);
     onDestroy(() => {
-        console.log("I'm curve-destroyed.");
+        onDestroyObject(tube);
+
         if (tube) {
             tube.geometry && tube.geometry.dispose();
             tube.material && tube.material.dispose();

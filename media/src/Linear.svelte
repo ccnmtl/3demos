@@ -1,6 +1,5 @@
 <script>
     import M from './M.svelte';
-    import { v4 as uuidv4 } from "uuid";
 
     export let boxes = [];
 
@@ -16,7 +15,7 @@
     }
 
     const funcs = {
-        smooth: {id: uuidv4(), kind: "graph", params: {
+        smooth: {id: crypto.randomUUID(), kind: "graph", params: {
             a: "-2",
             b: "2",
             c: "-2",

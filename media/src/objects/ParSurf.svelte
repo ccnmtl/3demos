@@ -21,6 +21,10 @@
     import InputChecker from '../form-components/InputChecker.svelte';
     // import ObjectParamInput from '../form-components/ObjectParamInput.svelte';
 
+    export let uuid;
+    export let onRenderObject = function () {};
+    export let onDestroyObject = function () {};
+
     export let params = {
         a: '-2',
         b: '2',
@@ -165,7 +169,14 @@
         } else {
             surfaceMesh = new THREE.Object3D();
             const backMesh = new THREE.Mesh(geometry, minusMaterial);
-            const frontMesh = new THREE.Mesh(geometry, plusMaterial);
+            const frontMesh = new THREE.Mesh(geometry, material);
+
+            // Pass in the 3demos-generated uuid so we can keep track
+            // of which object this belongs to.
+            backMesh.name = uuid;
+            frontMesh.name = uuid;
+            onRenderObject(backMesh, frontMesh);
+
             // mesh.add(new THREE.Mesh( geometry, wireMaterial ))
             surfaceMesh.add(frontMesh);
             surfaceMesh.add(backMesh);
@@ -312,7 +323,7 @@
     //     console.log('Ima a surface. My params are ', params);
     // });
     onDestroy(() => {
-        console.log("Ugh. I'm parsurf-destroyed.");
+        onDestroyObject(...surfaceMesh.children);
         for (const child of surfaceMesh.children) {
             child.geometry && child.geometry.dispose();
             child.material && child.material.dispose();
