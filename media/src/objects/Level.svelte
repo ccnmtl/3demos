@@ -99,7 +99,8 @@
 
     const updateLevel = function () {
         loading = true;
-        updateParams(params).then((data) => {
+        const gc = math.parse(params.g).compile();
+        updateParams(gc, params).then((data) => {
             levelWorkerSuccessHandler(data);
         });
     };
