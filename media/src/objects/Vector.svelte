@@ -44,7 +44,7 @@
     export let color = '#FF0000';
     let tau = 0;
     let last;
-    let texString1 = `t = 0`;
+    let texString1 = `t `;
 
     // display controls in objects panel
     // considered for Chapters that add many objects that need not be user-configurable.
@@ -85,8 +85,19 @@
 
     scene.add(arrow);
 
-    const updateVector = function (t = 0) {
+    const updateVector = function () {
         const { a, b, c, x, y, z } = params;
+        let t;
+        const { t0, t1 } = params;
+        if (t0 && t1) {
+            const A = math.evaluate(t0);
+            const B = math.evaluate(t1);
+
+            t = A + tau * (B - A);
+        } else {
+            t = 0;
+        }
+
         const [A, B, C, X, Y, Z] = math
             .parse([a, b, c, x, y, z])
             .map((s) => s.evaluate({ t }));
@@ -95,7 +106,15 @@
 
         arrow.position.set(X, Y, Z);
 
-        arrow.geometry.adjustHeight(v.length());
+        arrow.geometry.adjustHeight(Math.max(1e-6, v.length()));
+
+        // if (v.length() > 0) {
+        //     console.log(v.length());
+        //     arrow.geometry.adjustHeight(v.length());
+        //     arrow.visible = true;
+        // } else {
+        //     arrow.visible = false;
+        // }
 
         arrow.lookAt(v.add(arrow.position));
 
@@ -113,7 +132,7 @@
         render();
     }
 
-    onMount(updateVector);
+    onMount(() => {});
     onDestroy(() => {
         arrow.geometry && arrow.geometry?.dispose();
         arrow.material?.dispose();
@@ -170,6 +189,23 @@
         return valuation;
     };
 
+    const stringifyT = function (tau) {
+        let { t0, t1 } = params;
+        // console.log(t0, t1);
+        t0 = t0 || '0';
+        t1 = t1 || '1';
+        const [A, B] = [t0, t1].map((x) => math.parse(x).evaluate());
+
+        const t = A + (B - A) * tau;
+
+        return (Math.round(100 * t) / 100).toString();
+        return 0;
+    };
+
+    $: texString1 = `${stringifyT(tau)}`;
+
+    // texString1 = `t = ${Math.round(100 * T) / 100}`;
+
     const update = (dt = 0) => {
         const { t0, t1 } = params;
         const A = math.parse(t0).evaluate();
@@ -179,8 +215,6 @@
         if (tau > 1 || tau < 0) tau %= 1;
 
         const T = A + (B - A) * tau;
-
-        texString1 = `t = ${Math.round(100 * T) / 100}`;
 
         updateVector(T);
     };
@@ -249,7 +283,7 @@
                 {/each}
 
                 <span class="box-1">
-                    <M size="sm">{texString1}</M>
+                    <span class="t-box">t = {texString1}</span>
                 </span>
                 <input
                     type="range"
@@ -291,5 +325,10 @@
 <style>
     .dynamic-container {
         grid-column: 0 / 5;
+    }
+    .t-box {
+        display: inline-block;
+        width: 40%;
+        text-align: left;
     }
 </style>

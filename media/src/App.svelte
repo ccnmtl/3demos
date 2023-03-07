@@ -757,6 +757,8 @@
                                                         x: '0',
                                                         y: '0',
                                                         z: '0',
+                                                        t0: '0',
+                                                        t1: '1',
                                                     },
                                                     color: `#${makeHSLColor(
                                                         Math.random()
