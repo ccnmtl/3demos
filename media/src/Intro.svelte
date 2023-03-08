@@ -36,7 +36,7 @@
 
     <p>
         This site is an open source project released under the GPL license. See the
-        <a href="https://github.com/ccnmtl/mathplayground/">github repository</a>
+        <a href="https://github.com/ccnmtl/3demos/">github repository</a>
         for more information. Much credit must go to the authors
         and contributors of the brilliant <a href="https://threejs.org/">three.js</a
                                                                                      >
