@@ -96,7 +96,7 @@ body,
     width: 3rem;
 }
 
-.container {
+.3demos-container {
     display: grid;
 
     grid-template-columns: 1fr auto 1fr;

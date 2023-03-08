@@ -571,7 +571,7 @@
         <ObjHeader bind:hidden bind:onClose />
     </div>
     <div {hidden}>
-        <div class="container">
+        <div class="3demos-container container">
             {#each ['x', 'y', 'z'] as name}
                 <span class="box-1"><M size="sm">{name}(u,v) =</M></span>
                 <InputChecker

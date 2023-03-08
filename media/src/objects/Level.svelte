@@ -420,7 +420,7 @@
         <ObjHeader bind:hidden bind:onClose />
     </div>
     <div {hidden}>
-        <div class="container">
+        <div class="3demos-container container">
             <span class="box-1"><M size="sm">g(x,y,z) =</M></span>
             <InputChecker
                 value={params['g']}
