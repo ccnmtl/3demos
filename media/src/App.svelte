@@ -180,8 +180,10 @@
         depthTest: true,
     });
 
+    // Make xy grid lines (off by default).
     let gridMeshes = drawGrid({ lineMaterial });
     gridMeshes.renderDepth = -1;
+    gridMeshes.visible = false;
     scene.add(gridMeshes);
 
     // Axes
