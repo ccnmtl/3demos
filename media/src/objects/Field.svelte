@@ -405,7 +405,7 @@
         <ObjHeader bind:hidden bind:onClose />
     </div>
     <div {hidden}>
-        <div class="container">
+        <div class="threedemos-container container">
             {#each ['p', 'q', 'r'] as name}
                 <span class="box-1"
                     ><M size="sm">{name.toUpperCase()}(t) =</M></span
