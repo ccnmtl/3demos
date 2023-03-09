@@ -92,7 +92,6 @@
     // Register meshes for pointer events
     plusMesh.name = uuid;
     minusMesh.name = uuid;
-    onRenderObject(plusMesh, minusMesh);
 
     mesh.visible = false;
     scene.add(mesh);
@@ -102,6 +101,7 @@
         const gc = math.parse(params.g).compile();
         updateParams(gc, params).then((data) => {
             levelWorkerSuccessHandler(data);
+            onRenderObject(plusMesh, minusMesh);
         });
     };
 
