@@ -244,14 +244,6 @@
         const dt = (time - last) / 1000;
         last = time;
 
-        // for (const b of objects.filter((b) => b.animation)) {
-        //     if (typeof b.update === 'function') {
-        //         b.update(dt);
-        //     } else {
-        //         console.error('b.update is not callable', b);
-        //     }
-        // }
-
         // FYI, the linter doesn't like +=
         $tickTock = $tickTock + dt;
 
@@ -259,7 +251,7 @@
             scaleUpdate(dt);
         }
 
-        currentControls.update();
+        currentControls?.update();
         renderer.render(scene, currentCamera);
         if (debug) {
             stats.end();
@@ -298,7 +290,7 @@
             currentCamera.updateProjectionMatrix();
         }
 
-        currentControls.update();
+        currentControls?.update();
         renderer.render(scene, currentCamera);
     };
 
@@ -505,10 +497,14 @@
             stats.showPanel(1); // 0: fps, 1: ms, 2: mb, 3+: custom
             document.body.appendChild(stats.dom);
         }
-        // If any of the loaded objects are currently animating, call
-        // the animate() function.
+
+        // If any of the loaded objects are currently animating, start
+        // animation.
         if (objects.some((b) => b.animation)) {
-            animate();
+            // Do initial render to set canvas size correctly.
+            render();
+            // Start animation
+            animateIfNotAnimating();
         }
 
         renderer.domElement.addEventListener('pointermove', (e) =>
@@ -1055,14 +1051,7 @@
                                         {params}
                                         bind:color
                                         bind:animation
-                                        on:animate={(e) => {
-                                            console.log(
-                                                'vect anim',
-                                                animation,
-                                                e
-                                            );
-                                            animateIfNotAnimating();
-                                        }}
+                                        on:animate={animateIfNotAnimating}
                                         selected={selectedObject === uuid}
                                         on:click={selectObject(uuid)}
                                         on:keydown={altDown}
