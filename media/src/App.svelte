@@ -24,7 +24,7 @@
     import Field from './objects/Field.svelte';
     import Function from './objects/Function.svelte';
     import Vector from './objects/Vector.svelte';
-    import Settings from './Settings.svelte';
+    import Settings from './settings/Settings.svelte';
 
     import Stats from 'stats.js';
 

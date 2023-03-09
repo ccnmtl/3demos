@@ -2,9 +2,10 @@
     import { createEventDispatcher } from 'svelte';
     import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
     import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
-    import { drawAxes, drawGrid, labelAxes, freeChildren } from './utils';
-    import Polls from './polls/Polls.svelte';
-    import { makeObject } from './sceneUtils';
+    import { drawAxes, drawGrid, labelAxes, freeChildren } from '../utils';
+    import Polls from '../polls/Polls.svelte';
+    import { makeObject } from '../sceneUtils';
+    import WindowHeader from './WindowHeader.svelte';
 
     const dispatch = createEventDispatcher();
 
@@ -154,19 +155,13 @@
     class="settings-box"
     class:grid={showSettings}
     hidden={!showSettings}
-    id="settings-box"
->
+    id="settings-box">
+
+    <WindowHeader title="Settings" onClick={() => {
+        showSettings = false;
+    }} />
+
     <div class="row justify-content-between">
-        <h3 class="col-auto">Settings</h3>
-        <button
-            type="button"
-            class="btn btn-sm btn-light mx-3"
-            on:click={() => {
-                showSettings = false;
-            }}
-        >
-            <i class="bi bi-x-lg" />
-        </button>
         <div class="col-12">
             <label class="form-label" for="scale">Scale</label>
             <span class="form-range">
@@ -218,27 +213,23 @@
     class="settings-box"
     class:grid={showUpload}
     hidden={!showUpload}
-    id="upload-box"
->
-    <button
-        type="button"
-        class="btn btn-sm btn-light"
-        style="margin-left: auto;"
-        on:click={() => {
-            showUpload = false;
-        }}
-    >
-        <i class="bi bi-x-lg" />
-    </button>
-    <label for="upload">Upload a scene</label>
-    <input
-        id="upload"
-        type="file"
-        accept="application/json"
-        on:change={(e) => {
-            uploadScene(e);
-        }}
-    />
+    id="upload-box">
+
+    <WindowHeader title="Upload Scene" onClick={() => {
+        showUpload = false;
+    }} />
+
+    <form>
+        <label for="sceneUpload">Upload a scene</label>
+        <input
+            id="sceneUpload"
+            type="file"
+            accept="application/json"
+            on:change={(e) => {
+                uploadScene(e);
+            }}
+        />
+    </form>
 </div>
 
 <button
