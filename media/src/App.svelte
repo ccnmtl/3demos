@@ -32,7 +32,7 @@
     import Linear from './Linear.svelte';
     import Chapter from './Chapter.svelte';
     import Intro from './Intro.svelte';
-    import Session from './modes/Session.svelte';
+    import Session from './session/Session.svelte';
     import KeyboardControls from './KeyboardControls.svelte';
 
     import { getRoomId, makeSocket } from './rooms';
@@ -611,6 +611,10 @@
     let pollResponses = {};
     let userResponseList = {};
 
+    // The chat buffer: an array of objects.
+    let chatBuffer = [];
+    const chatLineCount = 5;
+
     const pollMaterial = new THREE.MeshLambertMaterial({
         color: 0xffff33,
         transparent: true,
@@ -622,7 +626,16 @@
 
     const handleSocketMessage = function (e) {
         const data = JSON.parse(e.data);
-        if (
+        if (data.message.chatMessage) {
+            if (data.message.chatMessage.text) {
+                if (chatBuffer.length >= chatLineCount) {
+                    // Remove first item of chat buffer if it's full.
+                    chatBuffer.shift();
+                }
+
+                chatBuffer = [...chatBuffer, data.message.chatMessage];
+            }
+        } else if (
             data.message.pollResponse &&
             !(data.session_key in userResponseList)
         ) {
@@ -898,6 +911,7 @@
                             bind:objects
                             bind:isHost
                             bind:currentPoll
+                            bind:chatBuffer
                             {point}
                         />
                     {:else if currentChapter === 'Intro'}

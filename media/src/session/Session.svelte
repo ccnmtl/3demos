@@ -1,5 +1,6 @@
 <script>
     import Poll from '../polls/Poll.svelte';
+    import Chatroom from './Chatroom.svelte';
     import {getRoomUrl} from '../utils.js';
 
     export let roomId;
@@ -8,6 +9,7 @@
     export let currentPoll;
     export let objects;
     export let point;
+    export let chatBuffer;
 
     let role = 'student';
     if (isHost) {
@@ -28,8 +30,10 @@
 <p>
     Connected to room <strong>{roomId}</strong> as {role}!
 
+    <Chatroom {socket} {role} {chatBuffer} />
+
     {#if currentPoll}
-        <Poll bind:currentPoll bind:socket {point} />
+        <Poll bind:currentPoll bind:socket {point}/>
     {/if}
 </p>
 {:else}
