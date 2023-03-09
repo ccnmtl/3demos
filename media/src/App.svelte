@@ -438,7 +438,7 @@
                 }
             }
         } else {
-            document.body.style.cursor = 'default';
+            document.body.style.cursor = 'auto';
             hoveredObject = null;
         }
     };
@@ -510,6 +510,11 @@
         renderer.domElement.addEventListener('pointermove', (e) =>
             onPointerMove(e, renderer)
         );
+        renderer.domElement.addEventListener('pointerleave', () => {
+            // Reset cursor to default: let the browser take over
+            // styling here.
+            document.body.style.cursor = 'auto';
+        });
         renderer.domElement.addEventListener('click', onClick);
     });
 
