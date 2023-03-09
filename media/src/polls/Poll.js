@@ -1,12 +1,14 @@
-const POLL_TYPES = [
-    'Numeric',
-    'Multiple Choice'
-];
-
 let idx = 1;
 
+/**
+ * Poll
+ *
+ * Poll type is a string - the following types are supported:
+ *  'numeric'
+ *  'multiple choice'
+ */
 class Poll {
-    constructor(type=1, prompt, choices) {
+    constructor(type='multiple choice', prompt, choices) {
         this.id = idx++;
         this.type = type;
         this.prompt = prompt;
@@ -19,7 +21,6 @@ const setIdCounter = (i) => {
 };
 
 export {
-    POLL_TYPES,
     Poll,
     setIdCounter
 }

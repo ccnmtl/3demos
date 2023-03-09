@@ -12,11 +12,11 @@
 
         // Set up response
         response = [];
-        if (currentPoll.type === 0) {
+        if (currentPoll.type === 'numeric') {
             const responseEl =
                   e.target.querySelector('input[name="poll_response"]');
             response = forceNumber(responseEl.value);
-        } else if (currentPoll.type === 1) {
+        } else if (currentPoll.type === 'multiple choice') {
             const responseEl =
                   e.target.querySelectorAll('input[name="poll_response"]');
             responseEl.forEach(function(el) {
