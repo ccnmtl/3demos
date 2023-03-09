@@ -8,7 +8,7 @@
     } from 'sveltestrap';
     import PollResponses from './PollResponses.svelte';
     import PollForm from './PollForm.svelte';
-    import {POLL_TYPES, Poll, setIdCounter} from './Poll.js';
+    import {Poll, setIdCounter} from './Poll.js';
     import {broadcastPoll, loadPolls} from './utils';
     import {querySelectorIncludesText} from '../utils';
 
@@ -20,9 +20,11 @@
     // Init empty polls to some basic examples
     if (polls && polls.length === 0) {
         polls = [
-            new Poll(1, 'Question test', ['a', 'b', 'c']),
-            new Poll(1, 'Question test 2', ['a', 'b', 'c', 'd']),
-            new Poll(0, 'What is the square root of 2?')
+            new Poll('multiple choice',
+                     'Question test', ['a', 'b', 'c']),
+            new Poll('multiple choice',
+                     'Question test 2', ['a', 'b', 'c', 'd']),
+            new Poll('numeric', 'What is the square root of 2?')
         ];
     }
 
@@ -92,7 +94,10 @@
     };
 
     const onClickMakePoll = function() {
-        editingPoll = new Poll(1, 'undefined');
+        editingPoll = new Poll(
+            'multiple choice',
+            'undefined',
+            ['answer A', 'answer B']);
         isEditing = true;
     };
 </script>
@@ -124,7 +129,7 @@
                                 <tr>
                                     <th scope="row">{poll.id}</th>
                                     <td>{poll.prompt}</td>
-                                    <td>{POLL_TYPES[poll.type]}</td>
+                                    <td>{poll.type}</td>
                                     <td style="white-space: nowrap;">
                                         <button
                                             type="button"

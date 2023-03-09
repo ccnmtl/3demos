@@ -10,16 +10,14 @@
     let pollEntries;
 
     const makeGraph = function(data, pollType) {
-        if (pollType === 0) {
-            // Numerical poll
+        if (pollType === 'numeric') {
             return Histogram(data, {
                 x: d => d[0],
                 y: d => d[1],
                 label: 'Response',
                 color: 'steelblue'
             });
-        } else if (pollType === 1) {
-            // Multiple choice
+        } else if (pollType === 'multiple choice') {
             return BarChart(data, {
                 x: d => d[0],
                 y: d => d[1],
