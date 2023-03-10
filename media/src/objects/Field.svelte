@@ -18,8 +18,8 @@
     const dispatch = createEventDispatcher();
 
     export let uuid;
-    export let onRenderObject = function() {};
-    export let onDestroyObject = function() {};
+    export let onRenderObject = function () {};
+    export let onDestroyObject = function () {};
 
     export let params = {
         p: 'y',
@@ -85,6 +85,15 @@
                 hsl.s,
                 hsl.l
             );
+
+        if (flowTrails && !animation && trails.geometry.attributes.color) {
+            setTrailColors(
+                trails.geometry.attributes.color.array,
+                trailLength * nCubed * 6,
+                MAX_TRAIL_LENGTH
+            );
+            trails.geometry.attributes.color.needsUpdate = true;
+        }
         render();
     }
 
@@ -94,13 +103,13 @@
     let trailLength = 0;
 
     const trails = new THREE.LineSegments(trailGeometry, trailMaterial);
-    const arrowGeometries = [],
-        heightResolution = 150,
-        vfScale = gridStep * 5;
+
+    const vfScale = gridStep * 5;
     const arrowArgs = {
-        radiusTop: vfScale / 30,
-        radiusBottom: vfScale / 100,
-        heightTop: vfScale / 8,
+        radiusTop: vfScale / 60,
+        radiusBottom: vfScale / 150,
+        heightTop: vfScale / 16,
+        heightIncludesHead: true,
     };
 
     const setTrailColors = function (
@@ -127,36 +136,18 @@
         }
     };
 
-    // Make a fixed set of different arrow lengths instead of regenerating each time.
-    for (let i = 1; i <= heightResolution; i++) {
-        const geometry = new ArrowBufferGeometry({
-            radiusBottom: vfScale / 100,
-            height: ((i / heightResolution) * vfScale) / 2,
-            heightTop: Math.min(
-                ((i / heightResolution) * vfScale) / 3,
-                vfScale / 8
-            ),
-            radiusTop: Math.min(
-                vfScale / 30,
-                ((i / heightResolution) * vfScale) / 6
-            ),
-        });
-        arrowGeometries.push(geometry);
-    }
-
     const initFlowArrows = function (arrows, lim = gridMax, N = params.nVec) {
         const vec = new THREE.Vector3();
         let maxLength = 0;
-        const arrowDefaultGeometry = new ArrowBufferGeometry({
-            ...arrowArgs,
-            height: gridStep / gridMax,
-        });
 
         for (let i = 0; i < N; i++) {
             for (let j = 0; j < N; j++) {
                 for (let k = 0; k < N; k++) {
                     const arrow = new FlowArrowMesh(
-                        arrowDefaultGeometry,
+                        new ArrowBufferGeometry({
+                            ...arrowArgs,
+                            height: gridStep / gridMax,
+                        }),
                         fieldMaterial,
                         1.2 * lim
                     );
@@ -264,12 +255,9 @@
                 arrow.position.z,
                 vec
             ).length();
-            height = Math.round((height / maxLength) * heightResolution) - 1;
+            height = ((height / maxLength) * vfScale) / 2;
 
-            arrow.geometry =
-                arrowGeometries[
-                    Math.max(0, Math.min(arrowGeometries.length - 1, height))
-                ];
+            arrow.geometry.adjustHeight(height);
 
             arrow.lookAt(vec.add(arrow.position));
         });
@@ -288,6 +276,14 @@
 
     const freeTrails = function () {
         trailLength = 0;
+    };
+
+    const rewindArrows = () => {
+        freeChildren(flowArrows);
+        maxLength = initFlowArrows(flowArrows, gridMax, params.nVec);
+        updateFlowArrows(flowArrows, fieldF, 0);
+        freeTrails();
+        render();
     };
 
     let fieldF;
@@ -364,6 +360,9 @@
                         dispatch('animate');
                     }
                     render();
+                    break;
+                case 'r':
+                    rewindArrows();
                     break;
             }
         }
@@ -442,17 +441,7 @@
                     );
                     render();
                 }}
-                on:rew={() => {
-                    freeChildren(flowArrows);
-                    maxLength = initFlowArrows(
-                        flowArrows,
-                        gridMax,
-                        params.nVec
-                    );
-                    updateFlowArrows(flowArrows, fieldF, 0);
-                    freeTrails();
-                    render();
-                }}
+                on:rew={rewindArrows}
             />
 
             <span class="box box-2">
