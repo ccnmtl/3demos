@@ -34,7 +34,6 @@
     $: nCubed = Math.pow(params.nVec, 3);
 
     export let scene;
-    export let shadeUp;
     export let render = () => {};
     export let animation = false;
     export let onClose = () => {};
@@ -342,29 +341,27 @@
     }
 
     const shiftDown = (e) => {
-        if (shadeUp) {
-            switch (e.key) {
-                case 'Backspace':
-                    flowArrows.visible = !flowArrows.visible;
-                    render();
-                    break;
-                case 't':
-                    trails.visible = !trails.visible;
-                    freeTrails();
-                    render();
-                    break;
-                case 'p':
-                    flowArrows.visible = true;
-                    animation = !animation;
-                    if (animation) {
-                        dispatch('animate');
-                    }
-                    render();
-                    break;
-                case 'r':
-                    rewindArrows();
-                    break;
-            }
+        switch (e.key) {
+            case 'Backspace':
+                flowArrows.visible = !flowArrows.visible;
+                render();
+                break;
+            case 't':
+                trails.visible = !trails.visible;
+                freeTrails();
+                render();
+                break;
+            case 'p':
+                flowArrows.visible = true;
+                animation = !animation;
+                if (animation) {
+                    dispatch('animate');
+                }
+                render();
+                break;
+            case 'r':
+                rewindArrows();
+                break;
         }
     };
 

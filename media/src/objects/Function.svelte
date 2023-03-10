@@ -97,7 +97,6 @@
     export let gridStep;
     export let showLevelCurves = false;
     export let scene;
-    export let shadeUp;
     export let render = () => {};
     export let onClose = () => {};
     export let animation = false;
@@ -851,7 +850,7 @@
     };
 
     const shiftDown = (e) => {
-        if (shadeUp && selected) {
+        if (selected) {
             switch (e.key) {
                 case 'Shift':
                     window.addEventListener('mousemove', onMouseMove, false);

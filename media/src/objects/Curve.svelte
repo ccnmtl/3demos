@@ -81,7 +81,6 @@
     export let tau = 0;
 
     export let scene;
-    export let shadeUp;
     export let render = () => {};
     export let onClose = () => {};
     export let controls;
@@ -405,46 +404,44 @@
     };
 
     const shiftDown = (e) => {
-        if (shadeUp) {
-            switch (e.key) {
-                case 'Backspace':
-                    if (tube.visible) {
-                        tube.visible = false;
-                        circleTube.visible = false;
-                    } else {
-                        tube.visible = true;
-                        circleTube.visible = osculatingCircle;
-                    }
-                    render();
-                    break;
-                case 'Shift':
-                    window.addEventListener('mousemove', onMouseMove, false);
-                    frame.visible = true;
-                    break;
-                case 'c':
-                    controls.target.set(
-                        point.position.x,
-                        point.position.y,
-                        point.position.z
-                    );
-                    render();
-                    break;
-                case 'o':
-                    osculatingCircle = !osculatingCircle;
-                    render();
-                    break;
-                case 'p':
-                    animation = !animation;
-                    break;
-                case 's':
-                    TNB = !TNB;
-                    render();
-                    break;
-                case 't':
-                    frame.visible = !frame.visible;
-                    render();
-                    break;
-            }
+        switch (e.key) {
+            case 'Backspace':
+                if (tube.visible) {
+                    tube.visible = false;
+                    circleTube.visible = false;
+                } else {
+                    tube.visible = true;
+                    circleTube.visible = osculatingCircle;
+                }
+                render();
+                break;
+            case 'Shift':
+                window.addEventListener('mousemove', onMouseMove, false);
+                frame.visible = true;
+                break;
+            case 'c':
+                controls.target.set(
+                    point.position.x,
+                    point.position.y,
+                    point.position.z
+                );
+                render();
+                break;
+            case 'o':
+                osculatingCircle = !osculatingCircle;
+                render();
+                break;
+            case 'p':
+                animation = !animation;
+                break;
+            case 's':
+                TNB = !TNB;
+                render();
+                break;
+            case 't':
+                frame.visible = !frame.visible;
+                render();
+                break;
         }
     };
 

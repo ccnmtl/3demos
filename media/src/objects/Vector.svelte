@@ -55,7 +55,6 @@
     export let show = true;
 
     export let scene;
-    export let shadeUp;
     export let render = () => {};
     export let onClose = () => {};
     export let gridStep;
@@ -148,13 +147,11 @@
     });
 
     const shiftDown = (e) => {
-        if (shadeUp) {
-            switch (e.key) {
-                case 'Backspace':
-                    arrow.visible = !arrow.visible;
-                    render();
-                    break;
-            }
+        switch (e.key) {
+            case 'Backspace':
+                arrow.visible = !arrow.visible;
+                render();
+                break;
         }
     };
 

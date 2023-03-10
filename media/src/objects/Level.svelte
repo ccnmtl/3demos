@@ -31,7 +31,6 @@
     };
 
     export let scene;
-    export let shadeUp;
     export let render = () => {};
     export let onClose = () => {};
     export let selected;
@@ -353,7 +352,7 @@
     };
 
     const shiftDown = (e) => {
-        if (shadeUp && selected) {
+        if (selected) {
             switch (e.key) {
                 case 'Backspace':
                     mesh.visible = !mesh.visible;
