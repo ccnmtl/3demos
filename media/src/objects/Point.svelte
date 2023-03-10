@@ -27,7 +27,7 @@
     import PlayButtons from '../form-components/PlayButtons.svelte';
     import M from '../M.svelte';
     import ObjHeader from '../ObjHeader.svelte';
-    import { ArrowBufferGeometry, checksum } from '../utils.js';
+    import { checksum } from '../utils.js';
     import InputChecker from '../form-components/InputChecker.svelte';
 
     // export let paramString;
@@ -43,6 +43,14 @@
     };
 
     export let color = '#FFFF33';
+
+    // useless code to suppress dev warnings
+    export let camera;
+    export let controls;
+    export let gridMax;
+
+    camera, controls, gridMax;
+
     let tau = 0;
     let last;
     let texString1 = `t `;

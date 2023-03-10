@@ -28,6 +28,7 @@
     import Settings from './settings/Settings.svelte';
 
     const kindToComponent = {
+        point: Point,
         vector: Vector,
         field: Field,
         graph: Function,
@@ -987,6 +988,7 @@
                                     {uuid}
                                     {gridStep}
                                     {gridMax}
+                                    on:animate={animateIfNotAnimating}
                                     selected={selectedObject === uuid}
                                     on:click={selectObject(uuid)}
                                     on:keydown={altDown}
