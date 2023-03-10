@@ -358,6 +358,7 @@
                             bind:isHost
                             bind:currentPoll
                             bind:chatBuffer
+
                             />
                         {:else if currentChapter === 'Intro'}
                             <Intro />
@@ -479,95 +480,145 @@
                     </div>
 
                     <!-- debug buttons -->
+
                     <div hidden={!debug}>
                         <button
                             on:click={() => {
-                            objects = [
-                            {
-                            uuid: 34,
-                            kind: 'curve',
-                            params: {
-                            a: '0',
-                            b: '2*pi',
-                            x: 'cos(t)',
-                            y: 'sin(t)',
-                            z: '0',
-                            },
-                            },
-                            {
-                            uuid: '42ee3',
-                            kind: 'parsurf',
-                            params: {
-                            a: '-1',
-                            b: '1',
-                            c: '-1',
-                            d: '1',
-                            x: 'sin(u)*cos(v)',
-                            y: 'sin(u)*sin(v)',
-                            z: 'cos(u)',
-                            },
-                            },
-                            {
-                            uuid: '423',
-                            kind: 'parsurf',
-                            params: {
-                            a: '0',
-                            b: '2*pi',
-                            c: '0',
-                            d: '2*pi',
-                            x: 'u',
-                            y: 'v - 3 + u^2/5',
-                            z: '-cos(v 5)/3',
-                            },
-                            },
-                            ];
+                                objects = [
+                                    {
+                                        uuid: 34,
+                                        kind: 'curve',
+                                        params: {
+                                            a: '0',
+                                            b: '2*pi',
+                                            x: 'cos(t)',
+                                            y: 'sin(t)',
+                                            z: '0',
+                                        },
+                                        color: '#aa33ff',
+                                        animation: true,
+                                    },
+                                    {
+                                        uuid: '34point22',
+                                        kind: 'point',
+                                        params: {
+                                            a: 'cos(2 t)',
+                                            b: 'sin(2 t)',
+                                            c: 'cos(2 t) + sin(2 t)',
+                                            t0: '0',
+                                            t1: '2 pi',
+                                        },
+                                        color: '#FF0000',
+                                        animation: false,
+                                    },
+                                    {
+                                        uuid: 345,
+                                        kind: 'vector',
+                                        params: {
+                                            a: 'cos(t)',
+                                            b: 'sin(t)',
+                                            c: '1',
+                                            x: 'cos(t)',
+                                            y: 'sin(t)',
+                                            z: '0',
+                                            t0: '0',
+                                            t1: '2*pi',
+                                        },
+                                        color: '#ff33ff',
+                                        animation: false,
+                                    },
+                                ];
                             }}>Reset 1</button
-                                          >
+                        >
                         <button
                             on:click={() => {
-                            objects = [
-                            {
-                            uuid: '423',
-                            kind: 'parsurf',
-                            params: {
-                            a: '-2',
-                            b: '2',
-                            c: '-2',
-                            d: '2',
-                            x: 'u + v',
-                            y: 'u - v',
-                            z: '-cos(v 5)/3',
-                            nX: 80,
-                            },
-                            },
-                            {
-                            uuid: '42ee3',
-                            kind: 'parsurf',
-                            params: {
-                            a: '-1',
-                            b: '1',
-                            c: '-1',
-                            d: '1',
-                            x: 'sin(u)*cos(v)',
-                            y: 'sin(u)*sin(v)',
-                            z: 'cos(u)',
-                            nX: 80,
-                            },
-                            },
-                            {
-                            uuid: 34,
-                            kind: 'curve',
-                            params: {
-                            a: '0',
-                            b: '2*pi',
-                            x: 'cos(2 * t)',
-                            y: 'sin(2 * t)',
-                            z: 't / (2 * pi)',
-                            },
-                            color: '#ff332a',
-                            },
-                            ];
-                            }}>Reset 2</button>
+                                objects = [
+                                    {
+                                        uuid: 34,
+                                        kind: 'curve',
+                                        params: {
+                                            a: '0',
+                                            b: '2*pi',
+                                            x: 'cos(t)',
+                                            y: 'sin(t)',
+                                            z: '0',
+                                        },
+                                        color: '#aa33ff',
+                                        animation: false,
+                                    },
+                                    {
+                                        uuid: '34point22',
+                                        kind: 'point',
+                                        params: {
+                                            a: 'cos(2 t)',
+                                            b: 'sin(2 t)',
+                                            c: 'cos(2 t) + sin(2 t)',
+                                            t0: '0',
+                                            t1: '2*pi',
+                                        },
+                                        color: '#FF0000',
+                                        animation: true,
+                                    },
+                                    {
+                                        uuid: 345,
+                                        kind: 'vector',
+                                        params: {
+                                            a: 'cos(t)',
+                                            b: 'sin(t)',
+                                            c: '1',
+                                            x: 'cos(t)',
+                                            y: 'sin(t)',
+                                            z: '0',
+                                            t0: '0',
+                                            t1: '2*pi',
+                                        },
+                                        color: '#ff33ff',
+                                        animation: true,
+                                    },
+                                ];
+                            }}>Reset 2</button
+                        >
+                        <button
+                            on:click={() => {
+                                objects = [
+                                    {
+                                        uuid: 'agraph3847',
+                                        kind: 'graph',
+                                        params: {
+                                            a: '-1',
+                                            b: '1',
+                                            c: '-1',
+                                            d: '1',
+                                            z: 'x^2 - 3*cos(t) * x * y + y^2',
+                                            t0: '0',
+                                            t1: '2*pi',
+                                        },
+                                        color: '#ff33ff',
+                                        animation: true,
+                                    },
+                                ];
+                            }}>anim func</button
+                        >
+                        <button
+                            on:click={() => {
+                                objects = [
+                                    {
+                                        uuid: 'agraph3847',
+                                        kind: 'graph',
+                                        params: {
+                                            a: '-1',
+                                            b: '1',
+                                            c: '-1',
+                                            d: '1',
+                                            z: 'x^2 - 3*cos(t) * x * y + y^2',
+                                            t0: '0',
+                                            t1: '2*pi',
+                                        },
+                                        color: '#ff33ff',
+                                        animation: false,
+                                    },
+                                ];
+                            }}>unanim func</button>
                     </div>
                 </div>
             </div>
@@ -637,7 +688,7 @@
         position: absolute;
         width: 100%;
         height: fit-content;
-        background-color: rgba(0, 0, 0, 0.6);
+        background-color: rgba(0, 0, 0, 0.5);
         border-radius: 0.5em;
         border-top-left-radius: 0rem;
         border-top-right-radius: 0rem;

@@ -20,7 +20,7 @@ a.titlefont:hover, a.titlefont:focus {
 
 article {
     color: white;
-    background-color: rgba(0, 0, 0, 0.7);
+    background-color: rgba(0, 0, 0, 0.5);
     padding: 1rem;
     font: 1.2rem;
     border-radius: 0.5rem;
@@ -59,7 +59,7 @@ body,
 
 .boxItem {
     flex: auto;
-    background-color: rgba(0, 0, 0, 0.7);
+    background-color: rgba(0, 0, 0, 0.5);
     border-radius: 1rem;
     border: 5px solid transparent;
 }
