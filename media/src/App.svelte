@@ -953,6 +953,7 @@
                                     bind:animation
                                     {uuid}
                                     {gridStep}
+                                    {gridMax}
                                     selected={selectedObject === uuid}
                                     on:click={selectObject(uuid)}
                                     on:keydown={altDown}
