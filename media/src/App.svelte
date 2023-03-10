@@ -24,6 +24,7 @@
     import Field from './objects/Field.svelte';
     import Function from './objects/Function.svelte';
     import Vector from './objects/Vector.svelte';
+    import Point from './objects/Point.svelte';
     import Settings from './settings/Settings.svelte';
 
     import Stats from 'stats.js';
@@ -487,7 +488,7 @@
             for (const val of Object.values(objectHolder)) {
                 // objects = makeObject(val.uuid, val.kind, val.params, objects);
                 objects = [...objects, { uuid: crypto.randomUUID(), ...val }];
-                console.log(objects);
+                if (debug) console.log(objects);
             }
         }
 
@@ -737,6 +738,38 @@
                                     <i class="fa fa-plus" />
                                 </DropdownToggle>
                                 <DropdownMenu>
+                                    <DropdownItem
+                                        on:click={() => {
+                                            objects = [
+                                                ...objects,
+                                                {
+                                                    uuid: crypto.randomUUID(),
+                                                    kind: 'point',
+                                                    params: {
+                                                        a: `${Math.random()}`.slice(
+                                                            0,
+                                                            5
+                                                        ),
+                                                        b: `${Math.random()}`.slice(
+                                                            0,
+                                                            5
+                                                        ),
+                                                        c: `${Math.random()}`.slice(
+                                                            0,
+                                                            5
+                                                        ),
+                                                        t0: '0',
+                                                        t1: '1',
+                                                    },
+                                                    color: `#${makeHSLColor(
+                                                        Math.random()
+                                                    ).getHexString()}`,
+                                                },
+                                            ];
+                                        }}
+                                    >
+                                        Point <M size="sm">P = ( a, b, c )</M>
+                                    </DropdownItem>
                                     <DropdownItem
                                         on:click={() => {
                                             objects = [
@@ -1042,6 +1075,28 @@
                                     />
                                 {:else if kind === 'vector'}
                                     <Vector
+                                        {scene}
+                                        {onRenderObject}
+                                        {onDestroyObject}
+                                        bind:shadeUp
+                                        render={requestFrameIfNotRequested}
+                                        {uuid}
+                                        onClose={() => {
+                                            objects = objects.filter(
+                                                (b) => b.uuid !== uuid
+                                            );
+                                        }}
+                                        {params}
+                                        bind:color
+                                        bind:animation
+                                        on:animate={animateIfNotAnimating}
+                                        selected={selectedObject === uuid}
+                                        on:click={selectObject(uuid)}
+                                        on:keydown={altDown}
+                                        {gridStep}
+                                    />
+                                {:else if kind === 'point'}
+                                    <Point
                                         {scene}
                                         {onRenderObject}
                                         {onDestroyObject}
