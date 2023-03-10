@@ -1,64 +1,26 @@
 <script>
     import { onMount } from 'svelte';
-    import { slide } from 'svelte/transition';
-    import { quintOut } from 'svelte/easing';
 
     import * as THREE from 'three';
     import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
     import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
     import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 
-    import {
-        Button,
-        ButtonDropdown,
-        DropdownItem,
-        DropdownMenu,
-        DropdownToggle,
-    } from 'sveltestrap';
-
     // import components
-    import M from './M.svelte';
-    import ParSurf from './objects/ParSurf.svelte';
-    import Level from './objects/Level.svelte';
-    import Curve from './objects/Curve.svelte';
-    import Field from './objects/Field.svelte';
-    import Function from './objects/Function.svelte';
-    import Vector from './objects/Vector.svelte';
-    import Point from './objects/Point.svelte';
-    import Settings from './settings/Settings.svelte';
-
-    const kindToComponent = {
-        point: Point,
-        vector: Vector,
-        field: Field,
-        graph: Function,
-        curve: Curve,
-        level: Level,
-        parsurf: ParSurf,
-    };
+    import Panel from './Panel.svelte';
 
     import Stats from 'stats.js';
-
-    import Linear from './Linear.svelte';
-    import Chapter from './Chapter.svelte';
-    import Intro from './Intro.svelte';
-    import Session from './session/Session.svelte';
-    import KeyboardControls from './KeyboardControls.svelte';
 
     import { getRoomId, makeSocket } from './rooms';
     import {
         drawAxes,
         drawGrid,
         labelAxes,
-        makeHSLColor,
-        convertToURLParams,
-        modFloor,
+        modFloor
     } from './utils';
     import {
-        makeObject,
         // removeObject,
         // updateObject,
-        publishScene,
         handleSceneEvent,
         findPointerIntersects,
     } from './sceneUtils';
@@ -71,7 +33,6 @@
     let stats;
 
     let flipInfo = false;
-    let shadeUp = false;
     let scaleAnimation = false;
     let scaleUpdate;
     let selectedObject = null;
@@ -82,9 +43,6 @@
     };
 
     let canvas;
-
-    // When the shade goes up, focus on the canvas (for keydown events)
-    $: if (shadeUp) canvas?.focus();
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(
@@ -221,7 +179,7 @@
         TextGeometry
     );
 
-    // from https://threejsfundamentals.org
+    // from https://threejs.org/manual/#en/responsive
     const resizeRendererToDisplaySize = function (renderer) {
         const canvas = renderer.domElement;
         const width = canvas.clientWidth;
@@ -379,25 +337,6 @@
         requestFrameIfNotRequested();
     });
 
-    const makeQueryStringObject = function () {
-        const flattenedObjects = {
-            currentChapter,
-        };
-        if (flipInfo) {
-            flattenedObjects['flipInfo'] = true;
-        }
-        if (shadeUp) {
-            flattenedObjects['shadeUp'] = true;
-        }
-        if (gridMeshes.visible) {
-            flattenedObjects['grid'] = true;
-        }
-        window.location.search = convertToURLParams(
-            flattenedObjects,
-            objects
-        ).toString();
-    };
-
     /**
      * onRenderObject
      *
@@ -462,47 +401,6 @@
     onMount(() => {
         const renderer = createScene(canvas);
 
-        const urlParams = new URLSearchParams(location.search);
-        if (urlParams.keys()) {
-            const objectHolder = {};
-            urlParams.forEach((val, key) => {
-                // This is bad and stupid, and hopefully it will be done better.
-                // make a viewStatus object, maybe?
-                if (key === 'currentChapter') {
-                    currentChapter = val;
-                }
-                if (key === 'shadeUp') {
-                    shadeUp = true;
-                }
-                if (key === 'grid') {
-                    gridMeshes.visible = val === 'true';
-                }
-                if (key === 'debug') {
-                    debug = val === 'true';
-                    console.log('debuggery: ', debug);
-                }
-                if (key === 'flipInfo') {
-                    flipInfo = true;
-                }
-                if (key.slice(0, 3) === 'obj') {
-                    const keyParts = key.split('_');
-                    const obj = objectHolder[keyParts[0]] || { params: {} };
-                    if (keyParts[1] === 'params') {
-                        obj.params[keyParts[2]] = val;
-                    } else {
-                        obj[keyParts[1]] = val;
-                    }
-                    objectHolder[keyParts[0]] = obj;
-                }
-            });
-
-            for (const val of Object.values(objectHolder)) {
-                // objects = makeObject(val.uuid, val.kind, val.params, objects);
-                objects = [...objects, { uuid: crypto.randomUUID(), ...val }];
-                if (debug) console.log(objects);
-            }
-        }
-
         // stats window for debugging
         if (debug) {
             stats = new Stats();
@@ -529,10 +427,6 @@
         });
         renderer.domElement.addEventListener('click', onClick);
     });
-
-    const onPublishScene = function () {
-        publishScene(objects, socket);
-    };
 
     let currentChapter = 'Intro';
     let currentMode = 'intro';
@@ -590,12 +484,12 @@
     }
 
     const altDown = (e) => {
+        if (e.target.matches('input')) {
+            return;
+        }
+
         if (e.altKey) {
             switch (e.code) {
-                case 'Space':
-                    e.preventDefault();
-                    shadeUp = !shadeUp;
-                    break;
                 case 'BracketRight':
                     e.preventDefault();
                     if (!objects) {
@@ -638,664 +532,65 @@
         }
     };
     window.addEventListener('keydown', altDown, false);
-
-    const onToggleSession = function () {
-        currentMode = currentMode !== 'session' ? 'session' : 'intro';
-    };
 </script>
 
 <main>
-    <canvas bind:this={canvas} id="c" tabIndex="0" />
+    <div class="d-flex demos-mainview">
+        <Panel bind:debug bind:currentMode bind:flipInfo
+               bind:objects
+               bind:currentChapter
+               bind:gridMeshes
+               bind:isHost
+               bind:gridStep bind:gridMax
+               bind:orthoCamera
+               bind:scaleUpdate bind:scaleAnimation
+               bind:chatBuffer
 
-    <div class="info">
-        <div class="info-inner">
-            <div class="chapterBox" hidden={flipInfo}>
-                <div class="collapse-info" hidden={shadeUp}>
-                    <div class="d-flex mb-2">
-                        <h1 class="flex-grow-1 px-2">
-                            <a class="titlefont" href="/" title="Home"
-                                >3Demos (βeta)</a
-                            >
-                        </h1>
-                        <Button
-                            class="me-2"
-                            active={currentMode === 'session'}
-                            on:click={onToggleSession}
-                        >
-                            {#if currentMode === 'session'}
-                                Information
-                            {:else}
-                                Session
-                            {/if}
-                        </Button>
-                        <button
-                            class="ms-auto btn btn-light px-2"
-                            on:click={() => {
-                                flipInfo = !flipInfo;
-                            }}
-                        >
-                            Object List
-                            <i class="fa fa-sliders" />
-                        </button>
-                    </div>
-                    {#if currentMode !== 'session'}
-                        <div class="object-box-title d-flex">
-                            <ButtonDropdown class="mb-2">
-                                <DropdownMenu>
-                                    <DropdownItem
-                                        on:click={() =>
-                                            (currentChapter = 'Intro')}
-                                    >
-                                        Introduction
-                                    </DropdownItem>
-                                    <DropdownItem
-                                        on:click={() =>
-                                            (currentChapter =
-                                                'Keyboard Controls')}
-                                    >
-                                        Keyboard Controls
-                                    </DropdownItem>
-                                    <DropdownItem divider />
-                                    <DropdownItem
-                                        on:click={() =>
-                                            (currentChapter = 'Chapter')}
-                                    >
-                                        Arc Length & Curvature
-                                    </DropdownItem>
-                                    <DropdownItem
-                                        on:click={() =>
-                                            (currentChapter = 'Linear')}
-                                    >
-                                        Linearization
-                                    </DropdownItem>
-                                </DropdownMenu>
-                            </ButtonDropdown>
-                        </div>
-                    {/if}
-                    {#if currentMode === 'session'}
-                        <Session
-                            bind:roomId
-                            bind:socket
-                            bind:objects
-                            bind:isHost
-                            bind:currentPoll
-                            bind:chatBuffer
-                        />
-                    {:else if currentChapter === 'Intro'}
-                        <Intro />
-                    {:else if currentChapter === 'Keyboard Controls'}
-                        <KeyboardControls />
-                    {:else if currentChapter === 'Chapter'}
-                        <Chapter bind:objects />
-                    {:else if currentChapter === 'Linear'}
-                        <Linear bind:objects />
-                    {/if}
-                </div>
-                <button
-                    class="btn btn-sm btn-light mt-1 raise-lower-button d-flex justify-content-center"
-                    title={shadeUp ? 'Reveal Menu' : 'Hide Menu'}
-                    on:click={() => {
-                        shadeUp = !shadeUp;
-                    }}
-                >
-                    <i class={`bi bi-chevron-${shadeUp ? 'down' : 'up'}`} />
-                </button>
+               {blowUpObjects}
+               {selectObject} {selectedObject}
+               {scene} {onRenderObject} {onDestroyObject}
+               {camera}
+               {currentCamera} {currentControls}
+               {requestFrameIfNotRequested}
+               {socket} {pollResponses}
+
+               {animateIfNotAnimating}
+               {roomId}
+               {currentPoll}
+               {altDown}
+               {lineMaterial}
+               {axesText} {axesHolder} {axesMaterial}
+               />
+
+        <canvas class="flex-grow-1" tabIndex="0" id="c"
+                bind:this={canvas} />
+        {#if roomId}
+            <div class="active-users-count"
+                 title={activeUserCount + ' users in session'}>
+                <i class="bi bi-person-fill" />
+                {activeUserCount}
             </div>
 
-            <div class="objectBoxOuter" hidden={!flipInfo}>
-                <div class="collapse-info" hidden={shadeUp}>
-                    <div class="object-box-title d-flex mb-2">
-                        <h2 class="flex-grow-1 px-2">3D Objects</h2>
-                        <button
-                            class="btn btn-light ms-auto px-2"
-                            on:click={() => {
-                                flipInfo = !flipInfo;
-                            }}
-                        >
-                            Chapters
-                            <i class="fa fa-book" />
-                        </button>
-                    </div>
-                    <div
-                        class="btn-toolbar justify-content-between"
-                        role="toolbar"
-                    >
-                        <div class="btn-group mb-2">
-                            <ButtonDropdown>
-                                <DropdownToggle color="primary">
-                                    Add Object
-                                    <i class="fa fa-plus" />
-                                </DropdownToggle>
-                                <DropdownMenu>
-                                    <DropdownItem
-                                        on:click={() => {
-                                            objects = [
-                                                ...objects,
-                                                {
-                                                    uuid: crypto.randomUUID(),
-                                                    kind: 'point',
-                                                    params: {
-                                                        a: `${Math.random()}`.slice(
-                                                            0,
-                                                            5
-                                                        ),
-                                                        b: `${Math.random()}`.slice(
-                                                            0,
-                                                            5
-                                                        ),
-                                                        c: `${Math.random()}`.slice(
-                                                            0,
-                                                            5
-                                                        ),
-                                                        t0: '0',
-                                                        t1: '1',
-                                                    },
-                                                    color: `#${makeHSLColor(
-                                                        Math.random()
-                                                    ).getHexString()}`,
-                                                },
-                                            ];
-                                        }}
-                                    >
-                                        Point <M size="sm">P = ( a, b, c )</M>
-                                    </DropdownItem>
-                                    <DropdownItem
-                                        on:click={() => {
-                                            objects = [
-                                                ...objects,
-                                                {
-                                                    uuid: crypto.randomUUID(),
-                                                    kind: 'vector',
-                                                    params: {
-                                                        a: `${
-                                                            2 * Math.random() -
-                                                            1
-                                                        }`.slice(0, 5),
-                                                        b: `${
-                                                            2 * Math.random() -
-                                                            1
-                                                        }`.slice(0, 5),
-                                                        c: `${
-                                                            2 * Math.random() -
-                                                            1
-                                                        }`.slice(0, 5),
-                                                        x: '0',
-                                                        y: '0',
-                                                        z: '0',
-                                                        t0: '0',
-                                                        t1: '1',
-                                                    },
-                                                    color: `#${makeHSLColor(
-                                                        Math.random()
-                                                    ).getHexString()}`,
-                                                },
-                                            ];
-                                        }}
-                                    >
-                                        Vector <M size="sm"
-                                            >\mathbf v = \langle a, b, c \rangle</M
-                                        >
-                                    </DropdownItem>
-                                    <DropdownItem
-                                        on:click={() => {
-                                            objects = [
-                                                ...objects,
-                                                {
-                                                    uuid: crypto.randomUUID(),
-                                                    kind: 'curve',
-                                                    params: {
-                                                        a: '0',
-                                                        b: '2*pi',
-                                                        x: 'cos(t)',
-                                                        y: 'sin(t)',
-                                                        z: `${
-                                                            1 / 4 +
-                                                            Math.round(
-                                                                100 *
-                                                                    Math.random()
-                                                            ) /
-                                                                100
-                                                        } * cos(${Math.ceil(
-                                                            10 * Math.random()
-                                                        ).toString()}*t)`,
-                                                    },
-                                                    color: `#${makeHSLColor(
-                                                        Math.random()
-                                                    ).getHexString()}`,
-                                                },
-                                            ];
-                                        }}
-                                    >
-                                        Space Curve <M size="sm">\mathbf r(t)</M
-                                        >
-                                    </DropdownItem>
-                                    <DropdownItem
-                                        on:click={() =>
-                                            (objects = makeObject(
-                                                null,
-                                                'graph',
-                                                {
-                                                    a: '-2',
-                                                    b: '2',
-                                                    c: '-2',
-                                                    d: '2',
-                                                    z: `cos(${Math.ceil(
-                                                        3 * Math.random()
-                                                    ).toString()}*x + ${Math.ceil(
-                                                        2 * Math.random()
-                                                    ).toString()}*y)/(1 + x^2 + y^2)`,
-                                                    t0: '0',
-                                                    t1: '1',
-                                                },
-                                                objects
-                                            ))}
-                                    >
-                                        Graph <M size="sm">z = f(x,y)</M>
-                                    </DropdownItem>
-                                    <DropdownItem
-                                        on:click={() =>
-                                            (objects = makeObject(
-                                                null,
-                                                'level',
-                                                {
-                                                    g: 'x^2 + 2 y^2 - z^2',
-                                                    k: '1',
-                                                    a: '-2',
-                                                    b: '2',
-                                                    c: '-2',
-                                                    d: '2',
-                                                    e: '-2',
-                                                    f: '2',
-                                                },
-                                                objects
-                                            ))}
-                                    >
-                                        Level Surface <M size="sm"
-                                            >g(x,y,z) = k</M
-                                        >
-                                    </DropdownItem>
-                                    <DropdownItem
-                                        on:click={() =>
-                                            (objects = makeObject(
-                                                null,
-                                                'parsurf',
-                                                {
-                                                    a: '0',
-                                                    b: '2*pi',
-                                                    c: '0',
-                                                    d: '2*pi',
-                                                    x: 'cos(u)*(1 + sin(v)/3)',
-                                                    y: 'sin(u)*(1 + sin(v)/3)',
-                                                    z: '-cos(v)/3',
-                                                },
-                                                objects
-                                            ))}
-                                    >
-                                        Parametric Surface <M size="sm"
-                                            >\mathbf r(u,v)</M
-                                        >
-                                    </DropdownItem>
-                                    <DropdownItem
-                                        on:click={() => {
-                                            objects = [
-                                                ...objects,
-                                                {
-                                                    uuid: crypto.randomUUID(),
-                                                    kind: 'field',
-                                                    params: {
-                                                        p: 'y',
-                                                        q: 'z',
-                                                        r: 'x',
-                                                        nVec: 6,
-                                                    },
-                                                },
-                                            ];
-                                        }}
-                                    >
-                                        Vector Field<M size="sm"
-                                            >\mathbf F(x,y,z)</M
-                                        >
-                                    </DropdownItem>
-                                </DropdownMenu>
-                            </ButtonDropdown>
-                            <button
-                                class="btn btn-danger"
-                                on:click={blowUpObjects}
-                            >
-                                Clear Objects
-                                <i class="fa fa-trash" />
-                            </button>
-                        </div>
-                        {#if currentMode === 'session' && isHost}
-                            <button
-                                class="btn btn-primary mb-2"
-                                on:click={onPublishScene}
-                            >
-                                Publish Scene
-                                <i class="bi bi-broadcast-pin" />
-                            </button>
-                        {/if}
-                    </div>
-
-                    <div class="objectBoxInner">
-                        <!-- Main Loop, if you will -->
-                        {#each objects as { uuid, kind, params, color, animation } (uuid)}
-                            <div
-                                transition:slide={{
-                                    delay: 0,
-                                    duration: 300,
-                                    easing: quintOut,
-                                }}
-                            >
-                                <svelte:component
-                                    this={kindToComponent[kind]}
-                                    {scene}
-                                    {onRenderObject}
-                                    {onDestroyObject}
-                                    camera={currentCamera}
-                                    controls={currentControls}
-                                    render={requestFrameIfNotRequested}
-                                    {params}
-                                    onClose={() => {
-                                        objects = objects.filter(
-                                            (b) => b.uuid !== uuid
-                                        );
-                                    }}
-                                    bind:color
-                                    bind:shadeUp
-                                    bind:animation
-                                    {uuid}
-                                    {gridStep}
-                                    {gridMax}
-                                    on:animate={animateIfNotAnimating}
-                                    selected={selectedObject === uuid}
-                                    on:click={selectObject(uuid)}
-                                    on:keydown={altDown}
-                                />
-                            </div>
-                        {/each}
-                    </div>
-
-                    <!-- debug buttons -->
-                    <div hidden={!debug}>
-                        <button
-                            on:click={() => {
-                                objects = [
-                                    {
-                                        uuid: 34,
-                                        kind: 'curve',
-                                        params: {
-                                            a: '0',
-                                            b: '2*pi',
-                                            x: 'cos(t)',
-                                            y: 'sin(t)',
-                                            z: '0',
-                                        },
-                                        color: '#aa33ff',
-                                        animation: true,
-                                    },
-                                    {
-                                        uuid: '34point22',
-                                        kind: 'point',
-                                        params: {
-                                            a: 'cos(2 t)',
-                                            b: 'sin(2 t)',
-                                            c: 'cos(2 t) + sin(2 t)',
-                                            t0: '0',
-                                            t1: '2 pi',
-                                        },
-                                        color: '#FF0000',
-                                        animation: false,
-                                    },
-                                    {
-                                        uuid: 345,
-                                        kind: 'vector',
-                                        params: {
-                                            a: 'cos(t)',
-                                            b: 'sin(t)',
-                                            c: '1',
-                                            x: 'cos(t)',
-                                            y: 'sin(t)',
-                                            z: '0',
-                                            t0: '0',
-                                            t1: '2*pi',
-                                        },
-                                        color: '#ff33ff',
-                                        animation: false,
-                                    },
-                                ];
-                            }}>Reset 1</button
-                        >
-                        <button
-                            on:click={() => {
-                                objects = [
-                                    {
-                                        uuid: 34,
-                                        kind: 'curve',
-                                        params: {
-                                            a: '0',
-                                            b: '2*pi',
-                                            x: 'cos(t)',
-                                            y: 'sin(t)',
-                                            z: '0',
-                                        },
-                                        color: '#aa33ff',
-                                        animation: false,
-                                    },
-                                    {
-                                        uuid: '34point22',
-                                        kind: 'point',
-                                        params: {
-                                            a: 'cos(2 t)',
-                                            b: 'sin(2 t)',
-                                            c: 'cos(2 t) + sin(2 t)',
-                                            t0: '0',
-                                            t1: '2*pi',
-                                        },
-                                        color: '#FF0000',
-                                        animation: true,
-                                    },
-                                    {
-                                        uuid: 345,
-                                        kind: 'vector',
-                                        params: {
-                                            a: 'cos(t)',
-                                            b: 'sin(t)',
-                                            c: '1',
-                                            x: 'cos(t)',
-                                            y: 'sin(t)',
-                                            z: '0',
-                                            t0: '0',
-                                            t1: '2*pi',
-                                        },
-                                        color: '#ff33ff',
-                                        animation: true,
-                                    },
-                                ];
-                            }}>Reset 2</button
-                        >
-                        <button
-                            on:click={() => {
-                                objects = [
-                                    {
-                                        uuid: 'agraph3847',
-                                        kind: 'graph',
-                                        params: {
-                                            a: '-1',
-                                            b: '1',
-                                            c: '-1',
-                                            d: '1',
-                                            z: 'x^2 - 3*cos(t) * x * y + y^2',
-                                            t0: '0',
-                                            t1: '2*pi',
-                                        },
-                                        color: '#ff33ff',
-                                        animation: true,
-                                    },
-                                ];
-                            }}>anim func</button
-                        >
-                        <button
-                            on:click={() => {
-                                objects = [
-                                    {
-                                        uuid: 'agraph3847',
-                                        kind: 'graph',
-                                        params: {
-                                            a: '-1',
-                                            b: '1',
-                                            c: '-1',
-                                            d: '1',
-                                            z: 'x^2 - 3*cos(t) * x * y + y^2',
-                                            t0: '0',
-                                            t1: '2*pi',
-                                        },
-                                        color: '#ff33ff',
-                                        animation: false,
-                                    },
-                                ];
-                            }}>unanim func</button
-                        >
-                    </div>
-                </div>
-                <button
-                    class="btn btn-sm btn-light mt-1 raise-lower-button d-flex justify-content-center"
-                    title={shadeUp ? 'Reveal Menu' : 'Hide Menu'}
-                    on:click={() => {
-                        shadeUp = !shadeUp;
-                    }}
-                >
-                    <i class={`bi bi-chevron-${shadeUp ? 'down' : 'up'}`} />
-                </button>
-            </div>
-        </div>
+            <a class="leave-room" href="/" title="Exit Room">
+                <i class="fa fa-sign-out" />
+            </a>
+        {/if}
     </div>
-
-    <div class="settings-tray">
-        <Settings
-            bind:isHost
-            {scene}
-            {camera}
-            controls={currentControls}
-            bind:gridMax
-            bind:gridStep
-            {gridMeshes}
-            {axesText}
-            {axesHolder}
-            {lineMaterial}
-            {axesMaterial}
-            bind:objects
-            bind:socket
-            bind:pollResponses
-            encode={makeQueryStringObject}
-            render={requestFrameIfNotRequested}
-            bind:update={scaleUpdate}
-            bind:animation={scaleAnimation}
-            bind:orthoCamera
-            bind:currentMode
-            on:animate={animateIfNotAnimating}
-        />
-    </div>
-
-    {#if roomId}
-        <div
-            class="active-users-count"
-            title={activeUserCount + ' users in session'}
-        >
-            <i class="bi bi-person-fill" />
-            {activeUserCount}
-        </div>
-        <a class="leave-room" href="/" title="Exit Room">
-            <i class="fa fa-sign-out" />
-        </a>
-    {/if}
 </main>
 
 <style>
-    canvas {
+    /* App takes up full height of screen. */
+    .demos-mainview {
+        height: 100vh;
+    }
+
+    canvas#c {
         position: absolute;
         left: 0;
         top: 0;
         width: 100%;
         height: 100%;
         margin: 0;
-        z-index: -10;
-    }
-
-    .info {
-        position: absolute;
-        left: 3%;
-        top: 0%;
-        width: clamp(23ch, 50%, 75ch);
-        background-color: transparent;
-        perspective: 1000px; /* Remove this if you don't want the 3D effect */
-    }
-
-    .info-inner {
-        position: relative;
-        width: 100%;
-        height: 100%;
-        transition: transform 0.8s, opacity 0.8s;
-        transform-style: preserve-3d;
-    }
-
-    .chapterBox,
-    .objectBoxOuter {
-        position: absolute;
-        width: 100%;
-        height: fit-content;
-        background-color: rgba(0, 0, 0, 0.6);
-        border-radius: 0.5em;
-        border-top-left-radius: 0rem;
-        border-top-right-radius: 0rem;
-        border: 1px solid black;
-        padding: 5px;
-        transition: opacity 0.8s;
-        box-sizing: border-box;
-
-        -webkit-backface-visibility: hidden;
-        backface-visibility: hidden;
-    }
-
-    .chapterBox {
-        text-align: unset;
-    }
-
-    .objectBoxInner {
-        display: flex;
-        flex-direction: column-reverse;
-        max-height: 75vh;
-        overflow-y: auto;
-        gap: 0.25em;
-    }
-
-    .dropdown {
-        position: relative;
-        display: inline-block;
-    }
-
-    .object-box-title {
-        display: flex;
-        font-size: 1.5em;
-        justify-content: space-between;
-    }
-
-    .settings-tray {
-        position: fixed;
-        left: 3px;
-        bottom: 0;
-        display: flex;
-        justify-content: flex-start;
-        width: clamp(23ch, 30%, 45ch);
-        z-index: 10;
-    }
-
-    .raise-lower-button {
-        width: clamp(50px, 20%, 200px);
-        margin: 0 auto;
-
-        /* Bold */
-        -webkit-text-stroke: 1px;
     }
 
     .active-users-count {

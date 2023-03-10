@@ -81,7 +81,6 @@
     export let tau = 0;
 
     export let scene;
-    export let shadeUp;
     export let render = () => {};
     export let onClose = () => {};
     export let controls;
@@ -374,8 +373,8 @@
         scene.remove(circleTube);
         scene.remove(frame);
 
-        window.removeEventListener('keydown', shiftDown);
-        window.removeEventListener('keyup', shiftUp);
+        window.removeEventListener('keydown', onKeyDown);
+        window.removeEventListener('keyup', onKeyUp);
         render();
     });
 
@@ -404,58 +403,64 @@
         }
     };
 
-    const shiftDown = (e) => {
-        if (shadeUp) {
-            switch (e.key) {
-                case 'Backspace':
-                    if (tube.visible) {
-                        tube.visible = false;
-                        circleTube.visible = false;
-                    } else {
-                        tube.visible = true;
-                        circleTube.visible = osculatingCircle;
-                    }
-                    render();
-                    break;
-                case 'Shift':
-                    window.addEventListener('mousemove', onMouseMove, false);
-                    frame.visible = true;
-                    break;
-                case 'c':
-                    controls.target.set(
-                        point.position.x,
-                        point.position.y,
-                        point.position.z
-                    );
-                    render();
-                    break;
-                case 'o':
-                    osculatingCircle = !osculatingCircle;
-                    render();
-                    break;
-                case 'p':
-                    animation = !animation;
-                    break;
-                case 's':
-                    TNB = !TNB;
-                    render();
-                    break;
-                case 't':
-                    frame.visible = !frame.visible;
-                    render();
-                    break;
-            }
+    const onKeyDown = (e) => {
+        if (e.target.matches('input')) {
+            return;
+        }
+
+        switch (e.key) {
+            case 'Backspace':
+                if (tube.visible) {
+                    tube.visible = false;
+                    circleTube.visible = false;
+                } else {
+                    tube.visible = true;
+                    circleTube.visible = osculatingCircle;
+                }
+                render();
+                break;
+            case 'Shift':
+                window.addEventListener('mousemove', onMouseMove, false);
+                frame.visible = true;
+                break;
+            case 'c':
+                controls.target.set(
+                    point.position.x,
+                    point.position.y,
+                    point.position.z
+                );
+                render();
+                break;
+            case 'o':
+                osculatingCircle = !osculatingCircle;
+                render();
+                break;
+            case 'p':
+                animation = !animation;
+                break;
+            case 's':
+                TNB = !TNB;
+                render();
+                break;
+            case 't':
+                frame.visible = !frame.visible;
+                render();
+                break;
         }
     };
 
-    const shiftUp = (e) => {
+    const onKeyUp = (e) => {
+        if (e.target.matches('input')) {
+            return;
+        }
+
         if (e.key === 'Shift') {
             window.removeEventListener('mousemove', onMouseMove);
         }
     };
 
-    window.addEventListener('keydown', shiftDown, false);
-    window.addEventListener('keyup', shiftUp, false);
+    window.addEventListener('keydown', onKeyDown, false);
+    window.addEventListener('keyup', onKeyUp, false);
 </script>
 
 <div class={'boxItem' + (selected ? ' selected' : '')} on:click on:keydown>

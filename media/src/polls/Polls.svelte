@@ -1,18 +1,11 @@
 <script>
-    import {
-        Modal,
-        ModalBody,
-        ModalHeader,
-        TabContent,
-        TabPane
-    } from 'sveltestrap';
+    import {TabContent, TabPane} from 'sveltestrap';
     import PollResponses from './PollResponses.svelte';
     import PollForm from './PollForm.svelte';
     import {Poll, setIdCounter} from './Poll.js';
     import {broadcastPoll, loadPolls} from './utils';
     import {querySelectorIncludesText} from '../utils';
 
-    export let isPollsOpen, togglePolls;
     export let socket;
     export let pollResponses;
 
@@ -101,19 +94,17 @@
         isEditing = true;
     };
 </script>
-
-<Modal isOpen={isPollsOpen} toggle={togglePolls} size="lg">
-    <ModalHeader toggle={togglePolls}>Polls</ModalHeader>
-    <ModalBody class="polls-modal">
-        <TabContent>
-            <TabPane tabId="polls" tab="Polls"
-                     active={activeTab === 'polls'}>
-                {#if isEditing}
-                    <PollForm
-                        poll={editingPoll}
-                        onClickCancel={onClickCancel}
-                        onSubmit={onSavePoll}
-                        onDeletePoll={onDeletePoll} />
+<h1>Polls</h1>
+<div class="polls-modal">
+    <TabContent>
+        <TabPane tabId="polls" tab="Polls"
+                 active={activeTab === 'polls'}>
+            {#if isEditing}
+                <PollForm
+                    poll={editingPoll}
+                    onClickCancel={onClickCancel}
+                    onSubmit={onSavePoll}
+                    onDeletePoll={onDeletePoll} />
                 {:else}
                     <table class="table">
                         <thead>
@@ -159,10 +150,9 @@
                     </button>
                 {/if}
             </TabPane>
-            <TabPane tabId="responses" tab="Responses"
-                     active={activeTab === 'responses'}>
-                <PollResponses bind:currentPollType bind:pollResponses />
-            </TabPane>
-        </TabContent>
-    </ModalBody>
-</Modal>
+        <TabPane tabId="responses" tab="Responses"
+                 active={activeTab === 'responses'}>
+            <PollResponses bind:currentPollType bind:pollResponses />
+        </TabPane>
+    </TabContent>
+</div>

@@ -3,13 +3,11 @@
     import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
     import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
     import { drawAxes, drawGrid, labelAxes, freeChildren } from '../utils';
-    import Polls from '../polls/Polls.svelte';
     import { makeObject } from '../sceneUtils';
     import WindowHeader from './WindowHeader.svelte';
 
     const dispatch = createEventDispatcher();
 
-    export let isHost;
     export let scene, camera, render, controls;
     export let gridMax, gridStep;
     export let axesHolder, axesText, gridMeshes, lineMaterial, axesMaterial;
@@ -18,8 +16,6 @@
     export let encode;
     export let objects;
     export let socket;
-    export let currentMode;
-    export let pollResponses;
 
     let newGridMeshes;
     const newLineMaterial = lineMaterial.clone();
@@ -101,13 +97,6 @@
 
     let showSettings = false;
     let showUpload = false;
-    let isPollsOpen = false;
-
-    const openPolls = function () {
-        isPollsOpen = true;
-    };
-
-    const togglePolls = () => (isPollsOpen = !isPollsOpen);
 
     const uploadScene = (e) => {
         const reader = new FileReader();
@@ -175,7 +164,7 @@
                     bind:value={scale}
                     on:change={rescale}
                 />
-                <span class="output text-right">{scala}</span>
+                <span class="output text-end">{scala}</span>
             </span>
         </div>
     </div>
@@ -278,14 +267,6 @@
     <i class="fa fa-television" />
 </button>
 
-{#if currentMode === 'session' && isHost}
-    <button on:click={openPolls} class="button" title="Polls">
-        <i class="fa fa-list" />
-    </button>
-{/if}
-
-<Polls bind:socket bind:pollResponses {isPollsOpen} {togglePolls} />
-
 <style>
     .button {
         background-color: transparent;
@@ -296,14 +277,10 @@
         position: absolute;
         left: 10px;
         color: white;
-        bottom: 50px;
+        bottom: 8px;
         border: 1px solid black;
         background-color: rgb(0, 0, 0, 0.8);
         padding: 1rem;
-    }
-
-    .text-right {
-        text-align: right;
     }
 
     .output {

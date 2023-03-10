@@ -34,7 +34,6 @@
     $: nCubed = Math.pow(params.nVec, 3);
 
     export let scene;
-    export let shadeUp;
     export let render = () => {};
     export let animation = false;
     export let onClose = () => {};
@@ -325,7 +324,7 @@
         );
 
         freeTrails();
-        window.removeEventListener('keydown', shiftDown, false);
+        window.removeEventListener('keydown', onKeyDown, false);
         render();
     });
 
@@ -341,34 +340,36 @@
         last = currentTime;
     }
 
-    const shiftDown = (e) => {
-        if (shadeUp) {
-            switch (e.key) {
-                case 'Backspace':
-                    flowArrows.visible = !flowArrows.visible;
-                    render();
-                    break;
-                case 't':
-                    trails.visible = !trails.visible;
-                    freeTrails();
-                    render();
-                    break;
-                case 'p':
-                    flowArrows.visible = true;
-                    animation = !animation;
-                    if (animation) {
-                        dispatch('animate');
-                    }
-                    render();
-                    break;
-                case 'r':
-                    rewindArrows();
-                    break;
-            }
+    const onKeyDown = (e) => {
+        if (e.target.matches('input')) {
+            return;
+        }
+
+        switch (e.key) {
+            case 'Backspace':
+                flowArrows.visible = !flowArrows.visible;
+                render();
+                break;
+            case 't':
+                trails.visible = !trails.visible;
+                freeTrails();
+                render();
+                break;
+            case 'p':
+                flowArrows.visible = true;
+                animation = !animation;
+                if (animation) {
+                    dispatch('animate');
+                }
+                render();
+                break;
+            case 'r':
+                rewindArrows();
+                break;
         }
     };
 
-    window.addEventListener('keydown', shiftDown, false);
+    window.addEventListener('keydown', onKeyDown, false);
 </script>
 
 <div class={'boxItem' + (selected ? ' selected' : '')} on:click on:keydown>

@@ -80,7 +80,6 @@
     };
 
     export let scene;
-    export let shadeUp;
     export let controls;
     export let camera;
     export let gridStep;
@@ -333,8 +332,8 @@
         }
         scene.remove(surfaceMesh);
         scene.remove(tanFrame);
-        window.removeEventListener('keydown', shiftDown, false);
-        window.removeEventListener('keyup', shiftUp, false);
+        window.removeEventListener('keydown', onKeyDown, false);
+        window.removeEventListener('keyup', onKeyUp, false);
         render();
     });
 
@@ -509,60 +508,66 @@
         }
     };
 
-    const shiftDown = (e) => {
-        if (shadeUp) {
-            switch (e.key) {
-                case 'Backspace':
-                    surfaceMesh.visible = !surfaceMesh.visible;
-                    render();
-                    break;
-                case 'Shift':
-                    window.addEventListener('mousemove', onMouseMove, false);
-                    tanFrame.visible = true;
-                    break;
-                case 'c':
-                    controls.target.set(
-                        point.position.x,
-                        point.position.y,
-                        point.position.z
-                    );
-                    render();
-                    break;
-                case 't':
-                    tanFrame.visible = !tanFrame.visible;
-                    render();
-                    break;
-                case 'y':
-                    if (!planeShard.visible) {
-                        tanFrame.visible = true;
-                        planeShard.visible = true;
-                    } else {
-                        planeShard.visible = false;
-                    }
-                    render();
-                    break;
-                case 'n':
-                    if (!arrows.n.visible) {
-                        tanFrame.visible = true;
-                        arrows.n.visible = true;
-                    } else {
-                        arrows.n.visible = false;
-                    }
+    const onKeyDown = (e) => {
+        if (e.target.matches('input')) {
+            return;
+        }
 
-                    render();
-                    break;
-            }
+        switch (e.key) {
+            case 'Backspace':
+                surfaceMesh.visible = !surfaceMesh.visible;
+                render();
+                break;
+            case 'Shift':
+                window.addEventListener('mousemove', onMouseMove, false);
+                tanFrame.visible = true;
+                break;
+            case 'c':
+                controls.target.set(
+                    point.position.x,
+                    point.position.y,
+                    point.position.z
+                );
+                render();
+                break;
+            case 't':
+                tanFrame.visible = !tanFrame.visible;
+                render();
+                break;
+            case 'y':
+                if (!planeShard.visible) {
+                    tanFrame.visible = true;
+                    planeShard.visible = true;
+                } else {
+                    planeShard.visible = false;
+                }
+                render();
+                break;
+            case 'n':
+                if (!arrows.n.visible) {
+                    tanFrame.visible = true;
+                    arrows.n.visible = true;
+                } else {
+                    arrows.n.visible = false;
+                }
+
+                render();
+                break;
         }
     };
 
-    const shiftUp = (e) => {
+    const onKeyUp = (e) => {
+        if (e.target.matches('input')) {
+            return;
+        }
+
         if (e.key === 'Shift') {
             window.removeEventListener('mousemove', onMouseMove);
         }
     };
 
-    window.addEventListener('keydown', shiftDown, false);
-    window.addEventListener('keyup', shiftUp, false);
+    window.addEventListener('keydown', onKeyDown, false);
+    window.addEventListener('keyup', onKeyUp, false);
 </script>
 
 <div class="boxItem" class:selected on:click on:keydown>
