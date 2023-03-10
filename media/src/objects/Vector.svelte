@@ -48,14 +48,13 @@
     export let color = '#FF0000';
     let tau = 0;
     let last;
-    let texString1;
+    let texString1 = '';
 
     // display controls in objects panel
     // considered for Chapters that add many objects that need not be user-configurable.
     export let show = true;
 
     export let scene;
-    export let shadeUp;
     export let render = () => {};
     export let onClose = () => {};
     export let gridStep;
@@ -143,22 +142,24 @@
             arrow.material && arrow.material.dispose();
         }
         scene.remove(arrow);
-        window.removeEventListener('keydown', shiftDown, false);
+        window.removeEventListener('keydown', onKeyDown, false);
         render();
     });
 
-    const shiftDown = (e) => {
-        if (shadeUp) {
-            switch (e.key) {
-                case 'Backspace':
-                    arrow.visible = !arrow.visible;
-                    render();
-                    break;
-            }
+    const onKeyDown = (e) => {
+        if (e.target.matches('input')) {
+            return;
+        }
+
+        switch (e.key) {
+            case 'Backspace':
+                arrow.visible = !arrow.visible;
+                render();
+                break;
         }
     };
 
-    window.addEventListener('keydown', shiftDown, false);
+    window.addEventListener('keydown', onKeyDown, false);
 
     // make display name more consistent
     const varNames = {
@@ -288,11 +289,12 @@
                     min="0"
                     max="1"
                     step="0.001"
-                    on:input={update}
+                    on:input={() => update()}
                     class="box box-2"
                 />
 
                 <PlayButtons
+                    className="box box-2"
                     bind:animation
                     on:animate
                     on:pause={() => (last = null)}
@@ -326,10 +328,5 @@
 <style>
     .dynamic-container {
         grid-column: 0 / 5;
-    }
-    .t-box {
-        display: inline-block;
-        width: 40%;
-        text-align: left;
     }
 </style>

@@ -34,7 +34,6 @@
     $: nCubed = Math.pow(params.nVec, 3);
 
     export let scene;
-    export let shadeUp;
     export let render = () => {};
     export let animation = false;
     export let onClose = () => {};
@@ -309,9 +308,10 @@
 
     onMount(() => {
         updateField();
-        initFlowArrows(flowArrows);
+        maxLength = initFlowArrows(flowArrows, gridMax, params.nVec);
         updateFlowArrows(flowArrows, fieldF, 0);
         render();
+        if (animation) dispatch('animate');
     });
     onDestroy(() => {
         onDestroyObject(flowArrows);
@@ -325,7 +325,7 @@
         );
 
         freeTrails();
-        window.removeEventListener('keydown', shiftDown, false);
+        window.removeEventListener('keydown', onKeyDown, false);
         render();
     });
 
@@ -334,41 +334,50 @@
 
     // animation loop
     let last = null;
+
     $: if (animation) {
         const currentTime = $tickTock;
         last = last || currentTime;
+        if (!trails.geometry.attributes.position) {
+            maxLength = initFlowArrows(flowArrows, gridMax, params.nVec);
+        }
         update(currentTime - last);
         last = currentTime;
     }
+    $: if (animation) {
+        dispatch('animate');
+    }
 
-    const shiftDown = (e) => {
-        if (shadeUp) {
-            switch (e.key) {
-                case 'Backspace':
-                    flowArrows.visible = !flowArrows.visible;
-                    render();
-                    break;
-                case 't':
-                    trails.visible = !trails.visible;
-                    freeTrails();
-                    render();
-                    break;
-                case 'p':
-                    flowArrows.visible = true;
-                    animation = !animation;
-                    if (animation) {
-                        dispatch('animate');
-                    }
-                    render();
-                    break;
-                case 'r':
-                    rewindArrows();
-                    break;
-            }
+    const onKeyDown = (e) => {
+        if (e.target.matches('input')) {
+            return;
+        }
+
+        switch (e.key) {
+            case 'Backspace':
+                flowArrows.visible = !flowArrows.visible;
+                render();
+                break;
+            case 't':
+                trails.visible = !trails.visible;
+                freeTrails();
+                render();
+                break;
+            case 'p':
+                flowArrows.visible = true;
+                animation = !animation;
+                if (animation) {
+                    dispatch('animate');
+                }
+                render();
+                break;
+            case 'r':
+                rewindArrows();
+                break;
         }
     };
 
-    window.addEventListener('keydown', shiftDown, false);
+    window.addEventListener('keydown', onKeyDown, false);
 </script>
 
 <div class={'boxItem' + (selected ? ' selected' : '')} on:click on:keydown>

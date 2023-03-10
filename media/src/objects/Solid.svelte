@@ -55,7 +55,6 @@
     };
 
     export let scene;
-    // export let shadeUp;
     // export let controls;
     // export let camera;
     // export let gridStep;

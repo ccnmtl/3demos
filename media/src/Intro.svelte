@@ -1,19 +1,4 @@
-<script>
-    export let hidden = false;
-
-    const toggleHidden = function() {
-        hidden = !hidden;
-    }
-    </script>
-
-<button 
-    class="btn btn-light"
-    aria-label={(hidden ? 'Show' : 'Hide') + ' Introduction'}
-    on:click={toggleHidden}
->
-    Introduction
-</button>
-<article hidden={hidden}>
+<article>
     <p>
         Welcome to 3Demos. This is a site dedicated to visualizations for
         multivariable calculus. There are two ways in which one can

@@ -264,7 +264,6 @@
     };
 
     export let scene;
-    export let shadeUp;
     export let controls;
     export let camera;
     export let gridStep;
@@ -859,48 +858,50 @@
     };
 
     const shiftDown = (e) => {
-        if (shadeUp) {
-            switch (e.key) {
-                case 'Backspace':
-                    surfaceMesh.visible = !surfaceMesh.visible;
-                    render();
-                    break;
-                case 'Shift':
-                    window.addEventListener('mousemove', onMouseMove, false);
-                    tanFrame.visible = true;
-                    break;
-                case 'c':
-                    controls.target.set(
-                        point.position.x,
-                        point.position.y,
-                        point.position.z
-                    );
-                    render();
-                    break;
-                case 't':
-                    tanFrame.visible = !tanFrame.visible;
-                    render();
-                    break;
-                case 'y':
-                    if (!planeShard.visible) {
-                        tanFrame.visible = true;
-                        planeShard.visible = true;
-                    } else {
-                        planeShard.visible = false;
-                    }
-                    render();
-                    break;
-                case 'n':
-                    if (!arrows.n.visible) {
-                        tanFrame.visible = true;
-                        arrows.n.visible = true;
-                    } else {
-                        arrows.n.visible = false;
-                    }
+        if (e.target.matches('input')) {
+            return;
+        }
 
-                    render();
-                    break;
-            }
+        switch (e.key) {
+            case 'Backspace':
+                surfaceMesh.visible = !surfaceMesh.visible;
+                render();
+                break;
+            case 'Shift':
+                window.addEventListener('mousemove', onMouseMove, false);
+                tanFrame.visible = true;
+                break;
+            case 'c':
+                controls.target.set(
+                    point.position.x,
+                    point.position.y,
+                    point.position.z
+                );
+                render();
+                break;
+            case 't':
+                tanFrame.visible = !tanFrame.visible;
+                render();
+                break;
+            case 'y':
+                if (!planeShard.visible) {
+                    tanFrame.visible = true;
+                    planeShard.visible = true;
+                } else {
+                    planeShard.visible = false;
+                }
+                render();
+                break;
+            case 'n':
+                if (!arrows.n.visible) {
+                    tanFrame.visible = true;
+                    arrows.n.visible = true;
+                } else {
+                    arrows.n.visible = false;
+                }
+
+                render();
+                break;
         }
     };
 
