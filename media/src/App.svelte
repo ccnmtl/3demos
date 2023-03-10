@@ -50,6 +50,7 @@
         labelAxes,
         makeHSLColor,
         convertToURLParams,
+        modFloor
     } from './utils';
     import {
         makeObject,
@@ -575,45 +576,41 @@
 
     const altDown = (e) => {
         if (e.altKey) {
-            e.preventDefault();
-            let i = 0;
-            if (e.code === 'Space') {
-                shadeUp = !shadeUp;
-            } else if (objects.length > 0) {
-                if (!selectedObject) {
-                    switch (e.code) {
-                        case 'BracketRight':
-                            selectedObject = objects[objects.length - 1].uuid;
-                            break;
-                        case 'BracketLeft':
-                            selectedObject = objects[0].uuid;
-                            break;
+            switch (e.code) {
+                case 'Space':
+                    e.preventDefault();
+                    shadeUp = !shadeUp;
+                    break;
+                case 'BracketRight':
+                    e.preventDefault();
+                    if (!objects) {
+                        return;
                     }
-                } else {
-                    while (
-                        i < objects.length &&
-                        objects[i].uuid !== selectedObject
-                    ) {
-                        i++;
+
+                    if (!selectedObject) {
+                        selectedObject = objects[objects.length - 1].uuid;
+                    } else {
+                        const selectedIndex = objects.map((x) => x.uuid).indexOf(
+                            selectedObject);
+                        const newIdx = modFloor(selectedIndex - 1, objects.length);
+                        selectedObject = objects[newIdx].uuid;
                     }
-                    switch (e.code) {
-                        case 'BracketRight':
-                            if (i === 0) {
-                                selectedObject =
-                                    objects[objects.length - 1].uuid;
-                                break;
-                            }
-                            selectedObject = objects[i - 1].uuid;
-                            break;
-                        case 'BracketLeft':
-                            if (i > objects.length - 2) {
-                                selectedObject = objects[0].uuid;
-                                break;
-                            }
-                            selectedObject = objects[i + 1].uuid;
-                            break;
+                    break;
+                case 'BracketLeft':
+                    e.preventDefault();
+                    if (!objects) {
+                        return;
                     }
-                }
+
+                    if (!selectedObject) {
+                        selectedObject = objects[0].uuid;
+                    } else {
+                        const selectedIndex = objects.map((x) => x.uuid).indexOf(
+                            selectedObject);
+                        const newIdx = modFloor(selectedIndex + 1, objects.length);
+                        selectedObject = objects[newIdx].uuid;
+                    }
+                    break;
             }
         }
     };
