@@ -13,7 +13,12 @@
 
     import { updateParams } from './levelWorker.js';
 
-    import { marchingCubes, ArrowBufferGeometry, checksum } from '../utils.js';
+    import {
+        marchingCubes,
+        ArrowBufferGeometry,
+        LevelSurface,
+        checksum
+    } from '../utils.js';
 
     export let uuid;
     export let onRenderObject = function() {};
@@ -31,15 +36,14 @@
     };
 
     export let scene;
-    export let shadeUp;
     export let render = () => {};
     export let onClose = () => {};
     export let selected;
-
-    export let camera,
-        controls,
-        // animation = false,
-        gridStep;
+    export let tanFrame;
+    export let point;
+    export let arrows;
+    export let planeShard;
+    export let arrowParams;
     // showLevelCurves = false;
 
     let hidden = false;
@@ -82,7 +86,7 @@
         linewidth: 2,
     });
 
-    const mesh = new THREE.Object3D();
+    const mesh = new LevelSurface();
 
     const plusMesh = new THREE.Mesh(geometry, plusMaterial);
     const minusMesh = new THREE.Mesh(geometry, minusMaterial);
@@ -206,51 +210,9 @@
         plusMaterial.dispose();
         minusMaterial.dispose();
         scene.remove(mesh);
-        scene.remove(tanFrame);
-        window.removeEventListener('keydown', shiftDown, false);
-        window.removeEventListener('keyup', shiftUp, false);
+        tanFrame.visible = false;
         render();
     });
-
-    // Select a point
-    const tanFrame = new THREE.Object3D();
-    const arrows = {
-        u: new THREE.Mesh(),
-        v: new THREE.Mesh(),
-        n: new THREE.Mesh(),
-    };
-    const ruColors = { u: 0x992525, v: 0x252599, n: 0xb6b6b6 };
-    for (let key of Object.keys(arrows)) {
-        arrows[key].material = new THREE.MeshBasicMaterial({
-            color: ruColors[key],
-        });
-        tanFrame.add(arrows[key]);
-    }
-
-    const pointMaterial = new THREE.MeshLambertMaterial({ color: 0xffff33 });
-    const point = new THREE.Mesh(
-        new THREE.SphereGeometry(0.2 / 8, 16, 16),
-        pointMaterial
-    );
-
-    tanFrame.add(point);
-
-    const shardMaterial = new THREE.MeshPhongMaterial({
-        color: 0x4b4b4b,
-        shininess: 80,
-        side: THREE.DoubleSide,
-        transparent: true,
-        opacity: 0.5,
-    });
-    const planeShard = new THREE.Mesh(
-        new THREE.BufferGeometry(),
-        shardMaterial
-    );
-    tanFrame.add(planeShard);
-
-    tanFrame.visible = false;
-
-    scene.add(tanFrame);
 
     const nFrame = function ({
         f = (x, y, z) => math.evaluate(params.g, { x, y, z }),
@@ -276,33 +238,28 @@
     };
 
     // Construct tangent vectors at a point u,v (both 0 to 1)
-    const tangentVectors = function ({ point, eps = 1e-4, plane = true } = {}) {
+    export const tangentVectors = function ({ point, eps = 1e-4, plane = true } = {}) {
         const { p, n } = nFrame({
             point,
             eps,
         });
-
-        // point.position.copy(dr.p);
-
-        const arrowParams = {
-            radiusTop: gridStep / 10,
-            radiusBottom: gridStep / 20,
-            heightTop: gridStep / 7,
-        };
-
+        for (let key of ['u', 'v', 'grad']){
+            arrows[key].visible = false;
+        }
         const arrow = arrows.n;
         const pos = p.clone();
         arrow.position.copy(pos);
-        if (arrow.geometry) arrow.geometry.dispose();
+        arrow.geometry?.dispose();
         arrow.geometry = new ArrowBufferGeometry({
             ...arrowParams,
             height: n.length() / 8,
         });
         arrow.lookAt(pos.add(n));
 
-        planeShard.geometry.dispose();
-
         if (plane) {
+            planeShard.position.set(0, 0, 0);
+            planeShard.geometry.dispose();
+
             const { a, b, c, d, e, f } = params;
 
             const tangentPlaneGeometry = marchingCubes({
@@ -324,88 +281,6 @@
         }
     };
 
-    const raycaster = new THREE.Raycaster();
-
-    let mouseVector = new THREE.Vector2();
-
-    const onMouseMove = function (e) {
-        // normalized mouse coordinates
-        mouseVector.x = 2 * (e.clientX / window.innerWidth) - 1;
-        mouseVector.y = 1 - 2 * (e.clientY / window.innerHeight);
-
-        raycaster.setFromCamera(mouseVector, camera);
-
-        const intersects = raycaster.intersectObjects(
-            [mesh.children[0], mesh.children[1]],
-            true
-        );
-
-        if (intersects.length > 0) {
-            const intersect = intersects[0];
-            point.position.x = intersect.point.x;
-            point.position.y = intersect.point.y;
-            point.position.z = intersect.point.z;
-
-            tangentVectors({ point });
-
-            render();
-        }
-    };
-
-    const shiftDown = (e) => {
-        if (shadeUp && selected) {
-            switch (e.key) {
-                case 'Backspace':
-                    mesh.visible = !mesh.visible;
-                    render();
-                    break;
-                case 'Shift':
-                    window.addEventListener('mousemove', onMouseMove, false);
-                    tanFrame.visible = true;
-                    break;
-                case 'c':
-                    controls.target.set(
-                        point.position.x,
-                        point.position.y,
-                        point.position.z
-                    );
-                    render();
-                    break;
-                case 't':
-                    tanFrame.visible = !tanFrame.visible;
-                    render();
-                    break;
-                case 'y':
-                    if (!planeShard.visible) {
-                        tanFrame.visible = true;
-                        planeShard.visible = true;
-                    } else {
-                        planeShard.visible = false;
-                    }
-                    render();
-                    break;
-                case 'n':
-                    if (!arrows.n.visible) {
-                        tanFrame.visible = true;
-                        arrows.n.visible = true;
-                    } else {
-                        arrows.n.visible = false;
-                    }
-
-                    render();
-                    break;
-            }
-        }
-    };
-
-    const shiftUp = (e) => {
-        if (e.key === 'Shift') {
-            window.removeEventListener('mousemove', onMouseMove);
-        }
-    };
-
-    window.addEventListener('keydown', shiftDown, false);
-    window.addEventListener('keyup', shiftUp, false);
 </script>
 
 <div class={'boxItem' + (selected ? ' selected' : '')} on:click on:keydown>

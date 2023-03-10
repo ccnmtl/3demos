@@ -20,7 +20,7 @@
         marchingSegments,
         ParametricGeometry,
         marchingSquares,
-        ArrowBufferGeometry,
+        FunctionGraph,
         blockGeometry,
         checksum,
     } from '../utils.js';
@@ -91,9 +91,7 @@
         animateTime: false,
     };
 
-    export let camera;
-    export let controls;
-    export let gridStep;
+    export let tanFrame, arrows, point, planeShard;
     export let showLevelCurves = false;
     export let scene;
     export let shadeUp;
@@ -117,69 +115,6 @@
         linewidth: 2,
     });
 
-    const pointMaterial = new THREE.MeshLambertMaterial({ color: 0xffff33 });
-    const point = new THREE.Mesh(
-        new THREE.SphereGeometry(gridStep / 8, 16, 16),
-        pointMaterial
-    );
-    point.position.set(1, 1, 1);
-    const arrowParams = {
-        radiusTop: gridStep / 10,
-        radiusBottom: gridStep / 20,
-        heightTop: gridStep / 7,
-    };
-    const arrows = {
-        u: new THREE.Mesh(
-            new ArrowBufferGeometry({
-                ...arrowParams,
-                height: 1,
-            }),
-            new THREE.MeshBasicMaterial({})
-        ),
-        v: new THREE.Mesh(
-            new ArrowBufferGeometry({
-                ...arrowParams,
-                height: 1,
-            }),
-            new THREE.MeshBasicMaterial({})
-        ),
-        n: new THREE.Mesh(
-            new ArrowBufferGeometry({
-                ...arrowParams,
-                height: 1,
-            }),
-            new THREE.MeshBasicMaterial({})
-        ),
-        grad: new THREE.Mesh(
-            new ArrowBufferGeometry({
-                ...arrowParams,
-                height: 1,
-            }),
-            new THREE.MeshBasicMaterial({})
-        ),
-    };
-    const ruColors = { u: 0x992525, v: 0x252599, grad: 0x259925, n: 0xb6b6b6 };
-    for (let key of Object.keys(arrows)) {
-        arrows[key].material.color.set(ruColors[key]);
-        point.add(arrows[key]);
-    }
-    arrows.n.visible = false;
-    arrows.grad.visible = false;
-
-    const shardMaterial = new THREE.MeshPhongMaterial({
-        color: 0x4b4b4b,
-        shininess: 80,
-        side: THREE.DoubleSide,
-        transparent: false,
-        opacity: 1,
-    });
-    const planeShard = new THREE.Mesh(undefined, shardMaterial);
-    planeShard.visible = false;
-    point.add(planeShard);
-
-    point.visible = false;
-    scene.add(point);
-
     // Compile main function
     let func;
 
@@ -188,12 +123,7 @@
         func = (x, y, t) => z.evaluate({ x, y, t });
     }
 
-    const tangentVectors = function () {
-        // const arrowParams = {
-        //     radiusTop: gridStep / 10,
-        //     radiusBottom: gridStep / 20,
-        //     heightTop: gridStep / 7,
-        // };
+    export const tangentVectors = function () {
 
         const dx = 0.001;
         const [A, B] = [params.t0, params.t1].map((x) =>
@@ -203,32 +133,37 @@
 
         const x = point.position.x;
         const y = point.position.y;
+        const z = point.position.z;
 
         const f0 = func(x, y, t);
         const fx = (func(x + dx / 2, y, t) - func(x - dx / 2, y, t)) / dx;
         const fy = (func(x, y + dx / 2, t) - func(x, y - dx / 2, t)) / dx;
 
-        for (let key of Object.keys(arrows)) {
-            const geo = arrows[key].geometry;
+        for (let key of ['u', 'v', 'n']/*Object.keys(arrows)*/) {
+            const arrow = arrows[key];
+            arrow.position.set(x, y, z);
+            const geo = arrow.geometry;
             switch (key) {
                 case 'u':
+                    arrow.visible = true;
                     geo.adjustHeight(Math.sqrt(1 + fx * fx));
-                    arrows[key].lookAt(1 + x, 0 + y, fx + f0);
+                    arrow.lookAt(1 + x, 0 + y, fx + f0);
                     break;
 
                 case 'v':
+                    arrow.visible = true;
                     geo.adjustHeight(Math.sqrt(1 + fy * fy));
-                    arrows[key].lookAt(0 + x, 1 + y, fy + f0);
+                    arrow.lookAt(0 + x, 1 + y, fy + f0);
                     break;
 
                 case 'n':
-                    arrows[key].lookAt(-fx + x, -fy + y, 1 + f0);
+                    arrow.lookAt(-fx + x, -fy + y, 1 + f0);
                     break;
 
                 case 'grad':
                     geo.adjustHeight(Math.sqrt(fx * fx + fy * fy));
-                    arrows[key].lookAt(x + fx, y + fy, 0);
-                    arrows[key].position.z = -f0;
+                    arrow.lookAt(x + fx, y + fy, 0);
+                    arrow.position.z = -f0;
                     break;
 
                 default:
@@ -250,8 +185,8 @@
             2,
             2
         );
-
         planeShard.geometry = tangentPlaneGeometry;
+        planeShard.position.set(x, y, z);
     };
 
     const whiteLineMaterial = new THREE.LineBasicMaterial({
@@ -300,7 +235,7 @@
     let cMin, dMax; // make these globals as useful for tangents.
     const tol = 1e-12; //tolerance for comparisons
 
-    let surfaceMesh = new THREE.Object3D();
+    let surfaceMesh = new FunctionGraph();
 
     const updateSurface = function () {
         const { a, b, c, d, t0, t1 } = params;
@@ -784,39 +719,9 @@
         // Remove integral
         scene.remove(boxMesh);
 
-        scene.remove(point);
         window.removeEventListener('keydown', shiftDown);
-        window.removeEventListener('keyup', shiftUp);
         render();
     });
-
-    const raycaster = new THREE.Raycaster();
-
-    let mouseVector = new THREE.Vector2();
-
-    const onMouseMove = function (e) {
-        // normalized mouse coordinates
-        mouseVector.x = 2 * (e.clientX / window.innerWidth) - 1;
-        mouseVector.y = 1 - 2 * (e.clientY / window.innerHeight);
-
-        raycaster.setFromCamera(mouseVector, camera);
-
-        const intersects = raycaster.intersectObjects(
-            [surfaceMesh.children[0], surfaceMesh.children[1]],
-            true
-        );
-
-        if (intersects.length > 0) {
-            const intersect = intersects[0];
-            point.position.x = intersect.point.x;
-            point.position.y = intersect.point.y;
-            point.position.z = intersect.point.z;
-
-            tangentVectors();
-
-            render();
-        }
-    };
 
     const activateLevelElevator = function () {
         animation = true;
@@ -827,36 +732,8 @@
     const shiftDown = (e) => {
         if (shadeUp && selected) {
             switch (e.key) {
-                case 'Shift':
-                    window.addEventListener('mousemove', onMouseMove, false);
-                    point.visible = true;
-                    break;
                 case '0':
                     activateLevelElevator();
-                    break;
-                case 'c':
-                    controls.target.set(
-                        point.position.x,
-                        point.position.y,
-                        point.position.z
-                    );
-                    render();
-                    break;
-                case 'Backspace':
-                    surfaceMesh.visible = !surfaceMesh.visible;
-                    render();
-                    break;
-                case 't':
-                    point.visible = !point.visible;
-                    render();
-                    break;
-                case 'y':
-                    planeShard.visible = !planeShard.visible;
-                    render();
-                    break;
-                case 'n':
-                    arrows.n.visible = !arrows.n.visible;
-                    render();
                     break;
                 case 'i':
                     boxMesh.visible = !boxMesh.visible;
@@ -890,14 +767,7 @@
         }
     };
 
-    const shiftUp = (e) => {
-        if (e.key === 'Shift') {
-            window.removeEventListener('mousemove', onMouseMove);
-        }
-    };
-
     window.addEventListener('keydown', shiftDown, false);
-    window.addEventListener('keyup', shiftUp, false);
 </script>
 
 <div class={'boxItem' + (selected ? ' selected' : '')} on:click on:keydown>
@@ -1066,7 +936,7 @@
                     type="checkbox"
                     name="frameVisible"
                     id="frameVisible"
-                    bind:checked={point.visible}
+                    bind:checked={tanFrame.visible}
                     on:change={render}
                 />
                 <span class="slider round" />

@@ -20,6 +20,8 @@
     export let socket;
     export let currentMode;
     export let pollResponses;
+    export let isPollsOpen;
+    export let objectResponses;
 
     let newGridMeshes;
     const newLineMaterial = lineMaterial.clone();
@@ -101,13 +103,14 @@
 
     let showSettings = false;
     let showUpload = false;
-    let isPollsOpen = false;
 
     const openPolls = function () {
         isPollsOpen = true;
     };
 
     const togglePolls = () => (isPollsOpen = !isPollsOpen);
+
+    const clearPollObjects = () => objectResponses.clear();
 
     const uploadScene = (e) => {
         const reader = new FileReader();
@@ -282,6 +285,11 @@
     <button on:click={openPolls} class="button" title="Polls">
         <i class="fa fa-list" />
     </button>
+    {#if objectResponses.length > 0}
+    <button on:click={clearPollObjects} class="button" title="Remove poll objects">
+        <i class="fa fa-trash" />
+    </button>
+    {/if}
 {/if}
 
 <Polls bind:socket bind:pollResponses {isPollsOpen} {togglePolls} />

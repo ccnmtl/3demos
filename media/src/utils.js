@@ -1187,6 +1187,30 @@ class ParametricCurve extends THREE.Curve {
     }
 }
 
+class ParametricSurface extends THREE.Object3D {
+    constructor() {
+        super();
+        this.type = 'ParametricSurface';
+        this.isParSurf = true;
+    }
+}
+
+class LevelSurface extends THREE.Object3D {
+    constructor() {
+        super();
+        this.type = 'LevelSurface';
+        this.isLevel = true;
+    }
+}
+
+class FunctionGraph extends THREE.Object3D {
+    constructor() {
+        super();
+        this.type = 'FunctionGraph';
+        this.isFuncGraph = true;
+    }
+}
+
 function labelAxes({
     scene,
     gridMax = 1,
@@ -1731,6 +1755,9 @@ export {
     freeChildren,
     adjustArrowHeight,
     ParametricGeometry,
+    ParametricSurface,
+    LevelSurface,
+    FunctionGraph,
     nextHue,
     makeHSLColor,
     blockGeometry,

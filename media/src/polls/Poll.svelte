@@ -2,6 +2,7 @@
     import {forceNumber} from '../utils';
 
     export let currentPoll;
+    export let point;
     export let socket;
 
     let submitted = false;
@@ -24,11 +25,18 @@
                     response.push(el.value);
                 }
             });
+        } else if (currentPoll.type === 'select point') {
+            response.push(
+                point.position.x.toFixed(3),
+                point.position.y.toFixed(3),
+                point.position.z.toFixed(3)
+            );
         }
 
         // Send response over websocket
         socket.send(JSON.stringify({
             message: {
+                poll: currentPoll.type,
                 pollResponse: response
             }
         }));
@@ -54,9 +62,15 @@
                 <p>
                     Response submitted!
                 </p>
-                <p>
-                    Your answer: {response}
-                </p>
+                {#if currentPoll.type < 2}
+                    <p>
+                        Your answer: {response}
+                    </p>
+                {:else}
+                    <p>
+                        Your answer: x = {response[0]}, y = {response[1]}, z: {response[2]}
+                    </p>
+                {/if}
             {:else}
             <form on:submit={handleOnSubmit}>
                 <div class="mb-3">

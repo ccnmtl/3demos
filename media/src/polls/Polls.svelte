@@ -12,9 +12,10 @@
     import {broadcastPoll, loadPolls} from './utils';
     import {querySelectorIncludesText} from '../utils';
 
-    export let isPollsOpen, togglePolls;
     export let socket;
     export let pollResponses;
+    export let isPollsOpen;
+    export let togglePolls = () => {};
 
     let polls = loadPolls();
     // Init empty polls to some basic examples
@@ -24,7 +25,8 @@
                      'Question test', ['a', 'b', 'c']),
             new Poll('multiple choice',
                      'Question test 2', ['a', 'b', 'c', 'd']),
-            new Poll('numeric', 'What is the square root of 2?')
+            new Poll('numeric', 'What is the square root of 2?'),
+            new Poll('select point', 'Mark the best point on the object')
         ];
     }
 
@@ -125,7 +127,7 @@
                             </tr>
                         </thead>
                         <tbody class="table-group-divider">
-                            {#each polls as poll}
+                            {#each polls as poll (poll.id)}
                                 <tr>
                                     <th scope="row">{poll.id}</th>
                                     <td>{poll.prompt}</td>
@@ -161,7 +163,10 @@
             </TabPane>
             <TabPane tabId="responses" tab="Responses"
                      active={activeTab === 'responses'}>
-                <PollResponses bind:currentPollType bind:pollResponses />
+                <PollResponses
+                    bind:currentPollType
+                    bind:pollResponses
+                />
             </TabPane>
         </TabContent>
     </ModalBody>

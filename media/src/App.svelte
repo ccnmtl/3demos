@@ -27,16 +27,6 @@
     import Point from './objects/Point.svelte';
     import Settings from './settings/Settings.svelte';
 
-    const kindToComponent = {
-        point: Point,
-        vector: Vector,
-        field: Field,
-        graph: Function,
-        curve: Curve,
-        level: Level,
-        parsurf: ParSurf,
-    };
-
     import Stats from 'stats.js';
 
     import Linear from './Linear.svelte';
@@ -47,6 +37,7 @@
 
     import { getRoomId, makeSocket } from './rooms';
     import {
+        ArrowBufferGeometry,
         drawAxes,
         drawGrid,
         labelAxes,
@@ -82,6 +73,8 @@
     };
 
     let canvas;
+
+    let isPollsOpen = false;
 
     // When the shade goes up, focus on the canvas (for keydown events)
     $: if (shadeUp) canvas?.focus();
@@ -202,6 +195,84 @@
     const axesMaterial = new THREE.MeshLambertMaterial({ color: 0x320032 });
     let axesHolder = drawAxes({ gridMax, gridStep, axesMaterial });
     scene.add(axesHolder);
+
+    // Point elements
+    const tanFrame = new THREE.Object3D();
+    const arrowParams = {
+        radiusTop: gridStep / 10,
+        radiusBottom: gridStep / 20,
+        heightTop: gridStep / 7,
+    };
+    const arrows = {
+            u: new THREE.Mesh(
+                new ArrowBufferGeometry({
+                    ...arrowParams,
+                    height: 1,
+                }),
+                new THREE.MeshBasicMaterial({})
+            ),
+            v: new THREE.Mesh(
+                new ArrowBufferGeometry({
+                    ...arrowParams,
+                    height: 1,
+                }),
+                new THREE.MeshBasicMaterial({})
+            ),
+            n: new THREE.Mesh(
+                new ArrowBufferGeometry({
+                    ...arrowParams,
+                    height: 1,
+                }),
+                new THREE.MeshBasicMaterial({})
+            ),
+            grad: new THREE.Mesh(
+                new ArrowBufferGeometry({
+                    ...arrowParams,
+                    height: 1,
+                }),
+                new THREE.MeshBasicMaterial({})
+            ),
+        };
+
+    // U, V, and Normal vectors
+    const ruColors = { u: 0x992525, v: 0x252599, grad: 0x259925, n: 0xb6b6b6 };
+    for (let key of Object.keys(arrows)) {
+        arrows[key].material = new THREE.MeshBasicMaterial({
+            color: ruColors[key],
+        });
+        tanFrame.add(arrows[key]);
+    }
+
+    for (let key of Object.keys(arrows)) {
+            arrows[key].material = new THREE.MeshBasicMaterial({
+                color: ruColors[key],
+            });
+            tanFrame.add(arrows[key]);
+        }
+
+     // Visual indication of the point
+    const pointMaterial = new THREE.MeshLambertMaterial({ color: 0xffff33 });
+    const point = new THREE.Mesh(
+        new THREE.SphereGeometry(0.2 / 8, 16, 16),
+        pointMaterial
+    );
+
+    tanFrame.add(point);
+
+    // Tangent Plane
+    const shardMaterial = new THREE.MeshPhongMaterial({
+        color: 0x4b4b4b,
+        shininess: 80,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.5,
+    });
+    const planeShard = new THREE.Mesh(new THREE.BufferGeometry(), shardMaterial);
+    tanFrame.add(planeShard);
+
+    tanFrame.visible = false;
+
+    scene.add(tanFrame);
 
     const requestFrameIfNotRequested = function () {
         if (!frameRequested) {
@@ -540,6 +611,15 @@
     let pollResponses = {};
     let userResponseList = {};
 
+    const pollMaterial = new THREE.MeshLambertMaterial({
+        color: 0xffff33,
+        transparent: true,
+        opacity: 0.5
+    });
+    const pollGeometry = new THREE.SphereGeometry(0.2 / 8, 16, 16);
+    let objectResponses = new THREE.Group();
+    scene.add(objectResponses);
+
     const handleSocketMessage = function (e) {
         const data = JSON.parse(e.data);
         if (
@@ -547,11 +627,21 @@
             !(data.session_key in userResponseList)
         ) {
             userResponseList[data.session_key] = true;
-            let choice = data.message.pollResponse;
-            if (choice in pollResponses) {
-                pollResponses[choice]++;
+            let pollType = data.message.poll;
+            if (pollType === 'select point') {
+                isPollsOpen = false;
+                let xyz = data.message.pollResponse;
+                let response = new THREE.Mesh(pollGeometry, pollMaterial);
+                response.position.set(xyz[0], xyz[1], xyz[2]);
+                objectResponses.add(response);
+                render();
             } else {
-                pollResponses[choice] = 1;
+                let choice = data.message.pollResponse;
+                if (choice in pollResponses){
+                    pollResponses[choice]++;
+                } else {
+                    pollResponses[choice] = 1;
+                }
             }
         } else if (data.message.broadcastPoll) {
             currentPoll = handlePollEvent(data);
@@ -575,6 +665,108 @@
         roomId = getRoomId(window.location.pathname);
         socket = makeSocket(roomId, handleSocketMessage);
     }
+
+    const mouseVector = new THREE.Vector2();
+    let selectedMesh;
+    let tangentParSurf;
+    let tangentLevel;
+    let tangentFuncGraph;
+
+    const onMouseMove = function (e) {
+        if (selectedObject) {
+            // normalized mouse coordinates
+            mouseVector.x = 2 * (e.clientX / window.innerWidth) - 1;
+            mouseVector.y = 1 - 2 * (e.clientY / window.innerHeight);
+
+            raycaster.setFromCamera(mouseVector, camera);
+            selectedMesh = scene.getObjectByName(selectedObject).parent;
+
+            const intersects = raycaster.intersectObjects(
+                [selectedMesh.children[0], selectedMesh.children[1]],
+                true
+            );
+
+            if (intersects.length > 0) {
+                const intersect = intersects[0];
+                point.position.x = intersect.point.x; 
+                point.position.y = intersect.point.y;
+                point.position.z = intersect.point.z;
+
+                const uv = intersect.uv;
+
+                switch (selectedMesh.type){
+                    case 'ParametricSurface':
+                        tangentParSurf({uv});
+                        break;
+                    case 'LevelSurface':
+                        tangentLevel({point})
+                        break;
+                    case 'FunctionGraph':
+                        tangentFuncGraph();
+                        break;
+                }
+
+                render();
+            }
+        }
+    };
+
+    const shiftDown = (e) => {
+        if (shadeUp) {
+            switch (e.key) {
+                case 'Backspace':
+                    selectedMesh.visible = !selectedMesh.visible;
+                    render();
+                    break;
+                case 'Shift':
+                    window.addEventListener('mousemove', onMouseMove, false);
+                    tanFrame.visible = true;
+                    break;
+                case 'c':
+                    controls.target.set(
+                        point.position.x,
+                        point.position.y,
+                        point.position.z
+                    );
+                    render();
+                    break;
+                case 't':
+                    tanFrame.visible = !tanFrame.visible;
+                    render();
+                    break;
+                case 'y':
+                    if (!planeShard.visible) {
+                        tanFrame.visible = true;
+                        planeShard.visible = true;
+                    } else {
+                        planeShard.visible = false;
+                    }
+                    render();
+                    break;
+                case 'n':
+                    if (!arrows.n.visible) {
+                        tanFrame.visible = true;
+                        arrows.n.visible = true;
+                    } else {
+                        arrows.n.visible = false;
+                    }
+
+                    render();
+                    break;
+                case 'g':
+
+            }
+        }
+    };
+
+    const shiftUp = (e) => {
+        if (e.key === 'Shift') {
+            window.removeEventListener('mousemove', onMouseMove);
+        }
+    };
+
+    window.addEventListener('keydown', shiftDown, false);
+    window.addEventListener('keyup', shiftUp, false);
 
     const altDown = (e) => {
         if (e.altKey) {
@@ -698,6 +890,7 @@
                             bind:objects
                             bind:isHost
                             bind:currentPoll
+                            {point}
                         />
                     {:else if currentChapter === 'Intro'}
                         <Intro />
@@ -965,31 +1158,182 @@
                                     easing: quintOut,
                                 }}
                             >
-                                <svelte:component
-                                    this={kindToComponent[kind]}
-                                    {scene}
-                                    {onRenderObject}
-                                    {onDestroyObject}
-                                    camera={currentCamera}
-                                    controls={currentControls}
-                                    render={requestFrameIfNotRequested}
-                                    {params}
-                                    onClose={() => {
-                                        objects = objects.filter(
-                                            (b) => b.uuid !== uuid
-                                        );
-                                    }}
-                                    bind:color
-                                    bind:shadeUp
-                                    bind:animation
-                                    {uuid}
-                                    {gridStep}
-                                    {gridMax}
-                                    on:animate={animateIfNotAnimating}
-                                    selected={selectedObject === uuid}
-                                    on:click={selectObject(uuid)}
-                                    on:keydown={altDown}
-                                />
+                                {#if kind === 'point'}
+                                    <Point
+                                        {scene}
+                                        {onRenderObject}
+                                        {onDestroyObject}
+                                        camera={currentCamera}
+                                        {controls}
+                                        render={requestFrameIfNotRequested}
+                                        onClose={() => {
+                                            objects = objects.filter(
+                                                (b) => b.uuid !== uuid
+                                            );
+                                        }}
+                                        {params}
+                                        bind:color
+                                        bind:shadeUp
+                                        bind:animation
+                                        on:animate={animateIfNotAnimating}
+                                        selected={selectedObject === uuid}
+                                        on:click={selectObject(uuid)}
+                                        on:keydown={altDown}
+                                        {gridStep}
+                                        {uuid}
+                                        {gridMax}
+                                    />
+                                {:else if kind === 'parsurf'}
+                                    <ParSurf
+                                        {scene}
+                                        {onRenderObject}
+                                        {onDestroyObject}
+                                        render={requestFrameIfNotRequested}
+                                        {params}
+                                        onClose={() => {
+                                            objects = objects.filter(
+                                                (b) => b.uuid !== uuid
+                                            );
+                                        }}
+                                        bind:color
+                                        bind:animation
+                                        {uuid}
+                                        selected={selectedObject === uuid}
+                                        on:click={selectObject(uuid)}
+                                        on:keydown={altDown}
+                                        {tanFrame}
+                                        {arrows}
+                                        {arrowParams}
+                                        {planeShard}
+                                        bind:tangentVectors={tangentParSurf}
+                                    />
+                                {:else if kind === 'graph'}
+                                    <Function
+                                        {scene}
+                                        {onRenderObject}
+                                        {onDestroyObject}
+                                        render={requestFrameIfNotRequested}
+                                        {uuid}
+                                        {params}
+                                        onClose={() => {
+                                            objects = objects.filter(
+                                                (b) => b.uuid !== uuid
+                                            );
+                                        }}
+                                        bind:shadeUp
+                                        bind:animation
+                                        on:animate={animateIfNotAnimating}
+                                        selected={selectedObject === uuid}
+                                        on:click={selectObject(uuid)}
+                                        on:keydown={altDown}
+                                        bind:tangentVectors={tangentFuncGraph}
+                                        {tanFrame}
+                                        {point}
+                                        {arrows}
+                                        {planeShard}
+                                    />
+                                {:else if kind === 'level'}
+                                    <Level
+                                        {scene}
+                                        {onRenderObject}
+                                        {onDestroyObject}
+                                        {uuid}
+                                        render={requestFrameIfNotRequested}
+                                        onClose={() => {
+                                            objects = objects.filter(
+                                                (b) => b.uuid !== uuid
+                                            );
+                                        }}
+                                        {params}
+                                        bind:color
+                                        bind:animation
+                                        on:animate={animateIfNotAnimating}
+                                        selected={selectedObject === uuid}
+                                        on:click={selectObject(uuid)}
+                                        on:keydown={altDown}
+                                        {tanFrame}
+                                        {point}
+                                        {arrows}
+                                        {arrowParams}
+                                        {planeShard}
+                                        bind:tangentVectors={tangentLevel}
+                                    />
+                                {:else if kind === 'curve'}
+                                    <Curve
+                                        {scene}
+                                        {onRenderObject}
+                                        {onDestroyObject}
+                                        camera={currentCamera}
+                                        {controls}
+                                        render={requestFrameIfNotRequested}
+                                        onClose={() => {
+                                            objects = objects.filter(
+                                                (b) => b.uuid !== uuid
+                                            );
+                                        }}
+                                        {params}
+                                        bind:color
+                                        bind:shadeUp
+                                        bind:animation
+                                        on:animate={animateIfNotAnimating}
+                                        selected={selectedObject === uuid}
+                                        on:click={selectObject(uuid)}
+                                        on:keydown={altDown}
+                                        {gridStep}
+                                    />
+                                {:else if kind === 'field'}
+                                    <Field
+                                        {params}
+                                        {scene}
+                                        {onRenderObject}
+                                        {onDestroyObject}
+                                        render={requestFrameIfNotRequested}
+                                        onClose={() => {
+                                            objects = objects.filter(
+                                                (b) => b.uuid !== uuid
+                                            );
+                                        }}
+                                        {uuid}
+                                        bind:color
+                                        bind:shadeUp
+                                        bind:animation
+                                        on:animate={animateIfNotAnimating}
+                                        selected={selectedObject === uuid}
+                                        on:click={selectObject(uuid)}
+                                        on:keydown={altDown}
+                                        {gridStep}
+                                        {gridMax}
+                                    />
+                                {:else if kind === 'vector'}
+                                    <Vector
+                                        {scene}
+                                        {onRenderObject}
+                                        {onDestroyObject}
+                                        bind:shadeUp
+                                        render={requestFrameIfNotRequested}
+                                        {uuid}
+                                        onClose={() => {
+                                            objects = objects.filter(
+                                                (b) => b.uuid !== uuid
+                                            );
+                                        }}
+                                        {params}
+                                        bind:color
+                                        bind:animation
+                                        on:animate={(e) => {
+                                            console.log(
+                                                'vect anim',
+                                                animation,
+                                                e
+                                            );
+                                            animateIfNotAnimating();
+                                        }}
+                                        selected={selectedObject === uuid}
+                                        on:click={selectObject(uuid)}
+                                        on:keydown={altDown}
+                                        {gridStep}
+                                    />
+                                {/if}
                             </div>
                         {/each}
                     </div>
@@ -1123,6 +1467,8 @@
             bind:orthoCamera
             bind:currentMode
             on:animate={animateIfNotAnimating}
+            bind:objectResponses
+            bind:isPollsOpen
         />
     </div>
 

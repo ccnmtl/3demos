@@ -6,6 +6,7 @@ let idx = 1;
  * Poll type is a string - the following types are supported:
  *  'numeric'
  *  'multiple choice'
+ *  'select point'
  */
 class Poll {
     constructor(type='multiple choice', prompt, choices) {

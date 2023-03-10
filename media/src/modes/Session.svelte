@@ -7,6 +7,7 @@
     export let isHost;
     export let currentPoll;
     export let objects;
+    export let point;
 
     let role = 'student';
     if (isHost) {
@@ -28,7 +29,7 @@
     Connected to room <strong>{roomId}</strong> as {role}!
 
     {#if currentPoll}
-        <Poll bind:currentPoll bind:socket />
+        <Poll bind:currentPoll bind:socket {point} />
     {/if}
 </p>
 {:else}
