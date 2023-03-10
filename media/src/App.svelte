@@ -24,9 +24,11 @@
     import Field from './objects/Field.svelte';
     import Function from './objects/Function.svelte';
     import Vector from './objects/Vector.svelte';
+    import Point from './objects/Point.svelte';
     import Settings from './settings/Settings.svelte';
 
     const kindToComponent = {
+        point: Point,
         vector: Vector,
         field: Field,
         graph: Function,
@@ -497,7 +499,7 @@
             for (const val of Object.values(objectHolder)) {
                 // objects = makeObject(val.uuid, val.kind, val.params, objects);
                 objects = [...objects, { uuid: crypto.randomUUID(), ...val }];
-                console.log(objects);
+                if (debug) console.log(objects);
             }
         }
 
@@ -749,6 +751,38 @@
                                                 ...objects,
                                                 {
                                                     uuid: crypto.randomUUID(),
+                                                    kind: 'point',
+                                                    params: {
+                                                        a: `${Math.random()}`.slice(
+                                                            0,
+                                                            5
+                                                        ),
+                                                        b: `${Math.random()}`.slice(
+                                                            0,
+                                                            5
+                                                        ),
+                                                        c: `${Math.random()}`.slice(
+                                                            0,
+                                                            5
+                                                        ),
+                                                        t0: '0',
+                                                        t1: '1',
+                                                    },
+                                                    color: `#${makeHSLColor(
+                                                        Math.random()
+                                                    ).getHexString()}`,
+                                                },
+                                            ];
+                                        }}
+                                    >
+                                        Point <M size="sm">P = ( a, b, c )</M>
+                                    </DropdownItem>
+                                    <DropdownItem
+                                        on:click={() => {
+                                            objects = [
+                                                ...objects,
+                                                {
+                                                    uuid: crypto.randomUUID(),
                                                     kind: 'vector',
                                                     params: {
                                                         a: `${
@@ -951,6 +985,7 @@
                                     {uuid}
                                     {gridStep}
                                     {gridMax}
+                                    on:animate={animateIfNotAnimating}
                                     selected={selectedObject === uuid}
                                     on:click={selectObject(uuid)}
                                     on:keydown={altDown}
