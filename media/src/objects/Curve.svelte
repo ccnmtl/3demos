@@ -96,7 +96,7 @@
         const B = math.parse(b).evaluate();
 
         if (TNB) {
-            tau += dt / arrows.v.geometry.parameters.height / (B - A);
+            tau += dt / arrows.v.speed / (B - A);
         } else {
             tau += dt / (B - A);
         }
@@ -252,6 +252,9 @@
                 .add(xyz(T - dt))
                 .divideScalar(dt * dt),
         };
+
+        // Store speed for reparametrization
+        arrows.v.speed = dr.v.length();
 
         if (osculatingCircle) {
             const R = dr.r.clone(),
@@ -435,7 +438,7 @@
                 case 'p':
                     startAnimation(true);
                     break;
-                case 'r':
+                case 's':
                     TNB = !TNB;
                     render();
                     break;
