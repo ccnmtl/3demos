@@ -27,6 +27,15 @@
     import Point from './objects/Point.svelte';
     import Settings from './settings/Settings.svelte';
 
+    const kindToComponent = {
+        vector: Vector,
+        field: Field,
+        graph: Function,
+        curve: Curve,
+        level: Level,
+        parsurf: ParSurf,
+    };
+
     import Stats from 'stats.js';
 
     import Linear from './Linear.svelte';
@@ -949,6 +958,7 @@
                     </div>
 
                     <div class="objectBoxInner">
+                        <!-- Main Loop, if you will -->
                         {#each objects as { uuid, kind, params, color, animation } (uuid)}
                             <div
                                 transition:slide={{
@@ -957,170 +967,34 @@
                                     easing: quintOut,
                                 }}
                             >
-                                {#if kind === 'parsurf'}
-                                    <ParSurf
-                                        {scene}
-                                        {onRenderObject}
-                                        {onDestroyObject}
-                                        camera={currentCamera}
-                                        controls={currentControls}
-                                        render={requestFrameIfNotRequested}
-                                        {params}
-                                        onClose={() => {
-                                            objects = objects.filter(
-                                                (b) => b.uuid !== uuid
-                                            );
-                                        }}
-                                        bind:color
-                                        bind:shadeUp
-                                        bind:animation
-                                        {uuid}
-                                        {gridStep}
-                                        selected={selectedObject === uuid}
-                                        on:click={selectObject(uuid)}
-                                        on:keydown={altDown}
-                                    />
-                                {:else if kind === 'graph'}
-                                    <Function
-                                        {scene}
-                                        {onRenderObject}
-                                        {onDestroyObject}
-                                        camera={currentCamera}
-                                        controls={currentControls}
-                                        render={requestFrameIfNotRequested}
-                                        {uuid}
-                                        {params}
-                                        onClose={() => {
-                                            objects = objects.filter(
-                                                (b) => b.uuid !== uuid
-                                            );
-                                        }}
-                                        {gridStep}
-                                        bind:shadeUp
-                                        bind:animation
-                                        on:animate={animateIfNotAnimating}
-                                        selected={selectedObject === uuid}
-                                        on:click={selectObject(uuid)}
-                                        on:keydown={altDown}
-                                    />
-                                {:else if kind === 'level'}
-                                    <Level
-                                        {scene}
-                                        {onRenderObject}
-                                        {onDestroyObject}
-                                        camera={currentCamera}
-                                        {controls}
-                                        {uuid}
-                                        render={requestFrameIfNotRequested}
-                                        onClose={() => {
-                                            objects = objects.filter(
-                                                (b) => b.uuid !== uuid
-                                            );
-                                        }}
-                                        {params}
-                                        bind:color
-                                        bind:shadeUp
-                                        bind:animation
-                                        on:animate={animateIfNotAnimating}
-                                        selected={selectedObject === uuid}
-                                        on:click={selectObject(uuid)}
-                                        on:keydown={altDown}
-                                        {gridStep}
-                                    />
-                                {:else if kind === 'curve'}
-                                    <Curve
-                                        {scene}
-                                        {onRenderObject}
-                                        {onDestroyObject}
-                                        camera={currentCamera}
-                                        {controls}
-                                        render={requestFrameIfNotRequested}
-                                        onClose={() => {
-                                            objects = objects.filter(
-                                                (b) => b.uuid !== uuid
-                                            );
-                                        }}
-                                        {params}
-                                        bind:color
-                                        bind:shadeUp
-                                        bind:animation
-                                        on:animate={animateIfNotAnimating}
-                                        selected={selectedObject === uuid}
-                                        on:click={selectObject(uuid)}
-                                        on:keydown={altDown}
-                                        {gridStep}
-                                    />
-                                {:else if kind === 'field'}
-                                    <Field
-                                        {params}
-                                        {scene}
-                                        {onRenderObject}
-                                        {onDestroyObject}
-                                        render={requestFrameIfNotRequested}
-                                        onClose={() => {
-                                            objects = objects.filter(
-                                                (b) => b.uuid !== uuid
-                                            );
-                                        }}
-                                        {uuid}
-                                        bind:color
-                                        bind:shadeUp
-                                        bind:animation
-                                        on:animate={animateIfNotAnimating}
-                                        selected={selectedObject === uuid}
-                                        on:click={selectObject(uuid)}
-                                        on:keydown={altDown}
-                                        {gridStep}
-                                        {gridMax}
-                                    />
-                                {:else if kind === 'vector'}
-                                    <Vector
-                                        {scene}
-                                        {onRenderObject}
-                                        {onDestroyObject}
-                                        bind:shadeUp
-                                        render={requestFrameIfNotRequested}
-                                        {uuid}
-                                        onClose={() => {
-                                            objects = objects.filter(
-                                                (b) => b.uuid !== uuid
-                                            );
-                                        }}
-                                        {params}
-                                        bind:color
-                                        bind:animation
-                                        on:animate={animateIfNotAnimating}
-                                        selected={selectedObject === uuid}
-                                        on:click={selectObject(uuid)}
-                                        on:keydown={altDown}
-                                        {gridStep}
-                                    />
-                                {:else if kind === 'point'}
-                                    <Point
-                                        {scene}
-                                        {onRenderObject}
-                                        {onDestroyObject}
-                                        bind:shadeUp
-                                        render={requestFrameIfNotRequested}
-                                        {uuid}
-                                        onClose={() => {
-                                            objects = objects.filter(
-                                                (b) => b.uuid !== uuid
-                                            );
-                                        }}
-                                        {params}
-                                        bind:color
-                                        bind:animation
-                                        on:animate={animateIfNotAnimating}
-                                        selected={selectedObject === uuid}
-                                        on:click={selectObject(uuid)}
-                                        on:keydown={altDown}
-                                        {gridStep}
-                                    />
-                                {/if}
+                                <svelte:component
+                                    this={kindToComponent[kind]}
+                                    {scene}
+                                    {onRenderObject}
+                                    {onDestroyObject}
+                                    camera={currentCamera}
+                                    controls={currentControls}
+                                    render={requestFrameIfNotRequested}
+                                    {params}
+                                    onClose={() => {
+                                        objects = objects.filter(
+                                            (b) => b.uuid !== uuid
+                                        );
+                                    }}
+                                    bind:color
+                                    bind:shadeUp
+                                    bind:animation
+                                    {uuid}
+                                    {gridStep}
+                                    {gridMax}
+                                    selected={selectedObject === uuid}
+                                    on:click={selectObject(uuid)}
+                                    on:keydown={altDown}
+                                />
                             </div>
                         {/each}
                     </div>
+
                     <!-- debug buttons -->
                     <div hidden={!debug}>
                         <button
@@ -1148,7 +1022,6 @@
                                             x: 'sin(u)*cos(v)',
                                             y: 'sin(u)*sin(v)',
                                             z: 'cos(u)',
-                                            nX: 80,
                                         },
                                     },
                                     {
@@ -1162,7 +1035,6 @@
                                             x: 'u',
                                             y: 'v - 3 + u^2/5',
                                             z: '-cos(v 5)/3',
-                                            nX: 80,
                                         },
                                     },
                                 ];
