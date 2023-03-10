@@ -1708,6 +1708,11 @@ function checksum(s)
   return (chk & 0xffffffff).toString(16);
 }
 
+// https://stackoverflow.com/a/43827557/173630
+const modFloor = function(a, n) {
+    return ((a % n) + n) % n;
+};
+
 export {
     joinUrl,
     getRoomUrl,
@@ -1731,5 +1736,6 @@ export {
     blockGeometry,
     forceNumber,
     querySelectorIncludesText,
-    checksum
+    checksum,
+    modFloor
 };
