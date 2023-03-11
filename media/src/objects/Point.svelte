@@ -255,6 +255,7 @@
                 <PlayButtons
                     bind:animation
                     on:animate
+                    on:pause={() => (last = null)}
                     on:stop={() => {
                         tau = 0;
                         last = null;
