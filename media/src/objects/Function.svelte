@@ -72,7 +72,9 @@
         return valuation;
     };
     export let color = '#3232ff';
-    let texString1 = `t = 0`;
+
+    let texString1 = '';
+    let last = null;
 
     // Better called "meta-parameters" these are internal values that can stay in the component.
     let data = {
@@ -86,10 +88,9 @@
         samp: 0,
         levelDelta: -1,
         shiftLevel: 0.0,
-        tau: 0,
-        last: null,
-        animateTime: false,
     };
+    let tau = 0;
+    // let animateLevels = false;
 
     export let tanFrame, arrows, point, planeShard;
     export let showLevelCurves = false;
@@ -129,7 +130,7 @@
         const [A, B] = [params.t0, params.t1].map((x) =>
             math.parse(x).evaluate()
         );
-        const t = A + data.tau * (B - A);
+        const t = A + tau * (B - A);
 
         const x = point.position.x;
         const y = point.position.y;
@@ -246,7 +247,7 @@
         const C = math.parse(c);
         const D = math.parse(d);
 
-        const time = T0 + data.tau * (T1 - T0);
+        const time = T0 + tau * (T1 - T0);
 
         const geometry = new ParametricGeometry(
             (u, v, vec) => {
@@ -321,7 +322,7 @@
         const C = math.parse(c).compile();
         const D = math.parse(d).compile();
 
-        const time = T0 + data.tau * (T1 - T0);
+        const time = T0 + tau * (T1 - T0);
 
         const du = (B - A) / rNum;
         const dx = (B - A) / lcm(nX, cNum);
@@ -502,14 +503,45 @@
     const update = function (dt) {
         const t0 = math.parse(params.t0).evaluate();
         const t1 = math.parse(params.t1).evaluate();
-        if (data.animateTime) {
-            data.tau += dt / (t1 - t0);
-            data.tau %= 1;
-            const t = t0 + data.tau * (t1 - t0);
+
+        texString1 = (
+            Math.round(100 * (t0 + tau * (t1 - t0))) / 100
+        ).toString();
+
+        if (animation) {
+            tau += dt / (t1 - t0);
+            tau %= 1;
+            const t = t0 + tau * (t1 - t0);
 
             evolveSurface(t);
         }
 
+        render();
+    };
+
+    // Reacts once when `animation` changes
+    // Useful it the objects file is updated with new flag
+    $: if (animation) {
+        dispatch('animate');
+    }
+
+    // Reacts when `animation` or the ticktock store change
+    $: if (animation) {
+        const currentTime = $tickTock;
+        last = last || currentTime;
+        update(currentTime - last);
+        last = currentTime;
+    } else {
+        last = null;
+    }
+
+    let lastLevelTime = null;
+    let levelReq;
+
+    const updateLevelShift = (timestamp) => {
+        lastLevelTime = lastLevelTime || timestamp;
+        const dt = (timestamp - lastLevelTime) / 1000;
+        // console.log(dt, lastLevelTime, timestamp);
         if (
             (data.shiftLevel < 3 && data.levelDelta > 0) ||
             (data.shiftLevel > 0 && data.levelDelta < 0)
@@ -517,8 +549,12 @@
             const newLevel = data.shiftLevel + data.levelDelta * dt;
             data.shiftLevel = Math.max(0, Math.min(3, newLevel));
             changeLevels(data.shiftLevel);
+            lastLevelTime = timestamp;
+            levelReq = requestAnimationFrame(updateLevelShift);
         } else {
-            if (data.shiftLevel === 3) {
+            // animateLevels = false;
+            lastLevelTime = null;
+            if (data.shiftLevel >= 3) {
                 arrows.u.visible = false;
                 arrows.v.visible = false;
                 arrows.n.visible = false;
@@ -528,20 +564,9 @@
                 arrows.v.visible = true;
                 arrows.grad.visible = false;
             }
-            if (!data.animateTime) {
-                animation = false;
-            }
         }
         render();
     };
-
-    $: if (data.animateTime) {
-        animation = true;
-        const currentTime = $tickTock;
-        data.last = data.last || currentTime;
-        update(currentTime - data.last);
-        data.last = currentTime;
-    }
 
     const changeLevels = function (t) {
         for (let index = 0; index < levelHolder.children.length; index++) {
@@ -559,7 +584,7 @@
         const { a, b, c, d } = params;
         const t0 = math.parse(params.t0).evaluate();
         const t1 = math.parse(params.t1).evaluate();
-        const t = t0 + data.tau * (t1 - t0);
+        const t = t0 + tau * (t1 - t0);
         let C = 0,
             D = 0,
             zMin = 0,
@@ -674,7 +699,7 @@
             math.evaluate(t0),
             math.evaluate(t1),
         ];
-        const t = T0 + data.tau * (T1 - T0);
+        const t = T0 + tau * (T1 - T0);
 
         if (boxMesh.geometry) {
             boxMesh.geometry.dispose();
@@ -701,6 +726,7 @@
         params.t1 = params.t1 || '1';
         updateSurface();
         updateBoxes();
+        if (animation) dispatch('animate');
     });
     onDestroy(() => {
         onDestroyObject(...surfaceMesh.children);
@@ -724,9 +750,9 @@
     });
 
     const activateLevelElevator = function () {
-        animation = true;
+        cancelAnimationFrame(levelReq);
         data.levelDelta *= -1;
-        dispatch('animate');
+        levelReq = requestAnimationFrame(updateLevelShift);
     };
 
     const shiftDown = (e) => {
@@ -753,15 +779,7 @@
                     showLevelCurves = !showLevelCurves;
                     break;
                 case 'p':
-                    data.animateTime = !data.animateTime;
-                    if (data.animateTime) {
-                        animation = true;
-                        dispatch('animate');
-                        showLevelCurves = false;
-                    } else {
-                        animation = false;
-                        data.last = null;
-                    }
+                    animation = !animation;
                     break;
             }
         }
@@ -821,8 +839,20 @@
                     className="form-control form-control-sm {name === 'c'
                         ? 'box-1'
                         : 'box-4'}"
-                    checker={(val) =>
-                        Number.isFinite(math.parse(val).evaluate())}
+                    checker={(val) => {
+                        const A = math.evaluate(params.a);
+                        const B = math.evaluate(params.b);
+                        let parsedVal;
+                        try {
+                            parsedVal = math
+                                .parse(val)
+                                .evaluate({ x: (A + B) / 2 });
+                        } catch (e) {
+                            console.error(e);
+                            return false;
+                        }
+                        return Number.isFinite(parsedVal);
+                    }}
                     value={params[name]}
                     {name}
                     on:cleared={(e) => {
@@ -898,19 +928,20 @@
                     />
                 {/each}
 
-                <span class="box-1">
-                    <M size="sm">{texString1}</M>
+                <span class="box-1 ">
+                    <span class="t-box">t = {texString1}</span>
                 </span>
                 <input
                     type="range"
-                    bind:value={data.tau}
+                    bind:value={tau}
                     min="0"
                     max="1"
                     step="0.001"
                     on:input={() => {
                         const t0 = math.evaluate(params.t0);
                         const t1 = math.evaluate(params.t1);
-                        const t = t0 + data.tau * (t1 - t0);
+                        const t = t0 + tau * (t1 - t0);
+                        texString1 = (Math.round(100 * t) / 100).toString();
                         evolveSurface(t);
                         render();
                     }}
@@ -918,14 +949,14 @@
                 />
 
                 <PlayButtons
-                    bind:animation={data.animateTime}
+                    bind:animation
                     on:animate
-                    on:pause={() => (data.last = null)}
+                    on:pause={() => (last = null)}
                     on:stop={() => {
-                        data.tau = 0;
-                        data.last = null;
+                        tau = 0;
+                        last = null;
                     }}
-                    on:rew={() => (data.tau = 0)}
+                    on:rew={() => (tau = 0)}
                 />
                 <!-- </div> -->
             {/if}
@@ -1010,5 +1041,10 @@
     .hidden {
         display: none;
         background-color: aliceblue;
+    }
+    .t-box {
+        display: inline-block;
+        width: 40%;
+        text-align: left;
     }
 </style>

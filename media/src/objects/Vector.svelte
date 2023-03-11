@@ -48,7 +48,7 @@
     export let color = '#FF0000';
     let tau = 0;
     let last;
-    let texString1 = `t `;
+    let texString1;
 
     // display controls in objects panel
     // considered for Chapters that add many objects that need not be user-configurable.
@@ -228,10 +228,13 @@
     };
     // Should be reactive
     $: if (animation) {
+        dispatch('animate');
         const currentTime = $tickTock;
         last = last || currentTime;
         update(currentTime - last);
         last = currentTime;
+    } else {
+        // last = null;
     }
 </script>
 
