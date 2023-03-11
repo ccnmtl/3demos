@@ -19,7 +19,7 @@
 </script>
 
 <script>
-    import { onMount, onDestroy } from 'svelte';
+    import { onMount, onDestroy, createEventDispatcher } from 'svelte';
     // import { slide } from 'svelte/transition';
     import * as THREE from 'three';
     import { tickTock } from '../stores';
@@ -63,6 +63,8 @@
     export let selected;
 
     let hidden = false;
+
+    const dispatch = createEventDispatcher();
 
     const arrowMaterial = new THREE.MeshPhongMaterial({
         color: color,
@@ -112,14 +114,6 @@
 
         arrow.geometry.adjustHeight(Math.max(1e-6, v.length()));
 
-        // if (v.length() > 0) {
-        //     console.log(v.length());
-        //     arrow.geometry.adjustHeight(v.length());
-        //     arrow.visible = true;
-        // } else {
-        //     arrow.visible = false;
-        // }
-
         arrow.lookAt(v.add(arrow.position));
 
         arrow.name = uuid;
@@ -138,7 +132,10 @@
         render();
     }
 
-    onMount(() => {});
+    onMount(() => {
+        // console.log('mountin\'');
+        if (animation) dispatch('animate');
+    });
     onDestroy(() => {
         onDestroyObject(arrow);
         if (arrow) {
@@ -226,15 +223,18 @@
 
         updateVector(T);
     };
-    // Should be reactive
+
+    // Start animating if animation changes (e.g. animating scene published)
     $: if (animation) {
         dispatch('animate');
+    }
+    $: if (animation) {
         const currentTime = $tickTock;
         last = last || currentTime;
         update(currentTime - last);
         last = currentTime;
     } else {
-        // last = null;
+        last = null;
     }
 </script>
 
