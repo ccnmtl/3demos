@@ -18,6 +18,7 @@
     import InputChecker from '../form-components/InputChecker.svelte';
 
     import { tickTock } from '../stores';
+    import PlayButtons from '../form-components/PlayButtons.svelte';
 
     const config = {};
     const math = create(all, config);
@@ -104,25 +105,11 @@
         const T = A + (B - A) * tau;
         updateFrame({ T });
     };
-    // Should be reactive
-    $: if (animation) {
-        const currentTime = $tickTock;
-        update(currentTime - last);
-        last = currentTime;
-    }
-
-    /**
-     * Eval x, y, and z mathjs objects on the given t value.
-     *
-     * Catch mathjs errors as necessary.
-     *
-     * Returns a three.js Vector.
-     */
 
     let TNB = false;
     let osculatingCircle = false;
     let hidden = false;
-    let stopButton, rewButton;
+    // let stopButton, rewButton;
 
     const curveMaterial = new THREE.MeshPhongMaterial({
         color: color,
@@ -162,9 +149,9 @@
         const A = math.parse(a).evaluate();
         const B = math.parse(b).evaluate();
 
-        if (animation) {
-            startAnimation(false);
-        }
+        // if (animation) {
+        //     startAnimation(false);
+        // }
 
         let path = new ParametricCurve(1, xyz, A, B);
         let geometry = new THREE.TubeGeometry(
@@ -345,18 +332,29 @@
         render();
     };
 
-    const startAnimation = (toggleState = false) => {
+    // Start animating if animation changes (e.g. animating scene published)
+    // Two ifs because one reacts only to animation changing and the other
+    // to the $tickTock.
+    $: if (animation) {
         frame.visible = true;
-        last = $tickTock;
-        if (toggleState) {
-            animation = !animation;
-        }
+        dispatch('animate');
+    }
+    $: if (animation) {
+        const currentTime = $tickTock;
+        last = last || currentTime;
+        update(currentTime - last);
+        last = currentTime;
+    } else {
+        last = null;
+    }
+
+    onMount(() => {
+        updateCurve();
         if (animation) {
+            frame.visible = true;
             dispatch('animate');
         }
-    };
-
-    onMount(updateCurve);
+    });
     onDestroy(() => {
         onDestroyObject(tube);
 
@@ -436,7 +434,7 @@
                     render();
                     break;
                 case 'p':
-                    startAnimation(true);
+                    animation = !animation;
                     break;
                 case 's':
                     TNB = !TNB;
@@ -557,7 +555,18 @@
                 />
                 <span class="slider round" />
             </label>
-            <span class="play-buttons box-4">
+
+            <PlayButtons
+                bind:animation
+                on:animate
+                on:pause={() => (last = null)}
+                on:stop={() => {
+                    tau = 0;
+                    last = null;
+                }}
+                on:rew={() => (tau = 0)}
+            />
+            <!-- <span class="play-buttons box-4">
                 <button class="btn box-1" on:click={() => startAnimation(true)}>
                     {#if !animation}
                         <i class="fa fa-play" />
@@ -585,7 +594,7 @@
                 >
                     <i class="fa fa-fast-backward" />
                 </button>
-            </span>
+            </span> -->
 
             <span class="box-1">Reparamterize by <M>s</M></span>
             <label class="switch box box-2">

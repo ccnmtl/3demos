@@ -3,23 +3,11 @@
     const config = {};
     const math = create(all, config);
 
-    /**
-     * Checks if math expression has a dependence on ch
-     * Should probably live elsewhere, but may want to export it
-     */
-    export const dependsOn = (parms, ch = 't') =>
-        Object.keys(parms).some((key) => {
-            const nodes = math.parse(parms[key]).filter((node) => {
-                return node.isSymbolNode;
-            });
-            return nodes.some((node) => node.name === ch);
-        });
-
-    // console.log('Depends test', dependsOn({ x: 'sin(t) + 5' }));
+    import { dependsOn } from './Vector.svelte';
 </script>
 
 <script>
-    import { onMount, onDestroy } from 'svelte';
+    import { onMount, onDestroy, createEventDispatcher } from 'svelte';
     // import { slide } from 'svelte/transition';
     import * as THREE from 'three';
     import { tickTock } from '../stores';
@@ -69,6 +57,8 @@
 
     let hidden = false;
 
+    const dispatch = createEventDispatcher();
+
     const pointMaterial = new THREE.MeshLambertMaterial({ color });
     const point = new THREE.Mesh(
         new THREE.SphereGeometry(gridStep / 8, 16, 16),
@@ -111,7 +101,9 @@
         render();
     }
 
-    onMount(() => {});
+    onMount(() => {
+        if (animation) dispatch('animate');
+    });
     onDestroy(() => {
         onDestroyObject(point);
         // if (point) {
@@ -168,20 +160,6 @@
         return valuation;
     };
 
-    const stringifyT = function (tau) {
-        let { t0, t1 } = params;
-        // console.log(t0, t1);
-        t0 = t0 || '0';
-        t1 = t1 || '1';
-        const [A, B] = [t0, t1].map((x) => math.parse(x).evaluate());
-
-        const t = A + (B - A) * tau;
-
-        return (Math.round(100 * t) / 100).toString();
-    };
-
-    $: texString1 = `${stringifyT(tau)}`;
-
     // texString1 = `t = ${Math.round(100 * T) / 100}`;
 
     const update = (dt = 0) => {
@@ -193,15 +171,21 @@
         if (tau > 1 || tau < 0) tau %= 1;
 
         const T = A + (B - A) * tau;
+        texString1 = (Math.round(100 * T) / 100).toString();
 
         updatePoint(T);
     };
-    // Should be reactive
+    // Start animating if animation changes (e.g. animating scene published)
+    $: if (animation) {
+        dispatch('animate');
+    }
     $: if (animation) {
         const currentTime = $tickTock;
         last = last || currentTime;
         update(currentTime - last);
         last = currentTime;
+    } else {
+        last = null;
     }
 </script>
 
@@ -275,8 +259,12 @@
                     on:stop={() => {
                         tau = 0;
                         last = null;
+                        update();
                     }}
-                    on:rew={() => (tau = 0)}
+                    on:rew={() => {
+                        tau = 0;
+                        update();
+                    }}
                 />
                 <!-- </div> -->
             {/if}

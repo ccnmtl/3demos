@@ -19,7 +19,7 @@
 </script>
 
 <script>
-    import { onMount, onDestroy } from 'svelte';
+    import { onMount, onDestroy, createEventDispatcher } from 'svelte';
     // import { slide } from 'svelte/transition';
     import * as THREE from 'three';
     import { tickTock } from '../stores';
@@ -48,7 +48,7 @@
     export let color = '#FF0000';
     let tau = 0;
     let last;
-    let texString1 = `t `;
+    let texString1;
 
     // display controls in objects panel
     // considered for Chapters that add many objects that need not be user-configurable.
@@ -63,6 +63,8 @@
     export let selected;
 
     let hidden = false;
+
+    const dispatch = createEventDispatcher();
 
     const arrowMaterial = new THREE.MeshPhongMaterial({
         color: color,
@@ -112,14 +114,6 @@
 
         arrow.geometry.adjustHeight(Math.max(1e-6, v.length()));
 
-        // if (v.length() > 0) {
-        //     console.log(v.length());
-        //     arrow.geometry.adjustHeight(v.length());
-        //     arrow.visible = true;
-        // } else {
-        //     arrow.visible = false;
-        // }
-
         arrow.lookAt(v.add(arrow.position));
 
         arrow.name = uuid;
@@ -138,7 +132,10 @@
         render();
     }
 
-    onMount(() => {});
+    onMount(() => {
+        // console.log('mountin\'');
+        if (animation) dispatch('animate');
+    });
     onDestroy(() => {
         onDestroyObject(arrow);
         if (arrow) {
@@ -198,22 +195,6 @@
         return valuation;
     };
 
-    const stringifyT = function (tau) {
-        let { t0, t1 } = params;
-        // console.log(t0, t1);
-        t0 = t0 || '0';
-        t1 = t1 || '1';
-        const [A, B] = [t0, t1].map((x) => math.parse(x).evaluate());
-
-        const t = A + (B - A) * tau;
-
-        return (Math.round(100 * t) / 100).toString();
-    };
-
-    $: texString1 = `${stringifyT(tau)}`;
-
-    // texString1 = `t = ${Math.round(100 * T) / 100}`;
-
     const update = (dt = 0) => {
         const { t0, t1 } = params;
         const A = math.parse(t0).evaluate();
@@ -224,14 +205,22 @@
 
         const T = A + (B - A) * tau;
 
+        texString1 = (Math.round(100 * T) / 100).toString();
+
         updateVector(T);
     };
-    // Should be reactive
+
+    // Start animating if animation changes (e.g. animating scene published)
+    $: if (animation) {
+        dispatch('animate');
+    }
     $: if (animation) {
         const currentTime = $tickTock;
         last = last || currentTime;
         update(currentTime - last);
         last = currentTime;
+    } else {
+        last = null;
     }
 </script>
 
@@ -299,7 +288,7 @@
                     min="0"
                     max="1"
                     step="0.001"
-                    on:input={() => update()}
+                    on:input={update}
                     class="box box-2"
                 />
 
@@ -310,8 +299,12 @@
                     on:stop={() => {
                         tau = 0;
                         last = null;
+                        update();
                     }}
-                    on:rew={() => (tau = 0)}
+                    on:rew={() => {
+                        tau = 0;
+                        update();
+                    }}
                 />
                 <!-- </div> -->
             {/if}
