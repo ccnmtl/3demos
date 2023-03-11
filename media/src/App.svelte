@@ -1021,6 +1021,19 @@
                                         animation: true,
                                     },
                                     {
+                                        uuid: '34point22',
+                                        kind: 'point',
+                                        params: {
+                                            a: 'cos(2 t)',
+                                            b: 'sin(2 t)',
+                                            c: 'cos(2 t) + sin(2 t)',
+                                            t0: '0',
+                                            t1: '2 pi',
+                                        },
+                                        color: '#FF0000',
+                                        animation: false,
+                                    },
+                                    {
                                         uuid: 345,
                                         kind: 'vector',
                                         params: {
@@ -1054,6 +1067,19 @@
                                         },
                                         color: '#aa33ff',
                                         animation: false,
+                                    },
+                                    {
+                                        uuid: '34point22',
+                                        kind: 'point',
+                                        params: {
+                                            a: 'cos(2 t)',
+                                            b: 'sin(2 t)',
+                                            c: 'cos(2 t) + sin(2 t)',
+                                            t0: '0',
+                                            t1: '2*pi',
+                                        },
+                                        color: '#FF0000',
+                                        animation: true,
                                     },
                                     {
                                         uuid: 345,
