@@ -195,22 +195,6 @@
         return valuation;
     };
 
-    // const stringifyT = function (tau) {
-    //     let { t0, t1 } = params;
-    //     // console.log(t0, t1);
-    //     t0 = t0 || '0';
-    //     t1 = t1 || '1';
-    //     const [A, B] = [t0, t1].map((x) => math.parse(x).evaluate());
-
-    //     const t = A + (B - A) * tau;
-
-    //     return (Math.round(100 * t) / 100).toString();
-    // };
-
-    // $: texString1 = `${stringifyT(tau)}`;
-
-    // texString1 = `t = ${Math.round(100 * T) / 100}`;
-
     const update = (dt = 0) => {
         const { t0, t1 } = params;
         const A = math.parse(t0).evaluate();
@@ -304,7 +288,7 @@
                     min="0"
                     max="1"
                     step="0.001"
-                    on:input={() => update()}
+                    on:input={update}
                     class="box box-2"
                 />
 
@@ -315,8 +299,12 @@
                     on:stop={() => {
                         tau = 0;
                         last = null;
+                        update();
                     }}
-                    on:rew={() => (tau = 0)}
+                    on:rew={() => {
+                        tau = 0;
+                        update();
+                    }}
                 />
                 <!-- </div> -->
             {/if}
