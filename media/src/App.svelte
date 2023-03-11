@@ -37,12 +37,14 @@
     let scaleUpdate;
     let selectedObject = null;
     let hoveredObject = null;
+    let selectedPoint = null;
 
     const selectObject = (uuid) => {
         selectedObject = uuid;
     };
 
     let canvas;
+    let isPollsOpen = false;
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(
@@ -426,6 +428,8 @@
             document.body.style.cursor = 'auto';
         });
         renderer.domElement.addEventListener('click', onClick);
+        objectResponses = new THREE.Group();
+        scene.add(objectResponses);
     });
 
     let currentChapter = 'Intro';
@@ -436,6 +440,13 @@
     // The chat buffer: an array of objects.
     let chatBuffer = [];
     const chatLineCount = 5;
+    const pointGeometry = new THREE.SphereGeometry(0.2 / 8, 16, 16);
+    const pollMaterial = new THREE.MeshLambertMaterial({
+        color: 0xffff33,
+        transparent: true,
+        opacity: 0.5
+    });
+    let objectResponses;
 
     const makeQueryStringObject = function () {
         const flattenedObjects = {
@@ -464,6 +475,14 @@
         } else if (data.message.pollResponse) {
             const sessionKey = data.message.session_key;
             pollResponses[sessionKey] = data.message.pollResponse;
+            if (data.message.poll === 'select point') {
+                isPollsOpen = false;
+                let xyz = pollResponses[sessionKey];
+                let response = new THREE.Mesh(pointGeometry, pollMaterial);
+                response.position.set(xyz[0], xyz[1], xyz[2]);
+                objectResponses.add(response);
+                render();
+            }
         } else if (data.message.broadcastPoll) {
             currentPoll = handlePollEvent(data);
         } else if (data.message.updateActiveUsers) {
@@ -560,7 +579,10 @@
                {roomId}
                {currentPoll}
                {altDown}
-               />
+               bind:selectedPoint
+               {objectResponses}
+               bind:isPollsOpen
+        />
 
         <canvas class="flex-grow-1" tabIndex="0" id="c"
                 bind:this={canvas} />

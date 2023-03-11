@@ -4,6 +4,7 @@
     export let currentPoll;
     export let socket;
     export let isHost;
+    export let selectedPoint;
 
     let submitted = false;
     let response = null;
@@ -27,11 +28,18 @@
                     response = el.value;
                 }
             });
+        } else if (currentPoll.type == 'select point') {
+            response = [
+                selectedPoint.position.x.toFixed(2),
+                selectedPoint.position.y.toFixed(2),
+                selectedPoint.position.z.toFixed(2)
+            ]
         }
 
         // Send response over websocket
         socket.send(JSON.stringify({
             message: {
+                poll: currentPoll.type,
                 pollResponse: response
             }
         }));
@@ -58,7 +66,14 @@
                     Response submitted!
                 </p>
                 <p>
-                    Your answer: {response}
+                    Your answer: 
+                    {#if currentPoll.type == 'select point'}
+                        x: {response[0]},
+                        y: {response[1]},
+                        z: {response[2]}
+                    {:else}
+                        {response}
+                    {/if}
                 </p>
             {:else}
             <form on:submit={handleOnSubmit}>

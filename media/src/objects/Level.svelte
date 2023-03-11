@@ -34,6 +34,8 @@
     export let render = () => {};
     export let onClose = () => {};
     export let selected;
+    export let selectedPoint;
+    $: selectedPoint = selected ? point : selectedPoint;
 
     export let camera,
         controls,

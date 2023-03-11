@@ -101,6 +101,8 @@
     export let onClose = () => {};
     export let animation = false;
     export let selected;
+    export let selectedPoint;
+    $: selectedPoint = selected ? point : selectedPoint;
 
     let hidden = false;
 
@@ -170,8 +172,8 @@
         color: 0x4b4b4b,
         shininess: 80,
         side: THREE.DoubleSide,
-        transparent: false,
-        opacity: 1,
+        transparent: true,
+        opacity: 0.5,
     });
     const planeShard = new THREE.Mesh(undefined, shardMaterial);
     planeShard.visible = false;

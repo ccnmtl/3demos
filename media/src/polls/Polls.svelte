@@ -8,6 +8,10 @@
 
     export let socket;
     export let pollResponses;
+    export let objectResponses;
+    export let userResponseList;
+    export let isPollsOpen;
+    export let render;
 
     let polls = loadPolls();
     // Init empty polls to some basic examples
@@ -17,7 +21,8 @@
                      'Question test', ['a', 'b', 'c']),
             new Poll('multiple choice',
                      'Question test 2', ['a', 'b', 'c', 'd']),
-            new Poll('numeric', 'What is the square root of 2?')
+            new Poll('numeric', 'What is the square root of 2?'),
+            new Poll('select point', 'Select your favorite point.')
         ];
     }
 
@@ -70,6 +75,7 @@
     };
 
     const onClickBroadcast = function(e, p) {
+        userResponseList = {};
         pollResponses = {};
         currentPollType = p.type;
 
@@ -77,7 +83,11 @@
         broadcastPoll(p, socket);
 
         // Open responses pane
-        activeTab = 'responses';
+        if (currentPollType !== 'select point') {
+            activeTab = 'responses';
+        } else {
+            isPollsOpen = false;
+        }
 
         // Old-school workaround for sveltestrap bug:
         // https://github.com/bestguy/sveltestrap/issues/485
@@ -151,7 +161,7 @@
             </TabPane>
         <TabPane tabId="responses" tab="Responses"
                  active={activeTab === 'responses'}>
-            <PollResponses bind:currentPollType bind:pollResponses />
+            <PollResponses bind:currentPollType bind:pollResponses {objectResponses} {render}/>
         </TabPane>
     </TabContent>
 </div>
