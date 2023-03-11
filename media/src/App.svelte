@@ -52,7 +52,7 @@
         labelAxes,
         makeHSLColor,
         convertToURLParams,
-        modFloor
+        modFloor,
     } from './utils';
     import {
         makeObject,
@@ -592,9 +592,13 @@
                     if (!selectedObject) {
                         selectedObject = objects[objects.length - 1].uuid;
                     } else {
-                        const selectedIndex = objects.map((x) => x.uuid).indexOf(
-                            selectedObject);
-                        const newIdx = modFloor(selectedIndex - 1, objects.length);
+                        const selectedIndex = objects
+                            .map((x) => x.uuid)
+                            .indexOf(selectedObject);
+                        const newIdx = modFloor(
+                            selectedIndex - 1,
+                            objects.length
+                        );
                         selectedObject = objects[newIdx].uuid;
                     }
                     break;
@@ -607,9 +611,13 @@
                     if (!selectedObject) {
                         selectedObject = objects[0].uuid;
                     } else {
-                        const selectedIndex = objects.map((x) => x.uuid).indexOf(
-                            selectedObject);
-                        const newIdx = modFloor(selectedIndex + 1, objects.length);
+                        const selectedIndex = objects
+                            .map((x) => x.uuid)
+                            .indexOf(selectedObject);
+                        const newIdx = modFloor(
+                            selectedIndex + 1,
+                            objects.length
+                        );
                         selectedObject = objects[newIdx].uuid;
                     }
                     break;
@@ -1009,32 +1017,24 @@
                                             y: 'sin(t)',
                                             z: '0',
                                         },
+                                        color: '#aa33ff',
+                                        animation: true,
                                     },
                                     {
-                                        uuid: '42ee3',
-                                        kind: 'parsurf',
+                                        uuid: 345,
+                                        kind: 'vector',
                                         params: {
-                                            a: '-1',
-                                            b: '1',
-                                            c: '-1',
-                                            d: '1',
-                                            x: 'sin(u)*cos(v)',
-                                            y: 'sin(u)*sin(v)',
-                                            z: 'cos(u)',
+                                            a: 'cos(t)',
+                                            b: 'sin(t)',
+                                            c: '1',
+                                            x: 'cos(t)',
+                                            y: 'sin(t)',
+                                            z: '0',
+                                            t0: '0',
+                                            t1: '2*pi',
                                         },
-                                    },
-                                    {
-                                        uuid: '423',
-                                        kind: 'parsurf',
-                                        params: {
-                                            a: '0',
-                                            b: '2*pi',
-                                            c: '0',
-                                            d: '2*pi',
-                                            x: 'u',
-                                            y: 'v - 3 + u^2/5',
-                                            z: '-cos(v 5)/3',
-                                        },
+                                        color: '#ff33ff',
+                                        animation: false,
                                     },
                                 ];
                             }}>Reset 1</button
@@ -1043,47 +1043,78 @@
                             on:click={() => {
                                 objects = [
                                     {
-                                        uuid: '423',
-                                        kind: 'parsurf',
-                                        params: {
-                                            a: '-2',
-                                            b: '2',
-                                            c: '-2',
-                                            d: '2',
-                                            x: 'u + v',
-                                            y: 'u - v',
-                                            z: '-cos(v 5)/3',
-                                            nX: 80,
-                                        },
-                                    },
-                                    {
-                                        uuid: '42ee3',
-                                        kind: 'parsurf',
-                                        params: {
-                                            a: '-1',
-                                            b: '1',
-                                            c: '-1',
-                                            d: '1',
-                                            x: 'sin(u)*cos(v)',
-                                            y: 'sin(u)*sin(v)',
-                                            z: 'cos(u)',
-                                            nX: 80,
-                                        },
-                                    },
-                                    {
                                         uuid: 34,
                                         kind: 'curve',
                                         params: {
                                             a: '0',
                                             b: '2*pi',
-                                            x: 'cos(2 * t)',
-                                            y: 'sin(2 * t)',
-                                            z: 't / (2 * pi)',
+                                            x: 'cos(t)',
+                                            y: 'sin(t)',
+                                            z: '0',
                                         },
-                                        color: '#ff332a',
+                                        color: '#aa33ff',
+                                        animation: false,
+                                    },
+                                    {
+                                        uuid: 345,
+                                        kind: 'vector',
+                                        params: {
+                                            a: 'cos(t)',
+                                            b: 'sin(t)',
+                                            c: '1',
+                                            x: 'cos(t)',
+                                            y: 'sin(t)',
+                                            z: '0',
+                                            t0: '0',
+                                            t1: '2*pi',
+                                        },
+                                        color: '#ff33ff',
+                                        animation: true,
                                     },
                                 ];
                             }}>Reset 2</button
+                        >
+                        <button
+                            on:click={() => {
+                                objects = [
+                                    {
+                                        uuid: 'agraph3847',
+                                        kind: 'graph',
+                                        params: {
+                                            a: '-1',
+                                            b: '1',
+                                            c: '-1',
+                                            d: '1',
+                                            z: 'x^2 - 3*cos(t) * x * y + y^2',
+                                            t0: '0',
+                                            t1: '2*pi',
+                                        },
+                                        color: '#ff33ff',
+                                        animation: true,
+                                    },
+                                ];
+                            }}>anim func</button
+                        >
+                        <button
+                            on:click={() => {
+                                objects = [
+                                    {
+                                        uuid: 'agraph3847',
+                                        kind: 'graph',
+                                        params: {
+                                            a: '-1',
+                                            b: '1',
+                                            c: '-1',
+                                            d: '1',
+                                            z: 'x^2 - 3*cos(t) * x * y + y^2',
+                                            t0: '0',
+                                            t1: '2*pi',
+                                        },
+                                        color: '#ff33ff',
+                                        animation: false,
+                                    },
+                                ];
+                            }}>unanim func</button
                         >
                     </div>
                 </div>
