@@ -195,19 +195,19 @@
         return valuation;
     };
 
-    const stringifyT = function (tau) {
-        let { t0, t1 } = params;
-        // console.log(t0, t1);
-        t0 = t0 || '0';
-        t1 = t1 || '1';
-        const [A, B] = [t0, t1].map((x) => math.parse(x).evaluate());
+    // const stringifyT = function (tau) {
+    //     let { t0, t1 } = params;
+    //     // console.log(t0, t1);
+    //     t0 = t0 || '0';
+    //     t1 = t1 || '1';
+    //     const [A, B] = [t0, t1].map((x) => math.parse(x).evaluate());
 
-        const t = A + (B - A) * tau;
+    //     const t = A + (B - A) * tau;
 
-        return (Math.round(100 * t) / 100).toString();
-    };
+    //     return (Math.round(100 * t) / 100).toString();
+    // };
 
-    $: texString1 = `${stringifyT(tau)}`;
+    // $: texString1 = `${stringifyT(tau)}`;
 
     // texString1 = `t = ${Math.round(100 * T) / 100}`;
 
@@ -220,6 +220,8 @@
         if (tau > 1 || tau < 0) tau %= 1;
 
         const T = A + (B - A) * tau;
+
+        texString1 = (Math.round(100 * T) / 100).toString();
 
         updateVector(T);
     };
