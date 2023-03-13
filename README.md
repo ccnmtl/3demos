@@ -11,6 +11,7 @@ This project comprises of two main parts:
   [three.js](https://threejs.org/). The main JavaScript code can be
   found in `media/src/`.
 
+
 ## Start-up steps:
 Install [Redis](https://redis.io/) and start the redis service.
 ```
