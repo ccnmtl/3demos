@@ -84,6 +84,19 @@ class RoomsConsumer(AsyncWebsocketConsumer):
 
         scene = RedisScene(self.room_id)
         state = scene.get_state()
+
+        if message.get('chatMessage'):
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'chat_event',
+                    'message': message,
+                    'session_key': session.session_key,
+                    'host': state.get('host'),
+                }
+            )
+            return
+
         # Update new scene state in redis
         if message.get('newObject'):
             obj = message.get('newObject')
@@ -113,8 +126,13 @@ class RoomsConsumer(AsyncWebsocketConsumer):
             }
         )
 
-    # Receive message from room group
     async def room_event(self, event):
+        """
+        Receive a room event for the room group.
+
+        Room events happen when object state changes, or
+        users join or disconnect.
+        """
         message = event['message']
         session = self.scope['session']
 
@@ -122,6 +140,26 @@ class RoomsConsumer(AsyncWebsocketConsumer):
         # Well, except for the updateActiveUsers event.
         if 'updateActiveUsers' not in message and \
            event.get('session_key') == session.session_key:
+            return
+
+        # Send out the update to any room participants
+        await self.send(text_data=json.dumps({
+            'message': message
+        }))
+
+    async def chat_event(self, event):
+        """
+        Receive a chat event for the room group.
+        """
+        message = event['message']
+        session = self.scope['session']
+
+        # Don't send chat events to myself.
+        if event.get('session_key') == session.session_key:
+            return
+
+        # Don't receive a chat event if I'm not the host
+        if event.get('host') != session.session_key:
             return
 
         # Send out the update to any room participants
