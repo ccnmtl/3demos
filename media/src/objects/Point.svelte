@@ -41,7 +41,7 @@
 
     let tau = 0;
     let last;
-    let texString1 = `t `;
+    let texString1 = '';
 
     // display controls in objects panel
     // considered for Chapters that add many objects that need not be user-configurable.

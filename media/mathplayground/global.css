@@ -205,6 +205,12 @@ input:focus + .slider {
     height: 0;
 }
 
+.t-box {
+    display: inline-block;
+    min-width: 5em;
+    text-align: left;
+}
+
 .chapterBox .collapse-info,
 .chapterBox article,
 .objectBoxOuter {

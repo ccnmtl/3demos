@@ -48,7 +48,7 @@
     export let color = '#FF0000';
     let tau = 0;
     let last;
-    let texString1;
+    let texString1 = '';
 
     // display controls in objects panel
     // considered for Chapters that add many objects that need not be user-configurable.
@@ -289,11 +289,12 @@
                     min="0"
                     max="1"
                     step="0.001"
-                    on:input={update}
+                    on:input={() => update()}
                     class="box box-2"
                 />
 
                 <PlayButtons
+                    className="box box-2"
                     bind:animation
                     on:animate
                     on:pause={() => (last = null)}
@@ -327,10 +328,5 @@
 <style>
     .dynamic-container {
         grid-column: 0 / 5;
-    }
-    .t-box {
-        display: inline-block;
-        width: 40%;
-        text-align: left;
     }
 </style>
