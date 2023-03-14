@@ -717,9 +717,9 @@
                             bind:roomId
                             bind:socket
                             bind:objects
-                            bind:isHost
                             bind:currentPoll
                             bind:chatBuffer
+                            {isHost}
                         />
                     {:else if currentChapter === 'Intro'}
                         <Intro />

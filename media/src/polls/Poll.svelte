@@ -3,6 +3,7 @@
 
     export let currentPoll;
     export let socket;
+    export let isHost;
 
     let submitted = false;
     let response = null;
@@ -47,7 +48,7 @@
 </script>
 
 
-{#if currentPoll}
+{#if currentPoll && !isHost}
     <div class="card">
         <div class="card-body">
             {#if submitted}
