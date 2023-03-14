@@ -308,9 +308,10 @@
 
     onMount(() => {
         updateField();
-        initFlowArrows(flowArrows);
+        maxLength = initFlowArrows(flowArrows, gridMax, params.nVec);
         updateFlowArrows(flowArrows, fieldF, 0);
         render();
+        if (animation) dispatch('animate');
     });
     onDestroy(() => {
         onDestroyObject(flowArrows);
@@ -333,11 +334,18 @@
 
     // animation loop
     let last = null;
+
     $: if (animation) {
         const currentTime = $tickTock;
         last = last || currentTime;
+        if (!trails.geometry.attributes.position) {
+            maxLength = initFlowArrows(flowArrows, gridMax, params.nVec);
+        }
         update(currentTime - last);
         last = currentTime;
+    }
+    $: if (animation) {
+        dispatch('animate');
     }
 
     const onKeyDown = (e) => {
