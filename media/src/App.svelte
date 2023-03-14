@@ -18,7 +18,7 @@
 
     // import components
     import M from './M.svelte';
-    import ParSurf from './objects/ParSurf.svelte';
+    import Surface from './objects/Surface.svelte';
     import Level from './objects/Level.svelte';
     import Curve from './objects/Curve.svelte';
     import Field from './objects/Field.svelte';
@@ -34,7 +34,7 @@
         graph: Function,
         curve: Curve,
         level: Level,
-        parsurf: ParSurf,
+        surface: Surface,
     };
 
     import Stats from 'stats.js';
@@ -918,7 +918,7 @@
                                         on:click={() =>
                                             (objects = makeObject(
                                                 null,
-                                                'parsurf',
+                                                'surface',
                                                 {
                                                     a: '0',
                                                     b: '2*pi',
