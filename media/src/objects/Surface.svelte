@@ -13,12 +13,15 @@
     import {
         ArrowBufferGeometry,
         lcm,
+        colorBufferVertices,
         marchingSegments,
-        // marchingCubes,
+        vMaxMin,
+        blueUpRedDown,
         checksum,
         ParametricGeometry,
     } from "../utils.js";
     import InputChecker from "../form-components/InputChecker.svelte";
+    import ColorBar from "../settings/ColorBar.svelte";
     // import ObjectParamInput from '../form-components/ObjectParamInput.svelte';
 
     export let uuid;
@@ -39,7 +42,152 @@
     let cNum = 10;
     let nX = 60;
 
+    let chooseDensity = false;
+    let densityString = "1";
+    let compiledDensity;
+    let densityFunc;
     // export let myId;
+
+    const colorMaterial = new THREE.MeshPhongMaterial({
+        color: 0xffffff,
+        shininess: 70,
+        side: THREE.DoubleSide,
+        vertexColors: true,
+    });
+
+    // const testCase = () => {
+    //     const geometry = new THREE.BufferGeometry();
+
+    //     const indices = [];
+
+    //     const vertices = [];
+    //     const normals = [];
+    //     let colors = [];
+
+    //     const size = 20;
+    //     const segments = 10;
+
+    //     const halfSize = size / 2;
+    //     const segmentSize = size / segments;
+
+    //     // generate vertices, normals and color data for a simple grid geometry
+
+    //     for (let i = 0; i <= segments; i++) {
+    //         const y = i * segmentSize - halfSize;
+
+    //         for (let j = 0; j <= segments; j++) {
+    //             const x = j * segmentSize - halfSize;
+
+    //             vertices.push(x, -y, 0);
+    //             normals.push(0, 0, 1);
+
+    //             const r = x / size + 0.5;
+    //             const g = y / size + 0.5;
+
+    //             colors.push(r, g, 1);
+    //         }
+    //     }
+
+    //     // generate indices (data for element array buffer)
+
+    //     for (let i = 0; i < segments; i++) {
+    //         for (let j = 0; j < segments; j++) {
+    //             const a = i * (segments + 1) + (j + 1);
+    //             const b = i * (segments + 1) + j;
+    //             const c = (i + 1) * (segments + 1) + j;
+    //             const d = (i + 1) * (segments + 1) + (j + 1);
+
+    //             // generate two faces (triangles) per iteration
+
+    //             indices.push(a, b, d); // face one
+    //             indices.push(b, c, d); // face two
+    //         }
+    //     }
+
+    //     //
+
+    //     geometry.setIndex(indices);
+    //     geometry.setAttribute(
+    //         "position",
+    //         new THREE.Float32BufferAttribute(vertices, 3)
+    //     );
+    //     geometry.setAttribute(
+    //         "normal",
+    //         new THREE.Float32BufferAttribute(normals, 3)
+    //     );
+    //     geometry.setAttribute(
+    //         "color",
+    //         new THREE.Float32BufferAttribute(colors, 3)
+    //     );
+
+    //     testMesh = new THREE.MeshPhongMaterial({
+    //         side: THREE.DoubleSide,
+    //         vertexColors: true,
+    //     });
+
+    //     testMesh = new THREE.Mesh(geometry, colorMaterial);
+    //     scene.add(testMesh);
+
+    //     colors = [];
+
+    //     const geo = surfaceMesh.children[0].geometry;
+
+    //     const { count, itemSize } = geo.attributes.color;
+    //     for (let index = 0; index < count; index++) {
+    //         colors.push(1, 0.5, 0.5);
+    //     }
+    //     geo.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+    //     geo.attributes.color.needsUpdate = true;
+    // };
+
+    // const colorMaterial = new THREE.MeshPhongMaterial({
+    //     side: THREE.DoubleSide,
+    //     vertexColors: true,
+    // });
+
+    const colorMeBadd = (mesh, f) => {
+        let [vMax, vMin] = vMaxMin(mesh, f);
+        if (vMax == vMin) {
+            if (vMax == 0) {
+                vMax = 1;
+                vMin = -1;
+            } else {
+                vMax = (4 / 3) * Math.abs(vMax);
+                vMin = (-4 / 3) * Math.abs(vMin);
+            }
+        }
+        console.log(
+            vMin,
+            vMax,
+            ((x, y, z) => {
+                const value = f(x, y, z);
+                return blueUpRedDown((2 * (value - vMin)) / (vMax - vMin) - 1);
+            })(0.5, 1, 1)
+        );
+        colorBufferVertices(mesh, (x, y, z) => {
+            const value = f(x, y, z);
+            return blueUpRedDown((2 * (value - vMin)) / (vMax - vMin) - 1);
+        });
+    };
+
+    $: if (chooseDensity) {
+        densityString = densityString || "1";
+        compiledDensity = math.parse(densityString).compile();
+        densityFunc = (x, y, z) => compiledDensity.evaluate({ x, y, z });
+
+        if (densityFunc) {
+            surfaceMesh.children[1].visible = false;
+            colorMeBadd(surfaceMesh.children[0], densityFunc);
+            surfaceMesh.children[0].material = colorMaterial;
+        }
+        render();
+    } else {
+        if (surfaceMesh) {
+            surfaceMesh.children[1].visible = true;
+            surfaceMesh.children[0].material = plusMaterial;
+            render();
+        }
+    }
 
     let xyz;
 
@@ -104,7 +252,7 @@
         color: 0xff3232,
         shininess: 80,
         side: THREE.BackSide,
-        vertexColors: false,
+        vertexColors: true,
         transparent: true,
         opacity: 0.7,
     });
@@ -586,66 +734,57 @@
                 />
             {/each}
 
-            <input
-                class="form-control form-control-sm box box-1"
-                value={params.a}
-                on:change={(e) => {
-                    const val = e.target.value;
-                    if (chickenParms(params.x, params)) {
-                        params.a = val;
-                        e.target.classList.remove("is-invalid");
-                        // updateSurface();
-                    } else {
-                        e.target.classList.add("is-invalid");
-                    }
-                }}
-            />
+            {#each ["a", "b"] as name}
+                {#if name === "b"}
+                    <span class="box box-3"
+                        ><M size="sm">{"\\leq u \\leq "}</M></span
+                    >
+                {/if}
+                <InputChecker
+                    className="form-control form-control-sm {name === 'a'
+                        ? 'box-1'
+                        : 'box-4'}"
+                    checker={(val) =>
+                        Number.isFinite(math.parse(val).evaluate())}
+                    value={params[name]}
+                    {name}
+                    on:cleared={(e) => {
+                        params[name] = e.detail;
+                    }}
+                />
+            {/each}
 
-            <span class="box box-3"><M size="sm">\leq u \leq</M></span>
-            <input
-                class="form-control form-control-sm box box-4"
-                value={params.b}
-                on:change={(e) => {
-                    const val = e.target.value;
-                    if (chickenParms(params.x, params)) {
-                        params.b = val;
-                        e.target.classList.remove("is-invalid");
-                        // updateSurface();
-                    } else {
-                        e.target.classList.add("is-invalid");
-                    }
-                }}
-            />
-
-            <input
-                class="form-control form-control-sm box box-1"
-                value={params.c}
-                on:change={(e) => {
-                    const val = e.target.value;
-                    if (chickenParms(params.x, params)) {
-                        params.c = val;
-                        e.target.classList.remove("is-invalid");
-                        // updateSurface();
-                    } else {
-                        e.target.classList.add("is-invalid");
-                    }
-                }}
-            />
-            <span class="box box-3"><M size="sm">\leq v \leq</M></span>
-            <input
-                class="form-control form-control-sm box box-4"
-                value={params.d}
-                on:change={(e) => {
-                    const val = e.target.value;
-                    if (chickenParms(params.x, params)) {
-                        params.d = val;
-                        e.target.classList.remove("is-invalid");
-                        // updateSurface();
-                    } else {
-                        e.target.classList.add("is-invalid");
-                    }
-                }}
-            />
+            {#each ["c", "d"] as name}
+                {#if name === "d"}
+                    <span class="box box-3"
+                        ><M size="sm">{"\\leq v \\leq "}</M></span
+                    >
+                {/if}
+                <InputChecker
+                    className="form-control form-control-sm {name === 'c'
+                        ? 'box-1'
+                        : 'box-4'}"
+                    checker={(val) => {
+                        const A = math.evaluate(params.a);
+                        const B = math.evaluate(params.b);
+                        let parsedVal;
+                        try {
+                            parsedVal = math
+                                .parse(val)
+                                .evaluate({ u: (A + B) / 2 });
+                        } catch (e) {
+                            console.error(e);
+                            return false;
+                        }
+                        return Number.isFinite(parsedVal);
+                    }}
+                    value={params[name]}
+                    {name}
+                    on:cleared={(e) => {
+                        params[name] = e.detail;
+                    }}
+                />
+            {/each}
 
             <span class="box-1"><M size="sm">u</M>-meshes</span>
             <input
@@ -674,16 +813,62 @@
                 step="5"
                 class="box box-2"
             />
-
-            <span class="box box-2">
+            <span class="box-1"> Density </span>
+            <label class="switch box box-3">
                 <input
-                    type="color"
-                    name="colorPicker"
-                    id="colorPicker"
-                    bind:value={color}
-                    style="width:85%; padding: 1px 1px;"
+                    type="checkbox"
+                    name="chooseDensity"
+                    id="chooseDensity"
+                    bind:checked={chooseDensity}
                 />
-            </span>
+                <span class="slider round" />
+            </label>
+
+            {#if chooseDensity}
+                <ColorBar vMin={0} vMax={1} />
+                <span class="box-1"><M size="sm">f(x,y,z) =</M></span>
+                <InputChecker
+                    value={densityString}
+                    checker={(val) => {
+                        const vec = new THREE.Vector3();
+                        xyz(0.5, 0.5, vec);
+
+                        let parsedVal;
+                        try {
+                            parsedVal = math
+                                .parse(val)
+                                .evaluate({ x: vec.x, y: vec.y, z: vec.z });
+                        } catch (e) {
+                            console.error(e);
+                            return false;
+                        }
+                        return Number.isFinite(parsedVal);
+                    }}
+                    name={"f"}
+                    {params}
+                    on:cleared={(e) => {
+                        compiledDensity = math.parse(e.detail).compile();
+                        densityFunc = (x, y, z) =>
+                            compiledDensity.evaluate({ x, y, z });
+                        colorMeBadd(surfaceMesh.children[0], densityFunc);
+                        // surfaceMesh.children[0].geometry.attributes.color.needsUpdate = true;
+                        // surfaceMesh.children[0].material = colorMaterial;
+                        // surfaceMesh.children[0].material = plusMaterial;
+                        render();
+                        densityString = e.detail;
+                    }}
+                />
+            {:else}
+                <span class="box box-2">
+                    <input
+                        type="color"
+                        name="colorPicker"
+                        id="colorPicker"
+                        bind:value={color}
+                        style="width:85%; padding: 1px 1px;"
+                    />
+                </span>
+            {/if}
         </div>
     </div>
 </div>
