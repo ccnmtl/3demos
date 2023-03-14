@@ -1,11 +1,11 @@
 <script>
-    import { onMount, onDestroy } from 'svelte';
-    import * as THREE from 'three';
-    import { create, all } from 'mathjs';
+    import { onMount, onDestroy } from "svelte";
+    import * as THREE from "three";
+    import { create, all } from "mathjs";
     // import { beforeUpdate } from 'svelte';
 
-    import M from '../M.svelte';
-    import ObjHeader from '../ObjHeader.svelte';
+    import M from "../M.svelte";
+    import ObjHeader from "../ObjHeader.svelte";
 
     const config = {};
     const math = create(all, config);
@@ -17,8 +17,8 @@
         // marchingCubes,
         checksum,
         ParametricGeometry,
-    } from '../utils.js';
-    import InputChecker from '../form-components/InputChecker.svelte';
+    } from "../utils.js";
+    import InputChecker from "../form-components/InputChecker.svelte";
     // import ObjectParamInput from '../form-components/ObjectParamInput.svelte';
 
     export let uuid;
@@ -26,15 +26,15 @@
     export let onDestroyObject = function () {};
 
     export let params = {
-        a: '-2',
-        b: '2',
-        c: '-2',
-        d: '1 + sin(pi*u)/2',
-        x: 'u',
-        y: 'v',
-        z: '1 - sin(u^2 - v^2)/2',
+        a: "-2",
+        b: "2",
+        c: "-2",
+        d: "1 + sin(pi*u)/2",
+        x: "u",
+        y: "v",
+        z: "1 - sin(u^2 - v^2)/2",
     };
-    export let color = '#3232ff';
+    export let color = "#3232ff";
     let rNum = 10;
     let cNum = 10;
     let nX = 60;
@@ -68,13 +68,13 @@
             const v = (C.evaluate({ u }) + D.evaluate({ u })) / 2;
             valuation = V.evaluate({ u, v });
         } catch (error) {
-            console.log('ParseError in evaluation.', error);
+            console.log("ParseError in evaluation.", error);
             return false;
         }
         if (Number.isFinite(valuation)) {
             return true;
         } else {
-            console.log('Evaluation error. Incomplete expression, maybe.');
+            console.log("Evaluation error. Incomplete expression, maybe.");
             return false;
         }
     };
@@ -333,8 +333,8 @@
         }
         scene.remove(surfaceMesh);
         scene.remove(tanFrame);
-        window.removeEventListener('keydown', shiftDown, false);
-        window.removeEventListener('keyup', shiftUp, false);
+        window.removeEventListener("keydown", shiftDown, false);
+        window.removeEventListener("keyup", shiftUp, false);
         render();
     });
 
@@ -436,13 +436,13 @@
             const arrow = arrows[key];
             let vec;
             switch (key) {
-                case 'u':
+                case "u":
                     vec = ru;
                     break;
-                case 'v':
+                case "v":
                     vec = rv;
                     break;
-                case 'n':
+                case "n":
                     vec = n;
                     break;
 
@@ -512,15 +512,15 @@
     const shiftDown = (e) => {
         if (shadeUp) {
             switch (e.key) {
-                case 'Backspace':
+                case "Backspace":
                     surfaceMesh.visible = !surfaceMesh.visible;
                     render();
                     break;
-                case 'Shift':
-                    window.addEventListener('mousemove', onMouseMove, false);
+                case "Shift":
+                    window.addEventListener("mousemove", onMouseMove, false);
                     tanFrame.visible = true;
                     break;
-                case 'c':
+                case "c":
                     controls.target.set(
                         point.position.x,
                         point.position.y,
@@ -528,11 +528,11 @@
                     );
                     render();
                     break;
-                case 't':
+                case "t":
                     tanFrame.visible = !tanFrame.visible;
                     render();
                     break;
-                case 'y':
+                case "y":
                     if (!planeShard.visible) {
                         tanFrame.visible = true;
                         planeShard.visible = true;
@@ -541,7 +541,7 @@
                     }
                     render();
                     break;
-                case 'n':
+                case "n":
                     if (!arrows.n.visible) {
                         tanFrame.visible = true;
                         arrows.n.visible = true;
@@ -556,13 +556,13 @@
     };
 
     const shiftUp = (e) => {
-        if (e.key === 'Shift') {
-            window.removeEventListener('mousemove', onMouseMove);
+        if (e.key === "Shift") {
+            window.removeEventListener("mousemove", onMouseMove);
         }
     };
 
-    window.addEventListener('keydown', shiftDown, false);
-    window.addEventListener('keyup', shiftUp, false);
+    window.addEventListener("keydown", shiftDown, false);
+    window.addEventListener("keyup", shiftUp, false);
 </script>
 
 <div class="boxItem" class:selected on:click on:keydown>
@@ -572,7 +572,7 @@
     </div>
     <div {hidden}>
         <div class="threedemos-container container">
-            {#each ['x', 'y', 'z'] as name}
+            {#each ["x", "y", "z"] as name}
                 <span class="box-1"><M size="sm">{name}(u,v) =</M></span>
                 <InputChecker
                     value={params[name]}
@@ -593,10 +593,10 @@
                     const val = e.target.value;
                     if (chickenParms(params.x, params)) {
                         params.a = val;
-                        e.target.classList.remove('is-invalid');
+                        e.target.classList.remove("is-invalid");
                         // updateSurface();
                     } else {
-                        e.target.classList.add('is-invalid');
+                        e.target.classList.add("is-invalid");
                     }
                 }}
             />
@@ -609,10 +609,10 @@
                     const val = e.target.value;
                     if (chickenParms(params.x, params)) {
                         params.b = val;
-                        e.target.classList.remove('is-invalid');
+                        e.target.classList.remove("is-invalid");
                         // updateSurface();
                     } else {
-                        e.target.classList.add('is-invalid');
+                        e.target.classList.add("is-invalid");
                     }
                 }}
             />
@@ -624,10 +624,10 @@
                     const val = e.target.value;
                     if (chickenParms(params.x, params)) {
                         params.c = val;
-                        e.target.classList.remove('is-invalid');
+                        e.target.classList.remove("is-invalid");
                         // updateSurface();
                     } else {
-                        e.target.classList.add('is-invalid');
+                        e.target.classList.add("is-invalid");
                     }
                 }}
             />
@@ -639,10 +639,10 @@
                     const val = e.target.value;
                     if (chickenParms(params.x, params)) {
                         params.d = val;
-                        e.target.classList.remove('is-invalid');
+                        e.target.classList.remove("is-invalid");
                         // updateSurface();
                     } else {
-                        e.target.classList.add('is-invalid');
+                        e.target.classList.add("is-invalid");
                     }
                 }}
             />
