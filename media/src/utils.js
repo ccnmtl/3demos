@@ -1713,6 +1713,158 @@ const modFloor = function(a, n) {
     return ((a % n) + n) % n;
 };
 
+/**
+ * @callback oneVarFunc
+ * @param {number} x
+ * @returns {number}
+ */
+
+/**
+ * @callback twoVarFunc
+ * @param {number} x
+ * @param {number} y
+ * @returns {number}
+ */
+
+/**
+ * Geometry for solid regions
+ */
+class RectangularSolidGeometry extends THREE.BufferGeometry {
+    /**
+     * 
+     * @param {number} a 
+     * @param {number} b 
+     * @param {number|oneVarFunc} c 
+     * @param {number|oneVarFunc} d
+     * @param {number|twoVarFunc} e 
+     * @param {number|twoVarFunc} f 
+     * @param {number} [nX=30] nX resolution in x direction
+     * @param {number} [ny=30] ny resolution in y direction
+     */
+    constructor (a,b,c,d,e,f, nX=30, nY=30) {
+        super();
+
+        const points = [];
+        const normals = [];
+        const uvs = [];
+
+        // let pindex = 0;
+        // let nindex = 0
+
+        const dx = (b - a) / nX;
+        let dy = (d(a) - c(a)) /nY
+        let dy1;
+        // bottom
+
+ 
+        let sw, nw, se, ne;
+
+        for (let i = 0; i < nX; i++) {
+            dy1 = (d(a + (i + 1)*dx) - c(a + (i + 1)*dx) ) / nY;
+            for (let j = 0; j < nY; j++) {
+                sw = [a + i*dx, c(a + i*dx) + j*dy, e(a + i*dx, c(a + i*dx) + j*dy)]
+                nw = [a + i*dx, c(a + i*dx) + (j + 1)*dy, e(a + i*dx, c(a + i*dx) + (j + 1)*dy)]
+                se = [a + (i + 1)*dx, c(a + (i + 1)*dx) + j*dy1, e(a + (i + 1)*dx, c(a + (i + 1)*dx) + j*dy1)]
+                ne = [a + (i + 1)*dx, c(a + (i + 1)*dx) + (j + 1)*dy1, e(a + (i + 1)*dx, c(a + (i + 1)*dx) + (j + 1)*dy1)]
+                // two tris
+                points.push(...sw)
+                points.push(...nw)
+                points.push(...se)
+                points.push(...se)
+                points.push(...nw)
+                points.push(...ne)
+            }
+            dy = dy1
+        }
+
+        // top 
+
+        dy = (d(a) - c(a)) /nY
+        for (let i = 0; i < nX; i++) {
+            dy1 = (d(a + (i + 1)*dx) - c(a + (i + 1)*dx) ) / nY;
+            for (let j = 0; j < nY; j++) {
+                sw = [a + i*dx, c(a + i*dx) + j*dy, f(a + i*dx, c(a + i*dx) + j*dy)]
+                nw = [a + i*dx, c(a + i*dx) + (j + 1)*dy, f(a + i*dx, c(a + i*dx) + (j + 1)*dy)]
+                se = [a + (i + 1)*dx, c(a + (i + 1)*dx) + j*dy1, f(a + (i + 1)*dx, c(a + (i + 1)*dx) + j*dy1)]
+                ne = [a + (i + 1)*dx, c(a + (i + 1)*dx) + (j + 1)*dy1, f(a + (i + 1)*dx, c(a + (i + 1)*dx) + (j + 1)*dy1)]
+                // two tris
+                points.push(...sw)
+                points.push(...nw)
+                points.push(...se)
+                points.push(...se)
+                points.push(...nw)
+                points.push(...ne)
+            }
+            dy = dy1
+        }
+
+        // front
+        for (let i = 0; i < nX; i++) {
+            sw = [a + i*dx, c(a + i*dx), e(a + i*dx, c(a + i*dx))]
+            nw = [a + i*dx, c(a + i*dx), f(a + i*dx, c(a + i*dx))]
+            se = [a + (i + 1)*dx, c(a + (i + 1)*dx), e(a + (i + 1)*dx, c(a + (i + 1)*dx))]
+            ne = [a + (i + 1)*dx, c(a + (i + 1)*dx), f(a + (i + 1)*dx, c(a + (i + 1)*dx))]
+            // two tris
+            points.push(...sw)
+            points.push(...se)
+            points.push(...nw)
+            points.push(...nw)
+            points.push(...se)
+            points.push(...ne)
+        }
+
+        // left
+        dy = (d(a) - c(a)) / nY;
+        for (let i = 0; i < nY; i++) {
+            sw = [a, c(a) + i*dy, e(a, c(a) + i*dy)]
+            nw = [a, c(a) + i*dy, f(a, c(a) + i*dy)]
+            se = [a, c(a) + (i + 1)*dy, e(a, c(a) + (i + 1)*dy)]
+            ne = [a, c(a) + (i + 1)*dy, f(a, c(a) + (i + 1)*dy)]
+            // two tris
+            points.push(...se)
+            points.push(...sw)
+            points.push(...nw)
+            points.push(...se)
+            points.push(...nw)
+            points.push(...ne)
+        }
+
+        // right
+        dy = (d(b) - c(b)) / nY;
+        for (let i = 0; i < nY; i++) {
+            sw = [b, c(b) + i*dy, e(b, c(b) + i*dy)]
+            nw = [b, c(b) + i*dy, f(b, c(b) + i*dy)]
+            se = [b, c(b) + (i + 1)*dy, e(b, c(b) + (i + 1)*dy)]
+            ne = [b, c(b) + (i + 1)*dy, f(b, c(b) + (i + 1)*dy)]
+            // two tris
+            points.push(...se)
+            points.push(...sw)
+            points.push(...nw)
+            points.push(...se)
+            points.push(...nw)
+            points.push(...ne)
+        }
+
+        // back
+        for (let i = 0; i < nY; i++) {
+            sw = [a + i*dx, d(a + i*dx), e(a + i*dx, d(a + i*dx))]
+            nw = [a + i*dx, d(a + i*dx), f(a + i*dx, d(a + i*dx))]
+            se = [a + (i + 1)*dx, d(a + (i + 1)*dx), e(a + (i + 1)*dx, d(a + (i + 1)*dx))]
+            ne = [a + (i + 1)*dx, d(a + (i + 1)*dx), f(a + (i + 1)*dx, d(a + (i + 1)*dx))]
+            // two tris
+            points.push(...se)
+            points.push(...sw)
+            points.push(...nw)
+            points.push(...se)
+            points.push(...nw)
+            points.push(...ne)
+        }
+
+        this.setAttribute('position', new THREE.Float32BufferAttribute(points,3))
+        this.computeVertexNormals();
+    }
+}
+
 export {
     joinUrl,
     getRoomUrl,
@@ -1731,6 +1883,7 @@ export {
     freeChildren,
     adjustArrowHeight,
     ParametricGeometry,
+    RectangularSolidGeometry,
     nextHue,
     makeHSLColor,
     blockGeometry,

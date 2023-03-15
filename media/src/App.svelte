@@ -25,6 +25,7 @@
     import Function from './objects/Function.svelte';
     import Vector from './objects/Vector.svelte';
     import Point from './objects/Point.svelte';
+    import Solid from './objects/Solid.svelte';
     import Settings from './settings/Settings.svelte';
 
     const kindToComponent = {
@@ -35,6 +36,7 @@
         curve: Curve,
         level: Level,
         surface: Surface,
+        solid: Solid,
     };
 
     import Stats from 'stats.js';
@@ -934,6 +936,33 @@
                                         Parametric Surface <M size="sm"
                                             >\mathbf r(u,v)</M
                                         >
+                                    </DropdownItem>
+                                    <DropdownItem
+                                        on:click={() => {
+                                            objects = [
+                                                ...objects,
+                                                {
+                                                    uuid: crypto.randomUUID(),
+                                                    kind: 'solid',
+                                                    params: {
+                                                        coords: 'rect',
+                                                        a: '0',
+                                                        b: '1',
+                                                        c: '0',
+                                                        d: '1',
+                                                        e: '0',
+                                                        f: '(x + y) / 2',
+                                                        t0: '0',
+                                                        t1: '1',
+                                                    },
+                                                    color: `#${makeHSLColor(
+                                                        Math.random()
+                                                    ).getHexString()}`,
+                                                },
+                                            ];
+                                        }}
+                                    >
+                                        Solid Region <M size="sm">E</M>
                                     </DropdownItem>
                                     <DropdownItem
                                         on:click={() => {
