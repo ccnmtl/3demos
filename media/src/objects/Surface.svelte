@@ -609,7 +609,6 @@
 
         // tangents
         if (tanFrame.visible) {
-            console.log(point);
             const u = point.uv.x;
             const v = point.uv.y;
             const [U, V] = abcd(u, v);
@@ -661,7 +660,7 @@
     onMount(() => {
         params.t0 = params.t0 || '0';
         params.t1 = params.t1 || '1';
-        updateSurface();
+        // updateSurface();
         if (animation) dispatch('animate');
     });
     // afterUpdate(() => {
@@ -1029,7 +1028,19 @@
                     }}
                     class="box box-2"
                 />
-
+                <span class="box-1" style="text-align: center;">
+                    Tangents&nbsp;
+                    <label class="switch box box-3">
+                        <input
+                            type="checkbox"
+                            name="tangentsToggle"
+                            id="tangentsToggle"
+                            bind:checked={tanFrame.visible}
+                            on:change={render}
+                        />
+                        <span class="slider round" />
+                    </label>
+                </span>
                 <PlayButtons
                     bind:animation
                     on:animate
@@ -1146,6 +1157,7 @@
 
     .colorbar-container {
         grid-column: 1 / -1;
-        height: 30px;
+        height: 2.5rem;
+        margin-bottom: 5px;
     }
 </style>
