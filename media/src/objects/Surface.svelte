@@ -1,14 +1,19 @@
 <script>
-    import { onMount, onDestroy } from "svelte";
-    import * as THREE from "three";
-    import { create, all } from "mathjs";
+    import { onMount, onDestroy, createEventDispatcher } from 'svelte';
+    import * as THREE from 'three';
+    import { create, all } from 'mathjs';
     // import { beforeUpdate } from 'svelte';
 
-    import M from "../M.svelte";
-    import ObjHeader from "../ObjHeader.svelte";
+    import { dependsOn } from './Vector.svelte';
+    import M from '../M.svelte';
+    import ObjHeader from '../ObjHeader.svelte';
+    import PlayButtons from '../form-components/PlayButtons.svelte';
+    import { tickTock } from '../stores';
 
     const config = {};
     const math = create(all, config);
+
+    const dispatch = createEventDispatcher();
 
     import {
         ArrowBufferGeometry,
@@ -19,9 +24,9 @@
         blueUpRedDown,
         checksum,
         ParametricGeometry,
-    } from "../utils.js";
-    import InputChecker from "../form-components/InputChecker.svelte";
-    import ColorBar from "../settings/ColorBar.svelte";
+    } from '../utils.js';
+    import InputChecker from '../form-components/InputChecker.svelte';
+    import ColorBar from '../settings/ColorBar.svelte';
     // import ObjectParamInput from '../form-components/ObjectParamInput.svelte';
 
     export let uuid;
@@ -29,23 +34,34 @@
     export let onDestroyObject = function () {};
 
     export let params = {
-        a: "-2",
-        b: "2",
-        c: "-2",
-        d: "1 + sin(pi*u)/2",
-        x: "u",
-        y: "v",
-        z: "1 - sin(u^2 - v^2)/2",
+        a: '-2',
+        b: '2',
+        c: '-2',
+        d: '1 + sin(pi*u)/2',
+        x: 'u',
+        y: 'v',
+        z: '1 - sin(u^2 - v^2)/2',
+        t0: '0',
+        t1: '1',
     };
-    export let color = "#3232ff";
+    export let color = '#3232ff';
+
+    export let animation = false;
+
     let rNum = 10;
     let cNum = 10;
     let nX = 60;
 
+    let tau = 0;
+    let last = null;
+    let texString1 = '';
+
     let chooseDensity = false;
-    let densityString = "1";
+    let densityString = '1';
     let compiledDensity;
     let densityFunc;
+    let vMin = -1;
+    let vMax = 1;
     // export let myId;
 
     const colorMaterial = new THREE.MeshPhongMaterial({
@@ -146,7 +162,7 @@
     // });
 
     const colorMeBadd = (mesh, f) => {
-        let [vMax, vMin] = vMaxMin(mesh, f);
+        [vMax, vMin] = vMaxMin(mesh, f);
         if (vMax == vMin) {
             if (vMax == 0) {
                 vMax = 1;
@@ -156,14 +172,7 @@
                 vMin = (-4 / 3) * Math.abs(vMin);
             }
         }
-        console.log(
-            vMin,
-            vMax,
-            ((x, y, z) => {
-                const value = f(x, y, z);
-                return blueUpRedDown((2 * (value - vMin)) / (vMax - vMin) - 1);
-            })(0.5, 1, 1)
-        );
+
         colorBufferVertices(mesh, (x, y, z) => {
             const value = f(x, y, z);
             return blueUpRedDown((2 * (value - vMin)) / (vMax - vMin) - 1);
@@ -171,7 +180,7 @@
     };
 
     $: if (chooseDensity) {
-        densityString = densityString || "1";
+        densityString = densityString || '1';
         compiledDensity = math.parse(densityString).compile();
         densityFunc = (x, y, z) => compiledDensity.evaluate({ x, y, z });
 
@@ -190,39 +199,66 @@
     }
 
     let xyz;
+    let abcd;
 
+    // compile (in the math.js sense) each expression once they change
+    // and thus have been cleared
     $: {
         const [x, y, z] = [params.x, params.y, params.z].map((f) =>
             math.parse(f).compile()
         );
-        xyz = (u, v, vec) =>
+        xyz = (u, v, vec, t = 0) =>
             vec.set(
-                x.evaluate({ u, v }),
-                y.evaluate({ u, v }),
-                z.evaluate({ u, v })
+                x.evaluate({ u, v, t }),
+                y.evaluate({ u, v, t }),
+                z.evaluate({ u, v, t })
             );
     }
+    $: {
+        const [a, b] = [params.a, params.b].map((f) => math.evaluate(f));
+        const [c, d] = [params.c, params.d].map((f) => math.parse(f).compile());
 
+        // take uv on unit square to actual uv coords for parametricgeom
+        abcd = (u, v) => [
+            a + u * (b - a),
+            c.evaluate({ u: a + u * (b - a) }) * (1 - v) +
+                d.evaluate({ u: a + u * (b - a) }) * v,
+        ];
+    }
+
+    $: isDynamic = dependsOn(params, 't');
     // Only run the update if the params have changed.
     $: hashTag = checksum(JSON.stringify(params));
     $: hashTag, updateSurface();
 
     // Check midpoint of parameter space and see if all is ok.
-    const chickenParms = (val, { a, b, c, d }) => {
+    const chickenParms = (val, { a, b, c, d, t0, t1 }) => {
         let valuation;
         try {
-            const [A, B, C, D, V] = math.parse([a, b, c, d, val]);
+            const [A, B, C, D, T0, T1, V] = math.parse([
+                a,
+                b,
+                c,
+                d,
+                t0,
+                t1,
+                val,
+            ]);
             const u = (A.evaluate() + B.evaluate()) / 2;
             const v = (C.evaluate({ u }) + D.evaluate({ u })) / 2;
-            valuation = V.evaluate({ u, v });
+            valuation = V.evaluate({
+                u,
+                v,
+                t: T0.evaluate() / 2 + T1.evaluate() / 2,
+            });
         } catch (error) {
-            console.log("ParseError in evaluation.", error);
+            console.log('ParseError in evaluation.', error);
             return false;
         }
         if (Number.isFinite(valuation)) {
             return true;
         } else {
-            console.log("Evaluation error. Incomplete expression, maybe.");
+            console.log('Evaluation error. Incomplete expression, maybe.');
             return false;
         }
     };
@@ -283,20 +319,19 @@
 
     const updateSurface = function () {
         // console.log(`I'm ${myId} and I'm updatin'.`);
-        const { a, b, c, d, x, y, z } = params;
-        const A = math.parse(a).evaluate(),
-            B = math.parse(b).evaluate();
-        const [C, D, X, Y, Z] = math.parse([c, d, x, y, z]);
+        const { t0, t1 } = params;
+        // const { a, b, c, d, t0, t1 } = params;
+        // const A = math.parse(a).evaluate();
+        // const B = math.parse(b).evaluate();
+        // const [C, D] = math.parse([c, d]);
+        const time = t0
+            ? math.evaluate(t0) + tau * (math.evaluate(t1) - math.evaluate(t0))
+            : 0;
+
         const geometry = new ParametricGeometry(
             (u, v, vec) => {
-                const U = A + (B - A) * u;
-                const uv = {
-                    u: U,
-                    v:
-                        (1 - v) * C.evaluate({ u: U }) +
-                        v * D.evaluate({ u: U }),
-                };
-                vec.set(X.evaluate(uv), Y.evaluate(uv), Z.evaluate(uv));
+                const [U, V] = abcd(u, v);
+                xyz(U, V, vec, time);
             },
             nX || 30,
             nX || 30
@@ -337,27 +372,38 @@
             // mesh.visible = false;
             scene.add(surfaceMesh);
         }
+        if (chooseDensity && densityFunc)
+            colorMeBadd(surfaceMesh.children[0], densityFunc);
 
         tanFrame.visible = false;
         tangentVectors({ uv: new THREE.Vector2(0, 0) });
+
+        console.log('hello', geometry.attributes, meshGeometry.attributes);
         render();
     };
 
     const meshLines = function (rData, rNum = 10, cNum = 10, nX = 60) {
-        let { a, b, c, d, x, y, z } = rData;
+        let { a, b, c, d, x, y, z, t0, t1 } = rData;
         // const N = lcm(lcm(rNum, cNum), nX);
         const A = math.parse(a).evaluate(),
             B = math.parse(b).evaluate();
         [c, d, x, y, z] = math.parse([c, d, x, y, z]);
 
+        const T0 = t0 ? math.evaluate(t0) : 0;
+        const T1 = t1 ? math.evaluate(t1) : 1;
+
+        const t = T0 + tau * (T1 - T0);
+
         const du = (B - A) / rNum;
         const dx = (B - A) / lcm(nX, cNum);
         const points = [];
+        const uvs = [];
         for (let u = A; u <= B; u += du) {
             const C = c.evaluate({ u: u }),
                 D = d.evaluate({ u: u });
             const dy = (D - C) / lcm(nX, rNum);
-            const params = { u: u, v: C };
+            const params = { u: u, v: C, t };
+            uvs.push(params.u, params.v);
             points.push(
                 new THREE.Vector3(
                     x.evaluate(params),
@@ -367,6 +413,7 @@
             );
             for (let v = C + dy; v < D; v += dy) {
                 params.v = v;
+                uvs.push(params.u, params.v);
                 points.push(
                     new THREE.Vector3(
                         x.evaluate(params),
@@ -374,6 +421,7 @@
                         z.evaluate(params)
                     )
                 );
+                uvs.push(params.u, params.v);
                 points.push(
                     new THREE.Vector3(
                         x.evaluate(params),
@@ -383,6 +431,7 @@
                 );
             }
             params.v = D;
+            uvs.push(params.u, params.v);
             points.push(
                 new THREE.Vector3(
                     x.evaluate(params),
@@ -393,7 +442,7 @@
         }
 
         // v-Meshes
-        const params = { u: A };
+        const params = { u: A, t };
         (cMin = c.evaluate(params)), (dMax = d.evaluate(params));
         for (let u = A + dx; u <= B; u += dx) {
             params.u = u;
@@ -413,6 +462,7 @@
             for (let u = A; u <= B - dx + tol; u += dx) {
                 params.u = u;
                 if (c.evaluate(params) <= v && v <= d.evaluate(params)) {
+                    uvs.push(params.u, params.v);
                     points.push(
                         new THREE.Vector3(
                             x.evaluate(params),
@@ -422,6 +472,7 @@
                     );
                     if (nextZero < u + dx) {
                         params.u = nextZero;
+                        uvs.push(params.u, params.v);
                         points.push(
                             new THREE.Vector3(
                                 x.evaluate(params),
@@ -432,6 +483,7 @@
                         nextZero = zs.shift();
                     } else {
                         params.u = u + dx;
+                        uvs.push(params.u, params.v);
                         points.push(
                             new THREE.Vector3(
                                 x.evaluate(params),
@@ -443,6 +495,7 @@
                 } else {
                     if (nextZero < u + dx) {
                         params.u = nextZero;
+                        uvs.push(params.u, params.v);
                         points.push(
                             new THREE.Vector3(
                                 x.evaluate(params),
@@ -452,6 +505,7 @@
                         );
                         nextZero = zs.shift();
                         params.u = u + dx;
+                        uvs.push(params.u, params.v);
                         points.push(
                             new THREE.Vector3(
                                 x.evaluate(params),
@@ -465,11 +519,151 @@
         }
 
         const geometry = new THREE.BufferGeometry().setFromPoints(points);
+        geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+        // console.log("meshlines", geometry.attributes);
         return geometry;
     };
 
+    const evolveSurface = function (t) {
+        // the front and back surfaces share a geometry. The meshlines are separate
+        let geometry = surfaceMesh.children[0].geometry;
+        let positions = geometry.attributes.position.array;
+        const normals = geometry.attributes.normal.array;
+        let colors;
+        if (chooseDensity) {
+            colors = geometry.attributes.color.array;
+        }
+        let uvs = geometry.attributes.uv.array;
+
+        const vec = new THREE.Vector3();
+        const ru = new THREE.Vector3();
+        const rv = new THREE.Vector3();
+        const dx = 1e-4;
+
+        let uindex = 0;
+        let pindex = 0;
+        let nindex = 0;
+        let cindex = 0;
+        for (let i = 0; i < uvs.length / 2; i++) {
+            const u = uvs[uindex++];
+            const v = uvs[uindex++];
+            const [U, V] = abcd(u, v);
+            xyz(U, V, vec, t);
+            const { x, y, z } = vec;
+            positions[pindex++] = x;
+            positions[pindex++] = y;
+            positions[pindex++] = z;
+
+            // normals
+
+            xyz(U + dx, V, ru, t);
+            xyz(U, V + dx, rv, t);
+            ru.sub(vec).cross(rv.sub(vec)).normalize();
+
+            normals[nindex++] = ru.x;
+            normals[nindex++] = ru.y;
+            normals[nindex++] = ru.z;
+
+            if (chooseDensity && densityFunc) {
+                const rgb = blueUpRedDown(
+                    (2 * (densityFunc(x, y, z) - vMin)) / (vMax - vMin) - 1
+                );
+                colors[cindex++] = rgb.r;
+                colors[cindex++] = rgb.g;
+                colors[cindex++] = rgb.b;
+            }
+        }
+
+        geometry.attributes.normal.needsUpdate = true;
+        geometry.attributes.position.needsUpdate = true;
+        if (chooseDensity && densityFunc) {
+            geometry.attributes.color.needsUpdate = true;
+        }
+
+        geometry.computeBoundingBox();
+        geometry.computeBoundingSphere();
+
+        // meshes
+        geometry = surfaceMesh.children[2].geometry;
+        positions = geometry.attributes.position.array;
+        uvs = geometry.attributes.uv.array;
+
+        uindex = 0;
+        pindex = 0;
+        for (let i = 0; i < uvs.length / 2; i++) {
+            const u = uvs[uindex++];
+            const v = uvs[uindex++];
+            xyz(u, v, vec, t);
+            const { x, y, z } = vec;
+            positions[pindex++] = x;
+            positions[pindex++] = y;
+            positions[pindex++] = z;
+        }
+
+        // console.log("meshin'", geometry.attributes);
+
+        geometry.attributes.position.needsUpdate = true;
+
+        geometry.computeBoundingBox();
+        geometry.computeBoundingSphere();
+
+        // tangents
+        if (tanFrame.visible) {
+            console.log(point);
+            const u = point.uv.u;
+            const v = point.uv.v;
+            const [U, V] = abcd(u, v);
+
+            xyz(U, V, vec, t);
+
+            point.position.copy(vec);
+
+            tangentVectors();
+        }
+    };
+
+    const update = function (dt) {
+        const t0 = math.parse(params.t0).evaluate();
+        const t1 = math.parse(params.t1).evaluate();
+
+        texString1 = (
+            Math.round(100 * (t0 + tau * (t1 - t0))) / 100
+        ).toString();
+
+        if (animation) {
+            tau += dt / (t1 - t0);
+            tau %= 1;
+            const t = t0 + tau * (t1 - t0);
+
+            evolveSurface(t);
+        }
+
+        render();
+    };
+
+    // Reacts once when `animation` changes
+    // Useful it the objects file is updated with new flag
+    $: if (animation) {
+        dispatch('animate');
+    }
+
+    // Reacts when `animation` or the ticktock store change
+    $: if (animation) {
+        const currentTime = $tickTock;
+        last = last || currentTime;
+        update(currentTime - last);
+        last = currentTime;
+    } else {
+        last = null;
+    }
+
     // onMount(updateSurface);
-    onMount(() => {});
+    onMount(() => {
+        params.t0 = params.t0 || '0';
+        params.t1 = params.t1 || '1';
+        updateSurface();
+        if (animation) dispatch('animate');
+    });
     // afterUpdate(() => {
     //     console.log('Ima a surface. My params are ', params);
     // });
@@ -481,8 +675,8 @@
         }
         scene.remove(surfaceMesh);
         scene.remove(tanFrame);
-        window.removeEventListener("keydown", shiftDown, false);
-        window.removeEventListener("keyup", shiftUp, false);
+        window.removeEventListener('keydown', shiftDown, false);
+        window.removeEventListener('keyup', shiftUp, false);
         render();
     });
 
@@ -584,13 +778,13 @@
             const arrow = arrows[key];
             let vec;
             switch (key) {
-                case "u":
+                case 'u':
                     vec = ru;
                     break;
-                case "v":
+                case 'v':
                     vec = rv;
                     break;
-                case "n":
+                case 'n':
                     vec = n;
                     break;
 
@@ -651,6 +845,8 @@
 
             const uv = intersect.uv;
 
+            point.uv = uv;
+
             tangentVectors({ uv });
 
             render();
@@ -660,15 +856,15 @@
     const shiftDown = (e) => {
         if (shadeUp) {
             switch (e.key) {
-                case "Backspace":
+                case 'Backspace':
                     surfaceMesh.visible = !surfaceMesh.visible;
                     render();
                     break;
-                case "Shift":
-                    window.addEventListener("mousemove", onMouseMove, false);
+                case 'Shift':
+                    window.addEventListener('mousemove', onMouseMove, false);
                     tanFrame.visible = true;
                     break;
-                case "c":
+                case 'c':
                     controls.target.set(
                         point.position.x,
                         point.position.y,
@@ -676,11 +872,11 @@
                     );
                     render();
                     break;
-                case "t":
+                case 't':
                     tanFrame.visible = !tanFrame.visible;
                     render();
                     break;
-                case "y":
+                case 'y':
                     if (!planeShard.visible) {
                         tanFrame.visible = true;
                         planeShard.visible = true;
@@ -689,7 +885,7 @@
                     }
                     render();
                     break;
-                case "n":
+                case 'n':
                     if (!arrows.n.visible) {
                         tanFrame.visible = true;
                         arrows.n.visible = true;
@@ -704,13 +900,13 @@
     };
 
     const shiftUp = (e) => {
-        if (e.key === "Shift") {
-            window.removeEventListener("mousemove", onMouseMove);
+        if (e.key === 'Shift') {
+            window.removeEventListener('mousemove', onMouseMove);
         }
     };
 
-    window.addEventListener("keydown", shiftDown, false);
-    window.addEventListener("keyup", shiftUp, false);
+    window.addEventListener('keydown', shiftDown, false);
+    window.addEventListener('keyup', shiftUp, false);
 </script>
 
 <div class="boxItem" class:selected on:click on:keydown>
@@ -720,7 +916,7 @@
     </div>
     <div {hidden}>
         <div class="threedemos-container container">
-            {#each ["x", "y", "z"] as name}
+            {#each ['x', 'y', 'z'] as name}
                 <span class="box-1"><M size="sm">{name}(u,v) =</M></span>
                 <InputChecker
                     value={params[name]}
@@ -734,10 +930,10 @@
                 />
             {/each}
 
-            {#each ["a", "b"] as name}
-                {#if name === "b"}
+            {#each ['a', 'b'] as name}
+                {#if name === 'b'}
                     <span class="box box-3"
-                        ><M size="sm">{"\\leq u \\leq "}</M></span
+                        ><M size="sm">{'\\leq u \\leq '}</M></span
                     >
                 {/if}
                 <InputChecker
@@ -754,10 +950,10 @@
                 />
             {/each}
 
-            {#each ["c", "d"] as name}
-                {#if name === "d"}
+            {#each ['c', 'd'] as name}
+                {#if name === 'd'}
                     <span class="box box-3"
-                        ><M size="sm">{"\\leq v \\leq "}</M></span
+                        ><M size="sm">{'\\leq v \\leq '}</M></span
                     >
                 {/if}
                 <InputChecker
@@ -785,6 +981,61 @@
                     }}
                 />
             {/each}
+
+            {#if isDynamic}
+                <!-- <div class="dynamic-container" transition:slide> -->
+                {#each ['t0', 't1'] as name}
+                    {#if name === 't1'}
+                        <span class="box box-3"
+                            ><M size="sm">{'\\leq t \\leq '}</M></span
+                        >
+                    {/if}
+                    <InputChecker
+                        className="form-control form-control-sm {name === 't0'
+                            ? 'box-1'
+                            : 'box-4'}"
+                        checker={(val) =>
+                            Number.isFinite(math.parse(val).evaluate())}
+                        value={params[name]}
+                        {name}
+                        on:cleared={(e) => {
+                            params[name] = e.detail;
+                        }}
+                    />
+                {/each}
+
+                <span class="box-1 ">
+                    <span class="t-box">t = {texString1}</span>
+                </span>
+                <input
+                    type="range"
+                    bind:value={tau}
+                    min="0"
+                    max="1"
+                    step="0.001"
+                    on:input={() => {
+                        const t0 = math.evaluate(params.t0);
+                        const t1 = math.evaluate(params.t1);
+                        const t = t0 + tau * (t1 - t0);
+                        texString1 = (Math.round(100 * t) / 100).toString();
+                        evolveSurface(t);
+                        render();
+                    }}
+                    class="box box-2"
+                />
+
+                <PlayButtons
+                    bind:animation
+                    on:animate
+                    on:pause={() => (last = null)}
+                    on:stop={() => {
+                        tau = 0;
+                        last = null;
+                    }}
+                    on:rew={() => (tau = 0)}
+                />
+                <!-- </div> -->
+            {/if}
 
             <span class="box-1"><M size="sm">u</M>-meshes</span>
             <input
@@ -825,8 +1076,7 @@
             </label>
 
             {#if chooseDensity}
-                <ColorBar vMin={0} vMax={1} />
-                <span class="box-1"><M size="sm">f(x,y,z) =</M></span>
+                <span class="box-1"><M size="sm">\mu(x,y,z) =</M></span>
                 <InputChecker
                     value={densityString}
                     checker={(val) => {
@@ -844,7 +1094,7 @@
                         }
                         return Number.isFinite(parsedVal);
                     }}
-                    name={"f"}
+                    name={'f'}
                     {params}
                     on:cleared={(e) => {
                         compiledDensity = math.parse(e.detail).compile();
@@ -858,6 +1108,9 @@
                         densityString = e.detail;
                     }}
                 />
+                <div class="box colorbar-container">
+                    <ColorBar {vMin} {vMax} />
+                </div>
             {:else}
                 <span class="box box-2">
                     <input
@@ -883,5 +1136,10 @@
     }
     input {
         color: black;
+    }
+
+    .colorbar-container {
+        grid-column: 1 / -1;
+        height: 30px;
     }
 </style>
