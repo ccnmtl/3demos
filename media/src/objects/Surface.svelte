@@ -610,15 +610,15 @@
         // tangents
         if (tanFrame.visible) {
             console.log(point);
-            const u = point.uv.u;
-            const v = point.uv.v;
+            const u = point.uv.x;
+            const v = point.uv.y;
             const [U, V] = abcd(u, v);
 
             xyz(U, V, vec, t);
 
             point.position.copy(vec);
 
-            tangentVectors();
+            tangentVectors({ uv: point.uv });
         }
     };
 
@@ -746,7 +746,7 @@
 
     // Construct tangent vectors at a point u,v (both 0 to 1)
     const tangentVectors = function ({ uv, eps = 1e-4, plane = true } = {}) {
-        const { a, b, c, d } = params;
+        const { a, b, c, d, t0, t1 } = params;
         const A = math.parse(a).evaluate(),
             B = math.parse(b).evaluate();
         const [C, D] = math.parse([c, d]);
@@ -755,10 +755,16 @@
             U,
             (1 - uv.y) * C.evaluate({ u: U }) + uv.y * D.evaluate({ u: U }),
         ];
+
+        const T0 = t0 ? math.evaluate(t0) : 0;
+        const T1 = t1 ? math.evaluate(t1) : 1;
+
+        const t = T0 + tau * (T1 - T0);
+
         const { p, ru, rv, n } = rFrame({
             r: (u, v) => {
                 const out = new THREE.Vector3();
-                xyz(u, v, out);
+                xyz(u, v, out, t);
                 return out;
             },
             uv: uvs,
@@ -1037,7 +1043,7 @@
                 <!-- </div> -->
             {/if}
 
-            <span class="box-1"><M size="sm">u</M>-meshes</span>
+            <!-- <span class="box-1"><M size="sm">u</M>-meshes</span>
             <input
                 type="range"
                 bind:value={rNum}
@@ -1054,7 +1060,7 @@
                 max="20"
                 step="1"
                 class="box box-2"
-            />
+            /> -->
             <span class="box-1">Resolution</span>
             <input
                 type="range"
