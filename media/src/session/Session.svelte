@@ -32,7 +32,7 @@
     <Chatroom {socket} {role} {chatBuffer} />
 
     {#if currentPoll}
-        <Poll bind:currentPoll bind:socket />
+        <Poll bind:currentPoll bind:socket {isHost} />
     {/if}
 </p>
 {:else}
