@@ -1744,124 +1744,47 @@ class RectangularSolidGeometry extends THREE.BufferGeometry {
     constructor (a,b,c,d,e,f, nX=30, nY=30) {
         super();
 
+        const dt = 1e-4; // for computing diffs
+        const dt2 = dt / 2;
+
         const points = [];
         const normals = [];
-        const uvs = [];
+        const indices = [];
+        // const uvs = [];
+        const vec = new THREE.Vector3();
 
         // let pindex = 0;
         // let nindex = 0
 
         const dx = (b - a) / nX;
-        let dy = (d(a) - c(a)) /nY
-        let dy1;
+        let dy;
         // bottom
 
+        for (let i = 0; i <= nX; i++) {
+            dy = (d(a + i*dx) - c(a + i*dx) ) / nY;
+            for (let j = 0; j <= nY; j++) {
+                points.push(a + i*dx, c(a + i*dx) + j*dy, e(a + i*dx, c(a + i*dx) + j*dy))
+                vec.set(
+                    e(a + i*dx + dt2, c(a + i*dx) + j*dy)
+                        - e(a + i*dx - dt2, c(a + i*dx) + j*dy),
+                    e(a + i*dx, c(a + i*dx) + j*dy + dt2)
+                        - e(a + i*dx, c(a + i*dx) + j*dy - dt2),
+                    -dt
+                 ).normalize()
+                 normals.push(vec.x, vec.y, vec.z)
+            }
+        }
+        for (let i = 0; i < nX; i++) {
+            for (let j = 0; j < nY; j++) {
+                indices.push(i * (nY + 1) + j, i * (nY + 1) + j + 1, (i+1) * (nY + 1) + j)
+                indices.push((i + 1) * (nY + 1) + j, i * (nY + 1) + j + 1, (i+1) * (nY + 1) + (j+1))
+            }
+        }
  
-        let sw, nw, se, ne;
-
-        for (let i = 0; i < nX; i++) {
-            dy1 = (d(a + (i + 1)*dx) - c(a + (i + 1)*dx) ) / nY;
-            for (let j = 0; j < nY; j++) {
-                sw = [a + i*dx, c(a + i*dx) + j*dy, e(a + i*dx, c(a + i*dx) + j*dy)]
-                nw = [a + i*dx, c(a + i*dx) + (j + 1)*dy, e(a + i*dx, c(a + i*dx) + (j + 1)*dy)]
-                se = [a + (i + 1)*dx, c(a + (i + 1)*dx) + j*dy1, e(a + (i + 1)*dx, c(a + (i + 1)*dx) + j*dy1)]
-                ne = [a + (i + 1)*dx, c(a + (i + 1)*dx) + (j + 1)*dy1, e(a + (i + 1)*dx, c(a + (i + 1)*dx) + (j + 1)*dy1)]
-                // two tris
-                points.push(...sw)
-                points.push(...nw)
-                points.push(...se)
-                points.push(...se)
-                points.push(...nw)
-                points.push(...ne)
-            }
-            dy = dy1
-        }
-
-        // top 
-
-        dy = (d(a) - c(a)) /nY
-        for (let i = 0; i < nX; i++) {
-            dy1 = (d(a + (i + 1)*dx) - c(a + (i + 1)*dx) ) / nY;
-            for (let j = 0; j < nY; j++) {
-                sw = [a + i*dx, c(a + i*dx) + j*dy, f(a + i*dx, c(a + i*dx) + j*dy)]
-                nw = [a + i*dx, c(a + i*dx) + (j + 1)*dy, f(a + i*dx, c(a + i*dx) + (j + 1)*dy)]
-                se = [a + (i + 1)*dx, c(a + (i + 1)*dx) + j*dy1, f(a + (i + 1)*dx, c(a + (i + 1)*dx) + j*dy1)]
-                ne = [a + (i + 1)*dx, c(a + (i + 1)*dx) + (j + 1)*dy1, f(a + (i + 1)*dx, c(a + (i + 1)*dx) + (j + 1)*dy1)]
-                // two tris
-                points.push(...sw)
-                points.push(...nw)
-                points.push(...se)
-                points.push(...se)
-                points.push(...nw)
-                points.push(...ne)
-            }
-            dy = dy1
-        }
-
-        // front
-        for (let i = 0; i < nX; i++) {
-            sw = [a + i*dx, c(a + i*dx), e(a + i*dx, c(a + i*dx))]
-            nw = [a + i*dx, c(a + i*dx), f(a + i*dx, c(a + i*dx))]
-            se = [a + (i + 1)*dx, c(a + (i + 1)*dx), e(a + (i + 1)*dx, c(a + (i + 1)*dx))]
-            ne = [a + (i + 1)*dx, c(a + (i + 1)*dx), f(a + (i + 1)*dx, c(a + (i + 1)*dx))]
-            // two tris
-            points.push(...sw)
-            points.push(...se)
-            points.push(...nw)
-            points.push(...nw)
-            points.push(...se)
-            points.push(...ne)
-        }
-
-        // left
-        dy = (d(a) - c(a)) / nY;
-        for (let i = 0; i < nY; i++) {
-            sw = [a, c(a) + i*dy, e(a, c(a) + i*dy)]
-            nw = [a, c(a) + i*dy, f(a, c(a) + i*dy)]
-            se = [a, c(a) + (i + 1)*dy, e(a, c(a) + (i + 1)*dy)]
-            ne = [a, c(a) + (i + 1)*dy, f(a, c(a) + (i + 1)*dy)]
-            // two tris
-            points.push(...se)
-            points.push(...sw)
-            points.push(...nw)
-            points.push(...se)
-            points.push(...nw)
-            points.push(...ne)
-        }
-
-        // right
-        dy = (d(b) - c(b)) / nY;
-        for (let i = 0; i < nY; i++) {
-            sw = [b, c(b) + i*dy, e(b, c(b) + i*dy)]
-            nw = [b, c(b) + i*dy, f(b, c(b) + i*dy)]
-            se = [b, c(b) + (i + 1)*dy, e(b, c(b) + (i + 1)*dy)]
-            ne = [b, c(b) + (i + 1)*dy, f(b, c(b) + (i + 1)*dy)]
-            // two tris
-            points.push(...se)
-            points.push(...sw)
-            points.push(...nw)
-            points.push(...se)
-            points.push(...nw)
-            points.push(...ne)
-        }
-
-        // back
-        for (let i = 0; i < nY; i++) {
-            sw = [a + i*dx, d(a + i*dx), e(a + i*dx, d(a + i*dx))]
-            nw = [a + i*dx, d(a + i*dx), f(a + i*dx, d(a + i*dx))]
-            se = [a + (i + 1)*dx, d(a + (i + 1)*dx), e(a + (i + 1)*dx, d(a + (i + 1)*dx))]
-            ne = [a + (i + 1)*dx, d(a + (i + 1)*dx), f(a + (i + 1)*dx, d(a + (i + 1)*dx))]
-            // two tris
-            points.push(...se)
-            points.push(...sw)
-            points.push(...nw)
-            points.push(...se)
-            points.push(...nw)
-            points.push(...ne)
-        }
 
         this.setAttribute('position', new THREE.Float32BufferAttribute(points,3))
-        this.computeVertexNormals();
+        this.setAttribute('normal', new THREE.Float32BufferAttribute(normals,3))
+        this.setIndex(indices)
     }
 }
 

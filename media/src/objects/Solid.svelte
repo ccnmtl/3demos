@@ -48,6 +48,7 @@
 
     export let color = '#3232ff';
     export let animation = false;
+    export let render;
 
     let nX = 60;
 
@@ -116,6 +117,8 @@
         () => 1
     );
 
+    const edges = new THREE.EdgesGeometry(geometry);
+
     const material = new THREE.MeshPhongMaterial({
         color: '#993588',
         shininess: 80,
@@ -124,11 +127,22 @@
         transparent: false,
         opacity: 0.7,
     });
+
+    const whiteLineMaterial = new THREE.LineBasicMaterial({
+        color: 0xffffff,
+        linewidth: 2,
+    });
+
     const box = new THREE.Mesh(geometry, material);
 
-    scene.add(box);
+    const borders = new THREE.Mesh(edges, whiteLineMaterial);
 
-    console.log(box);
+    scene.add(box);
+    box.add(borders);
+
+    console.log('boxes', box, borders);
+
+    render();
 </script>
 
 <div>
