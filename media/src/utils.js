@@ -1965,7 +1965,7 @@ class CylindricalSolidGeometry extends THREE.BufferGeometry {
             dy = (d(a + i * dx) - c(a + i * dx)) / nY;
             for (let j = 0; j <= nY; j++) {
                 const r = c(th) + j * dy;
-                points.push(r * cos(th), r * sin(th), e(r * cos(th), r * sin(th)));
+                points.push(r * cos(th), r * sin(th), e(r, th));
                 vec.set(
                     (e(r, th + dt2) - e(r, th - dt2)) * sin(th)
                     - (e(r + dt2, th) - e(r - dt2, th)) * r * cos(th),
@@ -1983,144 +1983,147 @@ class CylindricalSolidGeometry extends THREE.BufferGeometry {
             }
         }
 
-        // // top
-        // let base = points.length / 3;
+        // top
+        let base = points.length / 3;
 
-        // for (let i = 0; i <= nX; i++) {
-        //     dy = (d(a + i * dx) - c(a + i * dx)) / nY;
-        //     for (let j = 0; j <= nY; j++) {
-        //         points.push(a + i * dx, c(a + i * dx) + j * dy, f(a + i * dx, c(a + i * dx) + j * dy))
-        //         vec.set(
-        //             f(a + i * dx + dt2, c(a + i * dx) + j * dy)
-        //             - f(a + i * dx - dt2, c(a + i * dx) + j * dy),
-        //             f(a + i * dx, c(a + i * dx) + j * dy + dt2)
-        //             - f(a + i * dx, c(a + i * dx) + j * dy - dt2),
-        //             -dt
-        //         ).multiplyScalar(-1).normalize()
-        //         normals.push(vec.x, vec.y, vec.z)
-        //     }
-        // }
-        // for (let i = 0; i < nX; i++) {
-        //     for (let j = 0; j < nY; j++) {
-        //         indices.push(base + i * (nY + 1) + j + 1, base + i * (nY + 1) + j, base + (i + 1) * (nY + 1) + j)
-        //         indices.push(base + i * (nY + 1) + j + 1, base + (i + 1) * (nY + 1) + j, base + (i + 1) * (nY + 1) + (j + 1))
-        //     }
-        // }
+        for (let i = 0; i <= nX; i++) {
+            const th = a + i * dx;
+            dy = (d(a + i * dx) - c(a + i * dx)) / nY;
+            for (let j = 0; j <= nY; j++) {
+                const r = c(th) + j * dy;
+                points.push(r * cos(th), r * sin(th), f(r, th));
+                vec.set(
+                    (f(r, th + dt2) - f(r, th - dt2)) * sin(th)
+                    - (f(r + dt2, th) - f(r - dt2, th)) * r * cos(th),
+                    -(f(r, th + dt2) - f(r, th - dt2)) * cos(th)
+                    - (f(r + dt2, th) - f(r - dt2, th)) * r * sin(th),
+                    r * dt
+                ).normalize()
+                normals.push(vec.x, vec.y, vec.z)
+            }
+        }
+        for (let i = 0; i < nX; i++) {
+            for (let j = 0; j < nY; j++) {
+                indices.push(base + i * (nY + 1) + j, base + i * (nY + 1) + j + 1, base + (i + 1) * (nY + 1) + j)
+                indices.push(base + (i + 1) * (nY + 1) + j, base + i * (nY + 1) + j + 1, base + (i + 1) * (nY + 1) + (j + 1))
+            }
+        }
 
 
-        // // front
+        // front
 
-        // base = points.length / 3;
+        base = points.length / 3;
 
-        // for (let i = 0; i <= nX; i++) {
-        //     points.push(
-        //         a + i * dx,
-        //         c(a + i * dx),
-        //         e(a + i * dx, c(a + i * dx)))
-        //     vec.set(
-        //         c(a + i * dx + dt2) - c(a + i * dx - dt2),
-        //         -dt,
-        //         0
-        //     ).normalize()
-        //     normals.push(vec.x, vec.y, vec.z)
+        for (let i = 0; i <= nX; i++) {
+            const th = a + i * dx
+            const r = c(th)
+            points.push(
+                r * cos(th),
+                r * sin(th),
+                e(r, th))
+            vec.set(
+                (c(th + dt2) - c(th - dt2)) * sin(th) + r * dt * cos(th),
+                -(c(th + dt2) - c(th - dt2)) * cos(th) + r * dt * sin(th),
+                0
+            ).multiplyScalar(-1).normalize()
+            normals.push(vec.x, vec.y, vec.z)
 
-        //     points.push(
-        //         a + i * dx,
-        //         c(a + i * dx),
-        //         f(a + i * dx, c(a + i * dx)))
-        //     vec.set(
-        //         c(a + i * dx + dt2) - c(a + i * dx - dt2),
-        //         -dt,
-        //         0
-        //     ).normalize()
-        //     normals.push(vec.x, vec.y, vec.z)
+            points.push(
+                r * cos(th),
+                r * sin(th),
+                f(r, th))
+            normals.push(vec.x, vec.y, vec.z)
 
-        // }
-        // for (let i = 0; i < nX; i++) {
-        //     indices.push(base + i * (2), base + i * 2 + 2, base + i * 2 + 1)
-        //     indices.push(base + i * 2 + 2, base + i * 2 + 3, base + i * 2 + 1)
-        // }
+        }
+        for (let i = 0; i < nX; i++) {
+            indices.push(base + i * (2), base + i * 2 + 1, base + i * 2 + 2)
+            indices.push(base + i * 2 + 2, base + i * 2 + 1, base + i * 2 + 3)
+        }
 
-        // // back
+        // back
 
-        // base = points.length / 3;
+        base = points.length / 3;
 
-        // for (let i = 0; i <= nX; i++) {
-        //     points.push(
-        //         a + i * dx,
-        //         d(a + i * dx),
-        //         e(a + i * dx, d(a + i * dx)))
-        //     vec.set(
-        //         d(a + i * dx - dt2) - d(a + i * dx + dt2),
-        //         dt,
-        //         0
-        //     ).normalize()
-        //     normals.push(vec.x, vec.y, vec.z)
+        for (let i = 0; i <= nX; i++) {
+            const th = a + i * dx
+            const r = d(th)
+            points.push(
+                r * cos(th),
+                r * sin(th),
+                e(r, th))
+            vec.set(
+                (d(th + dt2) - d(th - dt2)) * sin(th) + r * dt * cos(th),
+                -(d(th + dt2) - d(th - dt2)) * cos(th) + r * dt * sin(th),
+                0
+            ).normalize()
+            normals.push(vec.x, vec.y, vec.z)
 
-        //     points.push(
-        //         a + i * dx,
-        //         d(a + i * dx),
-        //         f(a + i * dx, d(a + i * dx)))
-        //     vec.set(
-        //         d(a + i * dx - dt2) - d(a + i * dx + dt2),
-        //         dt,
-        //         0
-        //     ).normalize()
-        //     normals.push(vec.x, vec.y, vec.z)
+            points.push(
+                r * cos(th),
+                r * sin(th),
+                f(r, th))
+            normals.push(vec.x, vec.y, vec.z)
 
-        // }
-        // for (let i = 0; i < nX; i++) {
-        //     indices.push(base + i * (2), base + i * 2 + 1, base + i * 2 + 2)
-        //     indices.push(base + i * 2 + 2, base + i * 2 + 1, base + i * 2 + 3)
-        // }
+        }
+        for (let i = 0; i < nX; i++) {
+            indices.push(base + i * (2), base + i * 2 + 2, base + i * 2 + 1)
+            indices.push(base + i * 2 + 2, base + i * 2 + 3, base + i * 2 + 1)
+        }
 
-        // // left
 
-        // base = points.length / 3;
-        // dy = (d(a) - c(a)) / nY
-        // for (let i = 0; i <= nY; i++) {
-        //     points.push(
-        //         a,
-        //         c(a) + i * dy,
-        //         e(a, c(a) + i * dy)
-        //     )
-        //     normals.push(-1, 0, 0)
+        // right
 
-        //     points.push(
-        //         a,
-        //         c(a) + i * dy,
-        //         f(a, c(a) + i * dy)
-        //     )
-        //     normals.push(-1, 0, 0)
-        // }
-        // for (let i = 0; i < nY; i++) {
-        //     indices.push(base + i * (2), base + i * 2 + 1, base + i * 2 + 2)
-        //     indices.push(base + i * 2 + 2, base + i * 2 + 1, base + i * 2 + 3)
-        // }
+        base = points.length / 3;
+        dy = (d(a) - c(a)) / nY
+        for (let i = 0; i <= nY; i++) {
+            const th = a;
+            const r = c(a) + i * dy;
+            points.push(
+                r * cos(th),
+                r * sin(th),
+                e(r, th)
+            )
+            normals.push(sin(th), -cos(th), 0)
 
-        // // right
+            points.push(
+                r * cos(th),
+                r * sin(th),
+                f(r, th)
+            )
+            normals.push(sin(th), -cos(th), 0)
 
-        // base = points.length / 3;
-        // dy = (d(b) - c(b)) / nY
-        // for (let i = 0; i <= nY; i++) {
-        //     points.push(
-        //         b,
-        //         c(b) + i * dy,
-        //         e(b, c(b) + i * dy)
-        //     )
-        //     normals.push(1, 0, 0)
+        }
+        for (let i = 0; i < nY; i++) {
+            indices.push(base + i * (2), base + i * 2 + 2, base + i * 2 + 1)
+            indices.push(base + i * 2 + 2, base + i * 2 + 3, base + i * 2 + 1)
+        }
 
-        //     points.push(
-        //         b,
-        //         c(b) + i * dy,
-        //         f(b, c(b) + i * dy)
-        //     )
-        //     normals.push(1, 0, 0)
-        // }
-        // for (let i = 0; i < nY; i++) {
-        //     indices.push(base + i * (2), base + i * 2 + 2, base + i * 2 + 1)
-        //     indices.push(base + i * 2 + 2, base + i * 2 + 3, base + i * 2 + 1)
-        // }
+        // left
+
+        base = points.length / 3;
+        dy = (d(b) - c(b)) / nY
+        for (let i = 0; i <= nY; i++) {
+            const th = b;
+            const r = c(b) + i * dy;
+            points.push(
+                r * cos(th),
+                r * sin(th),
+                e(r, th)
+            )
+            normals.push(-sin(th), cos(th), 0)
+
+            points.push(
+                r * cos(th),
+                r * sin(th),
+                f(r, th)
+            )
+            normals.push(-sin(th), cos(th), 0)
+
+        }
+        for (let i = 0; i < nY; i++) {
+            indices.push(base + i * (2), base + i * 2 + 1, base + i * 2 + 2)
+            indices.push(base + i * 2 + 2, base + i * 2 + 1, base + i * 2 + 3)
+        }
 
         this.setAttribute('position', new THREE.Float32BufferAttribute(points, 3))
         this.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3))
