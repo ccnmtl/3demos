@@ -22,6 +22,7 @@
         checksum,
         ParametricGeometry,
         RectangularSolidGeometry,
+        CylindricalSolidGeometry,
     } from '../utils.js';
 
     import InputChecker from '../form-components/InputChecker.svelte';
@@ -140,6 +141,19 @@
 
     scene.add(box);
     box.add(borders);
+
+    const geo0 = new CylindricalSolidGeometry(
+        (2 * Math.PI) / 3,
+        2 * Math.PI,
+        () => 1,
+        (th) => 2 + Math.sin(7 * th) / 2,
+        (r) => (r * r) / 8,
+        () => 2,
+        120,
+        20
+    );
+
+    box.geometry = geo0;
 
     // borders.visible = false;
     console.log('boxes', box, borders);

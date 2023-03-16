@@ -1927,6 +1927,207 @@ class RectangularSolidGeometry extends THREE.BufferGeometry {
     }
 }
 
+
+/**
+ * Geometry for solid regions
+ */
+class CylindricalSolidGeometry extends THREE.BufferGeometry {
+    /**
+     * 
+     * @param {number} a theta lower bound
+     * @param {number} b theta upper bound
+     * @param {number|oneVarFunc} c r lower
+     * @param {number|oneVarFunc} d r upper
+     * @param {number|twoVarFunc} e z lower
+     * @param {number|twoVarFunc} f z upper
+     * @param {number} [nX=30] nX resolution in r direction
+     * @param {number} [ny=30] ny resolution in theta direction
+     */
+    constructor(a, b, c, d, e, f, nX = 20, nY = 60) {
+        super();
+
+        const { sin, cos, PI } = Math;
+
+        const dt = 1e-4; // for computing diffs
+        const dt2 = dt / 2;
+
+        const points = [];
+        const normals = [];
+        const indices = [];
+        const vec = new THREE.Vector3();
+
+        const dx = (b - a) / nX;
+        let dy;
+        // bottom
+
+        for (let i = 0; i <= nX; i++) {
+            const th = a + i * dx;
+            dy = (d(a + i * dx) - c(a + i * dx)) / nY;
+            for (let j = 0; j <= nY; j++) {
+                const r = c(th) + j * dy;
+                points.push(r * cos(th), r * sin(th), e(r * cos(th), r * sin(th)));
+                vec.set(
+                    (e(r, th + dt2) - e(r, th - dt2)) * sin(th)
+                    - (e(r + dt2, th) - e(r - dt2, th)) * r * cos(th),
+                    -(e(r, th + dt2) - e(r, th - dt2)) * cos(th)
+                    - (e(r + dt2, th) - e(r - dt2, th)) * r * sin(th),
+                    r * dt
+                ).multiplyScalar(-1).normalize()
+                normals.push(vec.x, vec.y, vec.z)
+            }
+        }
+        for (let i = 0; i < nX; i++) {
+            for (let j = 0; j < nY; j++) {
+                indices.push(i * (nY + 1) + j, (i + 1) * (nY + 1) + j, i * (nY + 1) + j + 1)
+                indices.push((i + 1) * (nY + 1) + j, (i + 1) * (nY + 1) + (j + 1), i * (nY + 1) + j + 1)
+            }
+        }
+
+        // // top
+        // let base = points.length / 3;
+
+        // for (let i = 0; i <= nX; i++) {
+        //     dy = (d(a + i * dx) - c(a + i * dx)) / nY;
+        //     for (let j = 0; j <= nY; j++) {
+        //         points.push(a + i * dx, c(a + i * dx) + j * dy, f(a + i * dx, c(a + i * dx) + j * dy))
+        //         vec.set(
+        //             f(a + i * dx + dt2, c(a + i * dx) + j * dy)
+        //             - f(a + i * dx - dt2, c(a + i * dx) + j * dy),
+        //             f(a + i * dx, c(a + i * dx) + j * dy + dt2)
+        //             - f(a + i * dx, c(a + i * dx) + j * dy - dt2),
+        //             -dt
+        //         ).multiplyScalar(-1).normalize()
+        //         normals.push(vec.x, vec.y, vec.z)
+        //     }
+        // }
+        // for (let i = 0; i < nX; i++) {
+        //     for (let j = 0; j < nY; j++) {
+        //         indices.push(base + i * (nY + 1) + j + 1, base + i * (nY + 1) + j, base + (i + 1) * (nY + 1) + j)
+        //         indices.push(base + i * (nY + 1) + j + 1, base + (i + 1) * (nY + 1) + j, base + (i + 1) * (nY + 1) + (j + 1))
+        //     }
+        // }
+
+
+        // // front
+
+        // base = points.length / 3;
+
+        // for (let i = 0; i <= nX; i++) {
+        //     points.push(
+        //         a + i * dx,
+        //         c(a + i * dx),
+        //         e(a + i * dx, c(a + i * dx)))
+        //     vec.set(
+        //         c(a + i * dx + dt2) - c(a + i * dx - dt2),
+        //         -dt,
+        //         0
+        //     ).normalize()
+        //     normals.push(vec.x, vec.y, vec.z)
+
+        //     points.push(
+        //         a + i * dx,
+        //         c(a + i * dx),
+        //         f(a + i * dx, c(a + i * dx)))
+        //     vec.set(
+        //         c(a + i * dx + dt2) - c(a + i * dx - dt2),
+        //         -dt,
+        //         0
+        //     ).normalize()
+        //     normals.push(vec.x, vec.y, vec.z)
+
+        // }
+        // for (let i = 0; i < nX; i++) {
+        //     indices.push(base + i * (2), base + i * 2 + 2, base + i * 2 + 1)
+        //     indices.push(base + i * 2 + 2, base + i * 2 + 3, base + i * 2 + 1)
+        // }
+
+        // // back
+
+        // base = points.length / 3;
+
+        // for (let i = 0; i <= nX; i++) {
+        //     points.push(
+        //         a + i * dx,
+        //         d(a + i * dx),
+        //         e(a + i * dx, d(a + i * dx)))
+        //     vec.set(
+        //         d(a + i * dx - dt2) - d(a + i * dx + dt2),
+        //         dt,
+        //         0
+        //     ).normalize()
+        //     normals.push(vec.x, vec.y, vec.z)
+
+        //     points.push(
+        //         a + i * dx,
+        //         d(a + i * dx),
+        //         f(a + i * dx, d(a + i * dx)))
+        //     vec.set(
+        //         d(a + i * dx - dt2) - d(a + i * dx + dt2),
+        //         dt,
+        //         0
+        //     ).normalize()
+        //     normals.push(vec.x, vec.y, vec.z)
+
+        // }
+        // for (let i = 0; i < nX; i++) {
+        //     indices.push(base + i * (2), base + i * 2 + 1, base + i * 2 + 2)
+        //     indices.push(base + i * 2 + 2, base + i * 2 + 1, base + i * 2 + 3)
+        // }
+
+        // // left
+
+        // base = points.length / 3;
+        // dy = (d(a) - c(a)) / nY
+        // for (let i = 0; i <= nY; i++) {
+        //     points.push(
+        //         a,
+        //         c(a) + i * dy,
+        //         e(a, c(a) + i * dy)
+        //     )
+        //     normals.push(-1, 0, 0)
+
+        //     points.push(
+        //         a,
+        //         c(a) + i * dy,
+        //         f(a, c(a) + i * dy)
+        //     )
+        //     normals.push(-1, 0, 0)
+        // }
+        // for (let i = 0; i < nY; i++) {
+        //     indices.push(base + i * (2), base + i * 2 + 1, base + i * 2 + 2)
+        //     indices.push(base + i * 2 + 2, base + i * 2 + 1, base + i * 2 + 3)
+        // }
+
+        // // right
+
+        // base = points.length / 3;
+        // dy = (d(b) - c(b)) / nY
+        // for (let i = 0; i <= nY; i++) {
+        //     points.push(
+        //         b,
+        //         c(b) + i * dy,
+        //         e(b, c(b) + i * dy)
+        //     )
+        //     normals.push(1, 0, 0)
+
+        //     points.push(
+        //         b,
+        //         c(b) + i * dy,
+        //         f(b, c(b) + i * dy)
+        //     )
+        //     normals.push(1, 0, 0)
+        // }
+        // for (let i = 0; i < nY; i++) {
+        //     indices.push(base + i * (2), base + i * 2 + 2, base + i * 2 + 1)
+        //     indices.push(base + i * 2 + 2, base + i * 2 + 3, base + i * 2 + 1)
+        // }
+
+        this.setAttribute('position', new THREE.Float32BufferAttribute(points, 3))
+        this.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3))
+        this.setIndex(indices)
+    }
+}
+
 export {
     joinUrl,
     getRoomUrl,
@@ -1946,6 +2147,7 @@ export {
     adjustArrowHeight,
     ParametricGeometry,
     RectangularSolidGeometry,
+    CylindricalSolidGeometry,
     nextHue,
     makeHSLColor,
     blockGeometry,
