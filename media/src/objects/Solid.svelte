@@ -113,33 +113,35 @@
         1,
         (x) => x / 2,
         (x) => 2 - x * x,
-        (x, y) => (x * x) / 4 + (y * y) / 4,
-        () => 1
+        (x, y) => (x * x) / 3 - (y * y) / 3,
+        (x, y) => 1 + Math.sin(x * 4) / 4
     );
 
-    const edges = new THREE.EdgesGeometry(geometry);
+    const edges = new THREE.EdgesGeometry(geometry, Math.Pi / 6);
 
     const material = new THREE.MeshPhongMaterial({
         color: '#993588',
         shininess: 80,
-        side: THREE.DoubleSide,
+        side: THREE.FrontSide,
         vertexColors: false,
         transparent: false,
         opacity: 0.7,
     });
 
     const whiteLineMaterial = new THREE.LineBasicMaterial({
-        color: 0xffffff,
+        color: 0x000000,
         linewidth: 2,
+        side: THREE.BackSide,
     });
 
     const box = new THREE.Mesh(geometry, material);
 
-    const borders = new THREE.Mesh(edges, whiteLineMaterial);
+    const borders = new THREE.LineSegments(edges, whiteLineMaterial);
 
     scene.add(box);
     box.add(borders);
 
+    // borders.visible = false;
     console.log('boxes', box, borders);
 
     render();
@@ -152,4 +154,6 @@
         <option value="cyl">Cylindrical</option>
         <option value="spher">Spherical</option>
     </select>
+
+    <!-- <input type="checkbox" bind:value={borders.visible} /> -->
 </div>
