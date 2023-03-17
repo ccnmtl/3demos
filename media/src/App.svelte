@@ -946,14 +946,12 @@
                                                     kind: 'solid',
                                                     params: {
                                                         coords: 'rect',
-                                                        a: '0',
+                                                        a: '-1',
                                                         b: '1',
-                                                        c: '0',
-                                                        d: '1',
+                                                        c: '-2',
+                                                        d: '2',
                                                         e: '0',
-                                                        f: '(x + y) / 2',
-                                                        t0: '0',
-                                                        t1: '1',
+                                                        f: '(x + y)^2 / 2',
                                                     },
                                                     color: `#${makeHSLColor(
                                                         Math.random()

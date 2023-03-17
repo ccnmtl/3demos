@@ -1743,8 +1743,6 @@ class RectangularSolidGeometry extends THREE.BufferGeometry {
     constructor(a, b, c, d, e, f, nX = 30, nY = 30) {
         super();
 
-        console.log("creating geom", nX, nY)
-
         const dt = 1e-4; // for computing diffs
         const dt2 = dt / 2;
 
@@ -1946,7 +1944,7 @@ class CylindricalSolidGeometry extends THREE.BufferGeometry {
     constructor(a, b, c, d, e, f, nX = 20, nY = 60) {
         super();
 
-        const { sin, cos, PI } = Math;
+        const { sin, cos } = Math;
 
         const dt = 1e-4; // for computing diffs
         const dt2 = dt / 2;
@@ -1969,7 +1967,7 @@ class CylindricalSolidGeometry extends THREE.BufferGeometry {
                 vec.set(
                     (e(r, th + dt2) - e(r, th - dt2)) * sin(th)
                     - (e(r + dt2, th) - e(r - dt2, th)) * r * cos(th),
-                    -(e(r, th + dt2) - e(r, th - dt2)) * cos(th)
+                    - (e(r, th + dt2) - e(r, th - dt2)) * cos(th)
                     - (e(r + dt2, th) - e(r - dt2, th)) * r * sin(th),
                     r * dt
                 ).multiplyScalar(-1).normalize()
@@ -2131,6 +2129,223 @@ class CylindricalSolidGeometry extends THREE.BufferGeometry {
     }
 }
 
+class SphericalSolidGeometry extends THREE.BufferGeometry {
+    /**
+     * 
+     * @param {number} a theta lower bound
+     * @param {number} b theta upper bound
+     * @param {number|oneVarFunc} c phi lower
+     * @param {number|oneVarFunc} d phi upper
+     * @param {number|twoVarFunc} e rho lower
+     * @param {number|twoVarFunc} f rho upper
+     * @param {number} [nX=30] nX resolution in r direction
+     * @param {number} [ny=30] ny resolution in theta direction
+     */
+    constructor(a, b, c, d, e, f, nX = 20, nY = 60) {
+        super();
+
+        const { sin, cos } = Math;
+
+        const dt = 1e-4; // for computing diffs
+        const dt2 = dt / 2;
+
+        const points = [];
+        const normals = [];
+        const indices = [];
+        const vec = new THREE.Vector3();
+
+        const dx = (b - a) / nX;
+        let dy;
+        // bottom
+
+        for (let i = 0; i <= nX; i++) {
+            const th = a + i * dx;
+            dy = (d(th) - c(th)) / nY;
+            for (let j = 0; j <= nY; j++) {
+                const ph = c(th) + j * dy;
+                const r = e(th, ph)
+                points.push(r * sin(ph) * cos(th), r * sin(ph) * sin(th), r * cos(ph));
+                const r_th = (e(th + dt2, ph) - e(th - dt2, ph)) / dt
+                const r_ph = (e(th, ph + dt2) - e(th, ph - dt2)) / dt
+
+                vec.set(
+                    r * (cos(th) * sin(ph) * (r * sin(ph) - cos(ph) *
+                        r_ph) + sin(th) * r_th),
+                    r * (sin(ph) * sin(th) * (r * sin(ph) - cos(ph) *
+                        r_ph) - cos(th) * r_th),
+                    r * sin(ph) * (cos(ph) * r + sin(ph) * r_ph)
+                ).multiplyScalar(-1).normalize()
+                normals.push(vec.x, vec.y, vec.z)
+            }
+        }
+        for (let i = 0; i < nX; i++) {
+            for (let j = 0; j < nY; j++) {
+                indices.push(i * (nY + 1) + j, (i + 1) * (nY + 1) + j, i * (nY + 1) + j + 1)
+                indices.push((i + 1) * (nY + 1) + j, (i + 1) * (nY + 1) + (j + 1), i * (nY + 1) + j + 1)
+            }
+        }
+
+        // top
+
+        let base = points.length / 3
+
+        for (let i = 0; i <= nX; i++) {
+            const th = a + i * dx;
+            dy = (d(th) - c(th)) / nY;
+            for (let j = 0; j <= nY; j++) {
+                const ph = c(th) + j * dy;
+                const r = f(th, ph)
+                points.push(r * sin(ph) * cos(th), r * sin(ph) * sin(th), r * cos(ph));
+                const r_th = (f(th + dt2, ph) - f(th - dt2, ph)) / dt
+                const r_ph = (f(th, ph + dt2) - f(th, ph - dt2)) / dt
+                vec.set(
+                    r * (cos(th) * sin(ph) * (r * sin(ph) - cos(ph) *
+                        r_ph) + sin(th) * r_th),
+                    r * (sin(ph) * sin(th) * (r * sin(ph) - cos(ph) *
+                        r_ph) - cos(th) * r_th),
+                    r * sin(ph) * (cos(ph) * r + sin(ph) * r_ph)
+                ).normalize()
+                normals.push(vec.x, vec.y, vec.z)
+            }
+        }
+        for (let i = 0; i < nX; i++) {
+            for (let j = 0; j < nY; j++) {
+                indices.push(base + i * (nY + 1) + j, base + i * (nY + 1) + j + 1, base + (i + 1) * (nY + 1) + j)
+                indices.push(base + (i + 1) * (nY + 1) + j, base + i * (nY + 1) + j + 1, base + (i + 1) * (nY + 1) + (j + 1))
+            }
+        }
+
+
+        // front
+
+        base = points.length / 3;
+
+        for (let i = 0; i <= nX; i++) {
+            const th = a + i * dx
+            const ph = c(th)
+            let r = e(th, ph)
+            const cp = (c(th + dt2) - c(th - dt2)) / dt
+            points.push(
+                r * sin(ph) * cos(th),
+                r * sin(ph) * sin(th),
+                r * cos(ph))
+            vec.set(
+                -(cos(th) * cos(ph) * sin(ph) + sin(th) * cp),
+                -sin(th) * cos(ph) * sin(ph) + cos(th) * cp,
+                sin(ph) * sin(ph)
+            ).normalize()
+            normals.push(vec.x, vec.y, vec.z)
+
+            r = f(th, ph)
+            points.push(
+                r * sin(ph) * cos(th),
+                r * sin(ph) * sin(th),
+                r * cos(ph))
+            normals.push(vec.x, vec.y, vec.z)
+
+        }
+        for (let i = 0; i < nX; i++) {
+            indices.push(base + i * (2), base + i * 2 + 1, base + i * 2 + 2)
+            indices.push(base + i * 2 + 2, base + i * 2 + 1, base + i * 2 + 3)
+        }
+
+        // back
+
+        base = points.length / 3;
+
+        for (let i = 0; i <= nX; i++) {
+            const th = a + i * dx
+            const ph = d(th)
+            let r = e(th, ph)
+            const cp = (d(th + dt2) - d(th - dt2)) / dt
+            points.push(
+                r * sin(ph) * cos(th),
+                r * sin(ph) * sin(th),
+                r * cos(ph))
+            vec.set(
+                -(cos(th) * cos(ph) * sin(ph) + sin(th) * cp),
+                -sin(th) * cos(ph) * sin(ph) + cos(th) * cp,
+                sin(ph) * sin(ph)
+            ).multiplyScalar(-1).normalize()
+            normals.push(vec.x, vec.y, vec.z)
+
+            r = f(th, ph)
+            points.push(
+                r * sin(ph) * cos(th),
+                r * sin(ph) * sin(th),
+                r * cos(ph))
+            normals.push(vec.x, vec.y, vec.z)
+
+        }
+        for (let i = 0; i < nX; i++) {
+            indices.push(base + i * (2), base + i * 2 + 2, base + i * 2 + 1)
+            indices.push(base + i * 2 + 2, base + i * 2 + 3, base + i * 2 + 1)
+        }
+
+
+        // right
+
+        base = points.length / 3;
+        dy = (d(a) - c(a)) / nY
+        for (let i = 0; i <= nY; i++) {
+            const th = a;
+            const ph = c(th) + i * dy;
+            let r = e(th, ph)
+            points.push(
+                r * sin(ph) * cos(th),
+                r * sin(ph) * sin(th),
+                r * cos(ph)
+            )
+            normals.push(sin(th), -cos(th), 0)
+
+            r = f(th, ph)
+            points.push(
+                r * sin(ph) * cos(th),
+                r * sin(ph) * sin(th),
+                r * cos(ph)
+            )
+            normals.push(sin(th), -cos(th), 0)
+        }
+        for (let i = 0; i < nY; i++) {
+            indices.push(base + i * (2), base + i * 2 + 2, base + i * 2 + 1)
+            indices.push(base + i * 2 + 2, base + i * 2 + 3, base + i * 2 + 1)
+        }
+
+        // left
+
+        base = points.length / 3;
+        dy = (d(b) - c(b)) / nY
+        for (let i = 0; i <= nY; i++) {
+            const th = b;
+            const ph = c(th) + i * dy;
+            let r = e(th, ph)
+            points.push(
+                r * sin(ph) * cos(th),
+                r * sin(ph) * sin(th),
+                r * cos(ph)
+            )
+            normals.push(-sin(th), cos(th), 0)
+
+            r = f(th, ph)
+            points.push(
+                r * sin(ph) * cos(th),
+                r * sin(ph) * sin(th),
+                r * cos(ph)
+            )
+            normals.push(-sin(th), cos(th), 0)
+
+        }
+        for (let i = 0; i < nY; i++) {
+            indices.push(base + i * (2), base + i * 2 + 1, base + i * 2 + 2)
+            indices.push(base + i * 2 + 2, base + i * 2 + 1, base + i * 2 + 3)
+        }
+
+        this.setAttribute('position', new THREE.Float32BufferAttribute(points, 3))
+        this.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3))
+        this.setIndex(indices)
+    }
+}
+
 export {
     joinUrl,
     getRoomUrl,
@@ -2151,6 +2366,7 @@ export {
     ParametricGeometry,
     RectangularSolidGeometry,
     CylindricalSolidGeometry,
+    SphericalSolidGeometry,
     nextHue,
     makeHSLColor,
     blockGeometry,
