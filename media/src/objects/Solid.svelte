@@ -32,7 +32,6 @@
 
     onMount(onRenderObject);
     onDestroy(() => {
-        console.log('bye box');
         scene.remove(box);
         box.geometry.dispose();
         box.material.dispose();
@@ -247,7 +246,6 @@
                 E = (theta, phi) => eComp.evaluate({ theta, phi });
                 F = (theta, phi) => fComp.evaluate({ theta, phi });
                 geom = new SphericalSolidGeometry(A, B, C, D, E, F, nX * 2, nX);
-                console.log('spher', geom);
                 break;
             default:
                 console.log('Something went wrong with the coord system.');
