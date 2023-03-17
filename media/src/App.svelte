@@ -948,10 +948,10 @@
                                                         coords: 'rect',
                                                         a: '-1',
                                                         b: '1',
-                                                        c: '-2',
-                                                        d: '2',
+                                                        c: '-1',
+                                                        d: 'x',
                                                         e: '0',
-                                                        f: '(x + y)^2 / 2',
+                                                        f: '1 - (x^2 + y^2) / 2',
                                                     },
                                                     color: `#${makeHSLColor(
                                                         Math.random()
@@ -960,7 +960,9 @@
                                             ];
                                         }}
                                     >
-                                        Solid Region <M size="sm">E</M>
+                                        Solid Region <M size="sm"
+                                            >{'E \\subset \\mathbb{R}^3'}</M
+                                        >
                                     </DropdownItem>
                                     <DropdownItem
                                         on:click={() => {

@@ -31,7 +31,17 @@
     export let onDestroyObject = function () {};
 
     onMount(onRenderObject);
-    onDestroy(onDestroyObject);
+    onDestroy(() => {
+        console.log('bye box');
+        scene.remove(box);
+        box.geometry.dispose();
+        box.material.dispose();
+        box.children[0].geometry.dispose();
+        box.children[0].material.dispose();
+
+        onDestroyObject(box);
+        render();
+    });
 
     export let params = {
         coords: 'rect',
@@ -128,7 +138,7 @@
     const material = new THREE.MeshPhongMaterial({
         color: '#993588',
         shininess: 80,
-        side: THREE.FrontSide,
+        side: THREE.DoubleSide,
         vertexColors: false,
         transparent: false,
         opacity: 0.7,
@@ -246,7 +256,7 @@
 
         box.geometry?.dispose();
         box.geometry = geom;
-        borders.geometry = new THREE.EdgesGeometry(geom, 75);
+        borders.geometry = new THREE.EdgesGeometry(geom, 40);
 
         if (chooseDensity && densityFunc) {
             colorMeBadd(box, densityFunc);
@@ -301,13 +311,13 @@
 
 <div class="boxItem" class:selected on:click on:keydown>
     <div class="box-title">
-        <strong>Parametric surface</strong>
+        <strong>Solid Region</strong>
         <ObjHeader bind:hidden bind:onClose />
     </div>
     <div {hidden}>
         <div class="threedemos-container container">
             <span class="box-1">Coordinates</span>
-            <select bind:value={params.coords}>
+            <select class="box-2" bind:value={params.coords}>
                 <option value="rect">Rectangular</option>
                 <option value="cyl">Cylindrical</option>
                 <option value="spher">Spherical</option>
