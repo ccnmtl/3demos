@@ -2,7 +2,7 @@
     import { createEventDispatcher } from 'svelte';
 
     const dispatch = createEventDispatcher();
-    export let className = 'play-buttons box-3';
+    export let className = 'play-buttons box-2';
     export let animation = false;
 </script>
 

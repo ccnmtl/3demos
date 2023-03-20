@@ -1,6 +1,6 @@
 [
     {
-        "kind": "parsurf",
+        "kind": "surface",
         "params": {
             "a": "0",
             "b": "2*pi",

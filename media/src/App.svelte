@@ -18,13 +18,14 @@
 
     // import components
     import M from './M.svelte';
-    import ParSurf from './objects/ParSurf.svelte';
+    import Surface from './objects/Surface.svelte';
     import Level from './objects/Level.svelte';
     import Curve from './objects/Curve.svelte';
     import Field from './objects/Field.svelte';
     import Function from './objects/Function.svelte';
     import Vector from './objects/Vector.svelte';
     import Point from './objects/Point.svelte';
+    import Solid from './objects/Solid.svelte';
     import Settings from './settings/Settings.svelte';
 
     const kindToComponent = {
@@ -34,7 +35,8 @@
         graph: Function,
         curve: Curve,
         level: Level,
-        parsurf: ParSurf,
+        surface: Surface,
+        solid: Solid,
     };
 
     import Stats from 'stats.js';
@@ -918,7 +920,7 @@
                                         on:click={() =>
                                             (objects = makeObject(
                                                 null,
-                                                'parsurf',
+                                                'surface',
                                                 {
                                                     a: '0',
                                                     b: '2*pi',
@@ -933,6 +935,33 @@
                                     >
                                         Parametric Surface <M size="sm"
                                             >\mathbf r(u,v)</M
+                                        >
+                                    </DropdownItem>
+                                    <DropdownItem
+                                        on:click={() => {
+                                            objects = [
+                                                ...objects,
+                                                {
+                                                    uuid: crypto.randomUUID(),
+                                                    kind: 'solid',
+                                                    params: {
+                                                        coords: 'rect',
+                                                        a: '-1',
+                                                        b: '1',
+                                                        c: '-1',
+                                                        d: 'x',
+                                                        e: '0',
+                                                        f: '1 - (x^2 + y^2) / 2',
+                                                    },
+                                                    color: `#${makeHSLColor(
+                                                        Math.random()
+                                                    ).getHexString()}`,
+                                                },
+                                            ];
+                                        }}
+                                    >
+                                        Solid Region <M size="sm"
+                                            >{'E \\subset \\mathbb{R}^3'}</M
                                         >
                                     </DropdownItem>
                                     <DropdownItem
