@@ -22,7 +22,7 @@
     "rollup": "^3.2.5",
     "rollup-plugin-css-only": "^4.3.0",
     "rollup-plugin-svelte": "^7.1.0",
-    "svelte": "~3.56.0"
+    "svelte": "~3.57.0"
   },
   "dependencies": {
     "mathjs": "^11.5.1",
