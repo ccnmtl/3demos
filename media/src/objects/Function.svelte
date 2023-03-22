@@ -4,7 +4,7 @@
     import { create, all } from 'mathjs';
 
     import M from '../M.svelte';
-    import ObjHeader from '../ObjHeader.svelte';
+    import ObjHeader from './ObjHeader.svelte';
     import InputChecker from '../form-components/InputChecker.svelte';
     import PlayButtons from '../form-components/PlayButtons.svelte';
     import { dependsOn } from './Vector.svelte';

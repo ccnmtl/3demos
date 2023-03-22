@@ -6,7 +6,7 @@
 
     import { dependsOn } from './Vector.svelte';
     import M from '../M.svelte';
-    import ObjHeader from '../ObjHeader.svelte';
+    import ObjHeader from './ObjHeader.svelte';
     import PlayButtons from '../form-components/PlayButtons.svelte';
     import { tickTock } from '../stores';
 

@@ -4,7 +4,7 @@
     import { create, all } from 'mathjs';
 
     import M from '../M.svelte';
-    import ObjHeader from '../ObjHeader.svelte';
+    import ObjHeader from './ObjHeader.svelte';
     import { ArrowBufferGeometry, rk4, norm1, checksum } from '../utils.js';
     import { tickTock } from '../stores';
     // import ObjectParamInput from '../form-components/ObjectParamInput.svelte';
