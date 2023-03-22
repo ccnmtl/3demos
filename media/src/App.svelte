@@ -677,7 +677,7 @@
                             }}
                         >
                             Object List
-                            <i class="fa fa-sliders" />
+                            <i class="fa fa-sliders-h" />
                         </button>
                     </div>
                     {#if currentMode !== 'session'}
