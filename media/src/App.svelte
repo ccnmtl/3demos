@@ -1227,16 +1227,17 @@
     </div>
 
     {#if roomId}
-        <div
-            class="active-users-count"
-            title={activeUserCount + ' users in session'}
-        >
+        <div class="scene-overlay active-users-count"
+            title={activeUserCount + ' users in session'}>
             <i class="bi bi-person-fill" />
             {activeUserCount}
         </div>
-        <a class="leave-room" href="/" title="Exit Room">
-            <i class="fa fa-sign-out" />
-        </a>
+
+        <div class="scene-overlay leave-room">
+            <a href="/" class="link-light" title="Exit room">
+                <i class="fa fa-sign-out-alt" />
+            </a>
+        </div>
     {/if}
 </main>
 
@@ -1327,10 +1328,8 @@
         -webkit-text-stroke: 1px;
     }
 
-    .active-users-count {
+    .scene-overlay {
         position: absolute;
-        top: 10px;
-        right: 10px;
         color: white;
         background-color: rgba(0, 0, 0, 0.6);
         border: 1px solid black;
@@ -1338,14 +1337,13 @@
         padding: 5px;
     }
 
-    .leave-room {
-        background-color: transparent;
-        border: 0;
-        bottom: 5px;
-        color: #333;
-        padding: 0;
-        position: absolute;
+    .active-users-count {
+        top: 10px;
         right: 10px;
-        font-size: 2rem;
+    }
+
+    .leave-room {
+        bottom: 10px;
+        right: 10px;
     }
 </style>
