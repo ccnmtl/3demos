@@ -919,10 +919,9 @@
 </script>
 
 <div class={'boxItem' + (selected ? ' selected' : '')} on:click on:keydown>
-    <div class="box-title">
-        <strong>Graph of function</strong>
-        <ObjHeader bind:hidden bind:onClose />
-    </div>
+    <ObjHeader bind:hidden bind:onClose {color}>
+        Graph of function
+    </ObjHeader>
     <div {hidden}>
         <div class="threedemos-container container">
             <span class="box-1">

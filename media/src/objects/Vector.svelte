@@ -230,13 +230,9 @@
     on:click
     on:keydown
 >
-    <div class="box-title">
-        <span style="color: {color};"
-            ><strong>Vector</strong>
-            <M size="sm">\langle v_1, v_2, v_3 \rangle</M></span
-        >
-        <ObjHeader bind:hidden bind:onClose />
-    </div>
+    <ObjHeader bind:hidden bind:onClose {color}>
+        Vector <M size="sm">\langle v_1, v_2, v_3 \rangle</M>
+    </ObjHeader>
     <div {hidden}>
         <div class="threedemos-container container">
             {#each ['a', 'b', 'c', 'x', 'y', 'z'] as name}

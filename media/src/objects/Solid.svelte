@@ -308,10 +308,9 @@
 </script>
 
 <div class="boxItem" class:selected on:click on:keydown>
-    <div class="box-title">
-        <strong>Solid Region</strong>
-        <ObjHeader bind:hidden bind:onClose />
-    </div>
+    <ObjHeader bind:hidden bind:onClose {color}>
+        Solid Region
+    </ObjHeader>
     <div {hidden}>
         <div class="threedemos-container container">
             <span class="box-1">Coordinates</span>

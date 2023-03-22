@@ -915,10 +915,9 @@
 </script>
 
 <div class="boxItem" class:selected on:click on:keydown>
-    <div class="box-title">
-        <strong>Parametric surface</strong>
-        <ObjHeader bind:hidden bind:onClose />
-    </div>
+    <ObjHeader bind:hidden bind:onClose {color}>
+        Parametric surface
+    </ObjHeader>
     <div {hidden}>
         <div class="threedemos-container container">
             {#each ['x', 'y', 'z'] as name}

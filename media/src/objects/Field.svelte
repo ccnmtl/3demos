@@ -372,10 +372,9 @@
 </script>
 
 <div class={'boxItem' + (selected ? ' selected' : '')} on:click on:keydown>
-    <div class="box-title">
-        <strong>Vector Field</strong>
-        <ObjHeader bind:hidden bind:onClose />
-    </div>
+    <ObjHeader bind:hidden bind:onClose {color}>
+        Vector Field
+    </ObjHeader>
     <div {hidden}>
         <div class="threedemos-container container">
             {#each ['p', 'q', 'r'] as name}
