@@ -9,7 +9,7 @@
     import { create, all } from 'mathjs';
 
     import M from '../M.svelte';
-    import ObjHeader from '../ObjHeader.svelte';
+    import ObjHeader from './ObjHeader.svelte';
     import {
         ArrowBufferGeometry,
         ParametricCurve,

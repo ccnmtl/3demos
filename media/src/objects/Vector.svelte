@@ -26,7 +26,7 @@
 
     import PlayButtons from '../form-components/PlayButtons.svelte';
     import M from '../M.svelte';
-    import ObjHeader from '../ObjHeader.svelte';
+    import ObjHeader from './ObjHeader.svelte';
     import { ArrowBufferGeometry, checksum } from '../utils.js';
     import InputChecker from '../form-components/InputChecker.svelte';
 
