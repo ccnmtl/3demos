@@ -2,6 +2,57 @@
 
 import * as THREE from 'three';
 
+const ruColors = { u: 0x992525, v: 0x252599, grad: 0x259925, n: 0xb6b6b6 };
+const pointMaterial = new THREE.MeshLambertMaterial({ color: 0xffff33 });
+const pointGeometry = new THREE.SphereGeometry(0.2 / 8, 16, 16);
+const bufferGeometry = new THREE.BufferGeometry()
+const shardMaterial = new THREE.MeshPhongMaterial({
+    color: 0x4b4b4b,
+    shininess: 80,
+    side: THREE.DoubleSide,
+    transparent: true,
+    opacity: 0.5,
+});
+
+/**
+ * Generates the generic arrow objects for tangents.
+ * Parameters can be applied to modify and ammend the arrows.
+ * @param {Number} gridStep 
+ * @param {Object} altParams Alternative parameters for the arrows
+ */
+const generateArrows = function(gridStep, altParams={}) {
+    const arrowParams = {
+        radiusTop: gridStep / 10,
+        radiusBottom: gridStep / 20,
+        heightTop: gridStep / 7,
+    };
+
+    const arrowGeometry = new ArrowBufferGeometry({
+        ...arrowParams,
+        altParams});
+    
+    const colorKey = ['u', 'v', 'n', 'grad'];
+
+    return Object.fromEntries(colorKey.map(key => [
+        key,
+        new THREE.Mesh(
+            arrowGeometry,
+            new THREE.MeshBasicMaterial({
+                color: ruColors[key],
+            })
+        )
+        ]));
+}
+
+const generatePoint = function() {
+    return new THREE.Mesh(pointGeometry, pointMaterial);
+}
+    
+const generatePlaneShard = function() {
+    return new THREE.Mesh(bufferGeometry, shardMaterial);
+}
+
+
 /**
  * Given a URL base and a path, return the two combined.
  *
@@ -2347,6 +2398,10 @@ class SphericalSolidGeometry extends THREE.BufferGeometry {
 }
 
 export {
+    pointMaterial,
+    generateArrows,
+    generatePlaneShard,
+    generatePoint,
     joinUrl,
     getRoomUrl,
     convertToURLParams,

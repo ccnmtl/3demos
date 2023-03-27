@@ -4,7 +4,7 @@
     import { create, all } from 'mathjs';
 
     import M from '../M.svelte';
-    import ObjHeader from './ObjHeader.svelte';
+    import ObjHeader from '../ObjHeader.svelte';
     import InputChecker from '../form-components/InputChecker.svelte';
     import PlayButtons from '../form-components/PlayButtons.svelte';
     import { dependsOn } from './Vector.svelte';
@@ -20,9 +20,11 @@
         marchingSegments,
         ParametricGeometry,
         marchingSquares,
-        ArrowBufferGeometry,
         blockGeometry,
         checksum,
+        generateArrows,
+        generatePoint,
+        generatePlaneShard,
     } from '../utils.js';
 
     export let uuid;
@@ -118,66 +120,18 @@
         linewidth: 2,
     });
 
-    const pointMaterial = new THREE.MeshLambertMaterial({ color: 0xffff33 });
-    const point = new THREE.Mesh(
-        new THREE.SphereGeometry(gridStep / 8, 16, 16),
-        pointMaterial
-    );
-    point.position.set(1, 1, 1);
-    const arrowParams = {
-        radiusTop: gridStep / 10,
-        radiusBottom: gridStep / 20,
-        heightTop: gridStep / 7,
-    };
-    const arrows = {
-        u: new THREE.Mesh(
-            new ArrowBufferGeometry({
-                ...arrowParams,
-                height: 1,
-            }),
-            new THREE.MeshBasicMaterial({})
-        ),
-        v: new THREE.Mesh(
-            new ArrowBufferGeometry({
-                ...arrowParams,
-                height: 1,
-            }),
-            new THREE.MeshBasicMaterial({})
-        ),
-        n: new THREE.Mesh(
-            new ArrowBufferGeometry({
-                ...arrowParams,
-                height: 1,
-            }),
-            new THREE.MeshBasicMaterial({})
-        ),
-        grad: new THREE.Mesh(
-            new ArrowBufferGeometry({
-                ...arrowParams,
-                height: 1,
-            }),
-            new THREE.MeshBasicMaterial({})
-        ),
-    };
-    const ruColors = { u: 0x992525, v: 0x252599, grad: 0x259925, n: 0xb6b6b6 };
-    for (let key of Object.keys(arrows)) {
-        arrows[key].material.color.set(ruColors[key]);
-        point.add(arrows[key]);
-    }
+    const arrows = generateArrows(gridStep);
     arrows.n.visible = false;
     arrows.grad.visible = false;
 
-    const shardMaterial = new THREE.MeshPhongMaterial({
-        color: 0x4b4b4b,
-        shininess: 80,
-        side: THREE.DoubleSide,
-        transparent: false,
-        opacity: 1,
-    });
-    const planeShard = new THREE.Mesh(undefined, shardMaterial);
+    const planeShard = generatePlaneShard();
     planeShard.visible = false;
+    const point = generatePoint();
+    
+    for (let key of Object.keys(arrows)) {
+        point.add(arrows[key]);
+    }
     point.add(planeShard);
-
     point.visible = false;
     scene.add(point);
 
