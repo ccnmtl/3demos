@@ -46,7 +46,7 @@
         <div class="col-12">
             <button
                 type="submit"
-                class={`btn btn-primary ${joinRoomId ? '' : 'disabled'}`}>
+                class={`btn btn-sm btn-primary ${joinRoomId ? '' : 'disabled'}`}>
                 Join Room
             </button>
         </div>
@@ -59,7 +59,7 @@
 
         <input type="hidden" name="objects" value={JSON.stringify(objects)} />
 
-        <button type="submit" class="btn btn-primary">
+        <button type="submit" class="btn btn-sm btn-primary">
             Make Room
         </button>
     </form>
