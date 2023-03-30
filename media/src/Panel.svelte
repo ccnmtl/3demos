@@ -337,7 +337,7 @@
                     role="toolbar">
                     <div class="btn-group mb-2">
                         <ButtonDropdown>
-                            <DropdownToggle color="primary">
+                            <DropdownToggle size="sm" color="primary">
                                 Add Object
                                 <i class="fa fa-plus" />
                             </DropdownToggle>
@@ -403,7 +403,7 @@
                             </DropdownMenu>
                         </ButtonDropdown>
                         <button
-                            class="btn btn-danger"
+                            class="btn btn-sm btn-danger"
                             on:click={blowUpObjects}
                         >
                             Clear Objects
@@ -412,7 +412,7 @@
                     </div>
                     {#if currentMode === "session" && isHost}
                         <button
-                            class="btn btn-primary mb-2"
+                            class="btn btn-sm btn-primary mb-2"
                             on:click={onPublishScene}
                         >
                             Publish Scene

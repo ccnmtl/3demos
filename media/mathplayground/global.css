@@ -204,7 +204,11 @@ input:focus + .slider {
 }
 
 .accordion {
+    /* https://getbootstrap.com/docs/5.3/components/accordion/#variables */
     --bs-accordion-btn-bg: rgba(255, 255, 255, 0.5);
     --bs-accordion-active-bg: rgba(231, 241, 255, 0.5);
     --bs-accordion-bg: rgba(255, 255, 255, 0.5);
+
+    --bs-accordion-btn-padding-x: 0.85rem;
+    --bs-accordion-btn-padding-y: 0.65rem;
 }
