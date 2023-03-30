@@ -264,9 +264,6 @@
 <button class="button" id="screenshot" title="Take screenshot">
     <i class="fa fa-camera" />
 </button>
-<button class="button" id="presentation" title="Presentation mode">
-    <i class="fa fa-tv" />
-</button>
 
 <style>
     .button {
