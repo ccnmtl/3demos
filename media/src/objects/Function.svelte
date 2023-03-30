@@ -97,7 +97,6 @@
     export let gridStep;
     export let showLevelCurves = false;
     export let scene;
-    export let shadeUp;
     export let render = () => {};
     export let onClose = () => {};
     export let animation = false;
@@ -811,8 +810,8 @@
         scene.remove(boxMesh);
 
         scene.remove(point);
-        window.removeEventListener('keydown', shiftDown);
-        window.removeEventListener('keyup', shiftUp);
+        window.removeEventListener('keydown', onKeyDown);
+        window.removeEventListener('keyup', onKeyUp);
         render();
     });
 
@@ -850,8 +849,12 @@
         levelReq = requestAnimationFrame(updateLevelShift);
     };
 
-    const shiftDown = (e) => {
-        if (shadeUp && selected) {
+    const onKeyDown = (e) => {
+        if (e.target.matches('input')) {
+            return;
+        }
+
+        if (selected) {
             switch (e.key) {
                 case 'Shift':
                     window.addEventListener('mousemove', onMouseMove, false);
@@ -908,14 +911,18 @@
         }
     };
 
-    const shiftUp = (e) => {
+    const onKeyUp = (e) => {
+        if (e.target.matches('input')) {
+            return;
+        }
+
         if (e.key === 'Shift') {
             window.removeEventListener('mousemove', onMouseMove);
         }
     };
 
-    window.addEventListener('keydown', shiftDown, false);
-    window.addEventListener('keyup', shiftUp, false);
+    window.addEventListener('keydown', onKeyDown, true);
+    window.addEventListener('keyup', onKeyUp, true);
 </script>
 
 <div class={'boxItem' + (selected ? ' selected' : '')} on:click on:keydown>

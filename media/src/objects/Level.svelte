@@ -31,7 +31,6 @@
     };
 
     export let scene;
-    export let shadeUp;
     export let render = () => {};
     export let onClose = () => {};
     export let selected;
@@ -207,8 +206,8 @@
         minusMaterial.dispose();
         scene.remove(mesh);
         scene.remove(tanFrame);
-        window.removeEventListener('keydown', shiftDown, false);
-        window.removeEventListener('keyup', shiftUp, false);
+        window.removeEventListener('keydown', onKeyDown, false);
+        window.removeEventListener('keyup', onKeyUp, false);
         render();
     });
 
@@ -352,8 +351,12 @@
         }
     };
 
-    const shiftDown = (e) => {
-        if (shadeUp && selected) {
+    const onKeyDown = (e) => {
+        if (e.target.matches('input')) {
+            return;
+        }
+
+        if (selected) {
             switch (e.key) {
                 case 'Backspace':
                     mesh.visible = !mesh.visible;
@@ -398,14 +401,14 @@
         }
     };
 
-    const shiftUp = (e) => {
+    const onKeyUp = (e) => {
         if (e.key === 'Shift') {
             window.removeEventListener('mousemove', onMouseMove);
         }
     };
 
-    window.addEventListener('keydown', shiftDown, false);
-    window.addEventListener('keyup', shiftUp, false);
+    window.addEventListener('keydown', onKeyDown, false);
+    window.addEventListener('keyup', onKeyUp, false);
 </script>
 
 <div class={'boxItem' + (selected ? ' selected' : '')} on:click on:keydown>

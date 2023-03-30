@@ -37,7 +37,7 @@
 </p>
 {:else}
     <form on:submit|preventDefault={() => onJoinRoom(joinRoomId)}
-        class="row row-cols-lg-auto align-items-center">
+        class="mt-2 row row-cols-lg-auto align-items-center">
         <div class="col-12">
             <input type="text" class="form-control" id="joinRoomId"
                    placeholder="Room ID"

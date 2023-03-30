@@ -41,14 +41,13 @@
 
     let tau = 0;
     let last;
-    let texString1 = `t `;
+    let texString1 = '';
 
     // display controls in objects panel
     // considered for Chapters that add many objects that need not be user-configurable.
     export let show = true;
 
     export let scene;
-    export let shadeUp;
     export let render = () => {};
     export let onClose = () => {};
     export let gridStep;
@@ -111,22 +110,24 @@
         point.material?.dispose();
 
         scene.remove(point);
-        window.removeEventListener('keydown', shiftDown, false);
+        window.removeEventListener('keydown', onKeyDown, false);
         render();
     });
 
-    const shiftDown = (e) => {
-        if (shadeUp) {
-            switch (e.key) {
-                case 'Backspace':
-                    point.visible = !point.visible;
-                    render();
-                    break;
-            }
+    const onKeyDown = (e) => {
+        if (e.target.matches('input')) {
+            return;
+        }
+
+        switch (e.key) {
+            case 'Backspace':
+                point.visible = !point.visible;
+                render();
+                break;
         }
     };
 
-    window.addEventListener('keydown', shiftDown, false);
+    window.addEventListener('keydown', onKeyDown, false);
 
     // make display name more consistent
     const varNames = {
