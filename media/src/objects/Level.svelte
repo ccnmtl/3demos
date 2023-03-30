@@ -412,16 +412,13 @@
 </script>
 
 <div class={'boxItem' + (selected ? ' selected' : '')} on:click on:keydown>
-    <div class="box-title">
-        <span>
-            <strong>Level surface </strong>
-            <span hidden={!loading}>
-                <i class="fa fa-spinner fa-pulse fa-fw" />
-                <span class="sr-only">Loading...</span>
-            </span>
+    <ObjHeader bind:hidden bind:onClose {color}>
+        <strong>Level surface </strong>
+        <span hidden={!loading}>
+            <i class="fa fa-spinner fa-pulse fa-fw" />
+            <span class="sr-only">Loading...</span>
         </span>
-        <ObjHeader bind:hidden bind:onClose />
-    </div>
+    </ObjHeader>
     <div {hidden}>
         <div class="threedemos-container container">
             <span class="box-1"><M size="sm">g(x,y,z) =</M></span>

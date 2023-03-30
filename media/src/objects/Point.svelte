@@ -196,13 +196,9 @@
     on:click
     on:keydown
 >
-    <div class="box-title">
-        <span style="color: {color};"
-            ><strong>Point</strong>
-            <M size="sm">\langle p_1, p_2, p_3 \rangle</M></span
-        >
-        <ObjHeader bind:hidden bind:onClose />
-    </div>
+    <ObjHeader bind:hidden bind:onClose {color}>
+        Point <M size="sm">\langle p_1, p_2, p_3 \rangle</M>
+    </ObjHeader>
     <div {hidden}>
         <div class="threedemos-container container">
             {#each ['a', 'b', 'c'] as name}

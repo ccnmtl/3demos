@@ -464,15 +464,9 @@
 </script>
 
 <div class={'boxItem' + (selected ? ' selected' : '')} on:click on:keydown>
-    <div class="box-title">
-        <span>
-            <strong style="color: {color};">
-                <i class="fa fa-square" />
-            </strong>
-            <strong>Space Curve</strong>
-        </span>
-        <ObjHeader bind:hidden bind:onClose />
-    </div>
+    <ObjHeader bind:hidden bind:onClose {color}>
+        Space Curve
+    </ObjHeader>
     <div {hidden}>
         <div class="threedemos-container container">
             {#each ['x', 'y', 'z'] as name}
