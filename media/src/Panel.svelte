@@ -668,6 +668,7 @@
         bind:animation={scaleAnimation}
         bind:orthoCamera
         on:animate={animateIfNotAnimating}
+        {roomId}
         />
 </div>
 

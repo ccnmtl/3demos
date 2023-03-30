@@ -582,12 +582,6 @@
             <i class="bi bi-person-fill" />
             {activeUserCount}
         </div>
-
-        <div class="scene-overlay leave-room">
-            <a href="/" class="link-light" title="Exit room">
-                <i class="fa fa-sign-out-alt" />
-            </a>
-        </div>
     {/if}
 </main>
 
