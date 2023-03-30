@@ -7,11 +7,11 @@ from mathplayground.rooms.scene import make_room
 
 @require_http_methods(['GET', 'POST'])
 def index(request):
-    # Make sure the user's session is created.
-    if not request.session.session_key:
-        request.session.create()
-
     if request.method == 'POST':
+        # Make sure the user's session is created.
+        if not request.session.session_key:
+            request.session.create()
+
         data = request.POST
         room_id = make_room(
             data.get('objects'),
