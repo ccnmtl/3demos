@@ -4,6 +4,7 @@
     import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
     import { drawAxes, drawGrid, labelAxes, freeChildren } from '../utils';
     import { makeObject } from '../sceneUtils';
+    import { vMin, vMax } from '../stores';
     import WindowHeader from './WindowHeader.svelte';
 
     const dispatch = createEventDispatcher();
@@ -145,11 +146,14 @@
     class="settings-box"
     class:grid={showSettings}
     hidden={!showSettings}
-    id="settings-box">
-
-    <WindowHeader title="Settings" onClick={() => {
-        showSettings = false;
-    }} />
+    id="settings-box"
+>
+    <WindowHeader
+        title="Settings"
+        onClick={() => {
+            showSettings = false;
+        }}
+    />
 
     <div class="row justify-content-between">
         <div class="col-12">
@@ -197,17 +201,39 @@
             />
         </label>
     </div>
+    <div class="row justify-content-between">
+        <label
+            >vMin
+            <input type="number" bind:value={$vMin} />
+        </label>
+        <label
+            >vMax
+            <input type="number" bind:value={$vMax} />
+        </label>
+        <button
+            class="button settings-button"
+            aria-label="Reset the vmin/vmax for coloring."
+            on:click={() => {
+                $vMin = -1;
+                $vMax = 1;
+                render();
+            }}>Reset</button
+        >
+    </div>
 </div>
 
 <div
     class="settings-box"
     class:grid={showUpload}
     hidden={!showUpload}
-    id="upload-box">
-
-    <WindowHeader title="Upload Scene" onClick={() => {
-        showUpload = false;
-    }} />
+    id="upload-box"
+>
+    <WindowHeader
+        title="Upload Scene"
+        onClick={() => {
+            showUpload = false;
+        }}
+    />
 
     <form>
         <label for="sceneUpload">Upload a scene</label>
@@ -267,9 +293,9 @@
 </button>
 
 {#if roomId}
-<a href="/" class="button" title="Exit room">
-    <i class="fa fa-sign-out-alt" />
-</a>
+    <a href="/" class="button" title="Exit room">
+        <i class="fa fa-sign-out-alt" />
+    </a>
 {/if}
 
 <style>
@@ -281,7 +307,9 @@
         padding: 0.25rem 0.5rem;
         width: 3rem;
     }
-
+    .settings-button {
+        color: white;
+    }
     .settings-box {
         position: relative;
         color: white;
