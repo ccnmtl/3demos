@@ -7,7 +7,7 @@
     import M from '../M.svelte';
     import ObjHeader from './ObjHeader.svelte';
     // import PlayButtons from '../form-components/PlayButtons.svelte';
-    // import { tickTock } from '../stores';
+    import { vMin, vMax } from '../stores';
 
     const config = {};
     const math = create(all, config);
@@ -76,8 +76,7 @@
     let densityString = '1';
     let compiledDensity;
     let densityFunc;
-    let vMin = -1;
-    let vMax = 1;
+
     // export let myId;
 
     const colorMaterial = new THREE.MeshPhongMaterial({
@@ -88,22 +87,26 @@
     });
 
     const colorMeBadd = (mesh, f) => {
-        [vMax, vMin] = vMaxMin(mesh, f);
-        if (vMax == vMin) {
-            if (vMax == 0) {
-                vMax = 1;
-                vMin = -1;
+        const [vMaxLocal, vMinLocal] = vMaxMin(mesh, f);
+        $vMin = Math.min($vMin, vMinLocal);
+        $vMax = Math.max($vMax, vMaxLocal);
+        if ($vMax == $vMin) {
+            if ($vMax == 0) {
+                $vMax = 1;
+                $vMin = -1;
             } else {
-                vMax = (4 / 3) * Math.abs(vMax);
-                vMin = (-4 / 3) * Math.abs(vMin);
+                $vMax = (4 / 3) * Math.abs($vMax);
+                $vMin = (-4 / 3) * Math.abs($vMin);
             }
         }
 
         colorBufferVertices(mesh, (x, y, z) => {
             const value = f(x, y, z);
-            return blueUpRedDown((2 * (value - vMin)) / (vMax - vMin) - 1);
+            return blueUpRedDown((2 * (value - $vMin)) / ($vMax - $vMin) - 1);
         });
     };
+
+    $: ($vMin, $vMax), chooseDensity && colorMeBadd(box, densityFunc);
 
     $: if (chooseDensity) {
         densityString = densityString || '1';
@@ -307,9 +310,7 @@
 </script>
 
 <div class="boxItem" class:selected on:click on:keydown>
-    <ObjHeader bind:hidden bind:onClose {color}>
-        Solid Region
-    </ObjHeader>
+    <ObjHeader bind:hidden bind:onClose {color}>Solid Region</ObjHeader>
     <div {hidden}>
         <div class="threedemos-container container">
             <span class="box-1">Coordinates</span>
@@ -468,7 +469,7 @@
                     }}
                 />
                 <div class="box colorbar-container">
-                    <ColorBar {vMin} {vMax} />
+                    <ColorBar vMin={$vMin} vMax={$vMax} />
                 </div>
             {:else}
                 <span class="box box-2">
