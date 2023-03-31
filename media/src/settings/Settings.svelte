@@ -16,6 +16,7 @@
     export let encode;
     export let objects;
     export let socket;
+    export let roomId;
 
     let newGridMeshes;
     const newLineMaterial = lineMaterial.clone();
@@ -264,6 +265,12 @@
 <button class="button" id="screenshot" title="Take screenshot">
     <i class="fa fa-camera" />
 </button>
+
+{#if roomId}
+<a href="/" class="button" title="Exit room">
+    <i class="fa fa-sign-out-alt" />
+</a>
+{/if}
 
 <style>
     .button {
