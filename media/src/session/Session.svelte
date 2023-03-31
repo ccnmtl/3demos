@@ -39,7 +39,7 @@
     <form on:submit|preventDefault={() => onJoinRoom(joinRoomId)}
         class="mt-2 row row-cols-lg-auto align-items-center">
         <div class="col-12">
-            <input type="text" class="form-control" id="joinRoomId"
+            <input type="text" class="form-control form-control-sm" id="joinRoomId"
                    placeholder="Room ID"
                    bind:value={joinRoomId} />
         </div>
