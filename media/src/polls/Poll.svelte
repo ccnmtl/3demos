@@ -68,7 +68,7 @@
                     <input type="number" step="0.01"
                            style="width: 100px;"
                            name="poll_response"
-                           class="form-control mb-2" />
+                           class="form-control form-control-sm mb-2" />
                 {/if}
 
                 {#if currentPoll.choices}

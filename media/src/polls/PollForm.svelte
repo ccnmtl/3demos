@@ -48,7 +48,7 @@ Poll Form
     {/if}
 
     <textarea
-        class="form-control"
+        class="form-control form-control-sm"
         name="poll"
         rows="8">{stringifyPoll(poll)}</textarea>
 
