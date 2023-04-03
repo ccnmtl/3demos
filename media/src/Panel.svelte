@@ -60,6 +60,13 @@
 
     export let axesText, axesHolder, axesMaterial, lineMaterial;
 
+    const PANEL_DELAY = 200;
+    let showPanel = true;
+    let panelWidth = 400;
+    let minWidth = 300;
+    let panelTransition = '';
+    let panelTransitionProperty = '';
+
     const kindToComponent = {
         point: Point,
         vector: Vector,
@@ -219,6 +226,21 @@
         ];
     };
 
+    const onTogglePanel = function() {
+        panelTransition = `all ${PANEL_DELAY}ms ease`;
+        panelTransitionProperty = 'width min-width';
+
+        showPanel = !showPanel;
+
+        // De-activate transition easing by default, so user can still
+        // manually resize the panel without weird transition
+        // interference.
+        setTimeout(() => {
+            panelTransition = '';
+            panelTransitionProperty = '';
+        }, PANEL_DELAY);
+    };
+
     onMount(() => {
         const urlParams = new URLSearchParams(location.search);
         if (urlParams.keys()) {
@@ -255,9 +277,16 @@
             }
         }
     });
+
+    $: panelWidth = showPanel ? 400 : 0;
+    $: minWidth = showPanel ? 300 : 0;
 </script>
 
-<div class="demos-panel d-flex flex-column">
+<div class="demos-panel d-flex flex-column"
+     style:transition={panelTransition}
+     style:transition-property={panelTransitionProperty}
+     style:width={panelWidth + 'px'}
+     style:min-width={minWidth + 'px'}>
 <div id="panelAccordion" class="accordion flex-fill">
     <h1 class="flex-grow-1 px-2">
         <a href="/" title="Home">3Demos (βeta)</a>
@@ -648,6 +677,18 @@
 
 </div><!-- end .demos-panel -->
 
+<div class="panel-hider bg-info bg-opacity-25 border border-info border-start-0 rounded-end-circle"
+     title={showPanel ? 'Hide panel' : 'Show panel'}
+     on:click={onTogglePanel} on:keypress={onTogglePanel}>
+    <div class="align-middle text-center">
+        {#if showPanel}
+            <i class="bi bi-arrow-bar-left"></i>
+        {:else}
+            <i class="bi bi-arrow-bar-right"></i>
+        {/if}
+    </div>
+</div>
+
 <div class="settings-panel-box">
     <Settings
         {scene}
@@ -675,11 +716,15 @@
 <style>
     .demos-panel {
         z-index: 1;
+
         min-width: 300px;
         width: 400px;
+        max-width: 60%;
+
         background-color: transparent;
 
-        overflow: auto;
+        overflow-y: auto;
+        overflow-x: hidden;
         resize: horizontal;
 
         /* Remove this if you don't want the 3D effect */
@@ -722,5 +767,25 @@
         bottom: 0;
         right: 0;
         z-index: 2;
+    }
+
+    .panel-hider {
+        cursor: pointer;
+        position: relative;
+        top: 40px;
+
+        min-width: 25px;
+        height: 40px;
+
+        z-index: 2;
+    }
+
+    .panel-hider:hover {
+        background-color: rgba(255, 255, 150, 0.6) !important;
+    }
+
+    .panel-hider>div {
+        position: relative;
+        top: 6px;
     }
 </style>
