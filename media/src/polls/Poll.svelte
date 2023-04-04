@@ -68,7 +68,8 @@
                     <input type="number" step="0.01"
                            style="width: 100px;"
                            name="poll_response"
-                           class="form-control form-control-sm mb-2" />
+                           class="form-control form-control-sm mb-2"
+                           required />
                 {/if}
 
                 {#if currentPoll.choices}
@@ -79,7 +80,8 @@
                                        type="radio"
                                        id={`pollRadio-${choice}`}
                                        name="poll_response"
-                                       value={choice}>
+                                       value={choice}
+                                       required>
                                 {choice}
                             </label>
                         </div>
