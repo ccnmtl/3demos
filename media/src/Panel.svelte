@@ -282,12 +282,14 @@
     $: minWidth = showPanel ? 300 : 0;
 </script>
 
+<div class="demos-panel-container">
+
 <div class="demos-panel d-flex flex-column"
      style:transition={panelTransition}
      style:transition-property={panelTransitionProperty}
      style:width={panelWidth + 'px'}
      style:min-width={minWidth + 'px'}>
-<div id="panelAccordion" class="accordion flex-fill">
+<div id="panelAccordion" class="accordion">
     <h1 class="flex-grow-1 px-2">
         <a href="/" title="Home">3Demos (βeta)</a>
     </h1>
@@ -675,7 +677,11 @@
 
 </div><!-- end .accordion -->
 
+<div class="panel-empty-space flex-fill"></div>
+
 </div><!-- end .demos-panel -->
+
+</div><!-- end .demos-panel-container -->
 
 <div class="panel-hider bg-info bg-opacity-25 border border-info border-start-0 rounded-end-circle"
      title={showPanel ? 'Hide panel' : 'Show panel'}
@@ -714,6 +720,11 @@
 </div>
 
 <style>
+    .demos-panel-container {
+        /* Allow panel to be clicked through */
+        pointer-events: none;
+    }
+
     .demos-panel {
         z-index: 1;
 
@@ -729,6 +740,14 @@
 
         /* Remove this if you don't want the 3D effect */
         perspective: 1000px;
+    }
+
+    #panelAccordion * {
+        pointer-events: auto;
+    }
+
+    .panel-empty-space {
+        pointer-events: none;
     }
 
     .chapterBox,
