@@ -32,6 +32,7 @@
 
     let debug = false;
     let stats;
+    let panel = null;
 
     let scaleAnimation = false;
     let scaleUpdate;
@@ -485,6 +486,11 @@
             }
         } else if (data.message.broadcastPoll) {
             currentPoll = handlePollEvent(data);
+            if (panel) {
+                // When user receives a poll, display the appropriate
+                // panel view so they can see it.
+                panel.showMainPanelItem();
+            }
         } else if (data.message.updateActiveUsers) {
             if (typeof data.message.updateActiveUsers === 'number') {
                 activeUserCount = data.message.updateActiveUsers;
@@ -559,7 +565,8 @@
 
 <main>
     <div class="d-flex demos-mainview">
-        <Panel bind:debug bind:currentMode
+        <Panel bind:this={panel}
+               bind:debug bind:currentMode
                bind:objects
                bind:currentChapter
                bind:gridMeshes
