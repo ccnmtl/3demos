@@ -16,10 +16,9 @@
     } from "sveltestrap";
 
     import Intro from "./Intro.svelte";
-    import Settings from "./settings/Settings.svelte";
     import Polls from "./polls/Polls.svelte";
 
-    import { convertToURLParams, makeHSLColor } from "./utils";
+    import { makeHSLColor } from "./utils";
     import { makeObject, publishScene } from "./sceneUtils";
 
     import Session from "./session/Session.svelte";
@@ -43,12 +42,10 @@
     export let objects, isHost;
     export let onRenderObject, onDestroyObject;
     export let socket, pollResponses;
-    export let scaleUpdate, scaleAnimation;
     export let animateIfNotAnimating;
     export let roomId, currentPoll;
 
-    export let camera;
-    export let currentCamera, orthoCamera;
+    export let currentCamera;
     export let scene;
     export let requestFrameIfNotRequested;
 
@@ -57,8 +54,6 @@
     export let selectedObject;
     export let altDown;
     export let chatBuffer;
-
-    export let axesText, axesHolder, axesMaterial, lineMaterial;
 
     const PANEL_DELAY = 200;
     let showPanel = true;
@@ -76,19 +71,6 @@
         level: Level,
         surface: Surface,
         solid: Solid,
-    };
-
-    const makeQueryStringObject = function () {
-        const flattenedObjects = {
-            currentChapter,
-        };
-        if (gridMeshes.visible) {
-            flattenedObjects["grid"] = true;
-        }
-        window.location.search = convertToURLParams(
-            flattenedObjects,
-            objects
-        ).toString();
     };
 
     const onPublishScene = function () {
@@ -689,30 +671,6 @@
     </div>
 </div>
 
-<div class="settings-panel-box">
-    <Settings
-        {scene}
-        {camera}
-        controls={currentControls}
-        bind:gridMax
-        bind:gridStep
-        {gridMeshes}
-        {axesText}
-        {axesHolder}
-        {lineMaterial}
-        {axesMaterial}
-        bind:objects
-        bind:socket
-        encode={makeQueryStringObject}
-        render={requestFrameIfNotRequested}
-        bind:update={scaleUpdate}
-        bind:animation={scaleAnimation}
-        bind:orthoCamera
-        on:animate={animateIfNotAnimating}
-        {roomId}
-        />
-</div>
-
 <style>
     .demos-panel {
         z-index: 1;
@@ -760,14 +718,6 @@
         display: flex;
         font-size: 1.5em;
         justify-content: space-between;
-    }
-
-    .settings-panel-box {
-        position: fixed;
-        bottom: 0;
-        right: 0;
-        z-index: 2;
-        width: 20rem;
     }
 
     .panel-hider {

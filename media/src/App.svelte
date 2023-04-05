@@ -8,11 +8,12 @@
 
     // import components
     import Panel from './Panel.svelte';
-
+    import Settings from './settings/Settings.svelte';
     import Stats from 'stats.js';
 
     import { getRoomId, makeSocket } from './rooms';
     import {
+        convertToURLParams,
         drawAxes,
         drawGrid,
         labelAxes,
@@ -437,6 +438,19 @@
     let chatBuffer = [];
     const chatLineCount = 5;
 
+    const makeQueryStringObject = function () {
+        const flattenedObjects = {
+            currentChapter,
+        };
+        if (gridMeshes.visible) {
+            flattenedObjects["grid"] = true;
+        }
+        window.location.search = convertToURLParams(
+            flattenedObjects,
+            objects
+        ).toString();
+    };
+
     const handleSocketMessage = function (e) {
         const data = JSON.parse(e.data);
         if (data.message.chatMessage) {
@@ -540,15 +554,12 @@
                bind:currentChapter
                bind:gridMeshes
                bind:gridStep bind:gridMax
-               bind:orthoCamera
-               bind:scaleUpdate bind:scaleAnimation
                bind:chatBuffer
 
                {isHost}
                {blowUpObjects}
                {selectObject} {selectedObject}
                {scene} {onRenderObject} {onDestroyObject}
-               {camera}
                {currentCamera} {currentControls}
                {requestFrameIfNotRequested}
                {socket} {pollResponses}
@@ -557,12 +568,35 @@
                {roomId}
                {currentPoll}
                {altDown}
-               {lineMaterial}
-               {axesText} {axesHolder} {axesMaterial}
                />
 
         <canvas class="flex-grow-1" tabIndex="0" id="c"
                 bind:this={canvas} />
+
+        <div class="settings-panel-box">
+            <Settings
+                {scene}
+                {camera}
+                controls={currentControls}
+                bind:gridMax
+                bind:gridStep
+                {gridMeshes}
+                {axesText}
+                {axesHolder}
+                {lineMaterial}
+                {axesMaterial}
+                bind:objects
+                bind:socket
+                encode={makeQueryStringObject}
+                render={requestFrameIfNotRequested}
+                bind:update={scaleUpdate}
+                bind:animation={scaleAnimation}
+                bind:orthoCamera
+                on:animate={animateIfNotAnimating}
+                {roomId}
+                />
+        </div>
+
         {#if roomId}
             <div class="active-users-count"
                  title={activeUserCount + ' users in session'}>
@@ -617,5 +651,13 @@
     .leave-room {
         bottom: 10px;
         right: 10px;
+    }
+
+    .settings-panel-box {
+        position: fixed;
+        bottom: 0;
+        right: 0;
+        z-index: 2;
+        width: 20rem;
     }
 </style>
