@@ -173,8 +173,8 @@
             </span>
         </div>
     </div>
-    <div class="form-check form-switch row">
-        <label class="form-check-label col-6" for="gridVisible">
+    <div class="form-check form-switch row mb-2">
+        <label class="form-check-label" for="gridVisible">
             Grid
             <input
                 class="form-check-input"
@@ -187,7 +187,7 @@
                 on:change={render}
             />
         </label>
-        <label class="form-check-label col-auto" for="orthoCamera">
+        <label class="form-check-label" for="orthoCamera">
             Orthographic View
             <input
                 class="form-check-input"
@@ -201,24 +201,26 @@
             />
         </label>
     </div>
-    <div class="row justify-content-between">
-        <label
-            >vMin
-            <input type="number" bind:value={$vMin} />
-        </label>
-        <label
-            >vMax
-            <input type="number" bind:value={$vMax} />
-        </label>
-        <button
-            class="button settings-button"
-            aria-label="Reset the vmin/vmax for coloring."
-            on:click={() => {
-                $vMin = -1;
-                $vMax = 1;
-                render();
-            }}>Reset</button
-        >
+    <div class="row align-items-center">
+        <div class="col-6">
+            <label class="col-5" for="vmin">vMin</label>
+            <input class="col-6" id="vmin" type="number" bind:value={$vMin} />
+            <label class="col-5" for="vmax">vMax</label>
+            <input class="col-6" id="vmax" type="number" bind:value={$vMax} />
+        </div>
+        <div class="col-4">
+            <button
+                class="button settings-button"
+                aria-label="Reset the vmin/vmax for coloring."
+                on:click={() => {
+                    $vMin = -1;
+                    $vMax = 1;
+                    render();
+                }}
+            >
+                    Reset
+            </button>
+        </div>
     </div>
 </div>
 
