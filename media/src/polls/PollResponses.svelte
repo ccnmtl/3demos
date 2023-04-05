@@ -7,9 +7,30 @@
     export let currentPollType;
     let el;
     let chart;
-    let pollEntries;
+
+    /**
+     * Process an array of responses into something that d3 can
+     * display.
+     *
+     * Takes an object and returns an array.
+     */
+    const processResponses = function(data) {
+        let processedData = [];
+        const responsesArray = Object.entries(data);
+
+        responsesArray.forEach((response) => {
+            const choice = response[1];
+            const frequency = responsesArray.filter(
+                r => r[1] === choice).length;
+            processedData.push([choice, frequency]);
+        });
+
+        return processedData;
+    };
 
     const makeGraph = function(data, pollType) {
+        data = processResponses(data);
+
         if (pollType === 'numeric') {
             return Histogram(data, {
                 x: d => d[0],
@@ -55,12 +76,9 @@
         }
     };
 
-    $: {
-        pollEntries = Object.entries(pollResponses);
-        refreshChart(pollEntries, currentPollType);
-    }
+    $: refreshChart(pollResponses, currentPollType);
 </script>
 
-{pollEntries.length} responses
+{Object.entries(pollResponses).length} responses
 
 <div bind:this={el}></div>

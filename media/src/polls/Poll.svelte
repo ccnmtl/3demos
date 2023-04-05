@@ -12,17 +12,19 @@
         e.preventDefault();
 
         // Set up response
+        let responseEl;
         response = [];
+
         if (currentPoll.type === 'numeric') {
-            const responseEl =
+            responseEl =
                   e.target.querySelector('input[name="poll_response"]');
             response = forceNumber(responseEl.value);
         } else if (currentPoll.type === 'multiple choice') {
-            const responseEl =
+            responseEl =
                   e.target.querySelectorAll('input[name="poll_response"]');
             responseEl.forEach(function(el) {
                 if (el.checked) {
-                    response.push(el.value);
+                    response = el.value;
                 }
             });
         }
