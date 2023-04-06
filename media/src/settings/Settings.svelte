@@ -142,12 +142,9 @@
     };
 </script>
 
-<div
-    class="settings-box"
-    class:grid={showSettings}
-    hidden={!showSettings}
-    id="settings-box"
->
+<div class="settings-box"
+     class:grid={showSettings}
+     hidden={!showSettings}>
     <WindowHeader
         title="Settings"
         onClick={() => {
@@ -228,8 +225,7 @@
     class="settings-box"
     class:grid={showUpload}
     hidden={!showUpload}
-    id="upload-box"
->
+    id="upload-box">
     <WindowHeader
         title="Upload Scene"
         onClick={() => {
@@ -251,54 +247,56 @@
     </form>
 </div>
 
-<button
-    class="button"
-    id="settings"
-    title="Settings"
-    on:click={() => {
+<div class="settings-buttons">
+    <button
+        class="button"
+        id="settings"
+        title="Settings"
+        on:click={() => {
         showUpload = false;
         showSettings = !showSettings;
-    }}
->
-    <i class="fa fa-cog" />
-</button>
-<button class="button" id="encodeURL" title="Encode URL" on:click={encode}>
-    <i class="fa fa-barcode" />
-</button>
-<button
-    class="button"
-    title="Upload Scene"
-    on:click={() => {
+        }}
+        >
+        <i class="fa fa-cog" />
+    </button>
+    <button class="button" id="encodeURL" title="Encode URL" on:click={encode}>
+        <i class="fa fa-barcode" />
+    </button>
+    <button
+        class="button"
+        title="Upload Scene"
+        on:click={() => {
         showSettings = false;
         showUpload = !showUpload;
-    }}
->
-    <i class="fa fa-upload" />
-</button>
-<button class="button" title="Download Scene" on:click={downloadScene}>
-    <i class="fa fa-download" />
-</button>
-<button
-    class="button"
-    id="cameraReset"
-    title="Reset camera"
-    on:click={() => {
+        }}
+        >
+        <i class="fa fa-upload" />
+    </button>
+    <button class="button" title="Download Scene" on:click={downloadScene}>
+        <i class="fa fa-download" />
+    </button>
+    <button
+        class="button"
+        id="cameraReset"
+        title="Reset camera"
+        on:click={() => {
         controls.target.set(0, 0, 0);
         // controls2.target.set(0, 0, 0);
         render();
-    }}
->
-    <i class="fa fa-video" />
-</button>
-<button class="button" id="screenshot" title="Take screenshot">
-    <i class="fa fa-camera" />
-</button>
+        }}
+        >
+        <i class="fa fa-video" />
+    </button>
+    <button class="button" id="screenshot" title="Take screenshot">
+        <i class="fa fa-camera" />
+    </button>
 
-{#if roomId}
-    <a href="/" class="button" title="Exit room">
-        <i class="fa fa-sign-out-alt" />
-    </a>
-{/if}
+    {#if roomId}
+        <a href="/" class="button" title="Exit room">
+            <i class="fa fa-sign-out-alt" />
+        </a>
+    {/if}
+</div><!-- end .settings-buttons -->
 
 <style>
     .button {
@@ -309,10 +307,17 @@
         padding: 0.25rem 0.5rem;
         width: 3rem;
     }
+
     .settings-button {
         color: white;
     }
+
+    .settings-buttons {
+        text-align: right;
+    }
+
     .settings-box {
+        max-width: 20rem;
         position: relative;
         color: white;
         border: 1px solid black;
