@@ -72,6 +72,7 @@ class RoomsConsumer(AsyncWebsocketConsumer):
         if message.get('pollResponse'):
             # Send poll response to instructor
             # TODO - currently sends to everyone.
+            message['session_key'] = session.session_key
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {

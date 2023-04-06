@@ -432,7 +432,6 @@
     let currentMode = 'intro';
 
     let pollResponses = {};
-    let userResponseList = {};
 
     // The chat buffer: an array of objects.
     let chatBuffer = [];
@@ -462,17 +461,9 @@
 
                 chatBuffer = [...chatBuffer, data.message.chatMessage];
             }
-        } else if (
-            data.message.pollResponse &&
-            !(data.session_key in userResponseList)
-        ) {
-            userResponseList[data.session_key] = true;
-            let choice = data.message.pollResponse;
-            if (choice in pollResponses) {
-                pollResponses[choice]++;
-            } else {
-                pollResponses[choice] = 1;
-            }
+        } else if (data.message.pollResponse) {
+            const sessionKey = data.message.session_key;
+            pollResponses[sessionKey] = data.message.pollResponse;
         } else if (data.message.broadcastPoll) {
             currentPoll = handlePollEvent(data);
         } else if (data.message.updateActiveUsers) {
@@ -555,6 +546,7 @@
                bind:gridMeshes
                bind:gridStep bind:gridMax
                bind:chatBuffer
+               bind:pollResponses
 
                {isHost}
                {blowUpObjects}
@@ -562,7 +554,7 @@
                {scene} {onRenderObject} {onDestroyObject}
                {currentCamera} {currentControls}
                {requestFrameIfNotRequested}
-               {socket} {pollResponses}
+               {socket}
 
                {animateIfNotAnimating}
                {roomId}
