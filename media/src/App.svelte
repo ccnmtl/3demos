@@ -650,6 +650,5 @@
         bottom: 0;
         right: 0;
         z-index: 2;
-        width: 20rem;
     }
 </style>
