@@ -216,12 +216,13 @@
         dispatch('animate');
     }
     $: if (animation) {
+        dispatch('animate');
         const currentTime = $tickTock;
         last = last || currentTime;
         update(currentTime - last);
         last = currentTime;
     } else {
-        last = null;
+        // last = null;
     }
 </script>
 

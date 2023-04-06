@@ -142,15 +142,15 @@
     };
 </script>
 
-<div class="settings-box"
-     class:grid={showSettings}
-     hidden={!showSettings}>
-    <WindowHeader
-        title="Settings"
-        onClick={() => {
-            showSettings = false;
-        }}
-    />
+<div
+    class="settings-box"
+    class:grid={showSettings}
+    hidden={!showSettings}
+    id="settings-box">
+
+    <WindowHeader title="Settings" onClick={() => {
+        showSettings = false;
+    }} />
 
     <div class="row justify-content-between">
         <div class="col-12">
@@ -226,12 +226,10 @@
     class:grid={showUpload}
     hidden={!showUpload}
     id="upload-box">
-    <WindowHeader
-        title="Upload Scene"
-        onClick={() => {
-            showUpload = false;
-        }}
-    />
+
+    <WindowHeader title="Upload Scene" onClick={() => {
+        showUpload = false;
+    }} />
 
     <form>
         <label for="sceneUpload">Upload a scene</label>
@@ -253,10 +251,10 @@
         id="settings"
         title="Settings"
         on:click={() => {
-        showUpload = false;
-        showSettings = !showSettings;
+            showUpload = false;
+            showSettings = !showSettings;
         }}
-        >
+    >
         <i class="fa fa-cog" />
     </button>
     <button class="button" id="encodeURL" title="Encode URL" on:click={encode}>
@@ -265,14 +263,15 @@
     <button
         class="button"
         title="Upload Scene"
+        id="upload"
         on:click={() => {
-        showSettings = false;
-        showUpload = !showUpload;
+            showSettings = false;
+            showUpload = !showUpload;
         }}
-        >
+    >
         <i class="fa fa-upload" />
     </button>
-    <button class="button" title="Download Scene" on:click={downloadScene}>
+    <button class="button" id="download" title="Download Scene" on:click={downloadScene}>
         <i class="fa fa-download" />
     </button>
     <button
@@ -280,23 +279,22 @@
         id="cameraReset"
         title="Reset camera"
         on:click={() => {
-        controls.target.set(0, 0, 0);
-        // controls2.target.set(0, 0, 0);
-        render();
+            controls.target.set(0, 0, 0);
+            render();
         }}
-        >
+    >
         <i class="fa fa-video" />
     </button>
     <button class="button" id="screenshot" title="Take screenshot">
         <i class="fa fa-camera" />
     </button>
-
     {#if roomId}
-        <a href="/" class="button" title="Exit room">
-            <i class="fa fa-sign-out-alt" />
-        </a>
+    <a href="/" class="button" title="Exit room">
+        <i class="fa fa-sign-out-alt" />
+    </a>
     {/if}
 </div><!-- end .settings-buttons -->
+
 
 <style>
     .button {

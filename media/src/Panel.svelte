@@ -52,8 +52,12 @@
     export let blowUpObjects = function () {};
     export let selectObject = function () {};
     export let selectedObject;
+    export let selectedPoint;
     export let altDown;
     export let chatBuffer;
+    export let isPollsOpen;
+    export let objectResponses;
+    export let userResponseList;
 
     const PANEL_DELAY = 200;
     let showPanel = true;
@@ -299,6 +303,7 @@
                                 bind:objects
                                 bind:currentPoll
                                 bind:chatBuffer
+                                {selectedPoint}
                                 {isHost} />
                         </TabPane>
                         <TabPane tabId="story" tab="Story" disabled
@@ -322,8 +327,16 @@
                 </button>
             </h2>
             <div id="collapseTwo" class="accordion-collapse collapse"
-                 data-bs-parent="#panelAccordion">
-                <Polls bind:socket bind:pollResponses />
+                 data-bs-parent="#panelAccordion"
+            >
+                <Polls 
+                    bind:socket 
+                    bind:pollResponses
+                    bind:isPollsOpen
+                    bind:userResponseList
+                    {objectResponses}
+                    render={requestFrameIfNotRequested}
+                />
             </div>
         </div>
     {/if}
@@ -465,6 +478,7 @@
                                 selected={selectedObject === uuid}
                                 on:click={selectObject(uuid)}
                                 on:keydown={altDown}
+                                bind:selectedPoint
                             />
                         </div>
                     {/each}

@@ -5,6 +5,8 @@
 
     export let pollResponses;
     export let currentPollType;
+    export let objectResponses;
+    export let render;
     let el;
     let chart;
 
@@ -77,8 +79,21 @@
     };
 
     $: refreshChart(pollResponses, currentPollType);
-</script>
 
-{Object.entries(pollResponses).length} responses
+    const clearPoints = function () {
+        objectResponses.clear();
+        render();
+    }
+    </script>
 
+<div class="row justify-content-between m-2 align-items-center">
+    <strong class="col-auto">
+        {Object.entries(pollResponses).length} {#if Object.entries(pollResponses).length == 1}response{:else}responses{/if}
+    </strong>
+    {#if objectResponses && objectResponses.children.length > 0}
+        <button on:click={clearPoints} class="btn btn-danger col-auto" title="Clear points">
+            <i class="fa fa-trash" />
+        </button>
+    {/if}
+</div>
 <div bind:this={el}></div>
