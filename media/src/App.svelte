@@ -5,6 +5,9 @@
     import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
     import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
     import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
+    import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+    import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+    import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass.js';
 
     // import components
     import Panel from './Panel.svelte';
@@ -40,12 +43,22 @@
     let hoveredObject = null;
     let selectedPoint = null;
 
-    const selectObject = (uuid) => {
-        selectedObject = uuid;
-    };
-
     let canvas;
     let isPollsOpen = false;
+    let composer, outlinePass;
+
+    const selectObject = (uuid) => {
+        selectedObject = uuid;
+
+        if (uuid) {
+            const obj = sceneObjects.find(x => x.name === uuid);
+            outlinePass.selectedObjects = [obj];
+        } else {
+            outlinePass.selectedObjects = [];
+        }
+
+        render();
+    };
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(
@@ -190,6 +203,7 @@
         const needResize = canvas.width !== width || canvas.height !== height;
         if (needResize) {
             renderer.setSize(width, height, false);
+            composer.setSize(width, height, false);
         }
         return needResize;
     };
@@ -225,7 +239,7 @@
         }
 
         currentControls?.update();
-        renderer.render(scene, currentCamera);
+        composer.render(scene, currentCamera);
         if (debug) {
             stats.end();
         }
@@ -264,7 +278,7 @@
         }
 
         currentControls?.update();
-        renderer.render(scene, currentCamera);
+        composer.render(scene, currentCamera);
     };
 
     /**
@@ -275,6 +289,17 @@
             antialias: true,
             canvas: el,
         });
+        // post-processing
+        composer = new EffectComposer(renderer);
+
+        const renderPass = new RenderPass(scene, camera);
+        composer.addPass(renderPass);
+
+        outlinePass = new OutlinePass(
+            new THREE.Vector2(window.innerWidth, window.innerHeight),
+            scene, camera
+        );
+        composer.addPass(outlinePass);
 
         controls = new OrbitControls(camera, el);
         controls2 = new OrbitControls(camera2, el);
@@ -398,7 +423,7 @@
     };
 
     const onDblClick = function () {
-        selectedObject = hoveredObject;
+        selectObject(hoveredObject);
     };
 
     onMount(() => {
