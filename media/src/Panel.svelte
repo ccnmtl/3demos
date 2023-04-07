@@ -18,7 +18,7 @@
     import Intro from "./Intro.svelte";
     import Polls from "./polls/Polls.svelte";
 
-    import { makeHSLColor } from "./utils";
+    import { makeHSLColor, querySelectorIncludesText } from "./utils";
     import { makeObject, publishScene } from "./sceneUtils";
 
     import Session from "./session/Session.svelte";
@@ -224,6 +224,24 @@
             panelTransition = '';
             panelTransitionProperty = '';
         }, PANEL_DELAY);
+    };
+
+    /**
+     * Show the "Info" accordion item.
+     */
+    export const showMainPanelItem = function() {
+        // Expand panel if it's hidden.
+        showPanel = true;
+
+        // Open the first accordion item.
+        window.jQuery('#collapseOne').collapse('show');
+
+        currentMode = 'session';
+        // Because sveltestrap can't activate this tab programmatically:
+        // https://github.com/bestguy/sveltestrap/issues/532
+        const tabEl = querySelectorIncludesText(
+            '.chapterBox .nav-tabs a', 'Session');
+        tabEl.click();
     };
 
     onMount(() => {
