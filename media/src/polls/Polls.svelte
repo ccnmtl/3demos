@@ -9,7 +9,6 @@
     export let socket;
     export let pollResponses;
     export let objectResponses;
-    export let userResponseList;
     export let isPollsOpen;
     export let render;
 
@@ -75,7 +74,6 @@
     };
 
     const onClickBroadcast = function(e, p) {
-        userResponseList = {};
         pollResponses = {};
         currentPollType = p.type;
 

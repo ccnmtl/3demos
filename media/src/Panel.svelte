@@ -57,7 +57,6 @@
     export let chatBuffer;
     export let isPollsOpen;
     export let objectResponses;
-    export let userResponseList;
 
     const PANEL_DELAY = 200;
     let showPanel = true;
@@ -333,7 +332,6 @@
                     bind:socket 
                     bind:pollResponses
                     bind:isPollsOpen
-                    bind:userResponseList
                     {objectResponses}
                     render={requestFrameIfNotRequested}
                 />
