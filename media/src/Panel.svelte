@@ -285,12 +285,12 @@
     $: minWidth = showPanel ? 300 : 0;
 </script>
 
-<div class="demos-panel d-flex flex-column"
+<div class="demos-panel"
      style:transition={panelTransition}
      style:transition-property={panelTransitionProperty}
      style:width={panelWidth + 'px'}
      style:min-width={minWidth + 'px'}>
-<div id="panelAccordion" class="accordion flex-fill">
+<div id="panelAccordion" class="accordion">
     <h1 class="flex-grow-1 px-2">
         <a href="/" title="Home">3Demos (βeta)</a>
     </h1>
