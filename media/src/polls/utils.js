@@ -35,6 +35,22 @@ const broadcastPoll = function(poll, socket) {
 };
 
 /**
+ * Send the given poll out to recipients via websocket.
+ */
+const broadcastPollResults = function(results, pollType, socket) {
+    if (socket) {
+        socket.send(JSON.stringify({
+            message: {
+                broadcastPollResults: {
+                    pollType: pollType,
+                    results: results
+                }
+            }
+        }));
+    }
+};
+
+/**
  * Handle poll events on session clients.
  */
 const handlePollEvent = function(data) {
@@ -50,5 +66,6 @@ export {
     stringifyPoll,
     loadPolls,
     broadcastPoll,
+    broadcastPollResults,
     handlePollEvent
 };

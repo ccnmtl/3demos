@@ -490,9 +490,20 @@
             }
         } else if (data.message.broadcastPoll) {
             currentPoll = handlePollEvent(data);
+
+            // Clear user's poll responses when a new poll is broadcast.
+            pollResponses = {};
+
             if (panel) {
                 // When user receives a poll, display the appropriate
                 // panel view so they can see it.
+                panel.showMainPanelItem();
+            }
+        } else if (data.message.broadcastPollResults) {
+            pollResponses = data.message.broadcastPollResults.results;
+            if (panel) {
+                // When user receives pollResults broadcast, display the
+                // appropriate panel view so they can see it.
                 panel.showMainPanelItem();
             }
         } else if (data.message.updateActiveUsers) {

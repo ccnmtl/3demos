@@ -1,15 +1,22 @@
 <script>
+    import {onMount} from 'svelte';
+
     import * as d3 from 'd3';
     import BarChart from '../d3/BarChart';
     import Histogram from '../d3/Histogram';
     import { makeObject } from '../sceneUtils';
+    import {broadcastPollResults} from './utils';
 
+    export let socket;
     export let pollResponses;
     export let currentPollType;
     export let objectResponses;
-    export let render;
     export let objects;
-    let el;
+
+    export let render = function() {};
+    export let role = 'student';
+
+    let d3container;
     let chart;
     let activeResponse;
     let hidden = true;
@@ -71,7 +78,7 @@
     };
 
     /**
-     * refreshResult()
+     * refreshResults()
      *
      * Given an array of responses and the poll type,
      * render a new d3 chart element and put it on the page.
@@ -80,33 +87,60 @@
     // A more declarative approach would be better, like putting
     // the SVG markup directly in the svelte template here. I just
     // couldn't get that working with svelte.
-    const refreshResult = function(responses, pollType) {
+    const refreshResults = function(responses, pollType) {
         chart = makeGraph(responses, pollType);
         if (chart) {
             hidden = false;
-            const oldChart = el.querySelector('svg');
+            if (!d3container) {
+                return;
+            }
+
+            const oldChart = d3container.querySelector('svg');
             if (oldChart) {
-                el.replaceChild(chart, oldChart);
+                d3container.replaceChild(chart, oldChart);
             } else {
-                el.appendChild(chart);
+                d3container.appendChild(chart);
             }
         } else {
             hidden = true;
         }
     };
 
-    $: refreshResult(pollResponses, currentPollType);
-
     const clearPoints = function () {
         objectResponses.clear();
         render();
-    }
+    };
+
+    const onBroadcastResults = function() {
+        broadcastPollResults(pollResponses, currentPollType, socket);
+    };
+
+    onMount(() => {
+        refreshResults(pollResponses, currentPollType);
+    });
+
+    $: refreshResults(pollResponses, currentPollType);
     </script>
 
 <div class="row justify-content-between m-2 align-items-center">
-    <strong class="col-auto">
-        {Object.keys(pollResponses).length} {#if Object.keys(pollResponses).length == 1}response{:else}responses{/if}
-    </strong>
+    <div class="col-auto">
+        <strong>
+    {Object.keys(pollResponses).length} {#if Object.keys(pollResponses).length == 1}response{:else}responses{/if}
+        </strong>
+    </div>
+
+    {#if role === 'host'}
+        <div class="col-auto">
+            <button
+                type="button"
+                class="btn btn-primary btn-sm"
+                title="Broadcast results"
+                on:click={onBroadcastResults}>
+                <i class="bi bi-broadcast-pin" /> Broadcast results
+            </button>
+        </div>
+    {/if}
+
     {#if objectResponses && objectResponses.children.length > 0}
         <button on:click={clearPoints} class="btn btn-danger col-auto" title="Clear points">
             <i class="fa fa-trash" />
@@ -133,7 +167,7 @@
         {/each}
     </ul>
 {/if}
-<div bind:this={el} {hidden}></div>
+<div bind:this={d3container} {hidden}></div>
 
 <style>
     .response-item:focus {

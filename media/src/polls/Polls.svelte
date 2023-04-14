@@ -161,7 +161,11 @@
             </TabPane>
         <TabPane tabId="responses" tab="Responses"
                  active={activeTab === 'responses'}>
-            <PollResponses bind:currentPollType bind:pollResponses bind:objects {objectResponses} {render}/>
+            <PollResponses role="host"
+                           bind:objects
+                           {currentPollType} {pollResponses}
+                           {socket}
+                           {objectResponses} {render} />
         </TabPane>
     </TabContent>
 </div>
