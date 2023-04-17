@@ -1,0 +1,20 @@
+[
+    {
+        "uuid":"f9b1ed60-4325-4527-ac68-12b8977e05ac",
+        "params":{
+            "a":"cos(n * t)",
+            "b":"sin(n * t) ",
+            "c":"cos((3)*t)",
+            "x":"0",
+            "y":"0",
+            "z":"0",
+            "t0":"0",
+            "t1":"2 pi",
+            "n0":-3,
+            "n1":8
+        },
+        "kind":"vector",
+        "color":"#371a94",
+        "animation":false
+    }
+]
