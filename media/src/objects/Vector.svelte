@@ -8,13 +8,15 @@
      * Should probably live elsewhere, but may want to export it
      */
     export const dependsOn = (parms, ch = 't') =>
-        Object.keys(parms).some((key) => {
-            const nodes = math.parse(parms[key]).filter((node) => {
-                return node.isSymbolNode;
+        Object.entries(parms)
+            .filter((e) => typeof e[1] === 'string')
+            .some((e) => {
+                const [key] = e;
+                const nodes = math.parse(parms[key]).filter((node) => {
+                    return node.isSymbolNode;
+                });
+                return nodes.some((node) => node.name === ch);
             });
-            return nodes.some((node) => node.name === ch);
-        });
-
     // console.log('Depends test', dependsOn({ x: 'sin(t) + 5' }));
 </script>
 
@@ -43,6 +45,8 @@
         x: '0',
         y: '0',
         z: '0',
+        n0: 0,
+        n1: 1,
     };
 
     export let color = '#FF0000';
@@ -79,6 +83,7 @@
         radiusBottom: vfScale / 75,
         heightTop: vfScale / 8,
     };
+    const arrows = new THREE.Object3D();
 
     const arrow = new THREE.Mesh(
         new ArrowBufferGeometry({
@@ -87,41 +92,68 @@
         }),
         arrowMaterial
     );
+    arrows.add(arrow);
 
-    scene.add(arrow);
+    scene.add(arrows);
 
     const updateVector = function () {
         const { a, b, c, x, y, z } = params;
+
         let t;
         const { t0, t1 } = params;
         if (t0 && t1) {
-            const A = math.evaluate(t0);
-            const B = math.evaluate(t1);
+            const T0 = math.evaluate(t0);
+            const T1 = math.evaluate(t1);
 
-            t = A + tau * (B - A);
+            t = T0 + tau * (T1 - T0);
         } else {
             t = 0;
         }
+        let N0, N1;
+        const { n0, n1 } = params;
+        N0 = n0 || 0;
+        N1 = n1 || 0;
 
-        const [A, B, C, X, Y, Z] = math
-            .parse([a, b, c, x, y, z])
-            .map((s) => s.evaluate({ t }));
+        while (arrows.children.length < N1 - N0 + 1) {
+            arrows.add(
+                new THREE.Mesh(
+                    new ArrowBufferGeometry({
+                        ...arrowArgs,
+                        height: 1,
+                    }),
+                    arrowMaterial
+                )
+            );
+        }
+        while (arrows.children.length > N1 - N0 + 1) {
+            // console.log(arrows.children, arrows.children.length);
+            const arrow = arrows.children[arrows.children.length - 1];
+            arrow.geometry.dispose();
+            arrows.remove(arrow);
+        }
 
-        const v = new THREE.Vector3(A, B, C);
+        for (let index = N0; index <= N1; index++) {
+            const arrow = arrows.children[index - N0];
+            const [A, B, C, X, Y, Z] = math
+                .parse([a, b, c, x, y, z])
+                .map((s) => s.evaluate({ t, n: index }));
 
-        arrow.position.set(X, Y, Z);
+            const v = new THREE.Vector3(A, B, C);
+            arrow.position.set(X, Y, Z);
 
-        arrow.geometry.adjustHeight(Math.max(1e-6, v.length()));
+            arrow.geometry.adjustHeight(Math.max(1e-6, v.length()));
 
-        arrow.lookAt(v.add(arrow.position));
+            arrow.lookAt(v.add(arrow.position));
+        }
 
-        arrow.name = uuid;
-        onRenderObject(arrow);
+        arrows.name = uuid;
+        onRenderObject(arrows);
         render();
     };
 
     // call updateVector() when params change
-    $: isDynamic = dependsOn(params);
+    $: isDynamic = dependsOn(params, 't');
+    $: isDiscrete = dependsOn(params, 'n');
     $: hashTag = checksum(JSON.stringify(params));
     $: hashTag, updateVector();
 
@@ -136,12 +168,15 @@
         if (animation) dispatch('animate');
     });
     onDestroy(() => {
-        onDestroyObject(arrow);
-        if (arrow) {
-            arrow.geometry && arrow.geometry.dispose();
-            arrow.material && arrow.material.dispose();
+        onDestroyObject(arrows);
+        while (arrows.children.length > 0) {
+            const arrow = arrows.children[0];
+            arrow.geometry.dispose();
+            arrow.material?.dispose();
+            arrows.remove(arrow);
         }
-        scene.remove(arrow);
+
+        scene.remove(arrows);
         window.removeEventListener('keydown', onKeyDown, false);
         render();
     });
@@ -173,6 +208,7 @@
 
     /**
      *  "Check parameters"
+     * @param val (string)
      * */
     const chickenParms = (val) => {
         let valuation;
@@ -187,6 +223,12 @@
                 const t1 = math.parse(params.t1).evaluate();
 
                 localParms.t = (t0 + t1) / 2;
+            }
+            if (dependsOn({ val }, 'n')) {
+                params.n0 = params.n0 || 0;
+                params.n1 = params.n1 || 0;
+
+                localParms.n = params.n1;
             }
             valuation = Number.isFinite(parsedVal.evaluate(localParms));
         } catch (e) {
@@ -308,6 +350,26 @@
                 <!-- </div> -->
             {/if}
 
+            {#if isDiscrete}
+                <!-- <div class="dynamic-container" transition:slide> -->
+                <input
+                    class="form-control form-control-sm box-1"
+                    type="number"
+                    max={params.n1}
+                    bind:value={params.n0}
+                    name="n0"
+                />
+                <span class="box box-3"
+                    ><M size="sm">{'\\leq n \\leq '}</M></span
+                >
+                <input
+                    class="form-control form-control-sm box-4"
+                    type="number"
+                    bind:value={params.n1}
+                    name="n1"
+                />
+            {/if}
+
             <span class="box-1">Color</span>
             <span class="box box-2">
                 <input
@@ -325,5 +387,8 @@
 <style>
     .dynamic-container {
         grid-column: 0 / 5;
+    }
+    input.form-control {
+        color: black;
     }
 </style>
