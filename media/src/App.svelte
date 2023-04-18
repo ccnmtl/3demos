@@ -473,7 +473,7 @@
 
                 chatBuffer = [...chatBuffer, data.message.chatMessage];
             }
-        } else if (data.message.pollResponse) {
+        } else if (data.message.pollResponse && isHost) {
             const sessionKey = data.message.session_key;
             pollResponses[sessionKey] = data.message.pollResponse;
             if (data.message.poll === 'select point') {
