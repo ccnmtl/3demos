@@ -23,6 +23,7 @@
     export let uuid;
     export let onRenderObject = function () {};
     export let onDestroyObject = function () {};
+    export let onSelect = function() {};
 
     export let params = {
         a: '-1',
@@ -190,13 +191,9 @@
     }
 </script>
 
-<div
-    class={'boxItem' + (selected ? ' selected' : '')}
-    hidden={!show}
-    on:click
-    on:keydown
->
-    <ObjHeader bind:hidden bind:onClose {color}>
+<div class={'boxItem' + (selected ? ' selected' : '')} on:keydown
+     hidden={!show}>
+    <ObjHeader bind:hidden {onClose} {color} {onSelect}>
         Point <M size="sm">\langle p_1, p_2, p_3 \rangle</M>
     </ObjHeader>
     <div {hidden}>
