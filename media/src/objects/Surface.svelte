@@ -290,7 +290,7 @@
         color: 0xff3232,
         shininess: 80,
         side: THREE.BackSide,
-        vertexColors: true,
+        vertexColors: false,
         transparent: true,
         opacity: 0.7,
     });
@@ -380,7 +380,7 @@
         tanFrame.visible = false;
         tangentVectors({ uv: new THREE.Vector2(0, 0) });
 
-        console.log('hello', geometry.attributes, meshGeometry.attributes);
+        // console.log('hello', geometry.attributes, meshGeometry.attributes);
         render();
     };
 
@@ -1012,7 +1012,7 @@
                     />
                 {/each}
 
-                <span class="box-1 ">
+                <span class="box-1">
                     <span class="t-box">t = {texString1}</span>
                 </span>
                 <input
