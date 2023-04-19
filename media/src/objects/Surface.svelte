@@ -32,6 +32,7 @@
     export let uuid;
     export let onRenderObject = function () {};
     export let onDestroyObject = function () {};
+    export let onSelect = function() {};
 
     export let params = {
         a: '-2',
@@ -917,8 +918,10 @@
     window.addEventListener('keyup', shiftUp, false);
 </script>
 
-<div class="boxItem" class:selected on:click on:keydown>
-    <ObjHeader bind:hidden bind:onClose {color}>Parametric surface</ObjHeader>
+<div class="boxItem" class:selected on:keydown>
+    <ObjHeader bind:hidden {onClose} {color} {onSelect}>
+        Parametric surface
+    </ObjHeader>
     <div {hidden}>
         <div class="threedemos-container container">
             {#each ['x', 'y', 'z'] as name}

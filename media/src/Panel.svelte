@@ -346,8 +346,8 @@
             <div id="collapseTwo" class="accordion-collapse collapse"
                  data-bs-parent="#panelAccordion"
             >
-                <Polls 
-                    bind:socket 
+                <Polls
+                    bind:socket
                     bind:pollResponses
                     bind:isPollsOpen
                     {objectResponses}
@@ -491,9 +491,9 @@
                                 {gridStep}
                                 {gridMax}
                                 on:animate={animateIfNotAnimating}
-                                selected={selectedObject === uuid}
-                                on:click={selectObject(uuid)}
                                 on:keydown={altDown}
+                                selected={selectedObject === uuid}
+                                onSelect={() => selectObject(uuid)}
                                 bind:selectedPoint
                             />
                         </div>

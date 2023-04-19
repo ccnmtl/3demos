@@ -2,6 +2,7 @@
     export let hidden;
     export let onClose;
     export let color;
+    export let onSelect = function() {};
 </script>
 
 <div class="box-title">
@@ -9,7 +10,11 @@
         <strong style="color: {color};">
             <i class="fa fa-square" />
         </strong>
-        <strong><slot></slot></strong>
+        <a href={'#'} class="link-light"
+           title="Select object"
+           on:click|preventDefault={onSelect}>
+            <slot></slot>
+        </a>
     </span>
     <div class="item-header">
         <button

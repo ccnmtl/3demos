@@ -37,6 +37,7 @@
     export let uuid;
     export let onRenderObject = function () {};
     export let onDestroyObject = function () {};
+    export let onSelect = function() {};
 
     export let params = {
         a: '-1',
@@ -271,10 +272,9 @@
 <div
     class={'boxItem' + (selected ? ' selected' : '')}
     hidden={!show}
-    on:click
     on:keydown
 >
-    <ObjHeader bind:hidden bind:onClose {color}>
+    <ObjHeader bind:hidden {onClose} {color} {onSelect}>
         Vector <M size="sm">\langle v_1, v_2, v_3 \rangle</M>
     </ObjHeader>
     <div {hidden}>

@@ -28,6 +28,7 @@
     export let uuid;
     export let onRenderObject = function () {};
     export let onDestroyObject = function () {};
+    export let onSelect = function() {};
 
     // export let paramString;
 
@@ -463,8 +464,8 @@
     window.addEventListener('keyup', onKeyUp, false);
 </script>
 
-<div class={'boxItem' + (selected ? ' selected' : '')} on:click on:keydown>
-    <ObjHeader bind:hidden bind:onClose {color}>
+<div class={'boxItem' + (selected ? ' selected' : '')} on:keydown>
+    <ObjHeader bind:hidden {onClose} {color} {onSelect}>
         Space Curve
     </ObjHeader>
     <div {hidden}>

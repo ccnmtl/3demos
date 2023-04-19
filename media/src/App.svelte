@@ -397,7 +397,7 @@
         }
     };
 
-    const onClick = function () {
+    const onDblClick = function () {
         selectedObject = hoveredObject;
     };
 
@@ -428,7 +428,7 @@
             // styling here.
             document.body.style.cursor = 'auto';
         });
-        renderer.domElement.addEventListener('click', onClick);
+        renderer.domElement.addEventListener('dblclick', onDblClick);
         objectResponses = new THREE.Group();
         scene.add(objectResponses);
     });

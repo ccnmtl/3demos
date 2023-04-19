@@ -29,6 +29,7 @@
     export let uuid;
     export let onRenderObject = function () {};
     export let onDestroyObject = function () {};
+    export let onSelect = function() {};
 
     onMount(onRenderObject);
     onDestroy(() => {
@@ -309,8 +310,10 @@
     render();
 </script>
 
-<div class="boxItem" class:selected on:click on:keydown>
-    <ObjHeader bind:hidden bind:onClose {color}>Solid Region</ObjHeader>
+<div class="boxItem" class:selected on:keydown>
+    <ObjHeader bind:hidden {onClose} {color} {onSelect}>
+        Solid Region
+    </ObjHeader>
     <div {hidden}>
         <div class="threedemos-container container">
             <span class="box-1">Coordinates</span>
