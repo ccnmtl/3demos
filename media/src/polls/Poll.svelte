@@ -81,7 +81,7 @@
                     {currentPoll.prompt}
                 </div>
 
-                {#if currentPoll.type === 0}
+                {#if currentPoll.type === 'numeric'}
                     <input type="number" step="0.01"
                            style="width: 100px;"
                            name="poll_response"
