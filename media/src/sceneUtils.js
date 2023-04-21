@@ -4,7 +4,7 @@
  * Returns a new objects array.
  */
 const makeObject = (
-    uuid=null, thing="box", params=null, objects=[], socket=null
+    uuid = null, thing = "box", params = null, objects = [], socket = null
 ) => {
     if (uuid === null) {
         uuid = crypto.randomUUID();
@@ -28,7 +28,7 @@ const makeObject = (
  *
  * Returns a new objects array.
  */
-const removeObject = (uuid, objects, socket=null) => {
+const removeObject = (uuid, objects, socket = null) => {
     if (socket) {
         socket.send(JSON.stringify({
             message: {
@@ -47,7 +47,7 @@ const removeObject = (uuid, objects, socket=null) => {
  *
  * Returns a new objects array.
  */
-const updateObject = (updatedObject, objects, socket=null) => {
+const updateObject = (updatedObject, objects, socket = null) => {
     if (socket) {
         socket.send(JSON.stringify({
             message: {
@@ -72,7 +72,7 @@ const updateObject = (updatedObject, objects, socket=null) => {
  * Given a scene object (just an array of objects at the moment),
  * publish it to the given websocket.
  */
-const publishScene = function(objects, socket=null) {
+const publishScene = function (objects, socket = null) {
     if (socket) {
         socket.send(JSON.stringify({
             message: {
@@ -82,7 +82,7 @@ const publishScene = function(objects, socket=null) {
     }
 };
 
-const handleSceneEvent = function(data, objects) {
+const handleSceneEvent = function (data, objects) {
     if (data.message) {
         if (data.message.newObject) {
             const newObject = data.message.newObject;
@@ -107,7 +107,7 @@ const handleSceneEvent = function(data, objects) {
  * Given the scene setup and a pointer/mouse event, return the notable
  * objects in the scene that intersect with this mouse event.
  */
-const findPointerIntersects = function(objects, pointer, camera, raycaster) {
+const findPointerIntersects = function (objects, pointer, camera, raycaster) {
     raycaster.setFromCamera(pointer, camera);
     const intersects = raycaster.intersectObjects(objects, true);
     return intersects;

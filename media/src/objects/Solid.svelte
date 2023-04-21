@@ -1,5 +1,5 @@
 <script>
-    import { onMount, onDestroy } from 'svelte';
+    import { onDestroy } from 'svelte';
     import * as THREE from 'three';
     import { create, all } from 'mathjs';
 
@@ -29,15 +29,15 @@
     export let uuid;
     export let onRenderObject = function () {};
     export let onDestroyObject = function () {};
-    export let onSelect = function() {};
+    export let onSelect = function () {};
 
-    onMount(onRenderObject);
+    // onMount(onRenderObject);
     onDestroy(() => {
-        scene.remove(box);
+        scene.remove(solidGroup);
         box.geometry.dispose();
         box.material.dispose();
-        box.children[0].geometry.dispose();
-        box.children[0].material.dispose();
+        borders.geometry.dispose();
+        borders.material.dispose();
 
         onDestroyObject(box);
         render();
@@ -155,6 +155,7 @@
     });
 
     const box = new THREE.Mesh(new THREE.BufferGeometry(), material);
+    const solidGroup = new THREE.Group();
 
     box.name = uuid;
 
@@ -162,9 +163,11 @@
         new THREE.BufferGeometry(),
         whiteLineMaterial
     );
+    console.log('borders ---- ', borders.uuid);
 
-    scene.add(box);
-    box.add(borders);
+    solidGroup.add(box);
+    solidGroup.add(borders);
+    scene.add(solidGroup);
 
     const renameCoords = (s, coords) => {
         let stone;
@@ -255,6 +258,9 @@
                 break;
         }
 
+        geom.computeBoundingBox();
+        geom.computeBoundingSphere();
+
         box.geometry?.dispose();
         box.geometry = geom;
         borders.geometry = new THREE.EdgesGeometry(geom, 40);
@@ -263,6 +269,7 @@
             colorMeBadd(box, densityFunc);
         }
 
+        onRenderObject(box);
         render();
     };
 
@@ -311,9 +318,7 @@
 </script>
 
 <div class="boxItem" class:selected on:keydown>
-    <ObjHeader bind:hidden {onClose} {color} {onSelect}>
-        Solid Region
-    </ObjHeader>
+    <ObjHeader bind:hidden {onClose} {color} {onSelect}>Solid Region</ObjHeader>
     <div {hidden}>
         <div class="threedemos-container container">
             <span class="box-1">Coordinates</span>
