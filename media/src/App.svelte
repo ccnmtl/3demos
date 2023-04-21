@@ -299,7 +299,8 @@
             new THREE.Vector2(window.innerWidth, window.innerHeight),
             scene, camera
         );
-        composer.addPass(outlinePass);
+        // TODO
+        // composer.addPass(outlinePass);
 
         controls = new OrbitControls(camera, el);
         controls2 = new OrbitControls(camera2, el);
