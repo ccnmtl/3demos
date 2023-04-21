@@ -163,7 +163,6 @@
         new THREE.BufferGeometry(),
         whiteLineMaterial
     );
-    console.log('borders ---- ', borders.uuid);
 
     solidGroup.add(box);
     solidGroup.add(borders);
