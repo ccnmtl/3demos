@@ -163,7 +163,6 @@
         new THREE.BufferGeometry(),
         whiteLineMaterial
     );
-    console.log('borders ---- ', borders.uuid);
 
     solidGroup.add(box);
     solidGroup.add(borders);
@@ -468,7 +467,7 @@
                         compiledDensity = math.parse(e.detail).compile();
                         densityFunc = (x, y, z) =>
                             compiledDensity.evaluate({ x, y, z });
-                        colorMeBadd(box.children[0], densityFunc);
+                        colorMeBadd(box, densityFunc);
                         // surfaceMesh.children[0].geometry.attributes.color.needsUpdate = true;
                         // surfaceMesh.children[0].material = colorMaterial;
                         // surfaceMesh.children[0].material = plusMaterial;
