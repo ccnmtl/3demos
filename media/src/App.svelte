@@ -20,7 +20,7 @@
         drawAxes,
         drawGrid,
         labelAxes,
-        modFloor
+        modFloor,
     } from './utils';
     import {
         // removeObject,
@@ -51,7 +51,7 @@
         selectedObject = uuid;
 
         if (uuid) {
-            const obj = sceneObjects.find(x => x.name === uuid);
+            const obj = sceneObjects.find((x) => x.name === uuid);
             outlinePass.selectedObjects = [obj];
         } else {
             outlinePass.selectedObjects = [];
@@ -297,7 +297,8 @@
 
         outlinePass = new OutlinePass(
             new THREE.Vector2(window.innerWidth, window.innerHeight),
-            scene, camera
+            scene,
+            camera
         );
         // TODO
         // composer.addPass(outlinePass);
@@ -471,7 +472,7 @@
     const pollMaterial = new THREE.MeshLambertMaterial({
         color: 0xffff33,
         transparent: true,
-        opacity: 0.5
+        opacity: 0.5,
     });
     let objectResponses;
 
@@ -480,7 +481,7 @@
             currentChapter,
         };
         if (gridMeshes.visible) {
-            flattenedObjects["grid"] = true;
+            flattenedObjects['grid'] = true;
         }
         window.location.search = convertToURLParams(
             flattenedObjects,
@@ -591,34 +592,38 @@
 
 <main>
     <div class="d-flex demos-mainview">
-        <Panel bind:this={panel}
-               bind:debug bind:currentMode
-               bind:objects
-               bind:currentChapter
-               bind:gridMeshes
-               bind:gridStep bind:gridMax
-               bind:chatBuffer
-               bind:pollResponses
-
-               {isHost}
-               {blowUpObjects}
-               {selectObject} {selectedObject}
-               {scene} {onRenderObject} {onDestroyObject}
-               {currentCamera} {currentControls}
-               {requestFrameIfNotRequested}
-               {socket}
-
-               {animateIfNotAnimating}
-               {roomId}
-               {currentPoll}
-               {altDown}
-               bind:selectedPoint
-               {objectResponses}
-               bind:isPollsOpen
+        <Panel
+            bind:this={panel}
+            bind:debug
+            bind:currentMode
+            bind:objects
+            bind:currentChapter
+            bind:gridMeshes
+            bind:gridStep
+            bind:gridMax
+            bind:chatBuffer
+            bind:pollResponses
+            {isHost}
+            {blowUpObjects}
+            {selectObject}
+            {selectedObject}
+            {scene}
+            {onRenderObject}
+            {onDestroyObject}
+            {currentCamera}
+            {currentControls}
+            {requestFrameIfNotRequested}
+            {socket}
+            {animateIfNotAnimating}
+            {roomId}
+            {currentPoll}
+            {altDown}
+            bind:selectedPoint
+            {objectResponses}
+            bind:isPollsOpen
         />
 
-        <canvas class="flex-grow-1" tabIndex="0" id="c"
-                bind:this={canvas} />
+        <canvas class="flex-grow-1" tabIndex="0" id="c" bind:this={canvas} />
 
         <div class="settings-panel-box">
             <Settings
@@ -641,12 +646,14 @@
                 bind:orthoCamera
                 on:animate={animateIfNotAnimating}
                 {roomId}
-                />
+            />
         </div>
 
         {#if roomId}
-            <div class="active-users-count"
-                 title={activeUserCount + ' users in session'}>
+            <div
+                class="active-users-count"
+                title={activeUserCount + ' users in session'}
+            >
                 <i class="bi bi-person-fill" />
                 {activeUserCount}
             </div>
@@ -658,8 +665,10 @@
     </div>
 
     {#if roomId}
-        <div class="scene-overlay active-users-count"
-            title={activeUserCount + ' users in session'}>
+        <div
+            class="scene-overlay active-users-count"
+            title={activeUserCount + ' users in session'}
+        >
             <i class="bi bi-person-fill" />
             {activeUserCount}
         </div>
