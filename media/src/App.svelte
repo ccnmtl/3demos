@@ -497,19 +497,23 @@
                     // Remove first item of chat buffer if it's full.
                     chatBuffer.shift();
                 }
-
                 chatBuffer = [...chatBuffer, data.message.chatMessage];
             }
         } else if (data.message.pollResponse && isHost) {
             const sessionKey = data.message.session_key;
-            pollResponses[sessionKey] = data.message.pollResponse;
             if (data.message.poll === 'select point') {
+                if (pollResponses[sessionKey]) {
+                    objectResponses.remove(pollResponses[sessionKey]);
+                }
                 isPollsOpen = false;
-                let xyz = pollResponses[sessionKey];
+                let xyz = data.message.pollResponse;
                 let response = new THREE.Mesh(pointGeometry, pollMaterial);
+                pollResponses[sessionKey] = response;
                 response.position.set(xyz[0], xyz[1], xyz[2]);
                 objectResponses.add(response);
                 render();
+            } else {
+                pollResponses[sessionKey] = data.message.pollResponse;
             }
         } else if (data.message.broadcastPoll) {
             currentPoll = handlePollEvent(data);
