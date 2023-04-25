@@ -10,6 +10,7 @@
     export let objects;
     export let chatBuffer;
     export let selectedPoint;
+    export let selectedObject;
 
     let role = 'student';
     if (isHost) {
@@ -33,7 +34,7 @@
     <Chatroom {socket} {role} {chatBuffer} />
 
     {#if currentPoll}
-        <Poll bind:currentPoll bind:socket {isHost} {selectedPoint}/>
+        <Poll bind:currentPoll bind:socket {isHost} {selectedPoint} {objects} {selectedObject}/>
     {/if}
 </p>
 {:else}

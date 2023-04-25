@@ -321,6 +321,7 @@
                                 bind:currentPoll
                                 bind:chatBuffer
                                 {selectedPoint}
+                                {selectedObject}
                                 {isHost} />
                         </TabPane>
                         <TabPane tabId="story" tab="Story" disabled
@@ -350,6 +351,7 @@
                     bind:socket
                     bind:pollResponses
                     bind:isPollsOpen
+                    bind:objects
                     {objectResponses}
                     render={requestFrameIfNotRequested}
                 />
