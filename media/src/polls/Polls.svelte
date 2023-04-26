@@ -11,6 +11,7 @@
     export let objectResponses;
     export let isPollsOpen;
     export let render;
+    export let objects;
 
     let polls = loadPolls();
     // Init empty polls to some basic examples
@@ -21,7 +22,8 @@
             new Poll('multiple choice',
                      'Question test 2', ['a', 'b', 'c', 'd']),
             new Poll('numeric', 'What is the square root of 2?'),
-            new Poll('select point', 'Select your favorite point.')
+            new Poll('select point', 'Select your favorite point.'),
+            new Poll('select object', 'Select the object that looks the spiciest.')
         ];
     }
 
@@ -159,7 +161,7 @@
             </TabPane>
         <TabPane tabId="responses" tab="Responses"
                  active={activeTab === 'responses'}>
-            <PollResponses bind:currentPollType bind:pollResponses {objectResponses} {render}/>
+            <PollResponses bind:currentPollType bind:pollResponses bind:objects {objectResponses} {render}/>
         </TabPane>
     </TabContent>
 </div>
