@@ -16,6 +16,7 @@
     } from "sveltestrap";
 
     import Intro from "./Intro.svelte";
+    import About from "./About.svelte";
     import Polls from "./polls/Polls.svelte";
 
     import { makeHSLColor, querySelectorIncludesText } from "./utils";
@@ -327,6 +328,10 @@
                         <TabPane tabId="story" tab="Story" disabled
                                  active={currentMode === 'story'}>
                             Story Mode
+                        </TabPane>
+                        <TabPane tabId="about" tab="About"
+                                 active={currentMode === 'about'}>
+                            <About />
                         </TabPane>
                     </TabContent>
                 </div>
