@@ -321,6 +321,7 @@
                                 bind:objects
                                 bind:currentPoll
                                 bind:chatBuffer
+                                {pollResponses}
                                 {selectedPoint}
                                 {selectedObject}
                                 {isHost} />
@@ -353,10 +354,10 @@
                  data-bs-parent="#panelAccordion"
             >
                 <Polls
-                    bind:socket
                     bind:pollResponses
                     bind:isPollsOpen
                     bind:objects
+                    {socket}
                     {objectResponses}
                     render={requestFrameIfNotRequested}
                 />

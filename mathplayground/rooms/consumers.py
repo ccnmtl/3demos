@@ -114,6 +114,9 @@ class RoomsConsumer(AsyncWebsocketConsumer):
         elif message.get('broadcastPoll'):
             new_poll = message.get('broadcastPoll', {})
             state['poll'] = new_poll
+        elif message.get('broadcastPollResults'):
+            poll_results = message.get('broadcastPollResults', {})
+            state['pollResults'] = poll_results
 
         scene.save_state(state)
 
