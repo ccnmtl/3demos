@@ -55,7 +55,7 @@
     export let animation = false;
     export let selected;
 
-    let hidden = false;
+    let minimize = false;
 
     const dispatch = createEventDispatcher();
 
@@ -115,6 +115,11 @@
         render();
     });
 
+    const toggleHide = function() {
+        point.visible = !point.visible;
+        render();
+    };
+
     const onKeyDown = (e) => {
         if (e.target.matches('input')) {
             return;
@@ -122,8 +127,9 @@
 
         switch (e.key) {
             case 'Backspace':
-                point.visible = !point.visible;
-                render();
+                if(selected){
+                    toggleHide();
+                }
                 break;
         }
     };
@@ -193,10 +199,10 @@
 
 <div class={'boxItem' + (selected ? ' selected' : '')} on:keydown
      hidden={!show}>
-    <ObjHeader bind:hidden {onClose} {color} {onSelect}>
+    <ObjHeader bind:minimize {onClose} {toggleHide} objHidden={!point.visible} {color} {onSelect}>
         Point <M size="sm">\langle p_1, p_2, p_3 \rangle</M>
     </ObjHeader>
-    <div {hidden}>
+    <div hidden={minimize}>
         <div class="threedemos-container container">
             {#each ['a', 'b', 'c'] as name}
                 <span class="box-1"><M size="sm">{varNames[name]} =</M></span>

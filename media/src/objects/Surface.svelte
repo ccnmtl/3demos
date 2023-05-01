@@ -274,7 +274,7 @@
     export let selectedPoint;
     $: selectedPoint = selected ? point : selectedPoint;
 
-    let hidden = false;
+    let minimize = false;
 
     // params = { ...params, rNum: 10, cNum: 10, nX: 60 };
 
@@ -860,14 +860,20 @@
         }
     };
 
+    const toggleHide = function() {
+        surfaceMesh.visible = !surfaceMesh.visible;
+        render();
+    };
+
     const shiftDown = (e) => {
         if (e.target.matches('input')) {
             return;
         } else if (selected) {
             switch (e.key) {
                 case 'Backspace':
-                    surfaceMesh.visible = !surfaceMesh.visible;
-                    render();
+                    if(selected){
+                        toggleHide();
+                    }
                     break;
                 case 'Shift':
                     window.addEventListener('mousemove', onMouseMove, false);
@@ -919,10 +925,10 @@
 </script>
 
 <div class="boxItem" class:selected on:keydown>
-    <ObjHeader bind:hidden {onClose} {color} {onSelect}>
+    <ObjHeader bind:minimize {onClose} {toggleHide} objHidden={!surfaceMesh.visible} {color} {onSelect}>
         Parametric surface
     </ObjHeader>
-    <div {hidden}>
+    <div hidden={minimize}>
         <div class="threedemos-container container">
             {#each ['x', 'y', 'z'] as name}
                 <span class="box-1"><M size="sm">{name}(u,v) =</M></span>

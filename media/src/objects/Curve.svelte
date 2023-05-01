@@ -108,7 +108,7 @@
 
     let TNB = false;
     let osculatingCircle = false;
-    let hidden = false;
+    let minimize = false;
     // let stopButton, rewButton;
 
     const curveMaterial = new THREE.MeshPhongMaterial({
@@ -404,6 +404,17 @@
         }
     };
 
+    const toggleHide = function() {
+        if (tube.visible) {
+            tube.visible = false;
+            circleTube.visible = false;
+        } else {
+            tube.visible = true;
+            circleTube.visible = osculatingCircle;
+        }
+        render();
+    };
+
     const onKeyDown = (e) => {
         if (e.target.matches('input')) {
             return;
@@ -411,14 +422,9 @@
 
         switch (e.key) {
             case 'Backspace':
-                if (tube.visible) {
-                    tube.visible = false;
-                    circleTube.visible = false;
-                } else {
-                    tube.visible = true;
-                    circleTube.visible = osculatingCircle;
+                if(selected){
+                    toggleHide();
                 }
-                render();
                 break;
             case 'Shift':
                 window.addEventListener('mousemove', onMouseMove, false);
@@ -465,10 +471,10 @@
 </script>
 
 <div class={'boxItem' + (selected ? ' selected' : '')} on:keydown>
-    <ObjHeader bind:hidden {onClose} {color} {onSelect}>
+    <ObjHeader bind:minimize {toggleHide} {onClose} {color} {onSelect} objHidden={!tube.visible}>
         Space Curve
     </ObjHeader>
-    <div {hidden}>
+    <div hidden={minimize}>
         <div class="threedemos-container container">
             {#each ['x', 'y', 'z'] as name}
                 <span class="box-1"><M size="sm">{name}(t) =</M></span>

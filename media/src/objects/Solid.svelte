@@ -40,8 +40,30 @@
         borders.material.dispose();
 
         onDestroyObject(box);
+        window.removeEventListener('keydown', onKeyDown, false);
         render();
     });
+
+    const toggleHide = function() {
+        solidGroup.visible = !solidGroup.visible;
+        render();
+    };
+
+    const onKeyDown = (e) => {
+        if (e.target.matches('input')) {
+            return;
+        }
+
+        switch (e.key) {
+            case 'Backspace':
+                if(selected){
+                    toggleHide();
+                }
+                break;
+        }
+    };
+
+    window.addEventListener('keydown', onKeyDown, false);
 
     export let params = {
         coords: 'rect',
@@ -63,7 +85,7 @@
     export let onClose = () => {};
     export let selected;
 
-    let hidden = false;
+    let minimize = false;
     export let color = '#5432ff';
     // export let animation = false;
 
@@ -317,8 +339,8 @@
 </script>
 
 <div class="boxItem" class:selected on:keydown>
-    <ObjHeader bind:hidden {onClose} {color} {onSelect}>Solid Region</ObjHeader>
-    <div {hidden}>
+    <ObjHeader bind:minimize {onClose} {toggleHide} objHidden={!solidGroup.visible} {color} {onSelect}>Solid Region</ObjHeader>
+    <div hidden={minimize}>
         <div class="threedemos-container container">
             <span class="box-1">Coordinates</span>
             <select class="box-2" bind:value={params.coords}>

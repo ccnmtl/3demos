@@ -44,7 +44,7 @@
         gridStep;
     // showLevelCurves = false;
 
-    let hidden = false;
+    let minimize = false;
     let loading = false;
 
     const geometry = new THREE.BufferGeometry();
@@ -354,6 +354,11 @@
         }
     };
 
+    const toggleHide = function() {
+        mesh.visible = !mesh.visible;
+        render();
+    };
+
     const onKeyDown = (e) => {
         if (e.target.matches('input')) {
             return;
@@ -362,8 +367,9 @@
         if (selected) {
             switch (e.key) {
                 case 'Backspace':
-                    mesh.visible = !mesh.visible;
-                    render();
+                    if(selected){
+                        toggleHide();
+                    }
                     break;
                 case 'Shift':
                     window.addEventListener('mousemove', onMouseMove, false);
@@ -415,14 +421,14 @@
 </script>
 
 <div class={'boxItem' + (selected ? ' selected' : '')} on:keydown>
-    <ObjHeader bind:hidden {onClose} {color} {onSelect}>
+    <ObjHeader bind:minimize {onClose} {toggleHide} objHidden={!mesh.visible} {color} {onSelect}>
         <strong>Level surface </strong>
         <span hidden={!loading}>
             <i class="fa fa-spinner fa-pulse fa-fw" />
             <span class="sr-only">Loading...</span>
         </span>
     </ObjHeader>
-    <div {hidden}>
+    <div hidden={minimize}>
         <div class="threedemos-container container">
             <span class="box-1"><M size="sm">g(x,y,z) =</M></span>
             <InputChecker
