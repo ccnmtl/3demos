@@ -24,6 +24,7 @@
     export let onRenderObject = function () {};
     export let onDestroyObject = function () {};
     export let onSelect = function() {};
+    export let selectedColor;
 
     export let params = {
         a: '-1',
@@ -97,7 +98,11 @@
 
     // recolor on demand
     $: {
-        pointMaterial.color.set(color);
+        if (selected) {
+            pointMaterial.color.set(selectedColor);
+        } else {
+            pointMaterial.color.set(color);
+        }
         render();
     }
 

@@ -38,6 +38,7 @@
     export let onRenderObject = function () {};
     export let onDestroyObject = function () {};
     export let onSelect = function() {};
+    export let selectedColor;
 
     export let params = {
         a: '-1',
@@ -160,7 +161,11 @@
 
     // recolor on demand
     $: {
-        arrowMaterial.color.set(color);
+        if (selected) {
+            arrowMaterial.color.set(selectedColor);
+        } else {
+            arrowMaterial.color.set(color);
+        }
         render();
     }
 

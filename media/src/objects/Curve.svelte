@@ -29,6 +29,7 @@
     export let onRenderObject = function () {};
     export let onDestroyObject = function () {};
     export let onSelect = function() {};
+    export let selectedColor;
 
     // export let paramString;
 
@@ -126,7 +127,11 @@
     });
     // Keep updated
     $: {
-        curveMaterial.color.set(color);
+        if (selected) {
+            curveMaterial.color.set(selectedColor);
+        } else {
+            curveMaterial.color.set(color);
+        }
         render();
     }
 

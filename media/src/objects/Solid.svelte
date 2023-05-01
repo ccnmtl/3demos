@@ -30,6 +30,7 @@
     export let onRenderObject = function () {};
     export let onDestroyObject = function () {};
     export let onSelect = function () {};
+    export let selectedColor;
 
     // onMount(onRenderObject);
     onDestroy(() => {
@@ -146,7 +147,14 @@
         opacity: 0.7,
     });
 
-    $: material.color.set(color) && render();
+    $: {
+        if (selected) {
+            material.color.set(selectedColor);
+        } else {
+            material.color.set(color);
+        }
+        render();
+    }
 
     const whiteLineMaterial = new THREE.LineBasicMaterial({
         color: 0xffffff,
