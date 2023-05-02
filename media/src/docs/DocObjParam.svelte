@@ -2,7 +2,7 @@
     import M from "../M.svelte";
 </script>
 
-<p>Object Parameters exist in the body of the object card.</p>
+<p>Special Object Parameters exist in the body of the object card.</p>
 Some features such as animation and vector incrementation are hidden by default. To reveal hidden
 parameters, insert the given variable into one of the function inputs.
 <ul>
