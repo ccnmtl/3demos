@@ -433,8 +433,8 @@
         scene.add(objectResponses);
     });
 
-    let currentChapter = 'Intro';
-    let currentMode = 'intro';
+    let currentChapter = 'How To';
+    let currentMode = 'how-to';
 
     let pollResponses = {};
 

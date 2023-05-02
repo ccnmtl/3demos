@@ -15,8 +15,8 @@
         TabPane
     } from "sveltestrap";
 
-    import Intro from "./Intro.svelte";
-    import About from "./About.svelte";
+    import HowTo from "./docs/HowTo.svelte";
+    import About from "./docs/About.svelte";
     import Polls from "./polls/Polls.svelte";
 
     import { makeHSLColor, querySelectorIncludesText } from "./utils";
@@ -284,15 +284,22 @@
         }
     });
 
-    $: panelWidth = showPanel ? 400 : 0;
-    $: minWidth = showPanel ? 300 : 0;
+    $: panelWidth = showPanel ? 23 : 0;
+    $: minWidth = showPanel ? 20 : 0;
+
+    const onKeyDown = (e) => {
+        if (e.key === 'Escape') {
+            onTogglePanel();
+        }
+    };
+    window.addEventListener('keydown', onKeyDown, false);
 </script>
 
 <div class="demos-panel"
      style:transition={panelTransition}
      style:transition-property={panelTransitionProperty}
-     style:width={panelWidth + 'px'}
-     style:min-width={minWidth + 'px'}>
+     style:width={panelWidth + 'rem'}
+     style:min-width={minWidth + 'rem'}>
 <div id="panelAccordion" class="accordion">
     <h1 class="flex-grow-1 px-2">
         <a href="/" title="Home">3Demos (βeta)</a>
@@ -311,9 +318,9 @@
             <div class="chapterBox">
                 <div class="collapse-info">
                     <TabContent on:tab={(e) => (currentMode = e.detail)}>
-                        <TabPane tabId="intro" tab="Intro"
-                                 active={currentMode === 'intro'}>
-                            <Intro />
+                        <TabPane tabId="how-to" tab="How To"
+                                 active={currentMode === 'how-to'}>
+                            <HowTo />
                         </TabPane>
                         <TabPane tabId="session" tab="Session"
                                  active={currentMode === 'session'}>
@@ -716,8 +723,8 @@
     .demos-panel {
         z-index: 1;
 
-        min-width: 300px;
-        width: 400px;
+        min-width: 20rem;
+        width: 23rem;
         max-width: 60%;
 
         background-color: transparent;
