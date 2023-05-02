@@ -67,7 +67,7 @@
     export let animation = false;
     export let selected;
 
-    let hidden = false;
+    let minimize = false;
 
     const dispatch = createEventDispatcher();
 
@@ -187,6 +187,11 @@
         render();
     });
 
+    const toggleHide = function() {
+        arrow.visible = !arrow.visible;
+        render();
+    };
+
     const onKeyDown = (e) => {
         if (e.target.matches('input')) {
             return;
@@ -194,8 +199,9 @@
 
         switch (e.key) {
             case 'Backspace':
-                arrow.visible = !arrow.visible;
-                render();
+                if(selected){
+                    toggleHide();
+                }
                 break;
         }
     };
@@ -279,10 +285,10 @@
     hidden={!show}
     on:keydown
 >
-    <ObjHeader bind:hidden {onClose} {color} {onSelect}>
+    <ObjHeader bind:minimize {onClose} {toggleHide} objHidden={!arrow.visible} {color} {onSelect}>
         Vector <M size="sm">\langle v_1, v_2, v_3 \rangle</M>
     </ObjHeader>
-    <div {hidden}>
+    <div hidden={minimize}>
         <div class="threedemos-container container">
             {#each ['a', 'b', 'c', 'x', 'y', 'z'] as name}
                 {#if name === 'x'}

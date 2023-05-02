@@ -43,7 +43,7 @@
     export let selected;
     export let color = '#373765';
 
-    let hidden = false;
+    let minimize = false;
     let flowTrails = true;
 
     /**
@@ -354,6 +354,11 @@
         dispatch('animate');
     }
 
+    const toggleHide = function() {
+        flowArrows.visible = !flowArrows.visible;
+        render();
+    };
+
     const onKeyDown = (e) => {
         if (e.target.matches('input')) {
             return;
@@ -361,8 +366,9 @@
 
         switch (e.key) {
             case 'Backspace':
-                flowArrows.visible = !flowArrows.visible;
-                render();
+                if(selected){
+                    toggleHide();
+                }
                 break;
             case 't':
                 trails.visible = !trails.visible;
@@ -387,10 +393,10 @@
 </script>
 
 <div class={'boxItem' + (selected ? ' selected' : '')} on:keydown>
-    <ObjHeader bind:hidden {onClose} {color} {onSelect}>
+    <ObjHeader bind:minimize {onClose} {toggleHide} objHidden={!flowArrows.visible} {color} {onSelect}>
         Vector Field
     </ObjHeader>
-    <div {hidden}>
+    <div hidden={minimize}>
         <div class="threedemos-container container">
             {#each ['p', 'q', 'r'] as name}
                 <span class="box-1"

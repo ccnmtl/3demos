@@ -106,7 +106,7 @@
     export let selectedPoint;
     $: selectedPoint = selected ? point : selectedPoint;
 
-    let hidden = false;
+    let minimize = false;
 
     const colorMaterial = new THREE.MeshPhongMaterial({
         color: 0xffffff,
@@ -857,6 +857,11 @@
         levelReq = requestAnimationFrame(updateLevelShift);
     };
 
+    const toggleHide = function() {
+        surfaceMesh.visible = !surfaceMesh.visible;
+        render();
+    };
+
     const onKeyDown = (e) => {
         if (e.target.matches('input')) {
             return;
@@ -880,8 +885,9 @@
                     render();
                     break;
                 case 'Backspace':
-                    surfaceMesh.visible = !surfaceMesh.visible;
-                    render();
+                    if(selected){
+                        toggleHide();
+                    }
                     break;
                 case 't':
                     point.visible = !point.visible;
@@ -934,10 +940,10 @@
 </script>
 
 <div class={'boxItem' + (selected ? ' selected' : '')} on:keydown>
-    <ObjHeader bind:hidden {onClose} {color} {onSelect}>
+    <ObjHeader bind:minimize {onClose} {toggleHide} objHidden={!surfaceMesh.visible} {color} {onSelect}>
         Graph of function
     </ObjHeader>
-    <div {hidden}>
+    <div hidden={minimize}>
         <div class="threedemos-container container">
             <span class="box-1">
                 <M size="sm">f(x,y[,t]) =</M>
