@@ -295,7 +295,7 @@
      style:min-width={minWidth + 'px'}>
 <div id="panelAccordion" class="accordion">
     <h1 class="flex-grow-1 px-2">
-        <a href="/" title="Home">3Demos (βeta)</a>
+        <a href="/" title="Home" class="text-body">3Demos (βeta)</a>
     </h1>
 
     <div class="accordion-item demos-panel-box">
@@ -713,6 +713,10 @@
 </div>
 
 <style>
+    :global(.nav-link) {
+        color: white;
+    }
+
     .demos-panel {
         z-index: 1;
 
