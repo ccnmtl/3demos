@@ -17,8 +17,8 @@ export default function Histogram(data, {
     marginRight = 30, // right margin, in pixels
     marginBottom = 30, // bottom margin, in pixels
     marginLeft = 40, // left margin, in pixels
-    width = 640, // outer width of chart, in pixels
-    height = 400, // outer height of chart, in pixels
+    width = 370, // outer width of chart, in pixels
+    height = 300, // outer height of chart, in pixels
     insetLeft = 0.5, // inset left edge of bar
     insetRight = 0.5, // inset right edge of bar
     xType = type, // type of x-scale
