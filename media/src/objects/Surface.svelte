@@ -33,7 +33,6 @@
     export let onRenderObject = function () {};
     export let onDestroyObject = function () {};
     export let onSelect = function() {};
-    export let selectedColor;
 
     export let params = {
         a: '-2',
@@ -272,6 +271,7 @@
     export let render = () => {};
     export let onClose = () => {};
     export let selected;
+    export let selectedObject;
     export let selectedPoint;
     $: selectedPoint = selected ? point : selectedPoint;
 
@@ -306,11 +306,14 @@
 
     // Keep color fresh
     $: {
-        if (selected) {
-            plusMaterial.color.set(selectedColor);
+        if (selectedObject == null || selected) {
+            plusMaterial.opacity = 0.7;
+            minusMaterial.opacity = 0.7;
         } else {
-            plusMaterial.color.set(color);
+            plusMaterial.opacity = 0.3;
+            minusMaterial.opacity = 0.3;
         }
+        plusMaterial.color.set(color);
         const hsl = {};
         plusMaterial.color.getHSL(hsl);
         hsl.h = (hsl.h + 0.618033988749895) % 1;

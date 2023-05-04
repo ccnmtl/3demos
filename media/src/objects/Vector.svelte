@@ -38,7 +38,6 @@
     export let onRenderObject = function () {};
     export let onDestroyObject = function () {};
     export let onSelect = function() {};
-    export let selectedColor;
 
     export let params = {
         a: '-1',
@@ -66,6 +65,7 @@
     export let gridStep;
     export let animation = false;
     export let selected;
+    export let selectedObject;
 
     let minimize = false;
 
@@ -76,8 +76,8 @@
         shininess: 80,
         side: THREE.DoubleSide,
         vertexColors: false,
-        transparent: false,
-        opacity: 0.7,
+        transparent: true,
+        opacity: 1.0,
     });
     const vfScale = gridStep * 5;
     const arrowArgs = {
@@ -161,11 +161,12 @@
 
     // recolor on demand
     $: {
-        if (selected) {
-            arrowMaterial.color.set(selectedColor);
+        if (selectedObject == null || selected) {
+            arrowMaterial.opacity = 1.0;
         } else {
-            arrowMaterial.color.set(color);
+            arrowMaterial.opacity = 0.3;
         }
+        arrowMaterial.color.set(color);
         render();
     }
 

@@ -29,7 +29,6 @@
     export let onRenderObject = function () {};
     export let onDestroyObject = function () {};
     export let onSelect = function() {};
-    export let selectedColor;
 
     export let params = {
         a: '-2',
@@ -103,6 +102,7 @@
     export let onClose = () => {};
     export let animation = false;
     export let selected;
+    export let selectedObject;
     export let selectedPoint;
     $: selectedPoint = selected ? point : selectedPoint;
 
@@ -114,7 +114,7 @@
         side: THREE.FrontSide,
         vertexColors: true,
         transparent: false,
-        opacity: 0.85,
+        opacity: 0.5,
     });
     const boxEdgeMaterial = new THREE.LineBasicMaterial({
         color: 0xffffff,
@@ -278,7 +278,7 @@
         side: THREE.FrontSide,
         vertexColors: false,
         transparent: true,
-        opacity: 0.7,
+        opacity: 0.5,
         depthTest: true,
     });
     const minusMaterial = new THREE.MeshPhongMaterial({
@@ -287,7 +287,7 @@
         side: THREE.BackSide,
         vertexColors: false,
         transparent: true,
-        opacity: 0.7,
+        opacity: 0.5,
     });
 
     // Set other side a complementary color.
@@ -560,11 +560,14 @@
 
     // Keep color fresh
     $: {
-        if (selected) {
-            plusMaterial.color.set(selectedColor);
+        if (selectedObject == null || selected) {
+            plusMaterial.opacity = 0.7;
+            minusMaterial.opacity = 0.7;
         } else {
-            plusMaterial.color.set(color);
+            plusMaterial.opacity = 0.3;
+            minusMaterial.opacity = 0.3;
         }
+        plusMaterial.color.set(color);
         const hsl = {};
         plusMaterial.color.getHSL(hsl);
         hsl.h = (hsl.h + 0.618033988749895) % 1;

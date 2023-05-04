@@ -29,7 +29,6 @@
     export let onRenderObject = function () {};
     export let onDestroyObject = function () {};
     export let onSelect = function() {};
-    export let selectedColor;
 
     // export let paramString;
 
@@ -89,6 +88,7 @@
     export let camera;
     export let gridStep;
     export let animation = false;
+    export let selectedObject;
     export let selected;
     let last;
 
@@ -117,7 +117,8 @@
         shininess: 80,
         side: THREE.DoubleSide,
         vertexColors: false,
-        transparent: false,
+        transparent: true,
+        opacity: 0.5
     });
 
     beforeUpdate(() => {
@@ -127,11 +128,12 @@
     });
     // Keep updated
     $: {
-        if (selected) {
-            curveMaterial.color.set(selectedColor);
+        if (selectedObject == null || selected) {
+            curveMaterial.opacity = 1.0;
         } else {
-            curveMaterial.color.set(color);
+            curveMaterial.opacity = 0.1;
         }
+        curveMaterial.color.set(color);
         render();
     }
 

@@ -21,7 +21,6 @@
     export let onRenderObject = function () {};
     export let onDestroyObject = function () {};
     export let onSelect = function() {};
-    export let selectedColor;
 
     export let params = {
         p: 'y',
@@ -40,6 +39,7 @@
     export let animation = false;
     export let onClose = () => {};
     export let gridMax, gridStep;
+    export let selectedObject;
     export let selected;
     export let color = '#373765';
 
@@ -66,7 +66,11 @@
     };
 
     const flowArrows = new THREE.Object3D();
-    const fieldMaterial = new THREE.MeshLambertMaterial({ color });
+    const fieldMaterial = new THREE.MeshLambertMaterial({
+        color,
+        transparent: true,
+        opacity: 0.5
+    });
     const trailMaterial = new THREE.LineBasicMaterial({
         color: 0xffffff,
         vertexColors: true,
@@ -76,11 +80,12 @@
     let interpretColor;
     // Keep color fresh
     $: {
-        if (selected) {
-            fieldMaterial.color.set(selectedColor);
+        if (selectedObject == null || selected) {
+            fieldMaterial.opacity = 1.0;
         } else {
-            fieldMaterial.color.set(color);
+            fieldMaterial.opacity = 0.3;
         }
+        fieldMaterial.color.set(color);
         const hsl = {};
         fieldMaterial.color.getHSL(hsl);
         compColor.setHSL((hsl.h + 0.618033988749895) % 1, hsl.s, hsl.l);

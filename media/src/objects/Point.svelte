@@ -24,7 +24,6 @@
     export let onRenderObject = function () {};
     export let onDestroyObject = function () {};
     export let onSelect = function() {};
-    export let selectedColor;
 
     export let params = {
         a: '-1',
@@ -55,12 +54,17 @@
     export let gridStep;
     export let animation = false;
     export let selected;
+    export let selectedObject;
 
     let minimize = false;
 
     const dispatch = createEventDispatcher();
 
-    const pointMaterial = new THREE.MeshLambertMaterial({ color });
+    const pointMaterial = new THREE.MeshLambertMaterial({
+        color,
+        transparent: true,
+        opacity: 1.0
+    });
     const point = new THREE.Mesh(
         new THREE.SphereGeometry(gridStep / 8, 16, 16),
         pointMaterial
@@ -98,11 +102,12 @@
 
     // recolor on demand
     $: {
-        if (selected) {
-            pointMaterial.color.set(selectedColor);
+        if (selectedObject == null || selected) {
+            pointMaterial.opacity = 1.0;
         } else {
-            pointMaterial.color.set(color);
+            pointMaterial.opacity = 0.3;
         }
+        pointMaterial.color.set(color);
         render();
     }
 

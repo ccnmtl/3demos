@@ -30,7 +30,6 @@
     export let onRenderObject = function () {};
     export let onDestroyObject = function () {};
     export let onSelect = function () {};
-    export let selectedColor;
 
     // onMount(onRenderObject);
     onDestroy(() => {
@@ -85,6 +84,7 @@
     export let render = () => {};
     export let onClose = () => {};
     export let selected;
+    export let selectedObject;
 
     let minimize = false;
     export let color = '#5432ff';
@@ -108,6 +108,7 @@
         shininess: 70,
         side: THREE.DoubleSide,
         vertexColors: true,
+        transparent: true,
     });
 
     const colorMeBadd = (mesh, f) => {
@@ -165,16 +166,19 @@
         shininess: 80,
         side: THREE.DoubleSide,
         vertexColors: false,
-        transparent: false,
+        transparent: true,
         opacity: 0.7,
     });
 
     $: {
-        if (selected) {
-            material.color.set(selectedColor);
+        if (selectedObject == null || selected) {
+            material.opacity = 1.0;
+            colorMaterial.opacity = 1.0;
         } else {
-            material.color.set(color);
+            material.opacity = 0.5;
+            colorMaterial.opacity = 0.5;
         }
+        material.color.set(color);
         render();
     }
 
