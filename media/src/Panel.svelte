@@ -720,7 +720,7 @@
 </div>
 
 <style>
-    :global(.nav-link) {
+    :global(#panelAccordion .collapse-info .nav-link:not(.active)) {
         color: white;
     }
 
