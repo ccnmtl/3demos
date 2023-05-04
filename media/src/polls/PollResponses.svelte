@@ -48,7 +48,6 @@
             return Histogram(data, {
                 x: d => d[0],
                 y: d => d[1],
-                label: 'Response',
                 color: 'steelblue'
             });
         } else if (pollType === 'multiple choice') {
@@ -59,7 +58,6 @@
                     data, () => -1, d => d[0]
                 ),
                 // sort by descending frequency
-                yLabel: 'Responses',
                 color: 'steelblue'
             });
         }
