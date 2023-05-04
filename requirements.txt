@@ -17,7 +17,7 @@ coverage==7.2.0
 cryptography==40.0.1
 daphne==4.0.0
 Deprecated==1.2.13
-Django==4.2
+Django==4.2.1
 django_statsd_mozilla==0.4.0
 django-cacheds3storage==0.3.0
 django-smoketest==1.2.0
