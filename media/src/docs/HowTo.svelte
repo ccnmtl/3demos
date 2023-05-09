@@ -4,12 +4,14 @@
     import DocObjParam from "./DocObjParam.svelte";
     import DocObjWindow from "./DocObjWindow.svelte";
     import DocPolling from "./DocPolling.svelte";
+    import DocSession from "./DocSession.svelte";
     import Intro from "./Intro.svelte";
 
     let currentOption = 'Intro';
 
     const options = [
-        'Intro', 'Objects Window', 'Special Object Parameters', 'Keyboard Controls', 'Importing & Formatting', 'Polling'
+        'Intro', 'Objects Window', 'Special Object Parameters', 'Keyboard Controls',
+        'Importing & Formatting', 'Session', 'Polling'
     ]
 
     const badge = function(text, type) {
@@ -41,8 +43,10 @@
         <DocKeyControls {badge}/>
     {:else if currentOption === 'Importing & Formatting'}
         <DocImport />
+    {:else if currentOption === 'Session'}
+        <DocSession {badge}/>
     {:else if currentOption === 'Polling'}
-        <DocPolling />
+        <DocPolling {badge}/>
     {/if}
 </article>
 
