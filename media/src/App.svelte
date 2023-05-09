@@ -382,14 +382,15 @@
             currentCamera,
             raycaster
         );
-        if (intersects.length > 0) {
-            if (intersects[0].object) {
-                let obj = intersects[0].object;
-                let uuid = obj.name || obj.parent.name;
-                if (uuid) {
-                    document.body.style.cursor = 'pointer';
-                    hoveredObject = uuid;
-                }
+        let nearestVisible = intersects.find(
+            intersect => intersect.object.visible && intersect.object.parent.visible
+        );
+        if (nearestVisible) {
+            let obj = nearestVisible.object;
+            let uuid = obj.name || obj.parent.name;
+            if (uuid) {
+                document.body.style.cursor = 'pointer';
+                hoveredObject = uuid;
             }
         } else {
             document.body.style.cursor = 'auto';
