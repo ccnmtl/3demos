@@ -44,6 +44,8 @@
     let canvas;
     let isPollsOpen = false;
 
+    let showPollResults = false;
+
     const selectObject = (uuid) => {
         if (uuid === null) {
             selectedObjects = [];
@@ -490,7 +492,10 @@
                 }
                 chatBuffer = [...chatBuffer, data.message.chatMessage];
             }
-        } else if (data.message.pollResponse && isHost) {
+        } else if (data.message.pollResponse && (
+            // Show if I am the host, or I am a client with showPollResults
+            isHost || showPollResults
+        )) {
             const sessionKey = data.message.session_key;
             if (!(lockPoll && pollResponses[sessionKey])) {
                 if (data.message.poll === 'select point') {
@@ -519,14 +524,15 @@
                 // panel view so they can see it.
                 panel.showMainPanelItem();
             }
-        } else if (data.message.broadcastPollResults) {
-            const broadcast = data.message.broadcastPollResults;
-            pollResponses = broadcast.results;
+        } else if (data.message.showPollResults) {
+            showPollResults = true;
+            const results = data.message.showPollResults;
+            pollResponses = results.results;
 
-            if (broadcast.objects !== null) {
+            if (results && results.objects !== null) {
                 objectResponses.clear();
                 objectResponses.children = objectLoader.parse(
-                    broadcast.objects).children;
+                    results.objects).children;
                 render();
             }
 
@@ -535,6 +541,9 @@
                 // appropriate panel view so they can see it.
                 panel.showMainPanelItem();
             }
+        } else if (data.message.hidePollResults) {
+            showPollResults = false;
+            pollResponses = null;
         } else if (data.message.updateActiveUsers) {
             if (typeof data.message.updateActiveUsers === 'number') {
                 activeUserCount = data.message.updateActiveUsers;
