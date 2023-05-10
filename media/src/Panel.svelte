@@ -77,8 +77,6 @@
         solid: Solid,
     };
 
-    const selectedColor = 0xffff00;
-
     const onPublishScene = function () {
         publishScene(objects, socket);
     };
@@ -509,10 +507,10 @@
                                 {gridMax}
                                 on:animate={animateIfNotAnimating}
                                 on:keydown={altDown}
+                                {selectedObject}
                                 selected={selectedObject === uuid}
                                 onSelect={() => selectObject(uuid)}
                                 bind:selectedPoint
-                                {selectedColor}
                             />
                         </div>
                     {/each}
