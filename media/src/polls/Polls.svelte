@@ -12,6 +12,7 @@
     export let isPollsOpen;
     export let render;
     export let objects;
+    export let currentPoll;
 
     let polls = loadPolls();
     // Init empty polls to some basic examples
@@ -77,6 +78,7 @@
 
     const onClickBroadcast = function(e, p) {
         pollResponses = {};
+        currentPoll = p;
         currentPollType = p.type;
 
         // Send the given poll to session participants
@@ -163,6 +165,7 @@
                  active={activeTab === 'responses'}>
             <PollResponses role="host"
                            bind:objects
+                           {currentPoll}
                            {currentPollType} {pollResponses}
                            {socket}
                            {objectResponses} {render} />

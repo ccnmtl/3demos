@@ -364,6 +364,7 @@
                     bind:pollResponses
                     bind:isPollsOpen
                     bind:objects
+                    bind:currentPoll
                     {socket}
                     {objectResponses}
                     render={requestFrameIfNotRequested}
