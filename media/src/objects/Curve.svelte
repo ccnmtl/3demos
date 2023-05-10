@@ -128,7 +128,7 @@
     });
     // Keep updated
     $: {
-        if (selectedObject == null || selected) {
+        if (selectedObject === null || selected) {
             curveMaterial.opacity = 1.0;
         } else {
             curveMaterial.opacity = 0.1;

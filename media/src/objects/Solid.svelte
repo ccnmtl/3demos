@@ -171,7 +171,7 @@
     });
 
     $: {
-        if (selectedObject == null || selected) {
+        if (selectedObject === null || selected) {
             material.opacity = 1.0;
             colorMaterial.opacity = 1.0;
         } else {
