@@ -161,7 +161,7 @@
 
     // recolor on demand
     $: {
-        if (selectedObject == null || selected) {
+        if (selectedObject === null || selected) {
             arrowMaterial.opacity = 1.0;
         } else {
             arrowMaterial.opacity = 0.3;

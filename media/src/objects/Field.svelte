@@ -80,7 +80,7 @@
     let interpretColor;
     // Keep color fresh
     $: {
-        if (selectedObject == null || selected) {
+        if (selectedObject === null || selected) {
             fieldMaterial.opacity = 1.0;
         } else {
             fieldMaterial.opacity = 0.3;

@@ -102,7 +102,7 @@
 
     // recolor on demand
     $: {
-        if (selectedObject == null || selected) {
+        if (selectedObject === null || selected) {
             pointMaterial.opacity = 1.0;
         } else {
             pointMaterial.opacity = 0.3;

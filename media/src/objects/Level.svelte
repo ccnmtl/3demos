@@ -72,7 +72,7 @@
 
     // $: col = new THREE.Color(color);
     $: {
-        if (selectedObject == null || selected) {
+        if (selectedObject === null || selected) {
             plusMaterial.opacity = 0.7;
             minusMaterial.opacity = 0.7;
         } else {
