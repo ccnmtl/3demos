@@ -9,6 +9,7 @@
 
     export let socket;
     export let pollResponses;
+    export let currentPoll;
     export let currentPollType;
     export let objectResponses;
     export let objects;
@@ -27,8 +28,13 @@
      *
      * Takes an object and returns an array.
      */
-    const processResponses = function(data) {
+    const processResponses = function(data, poll) {
         let processedData = [];
+        if (poll && poll.choices) {
+            // Initialize choices as empty buckets
+            processedData = poll.choices.map((x) => [x, 0]);
+        }
+
         const responsesArray = Object.entries(data);
 
         responsesArray.forEach((response) => {
@@ -42,7 +48,7 @@
     };
 
     const makeGraph = function(data, pollType) {
-        data = processResponses(data);
+        data = processResponses(data, currentPoll);
 
         if (pollType === 'numeric') {
             return Histogram(data, {
