@@ -21,15 +21,6 @@
         {/if}
     </button>
     <button
-        class="btn stopbtn"
-        on:click={() => {
-            dispatch('stop');
-            animation = false;
-        }}
-    >
-        <i class="fa fa-stop" />
-    </button>
-    <button
         class="btn rewbtn"
         on:click={() => {
             dispatch('rew');
