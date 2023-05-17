@@ -501,7 +501,12 @@
                 panel.showMainPanelItem();
             }
         } else if (data.message.broadcastPollResults) {
-            pollResponses = data.message.broadcastPollResults.results;
+            const broadcast = data.message.broadcastPollResults
+            pollResponses = broadcast.results;
+            objectResponses.clear();
+            const loader = new THREE.ObjectLoader();
+            objectResponses.children = loader.parse(broadcast.objects).children
+            render();
             if (panel) {
                 // When user receives pollResults broadcast, display the
                 // appropriate panel view so they can see it.

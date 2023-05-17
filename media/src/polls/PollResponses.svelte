@@ -112,11 +112,12 @@
 
     const clearPoints = function () {
         objectResponses.clear();
+        broadcastPollResults(pollResponses, currentPollType, socket, objectResponses);
         render();
     };
 
     const onBroadcastResults = function() {
-        broadcastPollResults(pollResponses, currentPollType, socket);
+        broadcastPollResults(pollResponses, currentPollType, socket, objectResponses);
     };
 
     onMount(() => {

@@ -37,13 +37,14 @@ const broadcastPoll = function(poll, socket) {
 /**
  * Send the given poll out to recipients via websocket.
  */
-const broadcastPollResults = function(results, pollType, socket) {
+const broadcastPollResults = function(results, pollType, socket, objects=null) {
     if (socket) {
         socket.send(JSON.stringify({
             message: {
                 broadcastPollResults: {
                     pollType: pollType,
-                    results: results
+                    results: results,
+                    objects: objects
                 }
             }
         }));
