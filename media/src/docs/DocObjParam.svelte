@@ -10,3 +10,4 @@ parameters, insert the given variable into one of the function inputs.
     <li><em>Vector</em> objects have an <M size="sm">n</M> variable, used to iterate across a given range.</li>
     <ul><li><M size="sm">n</M> increments by 1</li></ul>
 </ul>
+<p>Level Surface and Solid Region do <span class="text-danger">NOT</span> have animation features.</p>
