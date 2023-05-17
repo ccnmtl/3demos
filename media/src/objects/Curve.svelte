@@ -557,6 +557,12 @@
                 }}
                 class="box box-2"
             />
+            <PlayButtons
+                bind:animation
+                on:animate
+                on:pause={() => (last = null)}
+                on:rew={() => (tau = 0)}
+            />
             <span class="box-1">Frame</span>
             <label class="switch box box-2">
                 <input
@@ -568,46 +574,6 @@
                 />
                 <span class="slider round" />
             </label>
-
-            <PlayButtons
-                bind:animation
-                on:animate
-                on:pause={() => (last = null)}
-                on:stop={() => {
-                    tau = 0;
-                    last = null;
-                }}
-                on:rew={() => (tau = 0)}
-            />
-            <!-- <span class="play-buttons box-4">
-                <button class="btn box-1" on:click={() => startAnimation(true)}>
-                    {#if !animation}
-                        <i class="fa fa-play" />
-                    {:else}
-                        <i class="fa fa-pause" />
-                    {/if}
-                </button>
-                <button
-                    class="btn box-3"
-                    on:click={() => {
-                        animation = false;
-                        render();
-                    }}
-                    bind:this={stopButton}
-                >
-                    <i class="fa fa-stop" />
-                </button>
-                <button
-                    class="btn box-4"
-                    on:click={() => {
-                        tau = 0;
-                        update(0);
-                    }}
-                    bind:this={rewButton}
-                >
-                    <i class="fa fa-fast-backward" />
-                </button>
-            </span> -->
 
             <span class="box-1">Reparamterize by <M>s</M></span>
             <label class="switch box box-2">

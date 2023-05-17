@@ -345,15 +345,9 @@
                 />
 
                 <PlayButtons
-                    className="box box-2"
                     bind:animation
                     on:animate
                     on:pause={() => (last = null)}
-                    on:stop={() => {
-                        tau = 0;
-                        last = null;
-                        update();
-                    }}
                     on:rew={() => {
                         tau = 0;
                         update();

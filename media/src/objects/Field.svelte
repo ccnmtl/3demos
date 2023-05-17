@@ -455,17 +455,6 @@
                 on:animate
                 on:play={() => (flowArrows.visible = true)}
                 on:pause={() => (last = null)}
-                on:stop={() => {
-                    flowArrows.visible = false;
-                    freeTrails();
-                    freeChildren(flowArrows);
-                    maxLength = initFlowArrows(
-                        flowArrows,
-                        gridMax,
-                        params.nVec
-                    );
-                    render();
-                }}
                 on:rew={rewindArrows}
             />
 
