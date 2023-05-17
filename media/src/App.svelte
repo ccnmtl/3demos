@@ -47,6 +47,8 @@
         selectedObject = uuid;
     };
 
+    const objectLoader = new THREE.ObjectLoader();
+
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(
         75,
@@ -501,12 +503,16 @@
                 panel.showMainPanelItem();
             }
         } else if (data.message.broadcastPollResults) {
-            const broadcast = data.message.broadcastPollResults
+            const broadcast = data.message.broadcastPollResults;
             pollResponses = broadcast.results;
-            objectResponses.clear();
-            const loader = new THREE.ObjectLoader();
-            objectResponses.children = loader.parse(broadcast.objects).children
-            render();
+
+            if (broadcast.objects !== null) {
+                objectResponses.clear();
+                objectResponses.children = objectLoader.parse(
+                    broadcast.objects).children;
+                render();
+            }
+
             if (panel) {
                 // When user receives pollResults broadcast, display the
                 // appropriate panel view so they can see it.
