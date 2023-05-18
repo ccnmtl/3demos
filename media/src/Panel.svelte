@@ -61,10 +61,11 @@
 
     const PANEL_DELAY = 200;
     let showPanel = true;
-    let panelWidth = 400;
-    let minWidth = 300;
+    let panelOffset = 0;
+    let panelWidth = 370;
     let panelTransition = '';
     let panelTransitionProperty = '';
+    let isPanelResizing = false;
 
     const kindToComponent = {
         point: Point,
@@ -214,7 +215,7 @@
 
     const onTogglePanel = function() {
         panelTransition = `all ${PANEL_DELAY}ms ease`;
-        panelTransitionProperty = 'width min-width';
+        panelTransitionProperty = 'transform';
 
         showPanel = !showPanel;
 
@@ -225,6 +226,23 @@
             panelTransition = '';
             panelTransitionProperty = '';
         }, PANEL_DELAY);
+    };
+
+    const onResizePanelStart = function() {
+        isPanelResizing = true;
+    };
+
+    const onResizePanel = function(e) {
+        if (isPanelResizing) {
+            const newWidth = e.clientX - 10;
+            if (newWidth >= 300 && newWidth <= window.innerWidth * 0.6) {
+                panelWidth = newWidth;
+            }
+        }
+    };
+
+    const onResizePanelEnd = function() {
+        isPanelResizing = false;
     };
 
     /**
@@ -280,10 +298,23 @@
                 if (debug) console.log(objects);
             }
         }
-    });
 
-    $: panelWidth = showPanel ? 23 : 0;
-    $: minWidth = showPanel ? 20 : 0;
+        // Observe panel width to place panel-buttons properly.
+        // Annoying-ish solution, but it works.
+        const resizeObserver = new ResizeObserver(entries => {
+            for (let entry of entries) {
+                if (entry && entry.contentRect && entry.contentRect.width) {
+                    panelWidth = entry.contentRect.width;
+                }
+            }
+        });
+
+        const panelEl = document.querySelector('.demos-panel');
+        resizeObserver.observe(panelEl);
+
+        window.addEventListener('pointermove', onResizePanel);
+        window.addEventListener('pointerup', onResizePanelEnd);
+    });
 
     const onKeyDown = (e) => {
         if (e.key === 'Escape') {
@@ -291,13 +322,15 @@
         }
     };
     window.addEventListener('keydown', onKeyDown, false);
+
+    $: panelOffset = showPanel ? 0 : -100;
 </script>
 
 <div class="demos-panel"
+     style:width={panelWidth + 'px'}
      style:transition={panelTransition}
      style:transition-property={panelTransitionProperty}
-     style:width={panelWidth + 'rem'}
-     style:min-width={minWidth + 'rem'}>
+     style:transform={`translateX(${panelOffset}%)`}>
 <div id="panelAccordion" class="accordion">
     <h1 class="flex-grow-1 px-2">
         <a href="/" title="Home" class="text-body">3Demos (βeta)</a>
@@ -706,15 +739,32 @@
 
 </div><!-- end .demos-panel -->
 
-<div class="panel-hider bg-info bg-opacity-25 border border-info border-start-0 rounded-end-circle"
+<div class="panel-button panel-hider bg-info bg-opacity-25 border border-info border-start-0 rounded-end-circle"
      title={showPanel ? 'Hide panel' : 'Show panel'}
-     on:click={onTogglePanel} on:keypress={onTogglePanel}>
+     style:left={showPanel ? ((panelWidth - 1) + 'px') : 0}
+     style:transition={panelTransition}
+     style:transition-property={'left'}
+     style:transform={`left(${showPanel ? panelWidth : 0}px)`}
+     on:click={onTogglePanel}
+     on:keypress={onTogglePanel}>
     <div class="align-middle text-center">
         {#if showPanel}
             <i class="bi bi-arrow-bar-left"></i>
         {:else}
             <i class="bi bi-arrow-bar-right"></i>
         {/if}
+    </div>
+</div>
+
+<div class="panel-button panel-resizer bg-info bg-opacity-25 border border-info border-start-0 rounded-end-circle"
+     title="Resize panel"
+     style:left={showPanel ? ((panelWidth - 1) + 'px') : 0}
+     style:transition={panelTransition}
+     style:transition-property="left"
+     style:transform={`left(${showPanel ? panelWidth : 0}px)`}
+     on:pointerdown={onResizePanelStart}>
+    <div class="align-middle text-center">
+        <i class="bi bi-arrow-left-right"></i>
     </div>
 </div>
 
@@ -726,18 +776,42 @@
     .demos-panel {
         z-index: 1;
 
-        min-width: 20rem;
-        width: 23rem;
+        position: fixed;
+
+        min-width: 300px;
         max-width: 60%;
 
         background-color: transparent;
 
-        overflow-y: auto;
-        overflow-x: hidden;
         resize: horizontal;
+    }
 
-        /* Remove this if you don't want the 3D effect */
-        perspective: 1000px;
+    .panel-button {
+        cursor: pointer;
+        position: absolute;
+
+        min-width: 25px;
+        height: 40px;
+
+        z-index: 2;
+    }
+
+    .panel-button:hover {
+        background-color: rgba(255, 255, 150, 0.6) !important;
+    }
+
+    .panel-button>div {
+        position: relative;
+        top: 6px;
+    }
+
+    .panel-button.panel-hider {
+        top: 40px;
+    }
+
+    .panel-button.panel-resizer {
+        top: 86px;
+        cursor: col-resize;
     }
 
     .chapterBox,
@@ -769,25 +843,5 @@
         display: flex;
         font-size: 1.5em;
         justify-content: space-between;
-    }
-
-    .panel-hider {
-        cursor: pointer;
-        position: relative;
-        top: 40px;
-
-        min-width: 25px;
-        height: 40px;
-
-        z-index: 2;
-    }
-
-    .panel-hider:hover {
-        background-color: rgba(255, 255, 150, 0.6) !important;
-    }
-
-    .panel-hider>div {
-        position: relative;
-        top: 6px;
     }
 </style>
