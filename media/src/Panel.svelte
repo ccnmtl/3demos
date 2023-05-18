@@ -61,8 +61,8 @@
 
     const PANEL_DELAY = 200;
     let showPanel = true;
-    let panelWidth = 400;
-    let minWidth = 300;
+    let panelOffset = 0;
+    let panelWidth = 370;
     let panelTransition = '';
     let panelTransitionProperty = '';
 
@@ -214,7 +214,7 @@
 
     const onTogglePanel = function() {
         panelTransition = `all ${PANEL_DELAY}ms ease`;
-        panelTransitionProperty = 'width min-width';
+        panelTransitionProperty = 'transform';
 
         showPanel = !showPanel;
 
@@ -280,10 +280,20 @@
                 if (debug) console.log(objects);
             }
         }
-    });
 
-    $: panelWidth = showPanel ? 23 : 0;
-    $: minWidth = showPanel ? 20 : 0;
+        // Observe panel width to place panel-hider properly.
+        // Annoying-ish solution, but it works.
+        const resizeObserver = new ResizeObserver(entries => {
+            for (let entry of entries) {
+                if (entry && entry.contentRect && entry.contentRect.width) {
+                    panelWidth = entry.contentRect.width;
+                }
+            }
+        });
+
+        const panelEl = document.querySelector('.demos-panel');
+        resizeObserver.observe(panelEl);
+    });
 
     const onKeyDown = (e) => {
         if (e.key === 'Escape') {
@@ -291,13 +301,15 @@
         }
     };
     window.addEventListener('keydown', onKeyDown, false);
+
+    $: panelOffset = showPanel ? 0 : -100;
 </script>
 
 <div class="demos-panel"
+     style:width={panelWidth + 'px'}
      style:transition={panelTransition}
      style:transition-property={panelTransitionProperty}
-     style:width={panelWidth + 'rem'}
-     style:min-width={minWidth + 'rem'}>
+     style:transform={`translateX(${panelOffset}%)`}>
 <div id="panelAccordion" class="accordion">
     <h1 class="flex-grow-1 px-2">
         <a href="/" title="Home" class="text-body">3Demos (βeta)</a>
@@ -708,7 +720,12 @@
 
 <div class="panel-hider bg-info bg-opacity-25 border border-info border-start-0 rounded-end-circle"
      title={showPanel ? 'Hide panel' : 'Show panel'}
-     on:click={onTogglePanel} on:keypress={onTogglePanel}>
+     style:left={showPanel ? (panelWidth + 'px') : 0}
+     style:transition={panelTransition}
+     style:transition-property={'left'}
+     style:transform={`left(${showPanel ? panelWidth : 0}px)`}
+     on:click={onTogglePanel}
+     on:keypress={onTogglePanel}>
     <div class="align-middle text-center">
         {#if showPanel}
             <i class="bi bi-arrow-bar-left"></i>
@@ -726,18 +743,34 @@
     .demos-panel {
         z-index: 1;
 
-        min-width: 20rem;
-        width: 23rem;
+        position: fixed;
+
+        min-width: 300px;
         max-width: 60%;
 
         background-color: transparent;
 
-        overflow-y: auto;
-        overflow-x: hidden;
         resize: horizontal;
+    }
 
-        /* Remove this if you don't want the 3D effect */
-        perspective: 1000px;
+    .panel-hider {
+        cursor: pointer;
+        position: relative;
+        top: 40px;
+
+        min-width: 25px;
+        height: 40px;
+
+        z-index: 2;
+    }
+
+    .panel-hider:hover {
+        background-color: rgba(255, 255, 150, 0.6) !important;
+    }
+
+    .panel-hider>div {
+        position: relative;
+        top: 6px;
     }
 
     .chapterBox,
@@ -769,25 +802,5 @@
         display: flex;
         font-size: 1.5em;
         justify-content: space-between;
-    }
-
-    .panel-hider {
-        cursor: pointer;
-        position: relative;
-        top: 40px;
-
-        min-width: 25px;
-        height: 40px;
-
-        z-index: 2;
-    }
-
-    .panel-hider:hover {
-        background-color: rgba(255, 255, 150, 0.6) !important;
-    }
-
-    .panel-hider>div {
-        position: relative;
-        top: 6px;
     }
 </style>
