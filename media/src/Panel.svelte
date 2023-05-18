@@ -299,19 +299,6 @@
             }
         }
 
-        // Observe panel width to place panel-buttons properly.
-        // Annoying-ish solution, but it works.
-        const resizeObserver = new ResizeObserver(entries => {
-            for (let entry of entries) {
-                if (entry && entry.contentRect && entry.contentRect.width) {
-                    panelWidth = entry.contentRect.width;
-                }
-            }
-        });
-
-        const panelEl = document.querySelector('.demos-panel');
-        resizeObserver.observe(panelEl);
-
         window.addEventListener('pointermove', onResizePanel);
         window.addEventListener('pointerup', onResizePanelEnd);
     });
@@ -776,22 +763,21 @@
     .demos-panel {
         z-index: 1;
 
-        position: fixed;
-
         min-width: 300px;
         max-width: 60%;
 
         background-color: transparent;
 
-        resize: horizontal;
+        overflow-y: auto;
+        overflow-x: hidden;
     }
 
     .panel-button {
         cursor: pointer;
         position: absolute;
 
-        min-width: 25px;
-        height: 40px;
+        min-width: 28px;
+        height: 38px;
 
         z-index: 2;
     }
@@ -810,7 +796,7 @@
     }
 
     .panel-button.panel-resizer {
-        top: 86px;
+        top: 82px;
         cursor: col-resize;
     }
 
