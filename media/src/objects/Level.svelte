@@ -35,9 +35,8 @@
     export let render = () => {};
     export let onClose = () => {};
     export let selected;
-    export let selectedObject;
+    export let selectedObjects;
     export let selectedPoint;
-    $: selectedPoint = selected ? point : selectedPoint;
 
     export let camera,
         controls,
@@ -72,7 +71,10 @@
 
     // $: col = new THREE.Color(color);
     $: {
-        if (selectedObject === null || selected) {
+        if (selectedObjects.length === 0 || selected) {
+            if (selectedObjects[selectedObjects.length - 1] === uuid) {
+                selectedPoint = point;
+            }
             plusMaterial.opacity = 0.7;
             minusMaterial.opacity = 0.7;
         } else {
@@ -133,7 +135,7 @@
                 })
             );
         } catch (e) {
-            console.log('Parse error in expression', val, e);
+            console.error('Parse error in expression', val, e);
             return false;
         }
         return valuation;
@@ -429,7 +431,7 @@
 </script>
 
 <div class={'boxItem' + (selected ? ' selected' : '')} on:keydown>
-    <ObjHeader bind:minimize {onClose} {toggleHide} objHidden={!mesh.visible} {color} {onSelect}>
+    <ObjHeader bind:minimize bind:selectedObjects {onClose} {toggleHide} objHidden={!mesh.visible} {color} {onSelect}>
         <strong>Level surface </strong>
         <span hidden={!loading}>
             <i class="fa fa-spinner fa-pulse fa-fw" />

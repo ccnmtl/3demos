@@ -27,7 +27,6 @@
     } from '../utils.js';
     import InputChecker from '../form-components/InputChecker.svelte';
     import ColorBar from '../settings/ColorBar.svelte';
-    // import ObjectParamInput from '../form-components/ObjectParamInput.svelte';
 
     export let uuid;
     export let onRenderObject = function () {};
@@ -61,7 +60,6 @@
     let densityString = '1';
     let compiledDensity;
     let densityFunc;
-    // export let myId;
 
     const colorMaterial = new THREE.MeshPhongMaterial({
         color: 0xffffff,
@@ -69,96 +67,6 @@
         side: THREE.DoubleSide,
         vertexColors: true,
     });
-
-    // const testCase = () => {
-    //     const geometry = new THREE.BufferGeometry();
-
-    //     const indices = [];
-
-    //     const vertices = [];
-    //     const normals = [];
-    //     let colors = [];
-
-    //     const size = 20;
-    //     const segments = 10;
-
-    //     const halfSize = size / 2;
-    //     const segmentSize = size / segments;
-
-    //     // generate vertices, normals and color data for a simple grid geometry
-
-    //     for (let i = 0; i <= segments; i++) {
-    //         const y = i * segmentSize - halfSize;
-
-    //         for (let j = 0; j <= segments; j++) {
-    //             const x = j * segmentSize - halfSize;
-
-    //             vertices.push(x, -y, 0);
-    //             normals.push(0, 0, 1);
-
-    //             const r = x / size + 0.5;
-    //             const g = y / size + 0.5;
-
-    //             colors.push(r, g, 1);
-    //         }
-    //     }
-
-    //     // generate indices (data for element array buffer)
-
-    //     for (let i = 0; i < segments; i++) {
-    //         for (let j = 0; j < segments; j++) {
-    //             const a = i * (segments + 1) + (j + 1);
-    //             const b = i * (segments + 1) + j;
-    //             const c = (i + 1) * (segments + 1) + j;
-    //             const d = (i + 1) * (segments + 1) + (j + 1);
-
-    //             // generate two faces (triangles) per iteration
-
-    //             indices.push(a, b, d); // face one
-    //             indices.push(b, c, d); // face two
-    //         }
-    //     }
-
-    //     //
-
-    //     geometry.setIndex(indices);
-    //     geometry.setAttribute(
-    //         "position",
-    //         new THREE.Float32BufferAttribute(vertices, 3)
-    //     );
-    //     geometry.setAttribute(
-    //         "normal",
-    //         new THREE.Float32BufferAttribute(normals, 3)
-    //     );
-    //     geometry.setAttribute(
-    //         "color",
-    //         new THREE.Float32BufferAttribute(colors, 3)
-    //     );
-
-    //     testMesh = new THREE.MeshPhongMaterial({
-    //         side: THREE.DoubleSide,
-    //         vertexColors: true,
-    //     });
-
-    //     testMesh = new THREE.Mesh(geometry, colorMaterial);
-    //     scene.add(testMesh);
-
-    //     colors = [];
-
-    //     const geo = surfaceMesh.children[0].geometry;
-
-    //     const { count, itemSize } = geo.attributes.color;
-    //     for (let index = 0; index < count; index++) {
-    //         colors.push(1, 0.5, 0.5);
-    //     }
-    //     geo.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
-    //     geo.attributes.color.needsUpdate = true;
-    // };
-
-    // const colorMaterial = new THREE.MeshPhongMaterial({
-    //     side: THREE.DoubleSide,
-    //     vertexColors: true,
-    // });
 
     const colorMeBadd = (mesh, f) => {
         const [vMaxLocal, vMinLocal] = vMaxMin(mesh, f);
@@ -253,13 +161,13 @@
                 t: T0.evaluate() / 2 + T1.evaluate() / 2,
             });
         } catch (error) {
-            console.log('ParseError in evaluation.', error);
+            console.error('ParseError in evaluation.', error);
             return false;
         }
         if (Number.isFinite(valuation)) {
             return true;
         } else {
-            console.log('Evaluation error. Incomplete expression, maybe.');
+            console.error('Evaluation error. Incomplete expression, maybe.');
             return false;
         }
     };
@@ -271,13 +179,10 @@
     export let render = () => {};
     export let onClose = () => {};
     export let selected;
-    export let selectedObject;
+    export let selectedObjects;
     export let selectedPoint;
-    $: selectedPoint = selected ? point : selectedPoint;
 
     let minimize = false;
-
-    // params = { ...params, rNum: 10, cNum: 10, nX: 60 };
 
     const whiteLineMaterial = new THREE.LineBasicMaterial({
         color: 0xffffff,
@@ -306,7 +211,10 @@
 
     // Keep color fresh
     $: {
-        if (selectedObject === null || selected) {
+        if (selectedObjects.length === 0 || selected) {
+            if (selectedObjects[selectedObjects.length - 1] === uuid) {
+                selectedPoint = point;
+            }
             plusMaterial.opacity = 0.7;
             minusMaterial.opacity = 0.7;
         } else {
@@ -328,12 +236,7 @@
     let surfaceMesh;
 
     const updateSurface = function () {
-        // console.log(`I'm ${myId} and I'm updatin'.`);
         const { t0, t1 } = params;
-        // const { a, b, c, d, t0, t1 } = params;
-        // const A = math.parse(a).evaluate();
-        // const B = math.parse(b).evaluate();
-        // const [C, D] = math.parse([c, d]);
         const time = t0
             ? math.evaluate(t0) + tau * (math.evaluate(t1) - math.evaluate(t0))
             : 0;
@@ -347,20 +250,12 @@
             nX || 30
         );
         const meshGeometry = meshLines(params, rNum, cNum, nX);
-        // let material = plusMaterial;
 
         if (surfaceMesh) {
             for (let i = 0; i < surfaceMesh.children.length; i++) {
                 const mesh = surfaceMesh.children[i];
                 mesh.geometry.dispose();
                 mesh.geometry = i < 2 ? geometry : meshGeometry;
-                // if (i < 1) {
-                //     mesh.material = material;
-                // }
-
-                // if (i === 1) {
-                //     mesh.visible = true;
-                // }
             }
         } else {
             surfaceMesh = new THREE.Object3D();
@@ -373,13 +268,11 @@
             frontMesh.name = uuid;
             onRenderObject(backMesh, frontMesh);
 
-            // mesh.add(new THREE.Mesh( geometry, wireMaterial ))
             surfaceMesh.add(frontMesh);
             surfaceMesh.add(backMesh);
             surfaceMesh.add(
                 new THREE.LineSegments(meshGeometry, whiteLineMaterial)
             );
-            // mesh.visible = false;
             scene.add(surfaceMesh);
         }
         if (chooseDensity && densityFunc)
@@ -387,8 +280,6 @@
 
         tanFrame.visible = false;
         tangentVectors({ uv: new THREE.Vector2(0, 0) });
-
-        // console.log('hello', geometry.attributes, meshGeometry.attributes);
         render();
     };
 
@@ -530,7 +421,6 @@
 
         const geometry = new THREE.BufferGeometry().setFromPoints(points);
         geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
-        // console.log("meshlines", geometry.attributes);
         return geometry;
     };
 
@@ -610,8 +500,6 @@
             positions[pindex++] = z;
         }
 
-        // console.log("meshin'", geometry.attributes);
-
         geometry.attributes.position.needsUpdate = true;
 
         geometry.computeBoundingBox();
@@ -673,9 +561,7 @@
         // updateSurface();
         if (animation) dispatch('animate');
     });
-    // afterUpdate(() => {
-    //     console.log('Ima a surface. My params are ', params);
-    // });
+    
     onDestroy(() => {
         onDestroyObject(...surfaceMesh.children);
         for (const child of surfaceMesh.children) {
@@ -780,8 +666,6 @@
             eps,
         });
 
-        // point.position.copy(dr.p);
-
         const arrowParams = {
             radiusTop: gridStep / 10,
             radiusBottom: gridStep / 20,
@@ -826,7 +710,6 @@
                     vec.copy(p)
                         .add(ru.clone().multiplyScalar(u))
                         .add(rv.clone().multiplyScalar(v));
-                    // vec.add(new THREE.Vector3(0, 0, 0.0001*gridStep)); //
                 },
                 2,
                 2
@@ -933,7 +816,7 @@
 </script>
 
 <div class="boxItem" class:selected on:keydown>
-    <ObjHeader bind:minimize {onClose} {toggleHide} objHidden={!surfaceMesh.visible} {color} {onSelect}>
+    <ObjHeader bind:minimize bind:selectedObjects {onClose} {toggleHide} objHidden={!surfaceMesh.visible} {color} {onSelect}>
         Parametric surface
     </ObjHeader>
     <div hidden={minimize}>
@@ -947,7 +830,6 @@
                     {params}
                     on:cleared={(e) => {
                         params[name] = e.detail;
-                        // updateSurface();
                     }}
                 />
             {/each}
@@ -1005,7 +887,6 @@
             {/each}
 
             {#if isDynamic}
-                <!-- <div class="dynamic-container" transition:slide> -->
                 {#each ['t0', 't1'] as name}
                     {#if name === 't1'}
                         <span class="box box-3"
@@ -1064,27 +945,8 @@
                     on:pause={() => (last = null)}
                     on:rew={() => (tau = 0)}
                 />
-                <!-- </div> -->
             {/if}
 
-            <!-- <span class="box-1"><M size="sm">u</M>-meshes</span>
-            <input
-                type="range"
-                bind:value={rNum}
-                min="0"
-                max="20"
-                step="1"
-                class="box box-2"
-            />
-            <span class="box-1"><M size="sm">v</M>-meshes</span>
-            <input
-                type="range"
-                bind:value={cNum}
-                min="0"
-                max="20"
-                step="1"
-                class="box box-2"
-            /> -->
             <span class="box-1">Resolution</span>
             <input
                 type="range"
@@ -1131,9 +993,6 @@
                         densityFunc = (x, y, z) =>
                             compiledDensity.evaluate({ x, y, z });
                         colorMeBadd(surfaceMesh.children[0], densityFunc);
-                        // surfaceMesh.children[0].geometry.attributes.color.needsUpdate = true;
-                        // surfaceMesh.children[0].material = colorMaterial;
-                        // surfaceMesh.children[0].material = plusMaterial;
                         render();
                         densityString = e.detail;
                     }}

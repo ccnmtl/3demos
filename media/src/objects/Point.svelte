@@ -54,7 +54,7 @@
     export let gridStep;
     export let animation = false;
     export let selected;
-    export let selectedObject;
+    export let selectedObjects;
 
     let minimize = false;
 
@@ -102,7 +102,7 @@
 
     // recolor on demand
     $: {
-        if (selectedObject === null || selected) {
+        if (selectedObjects.length === 0 || selected) {
             pointMaterial.opacity = 1.0;
         } else {
             pointMaterial.opacity = 0.3;
@@ -135,12 +135,16 @@
             return;
         }
 
-        switch (e.key) {
-            case 'Backspace':
-                if(selected){
+        if(selected){
+            switch (e.key) {
+                case 'Backspace':
                     toggleHide();
-                }
-                break;
+                    break;
+                case 'p':
+                    animation = !animation;
+                    break;
+                        
+            }
         }
     };
 
@@ -172,7 +176,7 @@
             }
             valuation = Number.isFinite(parsedVal.evaluate(localParms));
         } catch (e) {
-            console.log('Parse error in expression', val, e);
+            console.error('Parse error in expression', val, e);
             return false;
         }
         return valuation;
@@ -209,7 +213,7 @@
 
 <div class={'boxItem' + (selected ? ' selected' : '')} on:keydown
      hidden={!show}>
-    <ObjHeader bind:minimize {onClose} {toggleHide} objHidden={!point.visible} {color} {onSelect}>
+    <ObjHeader bind:minimize bind:selectedObjects {onClose} {toggleHide} objHidden={!point.visible} {color} {onSelect}>
         Point <M size="sm">\langle p_1, p_2, p_3 \rangle</M>
     </ObjHeader>
     <div hidden={minimize}>

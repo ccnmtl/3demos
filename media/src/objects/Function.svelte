@@ -67,7 +67,7 @@
                 })
             );
         } catch (e) {
-            console.log('Parse error in expression', val, e);
+            console.error('Parse error in expression', val, e);
             return false;
         }
         return valuation;
@@ -102,9 +102,8 @@
     export let onClose = () => {};
     export let animation = false;
     export let selected;
-    export let selectedObject;
+    export let selectedObjects;
     export let selectedPoint;
-    $: selectedPoint = selected ? point : selectedPoint;
 
     let minimize = false;
 
@@ -560,7 +559,10 @@
 
     // Keep color fresh
     $: {
-        if (selectedObject === null || selected) {
+        if (selectedObjects.length === 0 || selected) {
+            if (selectedObjects[selectedObjects.length - 1] === uuid) {
+                selectedPoint = point;
+            }
             plusMaterial.opacity = 0.7;
             minusMaterial.opacity = 0.7;
         } else {
@@ -943,7 +945,7 @@
 </script>
 
 <div class={'boxItem' + (selected ? ' selected' : '')} on:keydown>
-    <ObjHeader bind:minimize {onClose} {toggleHide} objHidden={!surfaceMesh.visible} {color} {onSelect}>
+    <ObjHeader bind:minimize bind:selectedObjects {onClose} {toggleHide} objHidden={!surfaceMesh.visible} {color} {onSelect}>
         Graph of function
     </ObjHeader>
     <div hidden={minimize}>

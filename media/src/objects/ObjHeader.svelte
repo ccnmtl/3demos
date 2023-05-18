@@ -3,6 +3,7 @@
     export let onClose;
     export let color;
     export let objHidden = null;
+    export let selectedObjects;
     export let onSelect = function() {};
     export let toggleHide = function() {};
 </script>
@@ -14,7 +15,13 @@
         </strong>
         <a href={'#'} class="link-light"
            title="Select object"
-           on:click|preventDefault={onSelect}>
+           on:click|preventDefault={(e) => {
+                if (e.shiftKey) {
+                    onSelect();
+                } else {
+                    selectedObjects = [];
+                    onSelect()
+                }}}>
             <slot></slot>
         </a>
     </span>
