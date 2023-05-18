@@ -65,6 +65,7 @@
     let panelWidth = 370;
     let panelTransition = '';
     let panelTransitionProperty = '';
+    let isPanelResizing = false;
 
     const kindToComponent = {
         point: Point,
@@ -227,6 +228,23 @@
         }, PANEL_DELAY);
     };
 
+    const onResizePanelStart = function() {
+        isPanelResizing = true;
+    };
+
+    const onResizePanel = function(e) {
+        if (isPanelResizing) {
+            const newWidth = e.clientX - 10;
+            if (newWidth >= 300 && newWidth <= window.innerWidth * 0.6) {
+                panelWidth = newWidth;
+            }
+        }
+    };
+
+    const onResizePanelEnd = function() {
+        isPanelResizing = false;
+    };
+
     /**
      * Show the "Info" accordion item.
      */
@@ -281,7 +299,7 @@
             }
         }
 
-        // Observe panel width to place panel-hider properly.
+        // Observe panel width to place panel-buttons properly.
         // Annoying-ish solution, but it works.
         const resizeObserver = new ResizeObserver(entries => {
             for (let entry of entries) {
@@ -293,6 +311,9 @@
 
         const panelEl = document.querySelector('.demos-panel');
         resizeObserver.observe(panelEl);
+
+        window.addEventListener('pointermove', onResizePanel);
+        window.addEventListener('pointerup', onResizePanelEnd);
     });
 
     const onKeyDown = (e) => {
@@ -718,9 +739,9 @@
 
 </div><!-- end .demos-panel -->
 
-<div class="panel-hider bg-info bg-opacity-25 border border-info border-start-0 rounded-end-circle"
+<div class="panel-button panel-hider bg-info bg-opacity-25 border border-info border-start-0 rounded-end-circle"
      title={showPanel ? 'Hide panel' : 'Show panel'}
-     style:left={showPanel ? (panelWidth + 'px') : 0}
+     style:left={showPanel ? ((panelWidth - 1) + 'px') : 0}
      style:transition={panelTransition}
      style:transition-property={'left'}
      style:transform={`left(${showPanel ? panelWidth : 0}px)`}
@@ -732,6 +753,18 @@
         {:else}
             <i class="bi bi-arrow-bar-right"></i>
         {/if}
+    </div>
+</div>
+
+<div class="panel-button panel-resizer bg-info bg-opacity-25 border border-info border-start-0 rounded-end-circle"
+     title="Resize panel"
+     style:left={showPanel ? ((panelWidth - 1) + 'px') : 0}
+     style:transition={panelTransition}
+     style:transition-property="left"
+     style:transform={`left(${showPanel ? panelWidth : 0}px)`}
+     on:pointerdown={onResizePanelStart}>
+    <div class="align-middle text-center">
+        <i class="bi bi-arrow-left-right"></i>
     </div>
 </div>
 
@@ -753,10 +786,9 @@
         resize: horizontal;
     }
 
-    .panel-hider {
+    .panel-button {
         cursor: pointer;
-        position: relative;
-        top: 40px;
+        position: absolute;
 
         min-width: 25px;
         height: 40px;
@@ -764,13 +796,22 @@
         z-index: 2;
     }
 
-    .panel-hider:hover {
+    .panel-button:hover {
         background-color: rgba(255, 255, 150, 0.6) !important;
     }
 
-    .panel-hider>div {
+    .panel-button>div {
         position: relative;
         top: 6px;
+    }
+
+    .panel-button.panel-hider {
+        top: 40px;
+    }
+
+    .panel-button.panel-resizer {
+        top: 86px;
+        cursor: col-resize;
     }
 
     .chapterBox,
