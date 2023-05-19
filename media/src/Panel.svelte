@@ -57,6 +57,7 @@
     export let altDown;
     export let chatBuffer;
     export let isPollsOpen;
+    export let lockPoll;
     export let objectResponses;
 
     const PANEL_DELAY = 200;
@@ -383,6 +384,7 @@
                 <Polls
                     bind:pollResponses
                     bind:isPollsOpen
+                    bind:lockPoll
                     bind:objects
                     bind:currentPoll
                     {socket}
