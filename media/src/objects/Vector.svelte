@@ -17,12 +17,10 @@
                 });
                 return nodes.some((node) => node.name === ch);
             });
-    // console.log('Depends test', dependsOn({ x: 'sin(t) + 5' }));
 </script>
 
 <script>
     import { onMount, onDestroy, createEventDispatcher } from 'svelte';
-    // import { slide } from 'svelte/transition';
     import * as THREE from 'three';
     import { tickTock } from '../stores';
 
@@ -31,8 +29,6 @@
     import ObjHeader from './ObjHeader.svelte';
     import { ArrowBufferGeometry, checksum } from '../utils.js';
     import InputChecker from '../form-components/InputChecker.svelte';
-
-    // export let paramString;
 
     export let uuid;
     export let onRenderObject = function () {};
@@ -65,7 +61,7 @@
     export let gridStep;
     export let animation = false;
     export let selected;
-    export let selectedObject;
+    export let selectedObjects;
 
     let minimize = false;
 
@@ -128,7 +124,6 @@
             );
         }
         while (arrows.children.length > N1 - N0 + 1) {
-            // console.log(arrows.children, arrows.children.length);
             const arrow = arrows.children[arrows.children.length - 1];
             arrow.geometry.dispose();
             arrows.remove(arrow);
@@ -161,7 +156,7 @@
 
     // recolor on demand
     $: {
-        if (selectedObject === null || selected) {
+        if ( selectedObjects.length === 0 || selected) {
             arrowMaterial.opacity = 1.0;
         } else {
             arrowMaterial.opacity = 0.3;
@@ -171,7 +166,6 @@
     }
 
     onMount(() => {
-        // console.log('mountin\'');
         if (animation) dispatch('animate');
     });
     onDestroy(() => {
@@ -245,7 +239,7 @@
             }
             valuation = Number.isFinite(parsedVal.evaluate(localParms));
         } catch (e) {
-            console.log('Parse error in expression', val, e);
+            console.error('Parse error in expression', val, e);
             return false;
         }
         return valuation;
@@ -286,7 +280,7 @@
     hidden={!show}
     on:keydown
 >
-    <ObjHeader bind:minimize {onClose} {toggleHide} objHidden={!arrow.visible} {color} {onSelect}>
+    <ObjHeader bind:minimize bind:selectedObjects {onClose} {toggleHide} objHidden={!arrow.visible} {color} {onSelect}>
         Vector <M size="sm">\langle v_1, v_2, v_3 \rangle</M>
     </ObjHeader>
     <div hidden={minimize}>
@@ -310,7 +304,6 @@
             {/each}
 
             {#if isDynamic}
-                <!-- <div class="dynamic-container" transition:slide> -->
                 {#each ['t0', 't1'] as name}
                     {#if name === 't1'}
                         <span class="box box-3"
@@ -357,7 +350,6 @@
             {/if}
 
             {#if isDiscrete}
-                <!-- <div class="dynamic-container" transition:slide> -->
                 <input
                     class="form-control form-control-sm box-1"
                     type="number"

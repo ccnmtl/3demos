@@ -36,7 +36,7 @@
 
     let scaleAnimation = false;
     let scaleUpdate;
-    let selectedObject = null;
+    let selectedObjects = [];
     let hoveredObject = null;
     let selectedPoint = null;
 
@@ -44,7 +44,17 @@
     let isPollsOpen = false;
 
     const selectObject = (uuid) => {
-        selectedObject = uuid;
+        if (uuid === null) {
+            selectedObjects = [];
+        } else {
+            if (selectedObjects.includes(uuid)){
+                selectedObjects = selectedObjects.filter(obj => obj !== uuid);
+            } else {
+                //Can't just push. Assignment needed to trigger dynamic update
+                selectedObjects = selectedObjects.concat(uuid);
+            }
+        }
+        render();
     };
 
     const objectLoader = new THREE.ObjectLoader();
@@ -335,6 +345,7 @@
     export const blowUpObjects = () => {
         if (confirm('Remove all objects in the scene?')) {
             objects = [];
+            selectedObjects = [];
         }
     };
 
@@ -400,7 +411,10 @@
         }
     };
 
-    const onDblClick = function () {
+    const onDblClick = function (e) {
+        if (!e.shiftKey){
+            selectedObjects = [];
+        }
         selectObject(hoveredObject);
     };
 
@@ -539,55 +553,58 @@
         socket = makeSocket(roomId, handleSocketMessage);
     }
 
-    const altDown = (e) => {
+    const keySelect = function (e, moveDown) {
+        if (!objects) {
+            return;
+        } else if (selectedObjects.length === 0) {
+            selectedObjects = [
+                objects[(moveDown ? objects.length - 1 : 0)].uuid
+            ];
+        } else if (selectedObjects.length === objects.length) {
+            return;
+        }else {
+            const selectedIndex = objects
+            .map((x) => x.uuid)
+            .indexOf(selectedObjects[moveDown ? selectedObjects.length-1 : 0]);
+            const newIdx = modFloor(
+                selectedIndex + (moveDown ? -1 : 1),
+                objects.length
+                );
+            if (e.shiftKey) {
+                selectedObjects = moveDown ?
+                    selectedObjects.concat([objects[newIdx].uuid]) :
+                    [objects[newIdx].uuid].concat(selectedObjects);
+            } else {
+                selectedObjects = [objects[newIdx].uuid];
+            }
+        }
+        render();
+    }
+
+    const keyDown = (e) => {
         if (e.target.matches('input')) {
             return;
         }
-
-        if (e.altKey) {
-            switch (e.code) {
-                case 'BracketRight':
-                    e.preventDefault();
-                    if (!objects) {
-                        return;
-                    }
-
-                    if (!selectedObject) {
-                        selectedObject = objects[objects.length - 1].uuid;
-                    } else {
-                        const selectedIndex = objects
-                            .map((x) => x.uuid)
-                            .indexOf(selectedObject);
-                        const newIdx = modFloor(
-                            selectedIndex - 1,
-                            objects.length
-                        );
-                        selectedObject = objects[newIdx].uuid;
-                    }
-                    break;
-                case 'BracketLeft':
-                    e.preventDefault();
-                    if (!objects) {
-                        return;
-                    }
-
-                    if (!selectedObject) {
-                        selectedObject = objects[0].uuid;
-                    } else {
-                        const selectedIndex = objects
-                            .map((x) => x.uuid)
-                            .indexOf(selectedObject);
-                        const newIdx = modFloor(
-                            selectedIndex + 1,
-                            objects.length
-                        );
-                        selectedObject = objects[newIdx].uuid;
-                    }
-                    break;
-            }
+        switch (e.key) {
+            case 'd':
+                selectedObjects = [];
+                render();
+                break;
+            case '[':
+                keySelect(e, true);
+                break;
+            case '{':
+                keySelect(e, true);
+                break;
+            case ']':
+                keySelect(e, false);
+                break;
+            case '}':
+                keySelect(e, false);
+                break;
         }
     };
-    window.addEventListener('keydown', altDown, false);
+    window.addEventListener('keydown', keyDown, false);
 </script>
 
 <main>
@@ -606,7 +623,7 @@
             {isHost}
             {blowUpObjects}
             {selectObject}
-            {selectedObject}
+            bind:selectedObjects
             {scene}
             {onRenderObject}
             {onDestroyObject}
@@ -617,7 +634,6 @@
             {animateIfNotAnimating}
             {roomId}
             {currentPoll}
-            {altDown}
             bind:selectedPoint
             {objectResponses}
             bind:isPollsOpen

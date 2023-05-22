@@ -52,9 +52,8 @@
 
     export let blowUpObjects = function () {};
     export let selectObject = function () {};
-    export let selectedObject;
+    export let selectedObjects;
     export let selectedPoint;
-    export let altDown;
     export let chatBuffer;
     export let isPollsOpen;
     export let objectResponses;
@@ -79,7 +78,7 @@
     };
 
     const onPublishScene = function () {
-        publishScene(objects, socket);
+        publishScene(objects, selectedObjects, socket);
     };
 
     const onClickPoint = function () {
@@ -350,7 +349,7 @@
                                 bind:chatBuffer
                                 {pollResponses}
                                 {selectedPoint}
-                                {selectedObject}
+                                {selectedObjects}
                                 {isHost} />
                         </TabPane>
                         <TabPane tabId="story" tab="Story" disabled
@@ -520,6 +519,9 @@
                                     objects = objects.filter(
                                         (b) => b.uuid !== uuid
                                     );
+                                    selectedObjects = selectedObjects.filter(
+                                        (objectId) => objectId !== uuid
+                                    );
                                 }}
                                 bind:color
                                 bind:animation
@@ -527,9 +529,8 @@
                                 {gridStep}
                                 {gridMax}
                                 on:animate={animateIfNotAnimating}
-                                on:keydown={altDown}
-                                {selectedObject}
-                                selected={selectedObject === uuid}
+                                bind:selectedObjects
+                                selected={selectedObjects.includes(uuid)}
                                 onSelect={() => selectObject(uuid)}
                                 bind:selectedPoint
                             />

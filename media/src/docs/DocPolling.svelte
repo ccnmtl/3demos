@@ -8,6 +8,12 @@
     the {@html badge('<i class="bi bi-pencil" /> Edit ', 'secondary')} found under the
     <em>Actions</em> column of the <em>Polls</em> table.
 </p>
+<p>
+    Keep in mind that {@html badge('Graph', 'secondary')},
+    {@html badge('Level Surface', 'secondary')}, and
+    {@html badge('Parametric Surface', 'secondary')} are the only objects that have selectable
+    points for the {@html badge('Select Point', 'secondary')} poll type.
+</p>
 <strong><u>Creating a new Poll</u></strong>
 <ul>
     <li>

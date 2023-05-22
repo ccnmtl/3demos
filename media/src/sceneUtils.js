@@ -72,11 +72,12 @@ const updateObject = (updatedObject, objects, socket = null) => {
  * Given a scene object (just an array of objects at the moment),
  * publish it to the given websocket.
  */
-const publishScene = function (objects, socket = null) {
+const publishScene = function (objects, selected, socket = null) {
     if (socket) {
         socket.send(JSON.stringify({
             message: {
-                publishScene: objects
+                publishScene: objects,
+                selected: selected
             }
         }));
     }

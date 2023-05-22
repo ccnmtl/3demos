@@ -84,7 +84,7 @@
     export let render = () => {};
     export let onClose = () => {};
     export let selected;
-    export let selectedObject;
+    export let selectedObjects;
 
     let minimize = false;
     export let color = '#5432ff';
@@ -171,7 +171,7 @@
     });
 
     $: {
-        if (selectedObject === null || selected) {
+        if (selectedObjects.length === 0 || selected) {
             material.opacity = 1.0;
             colorMaterial.opacity = 1.0;
         } else {
@@ -287,7 +287,7 @@
                 geom = new SphericalSolidGeometry(A, B, C, D, E, F, nX * 2, nX);
                 break;
             default:
-                console.log('Something went wrong with the coord system.');
+                console.error('Something went wrong with the coord system.');
                 break;
         }
 
@@ -332,13 +332,13 @@
             }
             valuation = V.evaluate(u1);
         } catch (error) {
-            console.log('ParseError in evaluation.', error);
+            console.error('ParseError in evaluation.', error);
             return false;
         }
         if (Number.isFinite(valuation)) {
             return true;
         } else {
-            console.log('Evaluation error. Incomplete expression, maybe.');
+            console.error('Evaluation error. Incomplete expression, maybe.');
             return false;
         }
     };
@@ -351,7 +351,7 @@
 </script>
 
 <div class="boxItem" class:selected on:keydown>
-    <ObjHeader bind:minimize {onClose} {toggleHide} objHidden={!solidGroup.visible} {color} {onSelect}>Solid Region</ObjHeader>
+    <ObjHeader bind:minimize bind:selectedObjects {onClose} {toggleHide} objHidden={!solidGroup.visible} {color} {onSelect}>Solid Region</ObjHeader>
     <div hidden={minimize}>
         <div class="threedemos-container container">
             <span class="box-1">Coordinates</span>

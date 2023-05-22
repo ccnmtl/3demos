@@ -66,13 +66,13 @@
             const t = (A.evaluate() + B.evaluate()) / 2;
             valuation = V.evaluate({ t });
         } catch (error) {
-            console.log('ParseError in evaluation.', error);
+            console.error('ParseError in evaluation.', error);
             return false;
         }
         if (Number.isFinite(valuation)) {
             return true;
         } else {
-            console.log('Evaluation error. Incomplete expression, maybe.');
+            console.error('Evaluation error. Incomplete expression, maybe.');
             return false;
         }
     };
@@ -88,7 +88,7 @@
     export let camera;
     export let gridStep;
     export let animation = false;
-    export let selectedObject;
+    export let selectedObjects;
     export let selected;
     let last;
 
@@ -128,7 +128,7 @@
     });
     // Keep updated
     $: {
-        if (selectedObject === null || selected) {
+        if (selectedObjects.length === 0 || selected) {
             curveMaterial.opacity = 1.0;
         } else {
             curveMaterial.opacity = 0.1;
@@ -426,40 +426,39 @@
         if (e.target.matches('input')) {
             return;
         }
-
-        switch (e.key) {
-            case 'Backspace':
-                if(selected){
+        if (selected) {
+            switch (e.key) {
+                case 'Backspace':
                     toggleHide();
-                }
-                break;
-            case 'Shift':
-                window.addEventListener('mousemove', onMouseMove, false);
-                frame.visible = true;
-                break;
-            case 'c':
-                controls.target.set(
+                    break;
+                case 'Shift':
+                    window.addEventListener('mousemove', onMouseMove, false);
+                    frame.visible = true;
+                    break;
+                case 'c':
+                    controls.target.set(
                     point.position.x,
                     point.position.y,
                     point.position.z
-                );
-                render();
-                break;
-            case 'o':
-                osculatingCircle = !osculatingCircle;
-                render();
-                break;
-            case 'p':
-                animation = !animation;
-                break;
-            case 's':
-                TNB = !TNB;
-                render();
-                break;
-            case 't':
-                frame.visible = !frame.visible;
-                render();
-                break;
+                    );
+                    render();
+                    break;
+                case 'o':
+                    osculatingCircle = !osculatingCircle;
+                    render();
+                    break;
+                case 'p':
+                    animation = !animation;
+                    break;
+                case 's':
+                    TNB = !TNB;
+                    render();
+                    break;
+                case 't':
+                    frame.visible = !frame.visible;
+                    render();
+                    break;
+            }
         }
     };
 
@@ -478,7 +477,7 @@
 </script>
 
 <div class={'boxItem' + (selected ? ' selected' : '')} on:keydown>
-    <ObjHeader bind:minimize {toggleHide} {onClose} {color} {onSelect} objHidden={!tube.visible}>
+    <ObjHeader bind:minimize bind:selectedObjects {toggleHide} {onClose} {color} {onSelect} objHidden={!tube.visible}>
         Space Curve
     </ObjHeader>
     <div hidden={minimize}>
@@ -507,7 +506,7 @@
                             math.parse(b).evaluate()
                         );
                     } catch (e) {
-                        console.log('Parsing error', e);
+                        console.error('Parsing error', e);
                         return false;
                     }
                 }}
@@ -528,7 +527,7 @@
                             math.parse(val).evaluate()
                         );
                     } catch (e) {
-                        console.log('Parsing error', e);
+                        console.error('Parsing error', e);
                         return false;
                     }
                 }}

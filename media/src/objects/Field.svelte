@@ -39,7 +39,7 @@
     export let animation = false;
     export let onClose = () => {};
     export let gridMax, gridStep;
-    export let selectedObject;
+    export let selectedObjects;
     export let selected;
     export let color = '#373765';
 
@@ -59,7 +59,7 @@
 
             valuation = Number.isFinite(parsedVal.evaluate({ x, y, z }));
         } catch (e) {
-            console.log('Parse error in expression', val, e);
+            console.error('Parse error in expression', val, e);
             return false;
         }
         return valuation;
@@ -80,7 +80,7 @@
     let interpretColor;
     // Keep color fresh
     $: {
-        if (selectedObject === null || selected) {
+        if (selectedObjects.length === 0 || selected) {
             fieldMaterial.opacity = 1.0;
         } else {
             fieldMaterial.opacity = 0.3;
@@ -368,29 +368,28 @@
         if (e.target.matches('input')) {
             return;
         }
-
-        switch (e.key) {
-            case 'Backspace':
-                if(selected){
+        if (selected) {
+            switch (e.key) {
+                case 'Backspace':
                     toggleHide();
-                }
-                break;
-            case 't':
-                trails.visible = !trails.visible;
-                freeTrails();
-                render();
-                break;
-            case 'p':
-                flowArrows.visible = true;
-                animation = !animation;
-                if (animation) {
-                    dispatch('animate');
-                }
-                render();
-                break;
-            case 'r':
-                rewindArrows();
-                break;
+                    break;
+                case 't':
+                    trails.visible = !trails.visible;
+                    freeTrails();
+                    render();
+                    break;
+                case 'p':
+                    flowArrows.visible = true;
+                    animation = !animation;
+                    if (animation) {
+                        dispatch('animate');
+                    }
+                    render();
+                    break;
+                case 'r':
+                    rewindArrows();
+                    break;
+            }
         }
     };
 
@@ -398,7 +397,7 @@
 </script>
 
 <div class={'boxItem' + (selected ? ' selected' : '')} on:keydown>
-    <ObjHeader bind:minimize {onClose} {toggleHide} objHidden={!flowArrows.visible} {color} {onSelect}>
+    <ObjHeader bind:minimize bind:selectedObjects {onClose} {toggleHide} objHidden={!flowArrows.visible} {color} {onSelect}>
         Vector Field
     </ObjHeader>
     <div hidden={minimize}>

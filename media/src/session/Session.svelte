@@ -11,7 +11,7 @@
     export let objects;
     export let chatBuffer;
     export let selectedPoint;
-    export let selectedObject;
+    export let selectedObjects;
     export let pollResponses;
 
     let role = 'student';
@@ -36,7 +36,7 @@
     <Chatroom {socket} {role} {chatBuffer} />
 
     {#if currentPoll}
-        <Poll bind:currentPoll bind:socket {isHost} {selectedPoint} {objects} {selectedObject}/>
+        <Poll bind:currentPoll bind:socket {isHost} {selectedPoint} {objects} {selectedObjects}/>
     {/if}
 
     {#if pollResponses && Object.keys(pollResponses).length > 0 &&
