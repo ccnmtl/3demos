@@ -13,6 +13,7 @@
     export let render;
     export let objects;
     export let currentPoll;
+    export let lockPoll;
 
     let polls = loadPolls();
     // Init empty polls to some basic examples
@@ -78,6 +79,7 @@
 
     const onClickBroadcast = function(e, p) {
         pollResponses = {};
+        lockPoll = false;
         currentPoll = p;
         currentPollType = p.type;
 
@@ -165,6 +167,7 @@
                  active={activeTab === 'responses'}>
             <PollResponses role="host"
                            bind:objects
+                           bind:lockPoll
                            {currentPoll}
                            {currentPollType} {pollResponses}
                            {socket}

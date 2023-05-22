@@ -39,6 +39,7 @@
     let selectedObjects = [];
     let hoveredObject = null;
     let selectedPoint = null;
+    let lockPoll = false;
 
     let canvas;
     let isPollsOpen = false;
@@ -491,19 +492,21 @@
             }
         } else if (data.message.pollResponse && isHost) {
             const sessionKey = data.message.session_key;
-            if (data.message.poll === 'select point') {
-                if (pollResponses[sessionKey]) {
-                    objectResponses.remove(pollResponses[sessionKey]);
+            if (!(lockPoll && pollResponses[sessionKey])) {
+                if (data.message.poll === 'select point') {
+                    if (pollResponses[sessionKey]) {
+                        objectResponses.remove(pollResponses[sessionKey]);
+                    }
+                    isPollsOpen = false;
+                    let xyz = data.message.pollResponse;
+                    let response = new THREE.Mesh(pointGeometry, pollMaterial);
+                    pollResponses[sessionKey] = response;
+                    response.position.set(xyz[0], xyz[1], xyz[2]);
+                    objectResponses.add(response);
+                    render();
+                } else {
+                    pollResponses[sessionKey] = data.message.pollResponse;
                 }
-                isPollsOpen = false;
-                let xyz = data.message.pollResponse;
-                let response = new THREE.Mesh(pointGeometry, pollMaterial);
-                pollResponses[sessionKey] = response;
-                response.position.set(xyz[0], xyz[1], xyz[2]);
-                objectResponses.add(response);
-                render();
-            } else {
-                pollResponses[sessionKey] = data.message.pollResponse;
             }
         } else if (data.message.broadcastPoll) {
             currentPoll = handlePollEvent(data);
@@ -620,6 +623,7 @@
             bind:gridMax
             bind:chatBuffer
             bind:pollResponses
+            bind:lockPoll
             {isHost}
             {blowUpObjects}
             {selectObject}

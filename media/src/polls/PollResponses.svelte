@@ -13,6 +13,7 @@
     export let currentPollType;
     export let objectResponses;
     export let objects;
+    export let lockPoll;
 
     export let render = function() {};
     export let role = 'student';
@@ -142,6 +143,18 @@
                 title="Broadcast results"
                 on:click={onBroadcastResults}>
                 <i class="bi bi-broadcast-pin" /> Broadcast results
+            </button>
+            <button
+                type="button"
+                class="btn btn-warning btn-sm"
+                title={lockPoll ? 'Unrestrict Updates' : 'Restrict Updates'}
+                on:click={() => lockPoll = !lockPoll}
+            >   
+                {#if lockPoll}
+                    <i class="bi bi-unlock" /> Unrestrict Updates
+                {:else}
+                    <i class="bi bi-lock" />Restrict Updates
+                {/if}
             </button>
         </div>
     {/if}
