@@ -570,8 +570,7 @@
         }
         scene.remove(surfaceMesh);
         scene.remove(tanFrame);
-        window.removeEventListener('keydown', shiftDown, false);
-        window.removeEventListener('keyup', shiftUp, false);
+        window.removeEventListener('keydown', keyDown, false);
         render();
     });
 
@@ -756,7 +755,7 @@
         render();
     };
 
-    const shiftDown = (e) => {
+    const keyDown = (e) => {
         if (e.target.matches('input')) {
             return;
         } else if (selected) {
@@ -798,21 +797,16 @@
                     } else {
                         arrows.n.visible = false;
                     }
-
                     render();
+                    break;
+                case 'p':
+                    animation = !animation;
                     break;
             }
         }
     };
 
-    const shiftUp = (e) => {
-        if (e.key === 'Shift') {
-            window.removeEventListener('mousemove', onMouseMove);
-        }
-    };
-
-    window.addEventListener('keydown', shiftDown, false);
-    window.addEventListener('keyup', shiftUp, false);
+    window.addEventListener('keydown', keyDown, false);
 </script>
 
 <div class="boxItem" class:selected on:keydown>

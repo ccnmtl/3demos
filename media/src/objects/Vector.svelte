@@ -191,13 +191,15 @@
         if (e.target.matches('input')) {
             return;
         }
-
-        switch (e.key) {
-            case 'Backspace':
-                if(selected){
+        if (selected) {
+            switch (e.key) {
+                case 'Backspace':
                     toggleHide();
-                }
-                break;
+                    break;
+                case 'p':
+                    animation = !animation;
+                    break;
+            }
         }
     };
 
