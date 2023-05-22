@@ -24,7 +24,7 @@
                      'Question test 2', ['a', 'b', 'c', 'd']),
             new Poll('numeric', 'What is the square root of 2?'),
             new Poll('select point', 'Select your favorite point.'),
-            new Poll('select object', 'Select the object that looks the spiciest.')
+            new Poll('select object', 'Select your favorite object.')
         ];
     }
 

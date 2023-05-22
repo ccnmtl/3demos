@@ -41,7 +41,7 @@
             if (selectedObjects.length === 0) {
                 response.push(objects[0]);
             } else {
-                for (let object in selectedObjects) {
+                for (let object of selectedObjects) {
                     let found = objects.find((x) => x.uuid === object);
                     if (found) {
                         response.push(found);
@@ -86,7 +86,9 @@
                         y: {response[1]},
                         z: {response[2]}
                     {:else if currentPoll.type == 'select object'}
-                        {response.kind}
+                        {#each response as object}
+                            {object.kind}, 
+                        {/each}
                     {:else}
                         {response}
                     {/if}
