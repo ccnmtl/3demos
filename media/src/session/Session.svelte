@@ -36,7 +36,10 @@
     <Chatroom {socket} {role} {chatBuffer} />
 
     {#if currentPoll}
-        <Poll bind:currentPoll bind:socket {isHost} {selectedPoint} {objects} {selectedObjects}/>
+        <Poll bind:currentPoll bind:socket
+              {isHost}
+              {selectedPoint} {objects}
+              {selectedObjects} />
     {/if}
 
     {#if pollResponses && Object.keys(pollResponses).length > 0 &&
