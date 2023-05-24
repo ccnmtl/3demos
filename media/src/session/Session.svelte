@@ -45,6 +45,7 @@
     {#if pollResponses && Object.keys(pollResponses).length > 0 &&
         role === 'student'}
         <PollResponses
+            {currentPoll}
             currentPollType={currentPoll.type}
             {objects}
             {role}
