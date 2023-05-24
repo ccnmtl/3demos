@@ -72,14 +72,16 @@
         return null;
     };
 
-    const loadResponse = (item) => {
+    const loadResponse = (response) => {
         objects = [];
-        objects = makeObject(
-            null,
-            item.kind,
-            item.params,
-            objects
-        );
+        for (let item of response) {
+            objects = makeObject(
+                null,
+                item.kind,
+                item.params,
+                objects
+            );
+        }
     };
 
     /**
@@ -176,9 +178,13 @@
                         loadResponse(response);
                     }}
                 >
-                    <strong>{response.kind}</strong>
-                    {#each Object.entries(response.params) as [param, data]}
-                        , {param} = {data}
+                    {#each response as object}
+                        <p>
+                            <strong>{object.kind}</strong>
+                            {#each Object.entries(object.params) as [param, data]}
+                                , {param} = {data}
+                            {/each}
+                        </p>
                     {/each}
                 </button>
             </li>
