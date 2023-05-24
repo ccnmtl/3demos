@@ -62,13 +62,13 @@
         submitted = true;
     };
 
-    const onPollUpdate = function() {
-        // Un-submit the form when the instructor broadcasts a new
-        // poll.
+    const unsubmitPoll = function() {
         submitted = false;
     };
 
-    $: onPollUpdate(currentPoll);
+    // Un-submit the form when the instructor broadcasts a new
+    // poll.
+    $: unsubmitPoll(currentPoll);
 </script>
 
 
@@ -91,6 +91,11 @@
                         {response}
                     {/if}
                 </p>
+
+                <button class="btn btn-secondary" on:click={unsubmitPoll}>
+                    Edit response
+                </button>
+
             {:else}
             <form on:submit={handleOnSubmit}>
                 <div class="mb-3">
