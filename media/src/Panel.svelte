@@ -2,9 +2,9 @@
     /**
      * Main 3Demos control panel, to the left of the scene.
      */
-    import { onMount } from "svelte";
-    import { slide } from "svelte/transition";
-    import { quintOut } from "svelte/easing";
+    import { onMount } from 'svelte';
+    import { slide } from 'svelte/transition';
+    import { quintOut } from 'svelte/easing';
 
     import {
         ButtonDropdown,
@@ -12,17 +12,17 @@
         DropdownMenu,
         DropdownToggle,
         TabContent,
-        TabPane
-    } from "sveltestrap";
+        TabPane,
+    } from 'sveltestrap';
 
     import HowTo from "./docs/HowTo.svelte";
     import About from "./docs/About.svelte";
     import Polls from "./polls/Polls.svelte";
 
-    import { makeHSLColor, querySelectorIncludesText } from "./utils";
-    import { makeObject, publishScene } from "./sceneUtils";
+    import { makeHSLColor, querySelectorIncludesText } from './utils';
+    import { makeObject, publishScene } from './sceneUtils';
 
-    import Session from "./session/Session.svelte";
+    import Session from './session/Session.svelte';
 
     import Surface from './objects/Surface.svelte';
     import Level from './objects/Level.svelte';
@@ -33,7 +33,8 @@
     import Point from './objects/Point.svelte';
     import Solid from './objects/Solid.svelte';
 
-    import M from "./M.svelte";
+    import Story from './Story.svelte';
+    import M from './M.svelte';
 
     export let debug, currentMode;
     export let currentControls;
@@ -87,13 +88,13 @@
             ...objects,
             {
                 uuid: crypto.randomUUID(),
-                kind: "point",
+                kind: 'point',
                 params: {
                     a: `${Math.random()}`.slice(0, 5),
                     b: `${Math.random()}`.slice(0, 5),
                     c: `${Math.random()}`.slice(0, 5),
-                    t0: "0",
-                    t1: "1",
+                    t0: '0',
+                    t1: '1',
                 },
                 color: `#${makeHSLColor(Math.random()).getHexString()}`,
             },
@@ -105,16 +106,16 @@
             ...objects,
             {
                 uuid: crypto.randomUUID(),
-                kind: "vector",
+                kind: 'vector',
                 params: {
                     a: `${2 * Math.random() - 1}`.slice(0, 5),
                     b: `${2 * Math.random() - 1}`.slice(0, 5),
                     c: `${2 * Math.random() - 1}`.slice(0, 5),
-                    x: "0",
-                    y: "0",
-                    z: "0",
-                    t0: "0",
-                    t1: "1",
+                    x: '0',
+                    y: '0',
+                    z: '0',
+                    t0: '0',
+                    t1: '1',
                 },
                 color: `#${makeHSLColor(Math.random()).getHexString()}`,
             },
@@ -126,12 +127,12 @@
             ...objects,
             {
                 uuid: crypto.randomUUID(),
-                kind: "curve",
+                kind: 'curve',
                 params: {
-                    a: "0",
-                    b: "2*pi",
-                    x: "cos(t)",
-                    y: "sin(t)",
+                    a: '0',
+                    b: '2*pi',
+                    x: 'cos(t)',
+                    y: 'sin(t)',
                     z: `${
                         1 / 4 + Math.round(100 * Math.random()) / 100
                     } * cos(${Math.ceil(10 * Math.random()).toString()}*t)`,
@@ -144,19 +145,19 @@
     const onClickGraph = function () {
         objects = makeObject(
             null,
-            "graph",
+            'graph',
             {
-                a: "-2",
-                b: "2",
-                c: "-2",
-                d: "2",
+                a: '-2',
+                b: '2',
+                c: '-2',
+                d: '2',
                 z: `cos(${Math.ceil(
                     3 * Math.random()
                 ).toString()}*x + ${Math.ceil(
                     2 * Math.random()
                 ).toString()}*y)/(1 + x^2 + y^2)`,
-                t0: "0",
-                t1: "1",
+                t0: '0',
+                t1: '1',
             },
             objects
         );
@@ -165,16 +166,16 @@
     const onClickLevelSurface = function () {
         objects = makeObject(
             null,
-            "level",
+            'level',
             {
-                g: "x^2 + 2 y^2 - z^2",
-                k: "1",
-                a: "-2",
-                b: "2",
-                c: "-2",
-                d: "2",
-                e: "-2",
-                f: "2",
+                g: 'x^2 + 2 y^2 - z^2',
+                k: '1',
+                a: '-2',
+                b: '2',
+                c: '-2',
+                d: '2',
+                e: '-2',
+                f: '2',
             },
             objects
         );
@@ -183,15 +184,15 @@
     const onClickParSurf = function () {
         objects = makeObject(
             null,
-            "surface",
+            'surface',
             {
-                a: "0",
-                b: "2*pi",
-                c: "0",
-                d: "2*pi",
-                x: "cos(u)*(1 + sin(v)/3)",
-                y: "sin(u)*(1 + sin(v)/3)",
-                z: "-cos(v)/3",
+                a: '0',
+                b: '2*pi',
+                c: '0',
+                d: '2*pi',
+                x: 'cos(u)*(1 + sin(v)/3)',
+                y: 'sin(u)*(1 + sin(v)/3)',
+                z: '-cos(v)/3',
             },
             objects
         );
@@ -202,18 +203,18 @@
             ...objects,
             {
                 uuid: crypto.randomUUID(),
-                kind: "field",
+                kind: 'field',
                 params: {
-                    p: "y",
-                    q: "z",
-                    r: "x",
+                    p: 'y',
+                    q: 'z',
+                    r: 'x',
                     nVec: 6,
                 },
             },
         ];
     };
 
-    const onTogglePanel = function() {
+    const onTogglePanel = function () {
         panelTransition = `all ${PANEL_DELAY}ms ease`;
         panelTransitionProperty = 'transform';
 
@@ -248,7 +249,7 @@
     /**
      * Show the "Info" accordion item.
      */
-    export const showMainPanelItem = function() {
+    export const showMainPanelItem = function () {
         // Expand panel if it's hidden.
         showPanel = true;
 
@@ -259,7 +260,9 @@
         // Because sveltestrap can't activate this tab programmatically:
         // https://github.com/bestguy/sveltestrap/issues/532
         const tabEl = querySelectorIncludesText(
-            '.chapterBox .nav-tabs a', 'Session');
+            '.chapterBox .nav-tabs a',
+            'Session'
+        );
         tabEl.click();
     };
 
@@ -270,20 +273,20 @@
             urlParams.forEach((val, key) => {
                 // This is bad and stupid, and hopefully it will be done better.
                 // make a viewStatus object, maybe?
-                if (key === "currentChapter") {
+                if (key === 'currentChapter') {
                     currentChapter = val;
                 }
-                if (key === "grid") {
-                    gridMeshes.visible = val === "true";
+                if (key === 'grid') {
+                    gridMeshes.visible = val === 'true';
                 }
-                if (key === "debug") {
-                    debug = val === "true";
-                    console.log("debuggery: ", debug);
+                if (key === 'debug') {
+                    debug = val === 'true';
+                    console.log('debuggery: ', debug);
                 }
-                if (key.slice(0, 3) === "obj") {
-                    const keyParts = key.split("_");
+                if (key.slice(0, 3) === 'obj') {
+                    const keyParts = key.split('_');
                     const obj = objectHolder[keyParts[0]] || { params: {} };
-                    if (keyParts[1] === "params") {
+                    if (keyParts[1] === 'params') {
                         obj.params[keyParts[2]] = val;
                     } else {
                         obj[keyParts[1]] = val;
@@ -394,109 +397,127 @@
         </div>
     {/if}
 
-<div class="accordion-item demos-panel-box">
-    <h2 class="accordion-header">
-        <button class="accordion-button collapsed" type="button"
-                data-bs-toggle="collapse" data-bs-target="#collapseThree"
-                aria-expanded="false" aria-controls="collapseThree">
-            Objects
-        </button>
-    </h2>
-    <div id="collapseThree" class="accordion-collapse collapse"
-         data-bs-parent="#panelAccordion">
-        <div class="objectBoxOuter">
-            <div class="collapse-info">
-                <div class="object-box-title d-flex mb-2">
-                    <h2 class="flex-grow-1 px-2">3D Objects</h2>
-                </div>
-                <div
-                    class="btn-toolbar justify-content-between"
-                    role="toolbar">
-                    <div class="btn-group mb-2">
-                        <ButtonDropdown>
-                            <DropdownToggle size="sm" color="primary">
-                                Add Object
-                                <i class="fa fa-plus" />
-                            </DropdownToggle>
-                            <DropdownMenu>
-                                <DropdownItem on:click={onClickPoint}>
-                                    Point <M size="sm">P = ( a, b, c )</M>
-                                </DropdownItem>
-                                <DropdownItem on:click={onClickVector}>
-                                    Vector <M size="sm"
-                                        >\mathbf v = \langle a, b, c \rangle</M
-                                    >
-                                </DropdownItem>
-                                <DropdownItem on:click={onClickSpaceCurve}>
-                                    Space Curve <M size="sm">\mathbf r(t)</M
-                                    >
-                                </DropdownItem>
-                                <DropdownItem on:click={onClickGraph}>
-                                    Graph <M size="sm">z = f(x,y)</M>
-                                </DropdownItem>
-                                <DropdownItem
-                                    on:click={onClickLevelSurface}
-                                >
-                                    Level Surface <M size="sm"
-                                        >g(x,y,z) = k</M
-                                    >
-                                </DropdownItem>
-                                <DropdownItem on:click={onClickParSurf}>
-                                    Parametric Surface <M size="sm"
-                                        >\mathbf r(u,v)</M
-                                    >
-                                </DropdownItem>
-                                <DropdownItem
-                                    on:click={() => {
-                                        objects = [
-                                            ...objects,
-                                            {
-                                                uuid: crypto.randomUUID(),
-                                                kind: 'solid',
-                                                params: {
-                                                    coords: 'rect',
-                                                    a: '-1',
-                                                    b: '1',
-                                                    c: '-1',
-                                                    d: 'x',
-                                                    e: '0',
-                                                    f: '1 - (x^2 + y^2) / 2',
-                                                },
-                                                color: `#${makeHSLColor(
-                                                    Math.random()
-                                                ).getHexString()}`,
-                                            },
-                                        ];
-                                    }}
-                                >
-                                    Solid Region <M size="sm"
-                                        >{'E \\subset \\mathbb{R}^3'}</M
-                                    >
-                                </DropdownItem>
-                                <DropdownItem
-                                    on:click={onClickVectorField}>
-                                    Vector Field<M size="sm">\mathbf F(x,y,z)</M>
-                                </DropdownItem>
-                            </DropdownMenu>
-                        </ButtonDropdown>
-                        <button
-                            class="btn btn-sm btn-danger"
-                            on:click={blowUpObjects}
+        <div class="accordion-item demos-panel-box">
+            <h2 class="accordion-header">
+                <button
+                    class="accordion-button collapsed"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#collapseThree"
+                    aria-expanded="false"
+                    aria-controls="collapseThree"
+                >
+                    Objects
+                </button>
+            </h2>
+            <div
+                id="collapseThree"
+                class="accordion-collapse collapse"
+                data-bs-parent="#panelAccordion"
+            >
+                <div class="objectBoxOuter">
+                    <div class="collapse-info">
+                        <div class="object-box-title d-flex mb-2">
+                            <h2 class="flex-grow-1 px-2">3D Objects</h2>
+                        </div>
+                        <div
+                            class="btn-toolbar justify-content-between"
+                            role="toolbar"
                         >
-                            Clear Objects
-                            <i class="fa fa-trash" />
-                        </button>
-                    </div>
-                    {#if currentMode === "session" && isHost}
-                        <button
-                            class="btn btn-sm btn-primary mb-2"
-                            on:click={onPublishScene}
-                        >
-                            Publish Scene
-                            <i class="bi bi-broadcast-pin" />
-                        </button>
-                    {/if}
-                </div>
+                            <div class="btn-group mb-2">
+                                <ButtonDropdown>
+                                    <DropdownToggle size="sm" color="primary">
+                                        Add Object
+                                        <i class="fa fa-plus" />
+                                    </DropdownToggle>
+                                    <DropdownMenu>
+                                        <DropdownItem on:click={onClickPoint}>
+                                            Point <M size="sm"
+                                                >P = ( a, b, c )</M
+                                            >
+                                        </DropdownItem>
+                                        <DropdownItem on:click={onClickVector}>
+                                            Vector <M size="sm"
+                                                >\mathbf v = \langle a, b, c
+                                                \rangle</M
+                                            >
+                                        </DropdownItem>
+                                        <DropdownItem
+                                            on:click={onClickSpaceCurve}
+                                        >
+                                            Space Curve <M size="sm"
+                                                >\mathbf r(t)</M
+                                            >
+                                        </DropdownItem>
+                                        <DropdownItem on:click={onClickGraph}>
+                                            Graph <M size="sm">z = f(x,y)</M>
+                                        </DropdownItem>
+                                        <DropdownItem
+                                            on:click={onClickLevelSurface}
+                                        >
+                                            Level Surface <M size="sm"
+                                                >g(x,y,z) = k</M
+                                            >
+                                        </DropdownItem>
+                                        <DropdownItem on:click={onClickParSurf}>
+                                            Parametric Surface <M size="sm"
+                                                >\mathbf r(u,v)</M
+                                            >
+                                        </DropdownItem>
+                                        <DropdownItem
+                                            on:click={() => {
+                                                objects = [
+                                                    ...objects,
+                                                    {
+                                                        uuid: crypto.randomUUID(),
+                                                        kind: 'solid',
+                                                        params: {
+                                                            coords: 'rect',
+                                                            a: '-1',
+                                                            b: '1',
+                                                            c: '-1',
+                                                            d: 'x',
+                                                            e: '0',
+                                                            f: '1 - (x^2 + y^2) / 2',
+                                                        },
+                                                        color: `#${makeHSLColor(
+                                                            Math.random()
+                                                        ).getHexString()}`,
+                                                    },
+                                                ];
+                                            }}
+                                        >
+                                            Solid Region <M size="sm"
+                                                >{'E \\subset \\mathbb{R}^3'}</M
+                                            >
+                                        </DropdownItem>
+                                        <DropdownItem
+                                            on:click={onClickVectorField}
+                                        >
+                                            Vector Field<M size="sm"
+                                                >\mathbf F(x,y,z)</M
+                                            >
+                                        </DropdownItem>
+                                    </DropdownMenu>
+                                </ButtonDropdown>
+                                <button
+                                    class="btn btn-sm btn-danger"
+                                    on:click={blowUpObjects}
+                                >
+                                    Clear Objects
+                                    <i class="fa fa-trash" />
+                                </button>
+                            </div>
+                            {#if currentMode === 'session' && isHost}
+                                <button
+                                    class="btn btn-sm btn-primary mb-2"
+                                    on:click={onPublishScene}
+                                >
+                                    Publish Scene
+                                    <i class="bi bi-broadcast-pin" />
+                                </button>
+                            {/if}
+                        </div>
 
                 <div class="objectBoxInner">
                     <!-- Main Loop, if you will -->
@@ -540,190 +561,195 @@
                     {/each}
                 </div>
 
-                <!-- debug buttons -->
+                        <!-- debug buttons -->
 
-                {#if debug}
-                    <div>
-                        <button
-                            on:click={() => {
-                                objects = [
-                                    {
-                                        uuid: 34,
-                                        kind: "curve",
-                                        params: {
-                                            a: "0",
-                                            b: "2*pi",
-                                            x: "cos(t)",
-                                            y: "sin(t)",
-                                            z: "0",
-                                        },
-                                        color: "#aa33ff",
-                                        animation: true,
-                                    },
-                                    {
-                                        uuid: "34point22",
-                                        kind: "point",
-                                        params: {
-                                            a: "cos(2 t)",
-                                            b: "sin(2 t)",
-                                            c: "cos(2 t) + sin(2 t)",
-                                            t0: "0",
-                                            t1: "2 pi",
-                                        },
-                                        color: "#FF0000",
-                                        animation: false,
-                                    },
-                                    {
-                                        uuid: 345,
-                                        kind: "vector",
-                                        params: {
-                                            a: "cos(t)",
-                                            b: "sin(t)",
-                                            c: "1",
-                                            x: "cos(t)",
-                                            y: "sin(t)",
-                                            z: "0",
-                                            t0: "0",
-                                            t1: "2*pi",
-                                        },
-                                        color: "#ff33ff",
-                                        animation: false,
-                                    },
-                                ];
-                            }}>curve anim</button
-                        >
-                        <button
-                            on:click={() => {
-                                objects = [
-                                    {
-                                        uuid: 34,
-                                        kind: "curve",
-                                        params: {
-                                            a: "0",
-                                            b: "2*pi",
-                                            x: "cos(t)",
-                                            y: "sin(t)",
-                                            z: "0",
-                                        },
-                                        color: "#aa33ff",
-                                        animation: false,
-                                    },
-                                    {
-                                        uuid: "34point22",
-                                        kind: "point",
-                                        params: {
-                                            a: "cos(2 t)",
-                                            b: "sin(2 t)",
-                                            c: "cos(2 t) + sin(2 t)",
-                                            t0: "0",
-                                            t1: "2*pi",
-                                        },
-                                        color: "#FF0000",
-                                        animation: true,
-                                    },
-                                    {
-                                        uuid: 345,
-                                        kind: "vector",
-                                        params: {
-                                            a: "cos(t)",
-                                            b: "sin(t)",
-                                            c: "1",
-                                            x: "cos(t)",
-                                            y: "sin(t)",
-                                            z: "0",
-                                            t0: "0",
-                                            t1: "2*pi",
-                                        },
-                                        color: "#ff33ff",
-                                        animation: true,
-                                    },
-                                ];
-                            }}>point/vec anim</button
-                        >
-                        <button
-                            on:click={() => {
-                                objects = [
-                                    {
-                                        uuid: "agraph3847",
-                                        kind: "graph",
-                                        params: {
-                                            a: "-1",
-                                            b: "1",
-                                            c: "-1",
-                                            d: "1",
-                                            z: "x^2 - 3*cos(t) * x * y + y^2",
-                                            t0: "0",
-                                            t1: "2*pi",
-                                        },
-                                        color: "#ff33ff",
-                                        animation: true,
-                                    },
-                                ];
-                            }}>anim func</button
-                        >
-                        <button
-                            on:click={() => {
-                                objects = [
-                                    {
-                                        uuid: "agraph3847",
-                                        kind: "graph",
-                                        params: {
-                                            a: "-1",
-                                            b: "1",
-                                            c: "-1",
-                                            d: "1",
-                                            z: "x^2 - 3*cos(t) * x * y + y^2",
-                                            t0: "0",
-                                            t1: "2*pi",
-                                        },
-                                        color: "#ff33ff",
-                                        animation: false,
-                                    },
-                                ];
-                            }}>unanim func</button
-                        >
-                        <button
-                            on:click={() => {
-                                objects = [
-                                    {
-                                        uuid: "swirly1234",
-                                        kind: "field",
-                                        params: {
-                                            p: "x/2",
-                                            q: "-z",
-                                            r: "y",
-                                            nVec: "5",
-                                        },
-                                        color: "#ff33ff",
-                                        animation: true,
-                                    },
-                                ];
-                            }}>anim field</button
-                        >
-                        <button
-                            on:click={() => {
-                                objects = [
-                                    {
-                                        uuid: "swirly1234",
-                                        kind: "field",
-                                        params: {
-                                            p: "x/2",
-                                            q: "-z",
-                                            r: "y",
-                                            nVec: "5",
-                                        },
-                                        color: "#ff33ff",
-                                        animation: false,
-                                    },
-                                ];
-                            }}>unanim field</button
-                        >
+                        {#if debug}
+                            <div>
+                                <button
+                                    on:click={() => {
+                                        objects = [
+                                            {
+                                                uuid: 34,
+                                                kind: 'curve',
+                                                params: {
+                                                    a: '0',
+                                                    b: '2*pi',
+                                                    x: 'cos(t)',
+                                                    y: 'sin(t)',
+                                                    z: '0',
+                                                },
+                                                color: '#aa33ff',
+                                                animation: true,
+                                            },
+                                            {
+                                                uuid: '34point22',
+                                                kind: 'point',
+                                                params: {
+                                                    a: 'cos(2 t)',
+                                                    b: 'sin(2 t)',
+                                                    c: 'cos(2 t) + sin(2 t)',
+                                                    t0: '0',
+                                                    t1: '2 pi',
+                                                },
+                                                color: '#FF0000',
+                                                animation: false,
+                                            },
+                                            {
+                                                uuid: 345,
+                                                kind: 'vector',
+                                                params: {
+                                                    a: 'cos(t)',
+                                                    b: 'sin(t)',
+                                                    c: '1',
+                                                    x: 'cos(t)',
+                                                    y: 'sin(t)',
+                                                    z: '0',
+                                                    t0: '0',
+                                                    t1: '2*pi',
+                                                },
+                                                color: '#ff33ff',
+                                                animation: false,
+                                            },
+                                        ];
+                                    }}>curve anim</button
+                                >
+                                <button
+                                    on:click={() => {
+                                        objects = [
+                                            {
+                                                uuid: 34,
+                                                kind: 'curve',
+                                                params: {
+                                                    a: '0',
+                                                    b: '2*pi',
+                                                    x: 'cos(t)',
+                                                    y: 'sin(t)',
+                                                    z: '0',
+                                                },
+                                                color: '#aa33ff',
+                                                animation: false,
+                                            },
+                                            {
+                                                uuid: '34point22',
+                                                kind: 'point',
+                                                params: {
+                                                    a: 'cos(2 t)',
+                                                    b: 'sin(2 t)',
+                                                    c: 'cos(2 t) + sin(2 t)',
+                                                    t0: '0',
+                                                    t1: '2*pi',
+                                                },
+                                                color: '#FF0000',
+                                                animation: true,
+                                            },
+                                            {
+                                                uuid: 345,
+                                                kind: 'vector',
+                                                params: {
+                                                    a: 'cos(t)',
+                                                    b: 'sin(t)',
+                                                    c: '1',
+                                                    x: 'cos(t)',
+                                                    y: 'sin(t)',
+                                                    z: '0',
+                                                    t0: '0',
+                                                    t1: '2*pi',
+                                                },
+                                                color: '#ff33ff',
+                                                animation: true,
+                                            },
+                                        ];
+                                    }}>point/vec anim</button
+                                >
+                                <button
+                                    on:click={() => {
+                                        objects = [
+                                            {
+                                                uuid: 'agraph3847',
+                                                kind: 'graph',
+                                                params: {
+                                                    a: '-1',
+                                                    b: '1',
+                                                    c: '-1',
+                                                    d: '1',
+                                                    z: 'x^2 - 3*cos(t) * x * y + y^2',
+                                                    t0: '0',
+                                                    t1: '2*pi',
+                                                },
+                                                color: '#ff33ff',
+                                                animation: true,
+                                            },
+                                        ];
+                                    }}>anim func</button
+                                >
+                                <button
+                                    on:click={() => {
+                                        objects = [
+                                            {
+                                                uuid: 'agraph3847',
+                                                kind: 'graph',
+                                                params: {
+                                                    a: '-1',
+                                                    b: '1',
+                                                    c: '-1',
+                                                    d: '1',
+                                                    z: 'x^2 - 3*cos(t) * x * y + y^2',
+                                                    t0: '0',
+                                                    t1: '2*pi',
+                                                },
+                                                color: '#ff33ff',
+                                                animation: false,
+                                            },
+                                        ];
+                                    }}>unanim func</button
+                                >
+                                <button
+                                    on:click={() => {
+                                        objects = [
+                                            {
+                                                uuid: 'swirly1234',
+                                                kind: 'field',
+                                                params: {
+                                                    p: 'x/2',
+                                                    q: '-z',
+                                                    r: 'y',
+                                                    nVec: '5',
+                                                },
+                                                color: '#ff33ff',
+                                                animation: true,
+                                            },
+                                        ];
+                                    }}>anim field</button
+                                >
+                                <button
+                                    on:click={() => {
+                                        objects = [
+                                            {
+                                                uuid: 'swirly1234',
+                                                kind: 'field',
+                                                params: {
+                                                    p: 'x/2',
+                                                    q: '-z',
+                                                    r: 'y',
+                                                    nVec: '5',
+                                                },
+                                                color: '#ff33ff',
+                                                animation: false,
+                                            },
+                                        ];
+                                    }}>unanim field</button
+                                >
+                            </div>
+                        {/if}
                     </div>
-                {/if}
+                </div>
+                <!-- end .objectBoxOuter -->
             </div>
-        </div><!-- end .objectBoxOuter -->
+        </div>
     </div>
+    <!-- end .accordion -->
 </div>
+<!-- end .demos-panel -->
 
 </div><!-- end .accordion -->
 
@@ -739,9 +765,9 @@
      on:keypress={onTogglePanel}>
     <div class="align-middle text-center">
         {#if showPanel}
-            <i class="bi bi-arrow-bar-left"></i>
+            <i class="bi bi-arrow-bar-left" />
         {:else}
-            <i class="bi bi-arrow-bar-right"></i>
+            <i class="bi bi-arrow-bar-right" />
         {/if}
     </div>
 </div>
