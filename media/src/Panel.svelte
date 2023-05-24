@@ -15,9 +15,9 @@
         TabPane,
     } from 'sveltestrap';
 
-    import HowTo from "./docs/HowTo.svelte";
-    import About from "./docs/About.svelte";
-    import Polls from "./polls/Polls.svelte";
+    import HowTo from './docs/HowTo.svelte';
+    import About from './docs/About.svelte';
+    import Polls from './polls/Polls.svelte';
 
     import { makeHSLColor, querySelectorIncludesText } from './utils';
     import { makeObject, publishScene } from './sceneUtils';
@@ -229,11 +229,11 @@
         }, PANEL_DELAY);
     };
 
-    const onResizePanelStart = function() {
+    const onResizePanelStart = function () {
         isPanelResizing = true;
     };
 
-    const onResizePanel = function(e) {
+    const onResizePanel = function (e) {
         if (isPanelResizing) {
             const newWidth = e.clientX - 10;
             if (newWidth >= 300 && newWidth <= window.innerWidth * 0.6) {
@@ -242,7 +242,7 @@
         }
     };
 
-    const onResizePanelEnd = function() {
+    const onResizePanelEnd = function () {
         isPanelResizing = false;
     };
 
@@ -316,86 +316,116 @@
     $: panelOffset = showPanel ? 0 : -100;
 </script>
 
-<div class="demos-panel"
-     style:width={panelWidth + 'px'}
-     style:transition={panelTransition}
-     style:transition-property={panelTransitionProperty}
-     style:transform={`translateX(${panelOffset}%)`}>
-<div id="panelAccordion" class="accordion">
-    <h1 class="flex-grow-1 px-2">
-        <a href="/" title="Home" class="text-body">3Demos (βeta)</a>
-    </h1>
+<div
+    class="demos-panel"
+    style:width={panelWidth + 'px'}
+    style:transition={panelTransition}
+    style:transition-property={panelTransitionProperty}
+    style:transform={`translateX(${panelOffset}%)`}
+>
+    <div id="panelAccordion" class="accordion">
+        <h1 class="flex-grow-1 px-2">
+            <a href="/" title="Home" class="text-body">3Demos (βeta)</a>
+        </h1>
 
-    <div class="accordion-item demos-panel-box">
-        <h2 class="accordion-header">
-            <button class="accordion-button collapsed" type="button"
-                    data-bs-toggle="collapse" data-bs-target="#collapseOne"
-                    aria-expanded="false" aria-controls="collapseOne">
-                Info
-            </button>
-        </h2>
-        <div id="collapseOne" class="accordion-collapse collapse show"
-             data-bs-parent="#panelAccordion">
-            <div class="chapterBox">
-                <div class="collapse-info">
-                    <TabContent on:tab={(e) => (currentMode = e.detail)}>
-                        <TabPane tabId="how-to" tab="How To"
-                                 active={currentMode === 'how-to'}>
-                            <HowTo />
-                        </TabPane>
-                        <TabPane tabId="session" tab="Session"
-                                 active={currentMode === 'session'}>
-                            <Session
-                                bind:roomId
-                                bind:socket
-                                bind:objects
-                                bind:currentPoll
-                                bind:chatBuffer
-                                {pollResponses}
-                                {selectedPoint}
-                                {selectedObjects}
-                                {isHost} />
-                        </TabPane>
-                        <TabPane tabId="story" tab="Story" disabled
-                                 active={currentMode === 'story'}>
-                            Story Mode
-                        </TabPane>
-                        <TabPane tabId="about" tab="About"
-                                 active={currentMode === 'about'}>
-                            <About />
-                        </TabPane>
-                    </TabContent>
+        <div class="accordion-item demos-panel-box">
+            <h2 class="accordion-header">
+                <button
+                    class="accordion-button collapsed"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#collapseOne"
+                    aria-expanded="false"
+                    aria-controls="collapseOne"
+                >
+                    Info
+                </button>
+            </h2>
+            <div
+                id="collapseOne"
+                class="accordion-collapse collapse show"
+                data-bs-parent="#panelAccordion"
+            >
+                <div class="chapterBox">
+                    <div class="collapse-info">
+                        <TabContent on:tab={(e) => (currentMode = e.detail)}>
+                            <TabPane
+                                tabId="how-to"
+                                tab="How To"
+                                active={currentMode === 'how-to'}
+                            >
+                                <HowTo />
+                            </TabPane>
+                            <TabPane
+                                tabId="session"
+                                tab="Session"
+                                active={currentMode === 'session'}
+                            >
+                                <Session
+                                    bind:roomId
+                                    bind:socket
+                                    bind:objects
+                                    bind:currentPoll
+                                    bind:chatBuffer
+                                    {pollResponses}
+                                    {selectedPoint}
+                                    {selectedObjects}
+                                    {isHost}
+                                />
+                            </TabPane>
+                            <TabPane
+                                tabId="story"
+                                tab="Story"
+                                active={currentMode === 'story'}
+                            >
+                                <Story bind:objects />
+                            </TabPane>
+                            <TabPane
+                                tabId="about"
+                                tab="About"
+                                active={currentMode === 'about'}
+                            >
+                                <About />
+                            </TabPane>
+                        </TabContent>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-    <!-- end .demos-panel-box -->
+        <!-- end .demos-panel-box -->
 
-    {#if currentMode === "session" && isHost}
-        <div class="accordion-item demos-panel-box">
-            <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button"
-                        data-bs-toggle="collapse" data-bs-target="#collapseTwo"
-                        aria-expanded="false" aria-controls="collapseTwo">
-                    Polls
-                </button>
-            </h2>
-            <div id="collapseTwo" class="accordion-collapse collapse"
-                 data-bs-parent="#panelAccordion"
-            >
-                <Polls
-                    bind:pollResponses
-                    bind:isPollsOpen
-                    bind:lockPoll
-                    bind:objects
-                    bind:currentPoll
-                    {socket}
-                    {objectResponses}
-                    render={requestFrameIfNotRequested}
-                />
+        {#if currentMode === 'session' && isHost}
+            <div class="accordion-item demos-panel-box">
+                <h2 class="accordion-header">
+                    <button
+                        class="accordion-button collapsed"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#collapseTwo"
+                        aria-expanded="false"
+                        aria-controls="collapseTwo"
+                    >
+                        Polls
+                    </button>
+                </h2>
+                <div
+                    id="collapseTwo"
+                    class="accordion-collapse collapse"
+                    data-bs-parent="#panelAccordion"
+                >
+                    <Polls
+                        bind:pollResponses
+                        bind:isPollsOpen
+                        bind:lockPoll
+                        bind:objects
+                        bind:currentPoll
+                        {socket}
+                        {objectResponses}
+                        render={requestFrameIfNotRequested}
+                    />
+                </div>
             </div>
-        </div>
-    {/if}
+        {/if}
 
         <div class="accordion-item demos-panel-box">
             <h2 class="accordion-header">
@@ -519,47 +549,51 @@
                             {/if}
                         </div>
 
-                <div class="objectBoxInner">
-                    <!-- Main Loop, if you will -->
-                    {#each objects as { uuid, kind, params, color, animation } (uuid)}
-                        <div
-                            transition:slide={{
-                                delay: 0,
-                                duration: 300,
-                                easing: quintOut,
-                            }}
-                        >
-                            <svelte:component
-                                this={kindToComponent[kind]}
-                                {scene}
-                                {onRenderObject}
-                                {onDestroyObject}
-                                camera={currentCamera}
-                                controls={currentControls}
-                                render={requestFrameIfNotRequested}
-                                {params}
-                                onClose={() => {
-                                    objects = objects.filter(
-                                        (b) => b.uuid !== uuid
-                                    );
-                                    selectedObjects = selectedObjects.filter(
-                                        (objectId) => objectId !== uuid
-                                    );
-                                }}
-                                bind:color
-                                bind:animation
-                                {uuid}
-                                {gridStep}
-                                {gridMax}
-                                on:animate={animateIfNotAnimating}
-                                bind:selectedObjects
-                                selected={selectedObjects.includes(uuid)}
-                                onSelect={() => selectObject(uuid)}
-                                bind:selectedPoint
-                            />
+                        <div class="objectBoxInner">
+                            <!-- Main Loop, if you will -->
+                            {#each objects as { uuid, kind, params, color, animation } (uuid)}
+                                <div
+                                    transition:slide={{
+                                        delay: 0,
+                                        duration: 300,
+                                        easing: quintOut,
+                                    }}
+                                >
+                                    <svelte:component
+                                        this={kindToComponent[kind]}
+                                        {scene}
+                                        {onRenderObject}
+                                        {onDestroyObject}
+                                        camera={currentCamera}
+                                        controls={currentControls}
+                                        render={requestFrameIfNotRequested}
+                                        {params}
+                                        onClose={() => {
+                                            objects = objects.filter(
+                                                (b) => b.uuid !== uuid
+                                            );
+                                            selectedObjects =
+                                                selectedObjects.filter(
+                                                    (objectId) =>
+                                                        objectId !== uuid
+                                                );
+                                        }}
+                                        bind:color
+                                        bind:animation
+                                        {uuid}
+                                        {gridStep}
+                                        {gridMax}
+                                        on:animate={animateIfNotAnimating}
+                                        bind:selectedObjects
+                                        selected={selectedObjects.includes(
+                                            uuid
+                                        )}
+                                        onSelect={() => selectObject(uuid)}
+                                        bind:selectedPoint
+                                    />
+                                </div>
+                            {/each}
                         </div>
-                    {/each}
-                </div>
 
                         <!-- debug buttons -->
 
@@ -751,18 +785,16 @@
 </div>
 <!-- end .demos-panel -->
 
-</div><!-- end .accordion -->
-
-</div><!-- end .demos-panel -->
-
-<div class="panel-button panel-hider bg-info bg-opacity-25 border border-info border-start-0 rounded-end-circle"
-     title={showPanel ? 'Hide panel' : 'Show panel'}
-     style:left={showPanel ? ((panelWidth - 1) + 'px') : 0}
-     style:transition={panelTransition}
-     style:transition-property={'left'}
-     style:transform={`left(${showPanel ? panelWidth : 0}px)`}
-     on:click={onTogglePanel}
-     on:keypress={onTogglePanel}>
+<div
+    class="panel-button panel-hider bg-info bg-opacity-25 border border-info border-start-0 rounded-end-circle"
+    title={showPanel ? 'Hide panel' : 'Show panel'}
+    style:left={showPanel ? panelWidth - 1 + 'px' : 0}
+    style:transition={panelTransition}
+    style:transition-property={'left'}
+    style:transform={`left(${showPanel ? panelWidth : 0}px)`}
+    on:click={onTogglePanel}
+    on:keypress={onTogglePanel}
+>
     <div class="align-middle text-center">
         {#if showPanel}
             <i class="bi bi-arrow-bar-left" />
@@ -772,15 +804,17 @@
     </div>
 </div>
 
-<div class="panel-button panel-resizer bg-info bg-opacity-25 border border-info border-start-0 rounded-end-circle"
-     title="Resize panel"
-     style:left={showPanel ? ((panelWidth - 1) + 'px') : 0}
-     style:transition={panelTransition}
-     style:transition-property="left"
-     style:transform={`left(${showPanel ? panelWidth : 0}px)`}
-     on:pointerdown={onResizePanelStart}>
+<div
+    class="panel-button panel-resizer bg-info bg-opacity-25 border border-info border-start-0 rounded-end-circle"
+    title="Resize panel"
+    style:left={showPanel ? panelWidth - 1 + 'px' : 0}
+    style:transition={panelTransition}
+    style:transition-property="left"
+    style:transform={`left(${showPanel ? panelWidth : 0}px)`}
+    on:pointerdown={onResizePanelStart}
+>
     <div class="align-middle text-center">
-        <i class="bi bi-arrow-left-right"></i>
+        <i class="bi bi-arrow-left-right" />
     </div>
 </div>
 
@@ -815,7 +849,7 @@
         background-color: rgba(255, 255, 150, 0.6) !important;
     }
 
-    .panel-button>div {
+    .panel-button > div {
         position: relative;
         top: 6px;
     }
