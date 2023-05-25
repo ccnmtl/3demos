@@ -4,7 +4,7 @@
     import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
     import { drawAxes, drawGrid, labelAxes, freeChildren } from '../utils';
     import { makeObject } from '../sceneUtils';
-    import { vMin, vMax, colorMap } from '../stores';
+    import { vMin, vMax, colorMap, densityColormap } from '../stores';
     import WindowHeader from './WindowHeader.svelte';
     import { colorMapNames } from '../js-colormaps';
 
@@ -203,25 +203,57 @@
         </label>
     </div>
 
-    <div class="row align-items-left">
-        <label for="colormap"
-            ><a
-                href="https://matplotlib.org/stable/gallery/color/colormap_reference.html#colormap-reference"
-                target="_blank">Colormap</a
-            ></label
-        >
-        <input
-            type="text"
-            name="colormap"
-            id="colormap-select"
-            list="cmaps"
-            bind:value={$colorMap}
-        />
+    <div class="row">
+        <div class="col-3">
+            <label for="colormap"
+                ><a
+                    href="https://matplotlib.org/stable/gallery/color/colormap_reference.html#colormap-reference"
+                    target="_blank">Colormap</a
+                ></label
+            >
+        </div>
+        <div class="col-7">
+            <input
+                type="text"
+                name="colormap"
+                id="colormap-select"
+                list="cmaps"
+                value={$colorMap}
+                on:input={(e) => {
+                    const val = e.target.value;
+                    // console.log('densemap update', val);
+                    if (colorMapNames.includes(val)) {
+                        $colorMap = e.target.value;
+                    }
+                }}
+            />
+        </div>
         <datalist id="cmaps">
             {#each colorMapNames as cm}
                 <option value={cm} />
             {/each}
         </datalist>
+    </div>
+    <div class="row">
+        <div class="col-3">
+            <label for="densitymap">Density cmap</label>
+        </div>
+        <div class="col-7">
+            <input
+                type="text"
+                name="densitymap"
+                id="densitymap-select"
+                list="cmaps"
+                value={$densityColormap}
+                on:input={(e) => {
+                    const val = e.target.value;
+                    // console.log('densemap update', val);
+                    if (colorMapNames.includes(val)) {
+                        $densityColormap = e.target.value;
+                    }
+                }}
+            />
+        </div>
     </div>
 
     <div class="row align-items-center">

@@ -7,7 +7,7 @@
     import M from '../M.svelte';
     import ObjHeader from './ObjHeader.svelte';
     // import PlayButtons from '../form-components/PlayButtons.svelte';
-    import { vMin, vMax } from '../stores';
+    import { vMin, vMax, densityColormap } from '../stores';
 
     const config = {};
     const math = create(all, config);
@@ -44,7 +44,7 @@
         render();
     });
 
-    const toggleHide = function() {
+    const toggleHide = function () {
         solidGroup.visible = !solidGroup.visible;
         render();
     };
@@ -56,7 +56,7 @@
 
         switch (e.key) {
             case 'Backspace':
-                if(selected){
+                if (selected) {
                     toggleHide();
                 }
                 break;
@@ -127,13 +127,17 @@
 
         colorBufferVertices(mesh, (x, y, z) => {
             const value = f(x, y, z);
-            return blueUpRedDown((2 * (value - $vMin)) / ($vMax - $vMin) - 1);
+            return blueUpRedDown(
+                (2 * (value - $vMin)) / ($vMax - $vMin) - 1,
+                0.8,
+                $densityColormap
+            );
         });
     };
 
     $: ($vMin, $vMax), chooseDensity && colorMeBadd(box, densityFunc);
 
-    $: if (chooseDensity) {
+    $: if (chooseDensity && $densityColormap) {
         densityString = densityString || '1';
         compiledDensity = math.parse(densityString).compile();
         densityFunc = (x, y, z) => compiledDensity.evaluate({ x, y, z });
@@ -351,7 +355,15 @@
 </script>
 
 <div class="boxItem" class:selected on:keydown>
-    <ObjHeader bind:minimize bind:selectedObjects {onClose} {toggleHide} objHidden={!solidGroup.visible} {color} {onSelect}>Solid Region</ObjHeader>
+    <ObjHeader
+        bind:minimize
+        bind:selectedObjects
+        {onClose}
+        {toggleHide}
+        objHidden={!solidGroup.visible}
+        {color}
+        {onSelect}>Solid Region</ObjHeader
+    >
     <div hidden={minimize}>
         <div class="threedemos-container container">
             <span class="box-1">Coordinates</span>
@@ -510,7 +522,11 @@
                     }}
                 />
                 <div class="box colorbar-container">
-                    <ColorBar vMin={$vMin} vMax={$vMax} />
+                    <ColorBar
+                        vMin={$vMin}
+                        vMax={$vMax}
+                        cmap={$densityColormap}
+                    />
                 </div>
             {:else}
                 <span class="box box-2">

@@ -8,7 +8,7 @@
     import M from '../M.svelte';
     import ObjHeader from './ObjHeader.svelte';
     import PlayButtons from '../form-components/PlayButtons.svelte';
-    import { tickTock, vMax, vMin } from '../stores';
+    import { densityColormap, tickTock, vMax, vMin } from '../stores';
 
     const config = {};
     const math = create(all, config);
@@ -31,7 +31,7 @@
     export let uuid;
     export let onRenderObject = function () {};
     export let onDestroyObject = function () {};
-    export let onSelect = function() {};
+    export let onSelect = function () {};
 
     export let params = {
         a: '-2',
@@ -84,11 +84,18 @@
 
         colorBufferVertices(mesh, (x, y, z) => {
             const value = f(x, y, z);
-            return blueUpRedDown((2 * (value - $vMin)) / ($vMax - $vMin) - 1);
+            return blueUpRedDown(
+                (2 * (value - $vMin)) / ($vMax - $vMin) - 1,
+                0.8,
+                $densityColormap
+            );
         });
     };
 
-    $: if (chooseDensity) {
+    $: ($vMin, $vMax),
+        chooseDensity && colorMeBadd(surfaceMesh.children[0], densityFunc);
+
+    $: if (chooseDensity && $densityColormap) {
         densityString = densityString || '1';
         compiledDensity = math.parse(densityString).compile();
         densityFunc = (x, y, z) => compiledDensity.evaluate({ x, y, z });
@@ -466,7 +473,9 @@
 
             if (chooseDensity && densityFunc) {
                 const rgb = blueUpRedDown(
-                    (2 * (densityFunc(x, y, z) - vMin)) / (vMax - vMin) - 1
+                    (2 * (densityFunc(x, y, z) - vMin)) / (vMax - vMin) - 1,
+                    0.8,
+                    $densityColormap
                 );
                 colors[cindex++] = rgb.r;
                 colors[cindex++] = rgb.g;
@@ -561,7 +570,7 @@
         // updateSurface();
         if (animation) dispatch('animate');
     });
-    
+
     onDestroy(() => {
         onDestroyObject(...surfaceMesh.children);
         for (const child of surfaceMesh.children) {
@@ -750,7 +759,7 @@
         }
     };
 
-    const toggleHide = function() {
+    const toggleHide = function () {
         surfaceMesh.visible = !surfaceMesh.visible;
         render();
     };
@@ -761,7 +770,7 @@
         } else if (selected) {
             switch (e.key) {
                 case 'Backspace':
-                    if(selected){
+                    if (selected) {
                         toggleHide();
                     }
                     break;
@@ -810,7 +819,15 @@
 </script>
 
 <div class="boxItem" class:selected on:keydown>
-    <ObjHeader bind:minimize bind:selectedObjects {onClose} {toggleHide} objHidden={!surfaceMesh.visible} {color} {onSelect}>
+    <ObjHeader
+        bind:minimize
+        bind:selectedObjects
+        {onClose}
+        {toggleHide}
+        objHidden={!surfaceMesh.visible}
+        {color}
+        {onSelect}
+    >
         Parametric surface
     </ObjHeader>
     <div hidden={minimize}>
@@ -992,7 +1009,11 @@
                     }}
                 />
                 <div class="box colorbar-container">
-                    <ColorBar vMin={$vMin} vMax={$vMax} />
+                    <ColorBar
+                        vMin={$vMin}
+                        vMax={$vMax}
+                        cmap={$densityColormap}
+                    />
                 </div>
             {:else}
                 <span class="box box-2">
