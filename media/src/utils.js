@@ -1,6 +1,7 @@
 /* jshint esversion: 6 */
 
 import * as THREE from 'three';
+import { evaluate_cmap } from './js-colormaps';
 
 /**
  * Given a URL base and a path, return the two combined.
@@ -665,22 +666,27 @@ export function colorBufferVertices(mesh, f) {
     // const points = geometry.attributes.position.array;
 }
 
-export const blueUpRedDown = function (x, grayness = 0.8) {
+export const blueUpRedDown = function (x, grayness = 0.8, cm = 'gist_earth') {
     // blue-red too traumatic
-    let color = new THREE.Color();
+    const color = new THREE.Color();
     x = Math.max(-1, Math.min(1, x));
-    if (x >= 0) {
-        color.setRGB(
-            (1 - 0.3 * x) * grayness,
-            (1 - 0.9 * x) * grayness,
-            (1 - x) * grayness
-        );
+    if (cm) {
+        const [r, g, b] = evaluate_cmap((x + 1) / 2, cm)
+        color.setRGB(r / 256, g / 256, b / 256);
     } else {
-        color.setRGB(
-            (1 + 0.7 * x) * grayness,
-            (1 + x) * grayness,
-            (1 + 0.7 * x) * grayness
-        );
+        if (x >= 0) {
+            color.setRGB(
+                (1 - 0.3 * x) * grayness,
+                (1 - 0.9 * x) * grayness,
+                (1 - x) * grayness
+            );
+        } else {
+            color.setRGB(
+                (1 + 0.7 * x) * grayness,
+                (1 + x) * grayness,
+                (1 + 0.7 * x) * grayness
+            );
+        }
     }
     return color;
 };
