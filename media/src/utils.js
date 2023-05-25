@@ -2346,6 +2346,30 @@ class SphericalSolidGeometry extends THREE.BufferGeometry {
     }
 }
 
+/**
+ * 
+ * @param {int} x 
+ * @returns {strint} 2 character hex code for int
+ */
+const hex = (x) => {
+    let str = x.toString(16);
+    if (str.length < 2) {
+        return '0' + str;
+    } else {
+        return str
+    }
+}
+
+/**
+ * Converts output of `evaluate_cmap` to HTML #rrggbb string.
+ * @param {int[3]} vec 
+ * @returns {string}
+ */
+function tripleToHex(vec) {
+    const [r, g, b] = vec;
+    return `#${hex(r)}${hex(g)}${hex(b)}`
+}
+
 export {
     joinUrl,
     getRoomUrl,
@@ -2373,5 +2397,6 @@ export {
     forceNumber,
     querySelectorIncludesText,
     checksum,
-    modFloor
+    modFloor,
+    tripleToHex
 };
