@@ -6,6 +6,7 @@
     import { makeObject } from '../sceneUtils';
     import { vMin, vMax, colorMap } from '../stores';
     import WindowHeader from './WindowHeader.svelte';
+    import { colorMapNames } from '../js-colormaps';
 
     const dispatch = createEventDispatcher();
 
@@ -201,6 +202,28 @@
             />
         </label>
     </div>
+
+    <div class="row align-items-left">
+        <label for="colormap"
+            ><a
+                href="https://matplotlib.org/stable/gallery/color/colormap_reference.html#colormap-reference"
+                target="_blank">Colormap</a
+            ></label
+        >
+        <input
+            type="text"
+            name="colormap"
+            id="colormap-select"
+            list="cmaps"
+            bind:value={$colorMap}
+        />
+        <datalist id="cmaps">
+            {#each colorMapNames as cm}
+                <option value={cm} />
+            {/each}
+        </datalist>
+    </div>
+
     <div class="row align-items-center">
         <div class="col-6">
             <label class="col-5" for="vmin">vMin</label>
@@ -221,29 +244,6 @@
                 Reset
             </button>
         </div>
-    </div>
-
-    <div class="dropdown">
-        <button
-            class="btn btn-primary dropdown-toggle mb-2"
-            type="button"
-            data-bs-toggle="dropdown"
-            aria-expanded="false"
-        >
-            Colormap: {$colorMap}
-        </button>
-        <ul class="dropdown-menu">
-            {#each ['plasma', 'viridis', 'cividis', 'gist_earth'] as cm}
-                <li>
-                    <button
-                        class="dropdown-item"
-                        on:click={() => {
-                            $colorMap = cm;
-                        }}>{cm}</button
-                    >
-                </li>
-            {/each}
-        </ul>
     </div>
 </div>
 

@@ -245,4 +245,4 @@ function partial(name) {
 
 }
 
-// export const colorMapNames = Object(data).keys();
+export const colorMapNames = Object.keys(data);

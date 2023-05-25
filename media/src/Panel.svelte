@@ -20,11 +20,11 @@
     import Polls from './polls/Polls.svelte';
 
     import {
-        makeHSLColor,
+        // makeHSLColor,
         querySelectorIncludesText,
         tripleToHex,
     } from './utils';
-    import { makeObject, publishScene } from './sceneUtils';
+    import { publishScene } from './sceneUtils';
 
     import Session from './session/Session.svelte';
 
@@ -90,10 +90,11 @@
 
     let nextHue = 0;
     const nextColorUp = () => {
+        const cm = evaluate_cmap(nextHue, $colorMap);
         nextHue += 1 / Math.sqrt(3);
         nextHue = nextHue % 1;
-        console.log('colorerer', nextHue, $colorMap);
-        return tripleToHex(evaluate_cmap(nextHue, $colorMap));
+        // console.log('colorerer', nextHue, $colorMap);
+        return tripleToHex(cm);
     };
 
     const onClickPoint = function () {
