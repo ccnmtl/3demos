@@ -1,5 +1,4 @@
 <script>
-    import { onMount } from 'svelte';
     import DocImport from './DocImport.svelte';
     import DocKeyControls from './DocKeyControls.svelte';
     import DocObjParam from './DocObjParam.svelte';

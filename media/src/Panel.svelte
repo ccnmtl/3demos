@@ -6,14 +6,7 @@
     import { slide } from 'svelte/transition';
     import { quintOut } from 'svelte/easing';
 
-    import {
-        ButtonDropdown,
-        DropdownItem,
-        DropdownMenu,
-        DropdownToggle,
-        TabContent,
-        TabPane,
-    } from 'sveltestrap';
+    import { TabContent, TabPane } from 'sveltestrap';
 
     import HowTo from './docs/HowTo.svelte';
     import About from './docs/About.svelte';
@@ -37,7 +30,6 @@
     import Point from './objects/Point.svelte';
     import Solid from './objects/Solid.svelte';
 
-    import M from './M.svelte';
     import { evaluate_cmap } from './js-colormaps';
     import { colorMap } from './stores';
 
