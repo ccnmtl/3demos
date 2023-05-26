@@ -1938,8 +1938,8 @@ class CylindricalSolidGeometry extends THREE.BufferGeometry {
      * @param {number|oneVarFunc} d r upper
      * @param {number|twoVarFunc} e z lower
      * @param {number|twoVarFunc} f z upper
-     * @param {number} [nX=30] nX resolution in r direction
-     * @param {number} [ny=30] ny resolution in theta direction
+     * @param {number} [nX=20] nX resolution in r direction
+     * @param {number} [nY=60] ny resolution in theta direction
      */
     constructor(a, b, c, d, e, f, nX = 20, nY = 60) {
         super();
@@ -2015,27 +2015,28 @@ class CylindricalSolidGeometry extends THREE.BufferGeometry {
         for (let i = 0; i <= nX; i++) {
             const th = a + i * dx
             const r = c(th)
-            points.push(
-                r * cos(th),
-                r * sin(th),
-                e(r, th))
             vec.set(
                 (c(th + dt2) - c(th - dt2)) * sin(th) + r * dt * cos(th),
                 -(c(th + dt2) - c(th - dt2)) * cos(th) + r * dt * sin(th),
                 0
             ).multiplyScalar(-1).normalize()
-            normals.push(vec.x, vec.y, vec.z)
-
-            points.push(
-                r * cos(th),
-                r * sin(th),
-                f(r, th))
-            normals.push(vec.x, vec.y, vec.z)
+            const z0 = e(r, th);
+            const z1 = f(r, th);
+            for (let j = 0; j <= nX; j++) {
+                points.push(
+                    r * cos(th),
+                    r * sin(th),
+                    z0 + j / nX * (z1 - z0));
+                normals.push(vec.x, vec.y, vec.z);
+            }
 
         }
         for (let i = 0; i < nX; i++) {
-            indices.push(base + i * (2), base + i * 2 + 1, base + i * 2 + 2)
-            indices.push(base + i * 2 + 2, base + i * 2 + 1, base + i * 2 + 3)
+            for (let j = 0; j < nX; j++) {
+                indices.push(base + (i * (nX + 1) + j)
+                    , base + ((i + 1) * (nX + 1) + j), base + (i * (nX + 1) + j) + 1)
+                indices.push(base + ((i + 1) * (nX + 1) + j), base + ((i + 1) * (nX + 1) + j) + 1, base + (i * (nX + 1) + j) + 1)
+            }
         }
 
         // back
@@ -2043,29 +2044,34 @@ class CylindricalSolidGeometry extends THREE.BufferGeometry {
         base = points.length / 3;
 
         for (let i = 0; i <= nX; i++) {
-            const th = a + i * dx
-            const r = d(th)
-            points.push(
-                r * cos(th),
-                r * sin(th),
-                e(r, th))
+            const th = a + i * dx;
+            const r = d(th);
+
             vec.set(
                 (d(th + dt2) - d(th - dt2)) * sin(th) + r * dt * cos(th),
                 -(d(th + dt2) - d(th - dt2)) * cos(th) + r * dt * sin(th),
                 0
-            ).normalize()
-            normals.push(vec.x, vec.y, vec.z)
+            ).normalize();
 
-            points.push(
-                r * cos(th),
-                r * sin(th),
-                f(r, th))
-            normals.push(vec.x, vec.y, vec.z)
+            const z0 = e(r, th);
+            const z1 = f(r, th);
+
+            for (let j = 0; j <= nX; j++) {
+                points.push(
+                    r * cos(th),
+                    r * sin(th),
+                    z0 + j / nX * (z1 - z0));
+                normals.push(vec.x, vec.y, vec.z);
+            }
+
 
         }
         for (let i = 0; i < nX; i++) {
-            indices.push(base + i * (2), base + i * 2 + 2, base + i * 2 + 1)
-            indices.push(base + i * 2 + 2, base + i * 2 + 3, base + i * 2 + 1)
+            for (let j = 0; j < nX; j++) {
+                indices.push(base + (i * (nX + 1) + j)
+                    , base + ((i + 1) * (nX + 1) + j), base + (i * (nX + 1) + j) + 1)
+                indices.push(base + ((i + 1) * (nX + 1) + j), base + ((i + 1) * (nX + 1) + j) + 1, base + (i * (nX + 1) + j) + 1)
+            }
         }
 
 
@@ -2076,24 +2082,26 @@ class CylindricalSolidGeometry extends THREE.BufferGeometry {
         for (let i = 0; i <= nY; i++) {
             const th = a;
             const r = c(a) + i * dy;
-            points.push(
-                r * cos(th),
-                r * sin(th),
-                e(r, th)
-            )
-            normals.push(sin(th), -cos(th), 0)
 
-            points.push(
-                r * cos(th),
-                r * sin(th),
-                f(r, th)
-            )
-            normals.push(sin(th), -cos(th), 0)
 
+            const z0 = e(r, th);
+            const z1 = f(r, th);
+
+            for (let j = 0; j <= nX; j++) {
+                points.push(
+                    r * cos(th),
+                    r * sin(th),
+                    z0 + j / nX * (z1 - z0)
+                )
+                normals.push(sin(th), -cos(th), 0)
+            }
         }
         for (let i = 0; i < nY; i++) {
-            indices.push(base + i * (2), base + i * 2 + 2, base + i * 2 + 1)
-            indices.push(base + i * 2 + 2, base + i * 2 + 3, base + i * 2 + 1)
+            for (let j = 0; j < nX; j++) {
+                indices.push(base + (i * (nX + 1) + j)
+                    , base + ((i + 1) * (nX + 1) + j), base + (i * (nX + 1) + j) + 1)
+                indices.push(base + ((i + 1) * (nX + 1) + j), base + ((i + 1) * (nX + 1) + j) + 1, base + (i * (nX + 1) + j) + 1)
+            }
         }
 
         // left
@@ -2103,24 +2111,26 @@ class CylindricalSolidGeometry extends THREE.BufferGeometry {
         for (let i = 0; i <= nY; i++) {
             const th = b;
             const r = c(b) + i * dy;
-            points.push(
-                r * cos(th),
-                r * sin(th),
-                e(r, th)
-            )
-            normals.push(-sin(th), cos(th), 0)
 
-            points.push(
-                r * cos(th),
-                r * sin(th),
-                f(r, th)
-            )
-            normals.push(-sin(th), cos(th), 0)
+            const z0 = e(r, th);
+            const z1 = f(r, th);
+
+            for (let j = 0; j <= nX; j++) {
+                points.push(
+                    r * cos(th),
+                    r * sin(th),
+                    z0 + j / nX * (z1 - z0)
+                )
+                normals.push(sin(th), -cos(th), 0)
+            }
 
         }
         for (let i = 0; i < nY; i++) {
-            indices.push(base + i * (2), base + i * 2 + 1, base + i * 2 + 2)
-            indices.push(base + i * 2 + 2, base + i * 2 + 1, base + i * 2 + 3)
+            for (let j = 0; j < nX; j++) {
+                indices.push(base + (i * (nX + 1) + j)
+                    , base + ((i + 1) * (nX + 1) + j), base + (i * (nX + 1) + j) + 1)
+                indices.push(base + ((i + 1) * (nX + 1) + j), base + ((i + 1) * (nX + 1) + j) + 1, base + (i * (nX + 1) + j) + 1)
+            }
         }
 
         this.setAttribute('position', new THREE.Float32BufferAttribute(points, 3))
