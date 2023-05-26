@@ -97,147 +97,115 @@
         return tripleToHex(cm);
     };
 
-    const onClickPoint = function () {
-        objects = [
-            ...objects,
-            {
-                uuid: crypto.randomUUID(),
-                kind: 'point',
-                params: {
-                    a: `${Math.random()}`.slice(0, 5),
-                    b: `${Math.random()}`.slice(0, 5),
-                    c: `${Math.random()}`.slice(0, 5),
-                    t0: '0',
-                    t1: '1',
-                },
-                color: nextColorUp(),
-            },
-        ];
+    /**
+     * This is a object of functions, keyed on the 3demos object kind, which return a (randomized) default
+     * for each object kind.
+     */
+    const defaultParams = {
+        point: () => ({
+            a: `${Math.random()}`.slice(0, 5),
+            b: `${Math.random()}`.slice(0, 5),
+            c: `${Math.random()}`.slice(0, 5),
+            t0: '0',
+            t1: '1',
+        }),
+        vector: () => ({
+            a: `${2 * Math.random() - 1}`.slice(0, 5),
+            b: `${2 * Math.random() - 1}`.slice(0, 5),
+            c: `${2 * Math.random() - 1}`.slice(0, 5),
+            x: '0',
+            y: '0',
+            z: '0',
+            t0: '0',
+            t1: '1',
+        }),
+        curve: () => ({
+            a: '0',
+            b: '2*pi',
+            x: 'cos(t)',
+            y: 'sin(t)',
+            z: `${
+                1 / 4 + Math.round(100 * Math.random()) / 100
+            } * cos(${Math.ceil(10 * Math.random()).toString()}*t)`,
+        }),
+        graph: () => ({
+            a: '-2',
+            b: '2',
+            c: '-2',
+            d: '2',
+            z: `${Math.ceil(
+                4 * Math.random()
+            ).toString()} / 4 * cos(${Math.ceil(
+                3 * Math.random()
+            ).toString()}*x + ${Math.ceil(
+                2 * Math.random()
+            ).toString()}*y)/(1 + x^2 + y^2)`,
+            t0: '0',
+            t1: '1',
+        }),
+        level: () => ({
+            g: (Math.random() > 0.5 ? '-' : '') + 'x^2 + 2 y^2 - z^2',
+            k: (Math.ceil(16 * Math.random()) / 2 - 4).toString(),
+            a: '-2',
+            b: '2',
+            c: '-2',
+            d: '2',
+            e: '-2',
+            f: '2',
+        }),
+        surface: () => {
+            const k = Math.ceil(10 * Math.random());
+            const l = Math.ceil(10 * Math.random());
+            const R = (k / 20).toString();
+            return {
+                a: '0',
+                b: `${(2.1 - k / 10).toString()} * pi`,
+                c: `${(l / 10).toString()} * pi`,
+                d: `${(l / 10 + 1).toString()} * pi`,
+                x: `cos(u)*(1 + ${R}*sin(v))`,
+                y: `sin(u)*(1 + ${R}*sin(v))`,
+                z: `-${R}*cos(v)`,
+            };
+        },
+        solid: () => {
+            const k = Math.ceil(10 * Math.random());
+            const l = Math.ceil(10 * Math.random());
+            const m = Math.ceil(10 * Math.random());
+            const n = Math.ceil(10 * Math.random());
+            return {
+                coords: 'rect',
+                a: `-${k / 5}`,
+                b: `${l / 5}`,
+                c: `-${m / 5}`,
+                d: `${n / 5}`,
+                e: '0',
+                f: `1 - ((x - ${m / 10})^2 + (y + ${k / 10})^2) / 8`,
+            };
+        },
+        field: () => {
+            const comps = ['1', '-1', 'x', 'y', 'z', '-x', '-y', '-z'];
+            const p = comps[Math.ceil(comps.length * Math.random())];
+            const q = comps[Math.ceil(comps.length * Math.random())];
+            const r = comps[Math.ceil(comps.length * Math.random())];
+            return { p, q, r, nVec: 6 };
+        },
     };
 
-    const onClickVector = function () {
-        objects = [
-            ...objects,
-            {
-                uuid: crypto.randomUUID(),
-                kind: 'vector',
-                params: {
-                    a: `${2 * Math.random() - 1}`.slice(0, 5),
-                    b: `${2 * Math.random() - 1}`.slice(0, 5),
-                    c: `${2 * Math.random() - 1}`.slice(0, 5),
-                    x: '0',
-                    y: '0',
-                    z: '0',
-                    t0: '0',
-                    t1: '1',
-                },
-                // color: `#${makeHSLColor(Math.random()).getHexString()}`,
-                color: nextColorUp(),
-            },
-        ];
-    };
+    let kindToAdd = null;
 
-    const onClickSpaceCurve = function () {
+    $: if (kindToAdd) {
         objects = [
             ...objects,
             {
                 uuid: crypto.randomUUID(),
-                kind: 'curve',
-                params: {
-                    a: '0',
-                    b: '2*pi',
-                    x: 'cos(t)',
-                    y: 'sin(t)',
-                    z: `${
-                        1 / 4 + Math.round(100 * Math.random()) / 100
-                    } * cos(${Math.ceil(10 * Math.random()).toString()}*t)`,
-                },
+                kind: kindToAdd,
+                params: defaultParams[kindToAdd](),
                 color: nextColorUp(),
             },
         ];
-    };
 
-    const onClickGraph = function () {
-        objects = [
-            ...objects,
-            {
-                uuid: crypto.randomUUID(),
-                kind: 'graph',
-                params: {
-                    a: '-2',
-                    b: '2',
-                    c: '-2',
-                    d: '2',
-                    z: `cos(${Math.ceil(
-                        3 * Math.random()
-                    ).toString()}*x + ${Math.ceil(
-                        2 * Math.random()
-                    ).toString()}*y)/(1 + x^2 + y^2)`,
-                    t0: '0',
-                    t1: '1',
-                },
-                color: nextColorUp(),
-            },
-        ];
-    };
-
-    const onClickLevelSurface = function () {
-        objects = [
-            ...objects,
-            {
-                uuid: crypto.randomUUID(),
-                kind: 'level',
-                params: {
-                    g: 'x^2 + 2 y^2 - z^2',
-                    k: '1',
-                    a: '-2',
-                    b: '2',
-                    c: '-2',
-                    d: '2',
-                    e: '-2',
-                    f: '2',
-                },
-                color: nextColorUp(),
-            },
-        ];
-    };
-
-    const onClickParSurf = function () {
-        objects = [
-            ...objects,
-            {
-                uuid: crypto.randomUUID(),
-                kind: 'surface',
-                params: {
-                    a: '0',
-                    b: '2*pi',
-                    c: '0',
-                    d: '2*pi',
-                    x: 'cos(u)*(1 + sin(v)/3)',
-                    y: 'sin(u)*(1 + sin(v)/3)',
-                    z: '-cos(v)/3',
-                },
-                color: nextColorUp(),
-            },
-        ];
-    };
-
-    const onClickVectorField = function () {
-        objects = [
-            ...objects,
-            {
-                uuid: crypto.randomUUID(),
-                kind: 'field',
-                params: {
-                    p: 'y',
-                    q: 'z',
-                    r: 'x',
-                    nVec: 6,
-                },
-                color: nextColorUp(),
-            },
-        ];
-    };
+        kindToAdd = null;
+    }
 
     const onTogglePanel = function () {
         panelTransition = `all ${PANEL_DELAY}ms ease`;
@@ -376,7 +344,7 @@
                         <TabContent on:tab={(e) => (currentMode = e.detail)}>
                             <TabPane
                                 tabId="how-to"
-                                tab="How To"
+                                tab="Creation"
                                 active={currentMode === 'how-to'}
                             >
                                 <HowTo />
@@ -481,79 +449,26 @@
                             role="toolbar"
                         >
                             <div class="btn-group mb-2">
-                                <ButtonDropdown>
-                                    <DropdownToggle size="sm" color="primary">
-                                        Add Object
-                                        <i class="fa fa-plus" />
-                                    </DropdownToggle>
-                                    <DropdownMenu>
-                                        <DropdownItem on:click={onClickPoint}>
-                                            Point <M size="sm"
-                                                >P = ( a, b, c )</M
-                                            >
-                                        </DropdownItem>
-                                        <DropdownItem on:click={onClickVector}>
-                                            Vector <M size="sm"
-                                                >\mathbf v = \langle a, b, c
-                                                \rangle</M
-                                            >
-                                        </DropdownItem>
-                                        <DropdownItem
-                                            on:click={onClickSpaceCurve}
-                                        >
-                                            Space Curve <M size="sm"
-                                                >\mathbf r(t)</M
-                                            >
-                                        </DropdownItem>
-                                        <DropdownItem on:click={onClickGraph}>
-                                            Graph <M size="sm">z = f(x,y)</M>
-                                        </DropdownItem>
-                                        <DropdownItem
-                                            on:click={onClickLevelSurface}
-                                        >
-                                            Level Surface <M size="sm"
-                                                >g(x,y,z) = k</M
-                                            >
-                                        </DropdownItem>
-                                        <DropdownItem on:click={onClickParSurf}>
-                                            Parametric Surface <M size="sm"
-                                                >\mathbf r(u,v)</M
-                                            >
-                                        </DropdownItem>
-                                        <DropdownItem
-                                            on:click={() => {
-                                                objects = [
-                                                    ...objects,
-                                                    {
-                                                        uuid: crypto.randomUUID(),
-                                                        kind: 'solid',
-                                                        params: {
-                                                            coords: 'rect',
-                                                            a: '-1',
-                                                            b: '1',
-                                                            c: '-1',
-                                                            d: 'x',
-                                                            e: '0',
-                                                            f: '1 - (x^2 + y^2) / 2',
-                                                        },
-                                                        color: nextColorUp(),
-                                                    },
-                                                ];
-                                            }}
-                                        >
-                                            Solid Region <M size="sm"
-                                                >{'E \\subset \\mathbb{R}^3'}</M
-                                            >
-                                        </DropdownItem>
-                                        <DropdownItem
-                                            on:click={onClickVectorField}
-                                        >
-                                            Vector Field<M size="sm"
-                                                >\mathbf F(x,y,z)</M
-                                            >
-                                        </DropdownItem>
-                                    </DropdownMenu>
-                                </ButtonDropdown>
+                                <select
+                                    bind:value={kindToAdd}
+                                    name="add-object-menu"
+                                    id="add-object-menu"
+                                >
+                                    <option value={null}
+                                        >Add Object &#xFF0B;</option
+                                    >
+                                    <option value="point">point</option>
+                                    <option value="vector">vector</option>
+                                    <option value="curve">curve</option>
+                                    <option value="graph">graph</option>
+                                    <option value="level">level surface</option>
+                                    <option value="surface"
+                                        >parametric surface</option
+                                    >
+                                    <option value="solid">solid region</option>
+                                    <option value="field">vector field</option>
+                                </select>
+
                                 <button
                                     class="btn btn-sm btn-danger"
                                     on:click={blowUpObjects}
@@ -853,6 +768,9 @@
         min-width: 300px;
         max-width: 60%;
 
+        height: fit-content;
+        max-height: 100%;
+
         background-color: transparent;
 
         overflow-y: auto;
@@ -916,5 +834,12 @@
         display: flex;
         font-size: 1.5em;
         justify-content: space-between;
+    }
+
+    select {
+        background-color: blue;
+        color: white;
+        /* font-size: 1.25em; */
+        padding: 5px;
     }
 </style>

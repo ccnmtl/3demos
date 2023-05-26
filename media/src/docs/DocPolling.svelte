@@ -1,28 +1,30 @@
 <script>
-    export let badge = function() {};
+    import Badge from './Badge.svelte';
 </script>
 
 <p>
-    Polling is only available in a <em>Session</em> and can only be initiated by the
-    <em>Host</em>. There are several default polls available which can be quickly modified using
-    the {@html badge('<i class="bi bi-pencil" /> Edit ', 'secondary')} found under the
+    Polling is only available in a <em>Session</em> and can only be initiated by
+    the
+    <em>Host</em>. There are several default polls available which can be
+    quickly modified using the <Badge><i class="bi bi-pencil" /> Edit</Badge> found
+    under the
     <em>Actions</em> column of the <em>Polls</em> table.
 </p>
 <p>
-    Keep in mind that {@html badge('Graph', 'secondary')},
-    {@html badge('Level Surface', 'secondary')}, and
-    {@html badge('Parametric Surface', 'secondary')} are the only objects that have selectable
-    points for the {@html badge('Select Point', 'secondary')} poll type.
+    Keep in mind that <Badge>Graph</Badge>,
+    <Badge>Level Surface</Badge>, and
+    <Badge>Parametric Surface</Badge> are the only objects that have selectable points
+    for the <Badge>Select Point</Badge> poll type.
 </p>
 <strong><u>Creating a new Poll</u></strong>
 <ul>
     <li>
-        In the bottom left of the {@html badge('Polls', 'secondary')} window is the
-        {@html badge('Make new poll', 'primary')} button.
+        In the bottom left of the <Badge>Polls</Badge> window is the
+        <Badge type="primary">Make New Polls</Badge> button.
     </li>
     <li>
-        New polls are already populated with defaults for a Multiple Choice Question, but
-        attributes can be changed to fit any question type.
+        New polls are already populated with defaults for a Multiple Choice
+        Question, but attributes can be changed to fit any question type.
     </li>
 </ul>
 <strong><u>Poll Attributes</u></strong>
