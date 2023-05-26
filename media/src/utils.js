@@ -22,7 +22,7 @@ const joinUrl = function (base, path) {
         url = new URL(
             base.substring(1) +
             path.substring(1),
-            window.location.origin)
+            window.location.origin);
     }
 
     return url.href;
@@ -47,7 +47,7 @@ const convertToURLParams = function (params, objects) {
     });
     const urlParams = new URLSearchParams(params);
     return urlParams;
-}
+};
 
 /**
  * Given a room/session id, return its path.
@@ -671,7 +671,7 @@ export const blueUpRedDown = function (x, grayness = 0.8, cm = 'gist_earth') {
     const color = new THREE.Color();
     x = Math.max(-1, Math.min(1, x));
     if (cm) {
-        const [r, g, b] = evaluate_cmap((x + 1) / 2, cm)
+        const [r, g, b] = evaluate_cmap((x + 1) / 2, cm);
         color.setRGB(r / 256, g / 256, b / 256);
     } else {
         if (x >= 0) {
@@ -1205,7 +1205,7 @@ function labelAxes({
     let fontUrl = fontFile;
     // Use static prefix from Django if present
     if (window.STATIC_PREFIX) {
-        fontUrl = joinUrl(window.STATIC_PREFIX, fontFile)
+        fontUrl = joinUrl(window.STATIC_PREFIX, fontFile);
     }
 
     const font = fontLoader.load(
@@ -1768,21 +1768,21 @@ class RectangularSolidGeometry extends THREE.BufferGeometry {
         for (let i = 0; i <= nX; i++) {
             dy = (d(a + i * dx) - c(a + i * dx)) / nY;
             for (let j = 0; j <= nY; j++) {
-                points.push(a + i * dx, c(a + i * dx) + j * dy, e(a + i * dx, c(a + i * dx) + j * dy))
+                points.push(a + i * dx, c(a + i * dx) + j * dy, e(a + i * dx, c(a + i * dx) + j * dy));
                 vec.set(
                     e(a + i * dx + dt2, c(a + i * dx) + j * dy)
                     - e(a + i * dx - dt2, c(a + i * dx) + j * dy),
                     e(a + i * dx, c(a + i * dx) + j * dy + dt2)
                     - e(a + i * dx, c(a + i * dx) + j * dy - dt2),
                     -dt
-                ).normalize()
-                normals.push(vec.x, vec.y, vec.z)
+                ).normalize();
+                normals.push(vec.x, vec.y, vec.z);
             }
         }
         for (let i = 0; i < nX; i++) {
             for (let j = 0; j < nY; j++) {
-                indices.push(i * (nY + 1) + j, i * (nY + 1) + j + 1, (i + 1) * (nY + 1) + j)
-                indices.push((i + 1) * (nY + 1) + j, i * (nY + 1) + j + 1, (i + 1) * (nY + 1) + (j + 1))
+                indices.push(i * (nY + 1) + j, i * (nY + 1) + j + 1, (i + 1) * (nY + 1) + j);
+                indices.push((i + 1) * (nY + 1) + j, i * (nY + 1) + j + 1, (i + 1) * (nY + 1) + (j + 1));
             }
         }
 
@@ -1792,21 +1792,21 @@ class RectangularSolidGeometry extends THREE.BufferGeometry {
         for (let i = 0; i <= nX; i++) {
             dy = (d(a + i * dx) - c(a + i * dx)) / nY;
             for (let j = 0; j <= nY; j++) {
-                points.push(a + i * dx, c(a + i * dx) + j * dy, f(a + i * dx, c(a + i * dx) + j * dy))
+                points.push(a + i * dx, c(a + i * dx) + j * dy, f(a + i * dx, c(a + i * dx) + j * dy));
                 vec.set(
                     f(a + i * dx + dt2, c(a + i * dx) + j * dy)
                     - f(a + i * dx - dt2, c(a + i * dx) + j * dy),
                     f(a + i * dx, c(a + i * dx) + j * dy + dt2)
                     - f(a + i * dx, c(a + i * dx) + j * dy - dt2),
                     -dt
-                ).multiplyScalar(-1).normalize()
-                normals.push(vec.x, vec.y, vec.z)
+                ).multiplyScalar(-1).normalize();
+                normals.push(vec.x, vec.y, vec.z);
             }
         }
         for (let i = 0; i < nX; i++) {
             for (let j = 0; j < nY; j++) {
-                indices.push(base + i * (nY + 1) + j + 1, base + i * (nY + 1) + j, base + (i + 1) * (nY + 1) + j)
-                indices.push(base + i * (nY + 1) + j + 1, base + (i + 1) * (nY + 1) + j, base + (i + 1) * (nY + 1) + (j + 1))
+                indices.push(base + i * (nY + 1) + j + 1, base + i * (nY + 1) + j, base + (i + 1) * (nY + 1) + j);
+                indices.push(base + i * (nY + 1) + j + 1, base + (i + 1) * (nY + 1) + j, base + (i + 1) * (nY + 1) + (j + 1));
             }
         }
 
@@ -1816,32 +1816,27 @@ class RectangularSolidGeometry extends THREE.BufferGeometry {
         base = points.length / 3;
 
         for (let i = 0; i <= nX; i++) {
-            points.push(
-                a + i * dx,
-                c(a + i * dx),
-                e(a + i * dx, c(a + i * dx)))
+            const z0 = e(a + i * dx, c(a + i * dx));
+            const z1 = f(a + i * dx, c(a + i * dx));
             vec.set(
                 c(a + i * dx + dt2) - c(a + i * dx - dt2),
                 -dt,
                 0
-            ).normalize()
-            normals.push(vec.x, vec.y, vec.z)
-
-            points.push(
-                a + i * dx,
-                c(a + i * dx),
-                f(a + i * dx, c(a + i * dx)))
-            vec.set(
-                c(a + i * dx + dt2) - c(a + i * dx - dt2),
-                -dt,
-                0
-            ).normalize()
-            normals.push(vec.x, vec.y, vec.z)
-
+            ).normalize();
+            for (let j = 0; j <= nX; j++) {
+                points.push(
+                    a + i * dx,
+                    c(a + i * dx),
+                    z0 + j / nX * (z1 - z0));
+                normals.push(vec.x, vec.y, vec.z);
+            }
         }
         for (let i = 0; i < nX; i++) {
-            indices.push(base + i * (2), base + i * 2 + 2, base + i * 2 + 1)
-            indices.push(base + i * 2 + 2, base + i * 2 + 3, base + i * 2 + 1)
+            for (let j = 0; j < nX; j++) {
+                indices.push(base + (i * (nX + 1) + j)
+                    , base + ((i + 1) * (nX + 1) + j), base + (i * (nX + 1) + j) + 1);
+                indices.push(base + ((i + 1) * (nX + 1) + j), base + ((i + 1) * (nX + 1) + j) + 1, base + (i * (nX + 1) + j) + 1);
+            }
         }
 
         // back
@@ -1849,85 +1844,84 @@ class RectangularSolidGeometry extends THREE.BufferGeometry {
         base = points.length / 3;
 
         for (let i = 0; i <= nX; i++) {
-            points.push(
-                a + i * dx,
-                d(a + i * dx),
-                e(a + i * dx, d(a + i * dx)))
+            const z0 = e(a + i * dx, d(a + i * dx));
+            const z1 = f(a + i * dx, d(a + i * dx));
             vec.set(
-                d(a + i * dx - dt2) - d(a + i * dx + dt2),
-                dt,
+                d(a + i * dx + dt2) - d(a + i * dx - dt2),
+                -dt,
                 0
-            ).normalize()
-            normals.push(vec.x, vec.y, vec.z)
-
-            points.push(
-                a + i * dx,
-                d(a + i * dx),
-                f(a + i * dx, d(a + i * dx)))
-            vec.set(
-                d(a + i * dx - dt2) - d(a + i * dx + dt2),
-                dt,
-                0
-            ).normalize()
-            normals.push(vec.x, vec.y, vec.z)
-
+            ).normalize();
+            for (let j = 0; j <= nX; j++) {
+                points.push(
+                    a + i * dx,
+                    d(a + i * dx),
+                    z0 + j / nX * (z1 - z0));
+                normals.push(vec.x, vec.y, vec.z);
+            }
         }
         for (let i = 0; i < nX; i++) {
-            indices.push(base + i * (2), base + i * 2 + 1, base + i * 2 + 2)
-            indices.push(base + i * 2 + 2, base + i * 2 + 1, base + i * 2 + 3)
+            for (let j = 0; j < nX; j++) {
+                indices.push(base + (i * (nX + 1) + j)
+                    , base + ((i + 1) * (nX + 1) + j), base + (i * (nX + 1) + j) + 1);
+                indices.push(base + ((i + 1) * (nX + 1) + j), base + ((i + 1) * (nX + 1) + j) + 1, base + (i * (nX + 1) + j) + 1);
+            }
         }
 
         // left
 
         base = points.length / 3;
-        dy = (d(a) - c(a)) / nY
-        for (let i = 0; i <= nY; i++) {
-            points.push(
-                a,
-                c(a) + i * dy,
-                e(a, c(a) + i * dy)
-            )
-            normals.push(-1, 0, 0)
 
-            points.push(
-                a,
-                c(a) + i * dy,
-                f(a, c(a) + i * dy)
-            )
-            normals.push(-1, 0, 0)
+        dy = (d(a) - c(a)) / nY;
+        for (let i = 0; i <= nY; i++) {
+            const z0 = e(a, c(a) + i * dy);
+            const z1 = f(a, c(a) + i * dy);
+
+            for (let j = 0; j <= nX; j++) {
+
+                points.push(
+                    a,
+                    c(a) + i * dy,
+                    z0 + j / nX * (z1 - z0)
+                );
+                normals.push(-1, 0, 0);
+            }
         }
         for (let i = 0; i < nY; i++) {
-            indices.push(base + i * (2), base + i * 2 + 1, base + i * 2 + 2)
-            indices.push(base + i * 2 + 2, base + i * 2 + 1, base + i * 2 + 3)
+            for (let j = 0; j < nX; j++) {
+                indices.push(base + (i * (nX + 1) + j)
+                    , base + ((i + 1) * (nX + 1) + j), base + (i * (nX + 1) + j) + 1);
+                indices.push(base + ((i + 1) * (nX + 1) + j), base + ((i + 1) * (nX + 1) + j) + 1, base + (i * (nX + 1) + j) + 1);
+            }
         }
 
         // right
 
         base = points.length / 3;
-        dy = (d(b) - c(b)) / nY
+        dy = (d(b) - c(b)) / nY;
         for (let i = 0; i <= nY; i++) {
-            points.push(
-                b,
-                c(b) + i * dy,
-                e(b, c(b) + i * dy)
-            )
-            normals.push(1, 0, 0)
+            const z0 = e(b, c(b) + i * dy);
+            const z1 = f(b, c(b) + i * dy);
 
-            points.push(
-                b,
-                c(b) + i * dy,
-                f(b, c(b) + i * dy)
-            )
-            normals.push(1, 0, 0)
+            for (let j = 0; j <= nX; j++) {
+                points.push(
+                    b,
+                    c(b) + i * dy,
+                    z0 + j / nX * (z1 - z0)
+                );
+                normals.push(1, 0, 0);
+            }
         }
         for (let i = 0; i < nY; i++) {
-            indices.push(base + i * (2), base + i * 2 + 2, base + i * 2 + 1)
-            indices.push(base + i * 2 + 2, base + i * 2 + 3, base + i * 2 + 1)
+            for (let j = 0; j < nX; j++) {
+                indices.push(base + (i * (nX + 1) + j)
+                    , base + ((i + 1) * (nX + 1) + j), base + (i * (nX + 1) + j) + 1);
+                indices.push(base + ((i + 1) * (nX + 1) + j), base + ((i + 1) * (nX + 1) + j) + 1, base + (i * (nX + 1) + j) + 1);
+            }
         }
 
-        this.setAttribute('position', new THREE.Float32BufferAttribute(points, 3))
-        this.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3))
-        this.setIndex(indices)
+        this.setAttribute('position', new THREE.Float32BufferAttribute(points, 3));
+        this.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+        this.setIndex(indices);
     }
 }
 
@@ -1944,8 +1938,8 @@ class CylindricalSolidGeometry extends THREE.BufferGeometry {
      * @param {number|oneVarFunc} d r upper
      * @param {number|twoVarFunc} e z lower
      * @param {number|twoVarFunc} f z upper
-     * @param {number} [nX=30] nX resolution in r direction
-     * @param {number} [ny=30] ny resolution in theta direction
+     * @param {number} [nX=20] nX resolution in r direction
+     * @param {number} [nY=60] ny resolution in theta direction
      */
     constructor(a, b, c, d, e, f, nX = 20, nY = 60) {
         super();
@@ -1976,14 +1970,14 @@ class CylindricalSolidGeometry extends THREE.BufferGeometry {
                     - (e(r, th + dt2) - e(r, th - dt2)) * cos(th)
                     - (e(r + dt2, th) - e(r - dt2, th)) * r * sin(th),
                     r * dt
-                ).multiplyScalar(-1).normalize()
-                normals.push(vec.x, vec.y, vec.z)
+                ).multiplyScalar(-1).normalize();
+                normals.push(vec.x, vec.y, vec.z);
             }
         }
         for (let i = 0; i < nX; i++) {
             for (let j = 0; j < nY; j++) {
-                indices.push(i * (nY + 1) + j, (i + 1) * (nY + 1) + j, i * (nY + 1) + j + 1)
-                indices.push((i + 1) * (nY + 1) + j, (i + 1) * (nY + 1) + (j + 1), i * (nY + 1) + j + 1)
+                indices.push(i * (nY + 1) + j, (i + 1) * (nY + 1) + j, i * (nY + 1) + j + 1);
+                indices.push((i + 1) * (nY + 1) + j, (i + 1) * (nY + 1) + (j + 1), i * (nY + 1) + j + 1);
             }
         }
 
@@ -2002,14 +1996,14 @@ class CylindricalSolidGeometry extends THREE.BufferGeometry {
                     -(f(r, th + dt2) - f(r, th - dt2)) * cos(th)
                     - (f(r + dt2, th) - f(r - dt2, th)) * r * sin(th),
                     r * dt
-                ).normalize()
-                normals.push(vec.x, vec.y, vec.z)
+                ).normalize();
+                normals.push(vec.x, vec.y, vec.z);
             }
         }
         for (let i = 0; i < nX; i++) {
             for (let j = 0; j < nY; j++) {
-                indices.push(base + i * (nY + 1) + j, base + i * (nY + 1) + j + 1, base + (i + 1) * (nY + 1) + j)
-                indices.push(base + (i + 1) * (nY + 1) + j, base + i * (nY + 1) + j + 1, base + (i + 1) * (nY + 1) + (j + 1))
+                indices.push(base + i * (nY + 1) + j, base + i * (nY + 1) + j + 1, base + (i + 1) * (nY + 1) + j);
+                indices.push(base + (i + 1) * (nY + 1) + j, base + i * (nY + 1) + j + 1, base + (i + 1) * (nY + 1) + (j + 1));
             }
         }
 
@@ -2019,29 +2013,30 @@ class CylindricalSolidGeometry extends THREE.BufferGeometry {
         base = points.length / 3;
 
         for (let i = 0; i <= nX; i++) {
-            const th = a + i * dx
-            const r = c(th)
-            points.push(
-                r * cos(th),
-                r * sin(th),
-                e(r, th))
+            const th = a + i * dx;
+            const r = c(th);
             vec.set(
                 (c(th + dt2) - c(th - dt2)) * sin(th) + r * dt * cos(th),
                 -(c(th + dt2) - c(th - dt2)) * cos(th) + r * dt * sin(th),
                 0
-            ).multiplyScalar(-1).normalize()
-            normals.push(vec.x, vec.y, vec.z)
-
-            points.push(
-                r * cos(th),
-                r * sin(th),
-                f(r, th))
-            normals.push(vec.x, vec.y, vec.z)
+            ).multiplyScalar(-1).normalize();
+            const z0 = e(r, th);
+            const z1 = f(r, th);
+            for (let j = 0; j <= nX; j++) {
+                points.push(
+                    r * cos(th),
+                    r * sin(th),
+                    z0 + j / nX * (z1 - z0));
+                normals.push(vec.x, vec.y, vec.z);
+            }
 
         }
         for (let i = 0; i < nX; i++) {
-            indices.push(base + i * (2), base + i * 2 + 1, base + i * 2 + 2)
-            indices.push(base + i * 2 + 2, base + i * 2 + 1, base + i * 2 + 3)
+            for (let j = 0; j < nX; j++) {
+                indices.push(base + (i * (nX + 1) + j)
+                    , base + ((i + 1) * (nX + 1) + j), base + (i * (nX + 1) + j) + 1);
+                indices.push(base + ((i + 1) * (nX + 1) + j), base + ((i + 1) * (nX + 1) + j) + 1, base + (i * (nX + 1) + j) + 1);
+            }
         }
 
         // back
@@ -2049,89 +2044,98 @@ class CylindricalSolidGeometry extends THREE.BufferGeometry {
         base = points.length / 3;
 
         for (let i = 0; i <= nX; i++) {
-            const th = a + i * dx
-            const r = d(th)
-            points.push(
-                r * cos(th),
-                r * sin(th),
-                e(r, th))
+            const th = a + i * dx;
+            const r = d(th);
+
             vec.set(
                 (d(th + dt2) - d(th - dt2)) * sin(th) + r * dt * cos(th),
                 -(d(th + dt2) - d(th - dt2)) * cos(th) + r * dt * sin(th),
                 0
-            ).normalize()
-            normals.push(vec.x, vec.y, vec.z)
+            ).normalize();
 
-            points.push(
-                r * cos(th),
-                r * sin(th),
-                f(r, th))
-            normals.push(vec.x, vec.y, vec.z)
+            const z0 = e(r, th);
+            const z1 = f(r, th);
+
+            for (let j = 0; j <= nX; j++) {
+                points.push(
+                    r * cos(th),
+                    r * sin(th),
+                    z0 + j / nX * (z1 - z0));
+                normals.push(vec.x, vec.y, vec.z);
+            }
+
 
         }
         for (let i = 0; i < nX; i++) {
-            indices.push(base + i * (2), base + i * 2 + 2, base + i * 2 + 1)
-            indices.push(base + i * 2 + 2, base + i * 2 + 3, base + i * 2 + 1)
+            for (let j = 0; j < nX; j++) {
+                indices.push(base + (i * (nX + 1) + j)
+                    , base + ((i + 1) * (nX + 1) + j), base + (i * (nX + 1) + j) + 1);
+                indices.push(base + ((i + 1) * (nX + 1) + j), base + ((i + 1) * (nX + 1) + j) + 1, base + (i * (nX + 1) + j) + 1);
+            }
         }
 
 
         // right
 
         base = points.length / 3;
-        dy = (d(a) - c(a)) / nY
+        dy = (d(a) - c(a)) / nY;
         for (let i = 0; i <= nY; i++) {
             const th = a;
             const r = c(a) + i * dy;
-            points.push(
-                r * cos(th),
-                r * sin(th),
-                e(r, th)
-            )
-            normals.push(sin(th), -cos(th), 0)
 
-            points.push(
-                r * cos(th),
-                r * sin(th),
-                f(r, th)
-            )
-            normals.push(sin(th), -cos(th), 0)
 
+            const z0 = e(r, th);
+            const z1 = f(r, th);
+
+            for (let j = 0; j <= nX; j++) {
+                points.push(
+                    r * cos(th),
+                    r * sin(th),
+                    z0 + j / nX * (z1 - z0)
+                );
+                normals.push(sin(th), -cos(th), 0);
+            }
         }
         for (let i = 0; i < nY; i++) {
-            indices.push(base + i * (2), base + i * 2 + 2, base + i * 2 + 1)
-            indices.push(base + i * 2 + 2, base + i * 2 + 3, base + i * 2 + 1)
+            for (let j = 0; j < nX; j++) {
+                indices.push(base + (i * (nX + 1) + j)
+                    , base + ((i + 1) * (nX + 1) + j), base + (i * (nX + 1) + j) + 1);
+                indices.push(base + ((i + 1) * (nX + 1) + j), base + ((i + 1) * (nX + 1) + j) + 1, base + (i * (nX + 1) + j) + 1);
+            }
         }
 
         // left
 
         base = points.length / 3;
-        dy = (d(b) - c(b)) / nY
+        dy = (d(b) - c(b)) / nY;
         for (let i = 0; i <= nY; i++) {
             const th = b;
             const r = c(b) + i * dy;
-            points.push(
-                r * cos(th),
-                r * sin(th),
-                e(r, th)
-            )
-            normals.push(-sin(th), cos(th), 0)
 
-            points.push(
-                r * cos(th),
-                r * sin(th),
-                f(r, th)
-            )
-            normals.push(-sin(th), cos(th), 0)
+            const z0 = e(r, th);
+            const z1 = f(r, th);
+
+            for (let j = 0; j <= nX; j++) {
+                points.push(
+                    r * cos(th),
+                    r * sin(th),
+                    z0 + j / nX * (z1 - z0)
+                );
+                normals.push(sin(th), -cos(th), 0);
+            }
 
         }
         for (let i = 0; i < nY; i++) {
-            indices.push(base + i * (2), base + i * 2 + 1, base + i * 2 + 2)
-            indices.push(base + i * 2 + 2, base + i * 2 + 1, base + i * 2 + 3)
+            for (let j = 0; j < nX; j++) {
+                indices.push(base + (i * (nX + 1) + j)
+                    , base + ((i + 1) * (nX + 1) + j), base + (i * (nX + 1) + j) + 1);
+                indices.push(base + ((i + 1) * (nX + 1) + j), base + ((i + 1) * (nX + 1) + j) + 1, base + (i * (nX + 1) + j) + 1);
+            }
         }
 
-        this.setAttribute('position', new THREE.Float32BufferAttribute(points, 3))
-        this.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3))
-        this.setIndex(indices)
+        this.setAttribute('position', new THREE.Float32BufferAttribute(points, 3));
+        this.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+        this.setIndex(indices);
     }
 }
 
@@ -2169,10 +2173,10 @@ class SphericalSolidGeometry extends THREE.BufferGeometry {
             dy = (d(th) - c(th)) / nY;
             for (let j = 0; j <= nY; j++) {
                 const ph = c(th) + j * dy;
-                const r = e(th, ph)
+                const r = e(th, ph);
                 points.push(r * sin(ph) * cos(th), r * sin(ph) * sin(th), r * cos(ph));
-                const r_th = (e(th + dt2, ph) - e(th - dt2, ph)) / dt
-                const r_ph = (e(th, ph + dt2) - e(th, ph - dt2)) / dt
+                const r_th = (e(th + dt2, ph) - e(th - dt2, ph)) / dt;
+                const r_ph = (e(th, ph + dt2) - e(th, ph - dt2)) / dt;
 
                 vec.set(
                     r * (cos(th) * sin(ph) * (r * sin(ph) - cos(ph) *
@@ -2180,44 +2184,44 @@ class SphericalSolidGeometry extends THREE.BufferGeometry {
                     r * (sin(ph) * sin(th) * (r * sin(ph) - cos(ph) *
                         r_ph) - cos(th) * r_th),
                     r * sin(ph) * (cos(ph) * r + sin(ph) * r_ph)
-                ).multiplyScalar(-1).normalize()
-                normals.push(vec.x, vec.y, vec.z)
+                ).multiplyScalar(-1).normalize();
+                normals.push(vec.x, vec.y, vec.z);
             }
         }
         for (let i = 0; i < nX; i++) {
             for (let j = 0; j < nY; j++) {
-                indices.push(i * (nY + 1) + j, (i + 1) * (nY + 1) + j, i * (nY + 1) + j + 1)
-                indices.push((i + 1) * (nY + 1) + j, (i + 1) * (nY + 1) + (j + 1), i * (nY + 1) + j + 1)
+                indices.push(i * (nY + 1) + j, (i + 1) * (nY + 1) + j, i * (nY + 1) + j + 1);
+                indices.push((i + 1) * (nY + 1) + j, (i + 1) * (nY + 1) + (j + 1), i * (nY + 1) + j + 1);
             }
         }
 
         // top
 
-        let base = points.length / 3
+        let base = points.length / 3;
 
         for (let i = 0; i <= nX; i++) {
             const th = a + i * dx;
             dy = (d(th) - c(th)) / nY;
             for (let j = 0; j <= nY; j++) {
                 const ph = c(th) + j * dy;
-                const r = f(th, ph)
+                const r = f(th, ph);
                 points.push(r * sin(ph) * cos(th), r * sin(ph) * sin(th), r * cos(ph));
-                const r_th = (f(th + dt2, ph) - f(th - dt2, ph)) / dt
-                const r_ph = (f(th, ph + dt2) - f(th, ph - dt2)) / dt
+                const r_th = (f(th + dt2, ph) - f(th - dt2, ph)) / dt;
+                const r_ph = (f(th, ph + dt2) - f(th, ph - dt2)) / dt;
                 vec.set(
                     r * (cos(th) * sin(ph) * (r * sin(ph) - cos(ph) *
                         r_ph) + sin(th) * r_th),
                     r * (sin(ph) * sin(th) * (r * sin(ph) - cos(ph) *
                         r_ph) - cos(th) * r_th),
                     r * sin(ph) * (cos(ph) * r + sin(ph) * r_ph)
-                ).normalize()
-                normals.push(vec.x, vec.y, vec.z)
+                ).normalize();
+                normals.push(vec.x, vec.y, vec.z);
             }
         }
         for (let i = 0; i < nX; i++) {
             for (let j = 0; j < nY; j++) {
-                indices.push(base + i * (nY + 1) + j, base + i * (nY + 1) + j + 1, base + (i + 1) * (nY + 1) + j)
-                indices.push(base + (i + 1) * (nY + 1) + j, base + i * (nY + 1) + j + 1, base + (i + 1) * (nY + 1) + (j + 1))
+                indices.push(base + i * (nY + 1) + j, base + i * (nY + 1) + j + 1, base + (i + 1) * (nY + 1) + j);
+                indices.push(base + (i + 1) * (nY + 1) + j, base + i * (nY + 1) + j + 1, base + (i + 1) * (nY + 1) + (j + 1));
             }
         }
 
@@ -2227,32 +2231,33 @@ class SphericalSolidGeometry extends THREE.BufferGeometry {
         base = points.length / 3;
 
         for (let i = 0; i <= nX; i++) {
-            const th = a + i * dx
-            const ph = c(th)
-            let r = e(th, ph)
-            const cp = (c(th + dt2) - c(th - dt2)) / dt
-            points.push(
-                r * sin(ph) * cos(th),
-                r * sin(ph) * sin(th),
-                r * cos(ph))
+            const th = a + i * dx;
+            const ph = c(th);
+            const cp = (c(th + dt2) - c(th - dt2)) / dt;
             vec.set(
                 -(cos(th) * cos(ph) * sin(ph) + sin(th) * cp),
                 -sin(th) * cos(ph) * sin(ph) + cos(th) * cp,
                 sin(ph) * sin(ph)
-            ).normalize()
-            normals.push(vec.x, vec.y, vec.z)
+            ).normalize();
 
-            r = f(th, ph)
-            points.push(
-                r * sin(ph) * cos(th),
-                r * sin(ph) * sin(th),
-                r * cos(ph))
-            normals.push(vec.x, vec.y, vec.z)
+            const z0 = e(th, ph);
+            const z1 = f(th, ph);
+
+            for (let j = 0; j <= nY; j++) {
+                const r = z0 + j / nY * (z1 - z0);
+                points.push(
+                    r * sin(ph) * cos(th),
+                    r * sin(ph) * sin(th),
+                    r * cos(ph));
+                normals.push(vec.x, vec.y, vec.z);
+            }
 
         }
         for (let i = 0; i < nX; i++) {
-            indices.push(base + i * (2), base + i * 2 + 1, base + i * 2 + 2)
-            indices.push(base + i * 2 + 2, base + i * 2 + 1, base + i * 2 + 3)
+            for (let j = 0; j < nY; j++) {
+                indices.push(base + i * (nY + 1) + j, base + i * (nY + 1) + j + 1, base + (i + 1) * (nY + 1) + j);
+                indices.push(base + (i + 1) * (nY + 1) + j, base + i * (nY + 1) + j + 1, base + (i + 1) * (nY + 1) + (j + 1));
+            }
         }
 
         // back
@@ -2260,95 +2265,94 @@ class SphericalSolidGeometry extends THREE.BufferGeometry {
         base = points.length / 3;
 
         for (let i = 0; i <= nX; i++) {
-            const th = a + i * dx
-            const ph = d(th)
-            let r = e(th, ph)
-            const cp = (d(th + dt2) - d(th - dt2)) / dt
-            points.push(
-                r * sin(ph) * cos(th),
-                r * sin(ph) * sin(th),
-                r * cos(ph))
+            const th = a + i * dx;
+            const ph = d(th);
+            const cp = (d(th + dt2) - d(th - dt2)) / dt;
             vec.set(
                 -(cos(th) * cos(ph) * sin(ph) + sin(th) * cp),
                 -sin(th) * cos(ph) * sin(ph) + cos(th) * cp,
                 sin(ph) * sin(ph)
-            ).multiplyScalar(-1).normalize()
-            normals.push(vec.x, vec.y, vec.z)
+            ).normalize();
 
-            r = f(th, ph)
-            points.push(
-                r * sin(ph) * cos(th),
-                r * sin(ph) * sin(th),
-                r * cos(ph))
-            normals.push(vec.x, vec.y, vec.z)
+            const z0 = e(th, ph);
+            const z1 = f(th, ph);
+
+            for (let j = 0; j <= nY; j++) {
+                const r = z0 + j / nY * (z1 - z0);
+                points.push(
+                    r * sin(ph) * cos(th),
+                    r * sin(ph) * sin(th),
+                    r * cos(ph));
+                normals.push(vec.x, vec.y, vec.z);
+            }
 
         }
         for (let i = 0; i < nX; i++) {
-            indices.push(base + i * (2), base + i * 2 + 2, base + i * 2 + 1)
-            indices.push(base + i * 2 + 2, base + i * 2 + 3, base + i * 2 + 1)
+            for (let j = 0; j < nY; j++) {
+                indices.push(base + i * (nY + 1) + j, base + i * (nY + 1) + j + 1, base + (i + 1) * (nY + 1) + j);
+                indices.push(base + (i + 1) * (nY + 1) + j, base + i * (nY + 1) + j + 1, base + (i + 1) * (nY + 1) + (j + 1));
+            }
         }
-
 
         // right
 
         base = points.length / 3;
-        dy = (d(a) - c(a)) / nY
+        dy = (d(a) - c(a)) / nY;
         for (let i = 0; i <= nY; i++) {
             const th = a;
             const ph = c(th) + i * dy;
-            let r = e(th, ph)
-            points.push(
-                r * sin(ph) * cos(th),
-                r * sin(ph) * sin(th),
-                r * cos(ph)
-            )
-            normals.push(sin(th), -cos(th), 0)
 
-            r = f(th, ph)
-            points.push(
-                r * sin(ph) * cos(th),
-                r * sin(ph) * sin(th),
-                r * cos(ph)
-            )
-            normals.push(sin(th), -cos(th), 0)
+            const z0 = e(th, ph);
+            const z1 = f(th, ph);
+
+            for (let j = 0; j <= nY; j++) {
+                const r = z0 + j / nY * (z1 - z0);
+                points.push(
+                    r * sin(ph) * cos(th),
+                    r * sin(ph) * sin(th),
+                    r * cos(ph));
+                normals.push(sin(th), -cos(th), 0);
+            }
+
         }
         for (let i = 0; i < nY; i++) {
-            indices.push(base + i * (2), base + i * 2 + 2, base + i * 2 + 1)
-            indices.push(base + i * 2 + 2, base + i * 2 + 3, base + i * 2 + 1)
+            for (let j = 0; j < nY; j++) {
+                indices.push(base + i * (nY + 1) + j, base + i * (nY + 1) + j + 1, base + (i + 1) * (nY + 1) + j);
+                indices.push(base + (i + 1) * (nY + 1) + j, base + i * (nY + 1) + j + 1, base + (i + 1) * (nY + 1) + (j + 1));
+            }
         }
 
         // left
 
         base = points.length / 3;
-        dy = (d(b) - c(b)) / nY
+        dy = (d(b) - c(b)) / nY;
         for (let i = 0; i <= nY; i++) {
             const th = b;
             const ph = c(th) + i * dy;
-            let r = e(th, ph)
-            points.push(
-                r * sin(ph) * cos(th),
-                r * sin(ph) * sin(th),
-                r * cos(ph)
-            )
-            normals.push(-sin(th), cos(th), 0)
 
-            r = f(th, ph)
-            points.push(
-                r * sin(ph) * cos(th),
-                r * sin(ph) * sin(th),
-                r * cos(ph)
-            )
-            normals.push(-sin(th), cos(th), 0)
+            const z0 = e(th, ph);
+            const z1 = f(th, ph);
+
+            for (let j = 0; j <= nY; j++) {
+                const r = z0 + j / nY * (z1 - z0);
+                points.push(
+                    r * sin(ph) * cos(th),
+                    r * sin(ph) * sin(th),
+                    r * cos(ph));
+                normals.push(-sin(th), cos(th), 0);
+            }
 
         }
         for (let i = 0; i < nY; i++) {
-            indices.push(base + i * (2), base + i * 2 + 1, base + i * 2 + 2)
-            indices.push(base + i * 2 + 2, base + i * 2 + 1, base + i * 2 + 3)
+            for (let j = 0; j < nY; j++) {
+                indices.push(base + i * (nY + 1) + j, base + i * (nY + 1) + j + 1, base + (i + 1) * (nY + 1) + j);
+                indices.push(base + (i + 1) * (nY + 1) + j, base + i * (nY + 1) + j + 1, base + (i + 1) * (nY + 1) + (j + 1));
+            }
         }
 
-        this.setAttribute('position', new THREE.Float32BufferAttribute(points, 3))
-        this.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3))
-        this.setIndex(indices)
+        this.setAttribute('position', new THREE.Float32BufferAttribute(points, 3));
+        this.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+        this.setIndex(indices);
     }
 }
 
@@ -2362,9 +2366,9 @@ const hex = (x) => {
     if (str.length < 2) {
         return '0' + str;
     } else {
-        return str
+        return str;
     }
-}
+};
 
 /**
  * Converts output of `evaluate_cmap` to HTML #rrggbb string.
@@ -2373,7 +2377,7 @@ const hex = (x) => {
  */
 function tripleToHex(vec) {
     const [r, g, b] = vec;
-    return `#${hex(r)}${hex(g)}${hex(b)}`
+    return `#${hex(r)}${hex(g)}${hex(b)}`;
 }
 
 export {
