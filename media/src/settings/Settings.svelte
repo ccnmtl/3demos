@@ -203,16 +203,16 @@
         </label>
     </div>
 
-    <div class="row">
-        <div class="col-3">
+    <div class="row py-1 mx-1">
+        <div class="col-6 me-auto">
             <label for="colormap"
                 ><a
                     href="https://matplotlib.org/stable/gallery/color/colormap_reference.html#colormap-reference"
-                    target="_blank">Colormap</a
+                    target="_blank">Color Map</a
                 ></label
             >
         </div>
-        <div class="col-7">
+        <div class="col-6 overflow-hidden">
             <input
                 type="text"
                 name="colormap"
@@ -234,11 +234,11 @@
             {/each}
         </datalist>
     </div>
-    <div class="row">
-        <div class="col-3">
-            <label for="densitymap">Density cmap</label>
+    <div class="row my-1 mx-1">
+        <div class="col-6 me-auto">
+            <label for="densitymap">Density C-Map</label>
         </div>
-        <div class="col-7">
+        <div class="col-6 overflow-hidden">
             <input
                 type="text"
                 name="densitymap"
@@ -258,10 +258,10 @@
 
     <div class="row align-items-center">
         <div class="col-6">
-            <label class="col-5" for="vmin">vMin</label>
-            <input class="col-6" id="vmin" type="number" bind:value={$vMin} />
-            <label class="col-5" for="vmax">vMax</label>
-            <input class="col-6" id="vmax" type="number" bind:value={$vMax} />
+            <label class="col-5 my-1" for="vmin">vMin</label>
+            <input class="col-6 my-1" id="vmin" type="number" bind:value={$vMin} />
+            <label class="col-5 my-1" for="vmax">vMax</label>
+            <input class="col-6 my-1" id="vmax" type="number" bind:value={$vMax} />
         </div>
         <div class="col-4">
             <button
