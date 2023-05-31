@@ -43,6 +43,8 @@
     export let selectedObjects;
     export let selected;
     export let color = '#373765';
+    export let sync;
+    export let syncAnimation;
 
     let minimize = false;
     let flowTrails = true;
@@ -83,6 +85,9 @@
     $: {
         // if (selectedObjects.length === 0 || selected) {
         //     fieldMaterial.opacity = 1.0;
+        if (selected) {
+            flowArrows.visible = sync;
+        }
         // } else {
         //     fieldMaterial.opacity = 0.3;
         // }
@@ -113,6 +118,13 @@
         flashDance(flowArrows.children[0], render);
         // flashDance(trails, render); // doesn't work]]
         boxItemElement.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    $: {
+        syncAnimation;
+        if (selected) {
+            rewindArrows();
+        }
     }
 
     const trailGeometry = new THREE.BufferGeometry();
@@ -379,10 +391,14 @@
         if (selected) {
             switch (e.key) {
                 case 'Backspace':
-                    toggleHide();
+                if (selectedObjects[0] === uuid) {
+                        sync = !sync;
+                    }
                     break;
                 case 't':
-                    trails.visible = !trails.visible;
+                    if (uuid === selectedObjects[selectedObjects.length-1]) {
+                        trails.visible = !trails.visible;
+                    }
                     freeTrails();
                     render();
                     break;
@@ -395,7 +411,7 @@
                     render();
                     break;
                 case 'r':
-                    rewindArrows();
+                    syncAnimation = !syncAnimation;
                     break;
             }
         }
@@ -470,7 +486,12 @@
                 on:animate
                 on:play={() => (flowArrows.visible = true)}
                 on:pause={() => (last = null)}
-                on:rew={rewindArrows}
+                on:rew={() => {
+                    if (selected) {
+                        syncAnimation = !syncAnimation;
+                    }
+                    rewindArrows();
+                }}
             />
 
             <span class="box box-2">

@@ -51,6 +51,7 @@
     export let blowUpObjects = function () {};
     export let selectObject = function () {};
     export let selectedObjects;
+    export let sync;
     export let selectedPoint;
     export let chatBuffer;
     export let isPollsOpen;
@@ -63,6 +64,7 @@
     let panelOffset = 0;
     let panelTransition = '';
     let panelTransitionProperty = '';
+    let syncAnimation = 0;
 
     const kindToComponent = {
         point: Point,
@@ -287,7 +289,7 @@
     });
 
     const onKeyDown = (e) => {
-        if (e.key === 'Escape') {
+        if (e.key === 'h') {
             onTogglePanel();
         }
     };
@@ -511,6 +513,8 @@
                                         {gridMax}
                                         on:animate={animateIfNotAnimating}
                                         bind:selectedObjects
+                                        bind:sync
+                                        bind:syncAnimation
                                         selected={selectedObjects.includes(
                                             uuid
                                         )}

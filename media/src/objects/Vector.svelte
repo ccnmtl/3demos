@@ -35,6 +35,8 @@
     export let onRenderObject = function () {};
     export let onDestroyObject = function () {};
     export let onSelect = function () {};
+    export let sync;
+    export let syncAnimation;
 
     export let params = {
         a: '-1',
@@ -154,9 +156,19 @@
     $: isDiscrete = dependsOn(params, 'n');
     $: hashTag = checksum(JSON.stringify(params));
     $: hashTag, updateVector();
+    $: {
+        syncAnimation;
+        if (selected) {
+            tau = 0;
+            update();
+        }
+    }
 
     // recolor on demand
     $: {
+        if (selected) {
+            arrow.visible = sync;
+        }
         arrowMaterial.color.set(color);
         render();
     }
@@ -196,7 +208,9 @@
         if (selected) {
             switch (e.key) {
                 case 'Backspace':
-                    toggleHide();
+                    if (selectedObjects[0] === uuid) {
+                        sync = !sync;
+                    }
                     break;
                 case 'p':
                     animation = !animation;
@@ -357,6 +371,9 @@
                     on:pause={() => (last = null)}
                     on:rew={() => {
                         tau = 0;
+                        if (selected) {
+                            syncAnimation = !syncAnimation;
+                        }
                         update();
                     }}
                 />

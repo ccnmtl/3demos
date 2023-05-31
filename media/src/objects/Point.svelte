@@ -25,6 +25,8 @@
     export let onRenderObject = function () {};
     export let onDestroyObject = function () {};
     export let onSelect = function () {};
+    export let sync;
+    export let syncAnimation;
 
     export let params = {
         a: '-1',
@@ -100,11 +102,21 @@
     $: isDynamic = dependsOn(params);
     $: hashTag = checksum(JSON.stringify(params));
     $: hashTag, updatePoint();
+    $: {
+        syncAnimation;
+        if (selected) {
+            tau = 0;
+            update();
+        }
+    }
 
     // recolor on demand
     $: {
         // if (selectedObjects.length === 0 || selected) {
         //     pointMaterial.opacity = 1.0;
+        if (selected) {
+            point.visible = sync;
+        }
         // } else {
         //     pointMaterial.opacity = 0.3;
         // }
@@ -145,7 +157,9 @@
         if (selected) {
             switch (e.key) {
                 case 'Backspace':
-                    toggleHide();
+                    if (selectedObjects[0] === uuid) {
+                        sync = !sync;
+                    }
                     break;
                 case 'p':
                     animation = !animation;
@@ -291,6 +305,9 @@
                     on:pause={() => (last = null)}
                     on:rew={() => {
                         tau = 0;
+                        if (selected) {
+                            syncAnimation = !syncAnimation;
+                        }
                         update();
                     }}
                 />

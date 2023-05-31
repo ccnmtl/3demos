@@ -37,6 +37,7 @@
     let scaleAnimation = false;
     let scaleUpdate;
     let selectedObjects = [];
+    let sync = null;
     let hoveredObject = null;
     let selectedPoint = null;
     let lockPoll = false;
@@ -55,7 +56,11 @@
             } else {
                 //Can't just push. Assignment needed to trigger dynamic update
                 selectedObjects = selectedObjects.concat(uuid);
+                sync = true;
             }
+        }
+        if (selectedObjects.length === 0) {
+            sync = null;
         }
         render();
     };
@@ -601,7 +606,7 @@
             return;
         }
         switch (e.key) {
-            case 'd':
+            case 'Escape':
                 selectedObjects = [];
                 render();
                 break;
@@ -636,10 +641,13 @@
             bind:chatBuffer
             bind:pollResponses
             bind:lockPoll
+            bind:selectedObjects
+            bind:sync
+            bind:selectedPoint
+            bind:isPollsOpen
             {isHost}
             {blowUpObjects}
             {selectObject}
-            bind:selectedObjects
             {scene}
             {onRenderObject}
             {onDestroyObject}
@@ -650,9 +658,7 @@
             {animateIfNotAnimating}
             {roomId}
             {currentPoll}
-            bind:selectedPoint
             {objectResponses}
-            bind:isPollsOpen
         />
 
         <canvas class="flex-grow-1" tabIndex="0" id="c" bind:this={canvas} />

@@ -32,6 +32,7 @@
     export let onRenderObject = function () {};
     export let onDestroyObject = function () {};
     export let onSelect = function () {};
+    export let sync;
 
     // onMount(onRenderObject);
     onDestroy(() => {
@@ -55,13 +56,17 @@
         if (e.target.matches('input')) {
             return;
         }
-
-        switch (e.key) {
-            case 'Backspace':
-                if (selected) {
-                    toggleHide();
-                }
-                break;
+        if (selected) {
+            switch (e.key) {
+                case 'Backspace':
+                    if (selectedObjects[0] === uuid) {
+                        sync = !sync;
+                    }
+                    break;
+                case 'd':
+                    chooseDensity = !chooseDensity;
+                    break;
+            }
         }
     };
 
@@ -180,6 +185,9 @@
         // if (selectedObjects.length === 0 || selected) {
         //     material.opacity = 1.0;
         //     colorMaterial.opacity = 1.0;
+        if (selected) {
+            solidGroup.visible = sync;
+        }
         // } else {
         //     material.opacity = 0.5;
         //     colorMaterial.opacity = 0.5;
