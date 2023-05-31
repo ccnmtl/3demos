@@ -37,17 +37,7 @@
                 selectedPoint.position.z.toFixed(2)
             ]
         } else if (currentPoll.type === 'select object') {
-            response = [];
-            if (selectedObjects.length === 0) {
-                response.push(objects[0]);
-            } else {
-                for (let object in selectedObjects) {
-                    let found = objects.find((x) => x.uuid === object);
-                    if (found) {
-                        response.push(found);
-                    }
-                }
-            }
+            response = objects.find((x) => x.uuid === selectedObjects[0]);
         }
 
         // Send response over websocket
