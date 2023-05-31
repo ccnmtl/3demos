@@ -2,7 +2,7 @@
     /**
      * Main 3Demos control panel, to the left of the scene.
      */
-    import { onMount } from 'svelte';
+    import { onMount, onDestroy } from 'svelte';
     import { slide } from 'svelte/transition';
     import { quintOut } from 'svelte/easing';
 
@@ -59,11 +59,10 @@
 
     const PANEL_DELAY = 200;
     let showPanel = true;
-    let panelOffset = 0;
     let panelWidth = 370;
+    let panelOffset = 0;
     let panelTransition = '';
     let panelTransitionProperty = '';
-    let isPanelResizing = false;
 
     const kindToComponent = {
         point: Point,
@@ -214,23 +213,6 @@
         }, PANEL_DELAY);
     };
 
-    const onResizePanelStart = function () {
-        isPanelResizing = true;
-    };
-
-    const onResizePanel = function (e) {
-        if (isPanelResizing) {
-            const newWidth = e.clientX - 10;
-            if (newWidth >= 300 && newWidth <= window.innerWidth * 0.6) {
-                panelWidth = newWidth;
-            }
-        }
-    };
-
-    const onResizePanelEnd = function () {
-        isPanelResizing = false;
-    };
-
     /**
      * Show the "Info" accordion item.
      */
@@ -250,6 +232,14 @@
         );
         tabEl.click();
     };
+
+    const resizeObserver = new ResizeObserver(entries => {
+        for (let entry of entries) {
+            if (entry && entry.contentRect && entry.contentRect.width) {
+                panelWidth = entry.contentRect.width;
+            }
+        }
+    });
 
     onMount(() => {
         const urlParams = new URLSearchParams(location.search);
@@ -287,8 +277,13 @@
             }
         }
 
-        window.addEventListener('pointermove', onResizePanel);
-        window.addEventListener('pointerup', onResizePanelEnd);
+        const panelEl = document.querySelector('.demos-panel');
+        resizeObserver.observe(panelEl);
+    });
+
+    onDestroy(() => {
+        const panelEl = document.querySelector('.demos-panel');
+        resizeObserver.unobserve(panelEl);
     });
 
     const onKeyDown = (e) => {
@@ -303,7 +298,6 @@
 
 <div
     class="demos-panel"
-    style:width={panelWidth + 'px'}
     style:transition={panelTransition}
     style:transition-property={panelTransitionProperty}
     style:transform={`translateX(${panelOffset}%)`}
@@ -719,12 +713,11 @@
 <div
     class="panel-button panel-hider bg-info bg-opacity-25 border border-info border-start-0 rounded-end-circle"
     title={showPanel ? 'Hide panel' : 'Show panel'}
-    style:left={showPanel ? panelWidth - 1 + 'px' : 0}
-    style:transition={panelTransition}
-    style:transition-property={'left'}
-    style:transform={`left(${showPanel ? panelWidth : 0}px)`}
     on:click={onTogglePanel}
     on:keypress={onTogglePanel}
+    style:transition={panelTransition}
+    style:transition-property={panelTransitionProperty}
+    style:transform={`translateX(${showPanel ? 0 : -panelWidth}px)`}
 >
     <div class="align-middle text-center">
         {#if showPanel}
@@ -732,20 +725,6 @@
         {:else}
             <i class="bi bi-arrow-bar-right" />
         {/if}
-    </div>
-</div>
-
-<div
-    class="panel-button panel-resizer bg-info bg-opacity-25 border border-info border-start-0 rounded-end-circle"
-    title="Resize panel"
-    style:left={showPanel ? panelWidth - 1 + 'px' : 0}
-    style:transition={panelTransition}
-    style:transition-property="left"
-    style:transform={`left(${showPanel ? panelWidth : 0}px)`}
-    on:pointerdown={onResizePanelStart}
->
-    <div class="align-middle text-center">
-        <i class="bi bi-arrow-left-right" />
     </div>
 </div>
 
@@ -758,6 +737,8 @@
         z-index: 1;
 
         min-width: 300px;
+        /* default width */
+        width: 370px;
         max-width: 60%;
 
         height: fit-content;
@@ -767,11 +748,13 @@
 
         overflow-y: auto;
         overflow-x: hidden;
+
+        resize: horizontal;
     }
 
     .panel-button {
         cursor: pointer;
-        position: absolute;
+        position: relative;
 
         min-width: 28px;
         height: 38px;
@@ -790,11 +773,6 @@
 
     .panel-button.panel-hider {
         top: 40px;
-    }
-
-    .panel-button.panel-resizer {
-        top: 82px;
-        cursor: col-resize;
     }
 
     .chapterBox,
