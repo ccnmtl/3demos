@@ -5,7 +5,7 @@
     import BarChart from '../d3/BarChart';
     import Histogram from '../d3/Histogram';
     import { makeObject } from '../sceneUtils';
-    import {broadcastPollResults} from './utils';
+    import {showPollResults, hidePollResults} from './utils';
 
     export let socket;
     export let pollResponses;
@@ -113,12 +113,18 @@
 
     const clearPoints = function () {
         objectResponses.clear();
-        broadcastPollResults(pollResponses, currentPollType, socket, objectResponses);
+        showPollResults(
+            pollResponses, currentPollType, socket, objectResponses);
         render();
     };
 
-    const onBroadcastResults = function() {
-        broadcastPollResults(pollResponses, currentPollType, socket, objectResponses);
+    const onTogglePollResults = function(e) {
+        if (e.target.checked) {
+            showPollResults(
+                pollResponses, currentPollType, socket, objectResponses);
+        } else {
+            hidePollResults(socket);
+        }
     };
 
     onMount(() => {
@@ -137,13 +143,16 @@
 
     {#if role === 'host'}
         <div class="col-auto">
-            <button
-                type="button"
-                class="btn btn-primary btn-sm"
-                title="Broadcast results"
-                on:click={onBroadcastResults}>
-                <i class="bi bi-broadcast-pin" /> Broadcast results
-            </button>
+            <div class="form-check form-switch">
+                <input class="form-check-input"
+                       type="checkbox" role="switch"
+                       on:change={onTogglePollResults}
+                       id="flexSwitchCheckDefault" />
+                <label class="form-check-label"
+                       for="flexSwitchCheckDefault">
+                    <i class="bi bi-broadcast-pin" /> Show results
+                </label>
+            </div>            
             <button
                 type="button"
                 class="btn btn-warning btn-sm"
