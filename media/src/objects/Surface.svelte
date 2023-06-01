@@ -776,7 +776,7 @@
                     break;
                 case 'Shift':
                     window.addEventListener('mousemove', onMouseMove, false);
-                    tanFrame.visible = true;
+                    // tanFrame.visible = true;
                     break;
                 case 'c':
                     controls.target.set(
@@ -815,7 +815,18 @@
         }
     };
 
+    const onKeyUp = (e) => {
+        if (e.target.matches('input')) {
+            return;
+        }
+
+        if (e.key === 'Shift') {
+            window.removeEventListener('mousemove', onMouseMove, false);
+        }
+    };
+
     window.addEventListener('keydown', keyDown, false);
+    window.addEventListener('keyup', onKeyUp, false);
 </script>
 
 <div class="boxItem" class:selected on:keydown>
