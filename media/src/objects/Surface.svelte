@@ -580,6 +580,7 @@
         scene.remove(surfaceMesh);
         scene.remove(tanFrame);
         window.removeEventListener('keydown', keyDown, false);
+        window.removeEventListener('keyup', onKeyUp, false);
         render();
     });
 
