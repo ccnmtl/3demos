@@ -1,7 +1,12 @@
 <script>
-    import { onMount, onDestroy, createEventDispatcher } from 'svelte';
+    import {
+        onMount,
+        onDestroy,
+        createEventDispatcher,
+        afterUpdate,
+    } from 'svelte';
     import * as THREE from 'three';
-    import { create, all } from 'mathjs';
+    import { create, all, abs } from 'mathjs';
     // import { beforeUpdate } from 'svelte';
 
     import { dependsOn } from './Vector.svelte';
@@ -216,17 +221,19 @@
         opacity: 0.7,
     });
 
+    let boxItemElement;
+
     // Keep color fresh
     $: {
         if (selectedObjects.length === 0 || selected) {
             if (selectedObjects[selectedObjects.length - 1] === uuid) {
                 selectedPoint = point;
             }
-            plusMaterial.opacity = 0.7;
-            minusMaterial.opacity = 0.7;
+            // plusMaterial.opacity = 0.7;
+            // minusMaterial.opacity = 0.7;
         } else {
-            plusMaterial.opacity = 0.3;
-            minusMaterial.opacity = 0.3;
+            // plusMaterial.opacity = 0.3;
+            // minusMaterial.opacity = 0.3;
         }
         plusMaterial.color.set(color);
         const hsl = {};
@@ -584,6 +591,46 @@
         render();
     });
 
+    const flashDance = (mesh) => {
+        // console.log(mesh);
+        const mat = mesh.material;
+        const color = mat.color;
+        const newcol = {};
+        color.getHSL(newcol);
+        const oo = mat.opacity;
+        let t = 0;
+        let last = null;
+        let req;
+        let animate = (time) => {
+            if (last === null) {
+                t = 0;
+            } else {
+                t += (time - last) / 400;
+            }
+            const T = (Math.pow(1 - abs(4 * abs(1 / 2 - t) - 1), 2) * 2) / 3;
+            last = time;
+            color.setHSL(newcol.h, newcol.s, (1 - T) * newcol.l + T);
+            mat.opacity = (1 - T) * oo + T;
+            if (t >= 1) {
+                t = 0;
+                last = null;
+                // mat.opacity = oo;
+                // color.setHSL(newcol.h, newcol.s, newcol.l);
+            } else {
+                cancelAnimationFrame(req);
+                req = requestAnimationFrame(animate);
+            }
+            render();
+        };
+
+        requestAnimationFrame(animate);
+    };
+
+    $: if (selected) {
+        surfaceMesh.children.map(flashDance);
+        boxItemElement.scrollIntoView({ behavior: 'smooth' });
+    }
+
     // Select a point
     const tanFrame = new THREE.Object3D();
     const arrows = {
@@ -830,7 +877,7 @@
     window.addEventListener('keyup', onKeyUp, false);
 </script>
 
-<div class="boxItem" class:selected on:keydown>
+<div class="boxItem" class:selected on:keydown bind:this={boxItemElement}>
     <ObjHeader
         bind:minimize
         bind:selectedObjects
