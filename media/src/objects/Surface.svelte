@@ -1,10 +1,5 @@
 <script>
-    import {
-        onMount,
-        onDestroy,
-        createEventDispatcher,
-        afterUpdate,
-    } from 'svelte';
+    import { onMount, onDestroy, createEventDispatcher } from 'svelte';
     import * as THREE from 'three';
     import { create, all, abs } from 'mathjs';
     // import { beforeUpdate } from 'svelte';
