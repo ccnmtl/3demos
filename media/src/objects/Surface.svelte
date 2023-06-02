@@ -621,7 +621,7 @@
         requestAnimationFrame(animate);
     };
 
-    $: if (selected) {
+    $: if (selected && selectedObjects.length > 0) {
         surfaceMesh.children.map(flashDance);
         boxItemElement.scrollIntoView({ behavior: 'smooth' });
     }
