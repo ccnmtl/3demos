@@ -14,11 +14,12 @@
     import { updateParams } from './levelWorker.js';
 
     import { marchingCubes, ArrowBufferGeometry, checksum } from '../utils.js';
+    import { flashDance } from '../sceneUtils';
 
     export let uuid;
-    export let onRenderObject = function() {};
-    export let onDestroyObject = function() {};
-    export let onSelect = function() {};
+    export let onRenderObject = function () {};
+    export let onDestroyObject = function () {};
+    export let onSelect = function () {};
 
     export let params = {
         g: 'x^2 - y^2 + z^2',
@@ -75,11 +76,11 @@
             if (selectedObjects[selectedObjects.length - 1] === uuid) {
                 selectedPoint = point;
             }
-            plusMaterial.opacity = 0.7;
-            minusMaterial.opacity = 0.7;
+            // plusMaterial.opacity = 0.7;
+            // minusMaterial.opacity = 0.7;
         } else {
-            plusMaterial.opacity = 0.3;
-            minusMaterial.opacity = 0.3;
+            // plusMaterial.opacity = 0.3;
+            // minusMaterial.opacity = 0.3;
         }
         plusMaterial.color.set(color);
         const hsl = {};
@@ -87,6 +88,12 @@
         hsl.h = (hsl.h + 0.618033988749895) % 1;
         minusMaterial.color.setHSL(hsl.h, hsl.s, hsl.l);
         render();
+    }
+
+    let boxItemElement;
+    $: if (selected && selectedObjects.length > 0) {
+        mesh.children.map((mesh) => flashDance(mesh, render));
+        boxItemElement.scrollIntoView({ behavior: 'smooth' });
     }
 
     const whiteLineMaterial = new THREE.LineBasicMaterial({
@@ -364,7 +371,7 @@
         }
     };
 
-    const toggleHide = function() {
+    const toggleHide = function () {
         mesh.visible = !mesh.visible;
         render();
     };
@@ -377,7 +384,7 @@
         if (selected) {
             switch (e.key) {
                 case 'Backspace':
-                    if(selected){
+                    if (selected) {
                         toggleHide();
                     }
                     break;
@@ -430,8 +437,16 @@
     window.addEventListener('keyup', onKeyUp, false);
 </script>
 
-<div class={'boxItem' + (selected ? ' selected' : '')} on:keydown>
-    <ObjHeader bind:minimize bind:selectedObjects {onClose} {toggleHide} objHidden={!mesh.visible} {color} {onSelect}>
+<div class="boxItem" class:selected bind:this={boxItemElement} on:keydown>
+    <ObjHeader
+        bind:minimize
+        bind:selectedObjects
+        {onClose}
+        {toggleHide}
+        objHidden={!mesh.visible}
+        {color}
+        {onSelect}
+    >
         <strong>Level surface </strong>
         <span hidden={!loading}>
             <i class="fa fa-spinner fa-pulse fa-fw" />

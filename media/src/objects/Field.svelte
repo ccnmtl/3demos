@@ -6,6 +6,7 @@
     import M from '../M.svelte';
     import ObjHeader from './ObjHeader.svelte';
     import { ArrowBufferGeometry, rk4, norm1, checksum } from '../utils.js';
+    import { flashDance } from '../sceneUtils';
     import { tickTock } from '../stores';
     // import ObjectParamInput from '../form-components/ObjectParamInput.svelte';
     import InputChecker from '../form-components/InputChecker.svelte';
@@ -20,7 +21,7 @@
     export let uuid;
     export let onRenderObject = function () {};
     export let onDestroyObject = function () {};
-    export let onSelect = function() {};
+    export let onSelect = function () {};
 
     export let params = {
         p: 'y',
@@ -69,7 +70,7 @@
     const fieldMaterial = new THREE.MeshLambertMaterial({
         color,
         transparent: true,
-        opacity: 0.5
+        opacity: 0.5,
     });
     const trailMaterial = new THREE.LineBasicMaterial({
         color: 0xffffff,
@@ -80,11 +81,11 @@
     let interpretColor;
     // Keep color fresh
     $: {
-        if (selectedObjects.length === 0 || selected) {
-            fieldMaterial.opacity = 1.0;
-        } else {
-            fieldMaterial.opacity = 0.3;
-        }
+        // if (selectedObjects.length === 0 || selected) {
+        //     fieldMaterial.opacity = 1.0;
+        // } else {
+        //     fieldMaterial.opacity = 0.3;
+        // }
         fieldMaterial.color.set(color);
         const hsl = {};
         fieldMaterial.color.getHSL(hsl);
@@ -105,6 +106,13 @@
             trails.geometry.attributes.color.needsUpdate = true;
         }
         render();
+    }
+
+    let boxItemElement;
+    $: if (selected && selectedObjects.length > 0) {
+        flashDance(flowArrows.children[0], render);
+        // flashDance(trails, render); // doesn't work]]
+        boxItemElement.scrollIntoView({ behavior: 'smooth' });
     }
 
     const trailGeometry = new THREE.BufferGeometry();
@@ -359,7 +367,7 @@
         dispatch('animate');
     }
 
-    const toggleHide = function() {
+    const toggleHide = function () {
         flowArrows.visible = !flowArrows.visible;
         render();
     };
@@ -396,8 +404,16 @@
     window.addEventListener('keydown', onKeyDown, false);
 </script>
 
-<div class={'boxItem' + (selected ? ' selected' : '')} on:keydown>
-    <ObjHeader bind:minimize bind:selectedObjects {onClose} {toggleHide} objHidden={!flowArrows.visible} {color} {onSelect}>
+<div class="boxItem" class:selected bind:this={boxItemElement} on:keydown>
+    <ObjHeader
+        bind:minimize
+        bind:selectedObjects
+        {onClose}
+        {toggleHide}
+        objHidden={!flowArrows.visible}
+        {color}
+        {onSelect}
+    >
         Vector Field
     </ObjHeader>
     <div hidden={minimize}>

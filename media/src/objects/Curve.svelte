@@ -15,6 +15,7 @@
         ParametricCurve,
         checksum,
     } from '../utils.js';
+    import { flashDance } from '../sceneUtils';
     import InputChecker from '../form-components/InputChecker.svelte';
 
     import { tickTock } from '../stores';
@@ -28,7 +29,7 @@
     export let uuid;
     export let onRenderObject = function () {};
     export let onDestroyObject = function () {};
-    export let onSelect = function() {};
+    export let onSelect = function () {};
 
     // export let paramString;
 
@@ -41,6 +42,7 @@
     };
 
     let xyz;
+    let boxItemElement;
 
     $: {
         const [x, y, z] = [params.x, params.y, params.z].map((f) =>
@@ -118,7 +120,7 @@
         side: THREE.DoubleSide,
         vertexColors: false,
         transparent: true,
-        opacity: 0.5
+        opacity: 0.5,
     });
 
     beforeUpdate(() => {
@@ -128,11 +130,6 @@
     });
     // Keep updated
     $: {
-        if (selectedObjects.length === 0 || selected) {
-            curveMaterial.opacity = 1.0;
-        } else {
-            curveMaterial.opacity = 0.1;
-        }
         curveMaterial.color.set(color);
         render();
     }
@@ -388,6 +385,11 @@
 
     $: texString1 = `${stringifyT(tau)}`;
 
+    $: if (selected && selectedObjects.length > 0) {
+        flashDance(tube, render);
+        boxItemElement.scrollIntoView({ behavior: 'smooth' });
+    }
+
     const raycaster = new THREE.Raycaster();
 
     let mouseVector = new THREE.Vector2();
@@ -411,7 +413,7 @@
         }
     };
 
-    const toggleHide = function() {
+    const toggleHide = function () {
         if (tube.visible) {
             tube.visible = false;
             circleTube.visible = false;
@@ -437,9 +439,9 @@
                     break;
                 case 'c':
                     controls.target.set(
-                    point.position.x,
-                    point.position.y,
-                    point.position.z
+                        point.position.x,
+                        point.position.y,
+                        point.position.z
                     );
                     render();
                     break;
@@ -476,8 +478,16 @@
     window.addEventListener('keyup', onKeyUp, false);
 </script>
 
-<div class={'boxItem' + (selected ? ' selected' : '')} on:keydown>
-    <ObjHeader bind:minimize bind:selectedObjects {toggleHide} {onClose} {color} {onSelect} objHidden={!tube.visible}>
+<div class="boxItem" class:selected bind:this={boxItemElement} on:keydown>
+    <ObjHeader
+        bind:minimize
+        bind:selectedObjects
+        {toggleHide}
+        {onClose}
+        {color}
+        {onSelect}
+        objHidden={!tube.visible}
+    >
         Space Curve
     </ObjHeader>
     <div hidden={minimize}>

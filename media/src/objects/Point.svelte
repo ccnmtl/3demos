@@ -16,6 +16,7 @@
     import M from '../M.svelte';
     import ObjHeader from './ObjHeader.svelte';
     import { checksum } from '../utils.js';
+    import { flashDance } from '../sceneUtils';
     import InputChecker from '../form-components/InputChecker.svelte';
 
     // export let paramString;
@@ -23,7 +24,7 @@
     export let uuid;
     export let onRenderObject = function () {};
     export let onDestroyObject = function () {};
-    export let onSelect = function() {};
+    export let onSelect = function () {};
 
     export let params = {
         a: '-1',
@@ -63,7 +64,7 @@
     const pointMaterial = new THREE.MeshLambertMaterial({
         color,
         transparent: true,
-        opacity: 1.0
+        opacity: 1.0,
     });
     const point = new THREE.Mesh(
         new THREE.SphereGeometry(gridStep / 8, 16, 16),
@@ -102,13 +103,19 @@
 
     // recolor on demand
     $: {
-        if (selectedObjects.length === 0 || selected) {
-            pointMaterial.opacity = 1.0;
-        } else {
-            pointMaterial.opacity = 0.3;
-        }
+        // if (selectedObjects.length === 0 || selected) {
+        //     pointMaterial.opacity = 1.0;
+        // } else {
+        //     pointMaterial.opacity = 0.3;
+        // }
         pointMaterial.color.set(color);
         render();
+    }
+
+    let boxItemElement;
+    $: if (selected && selectedObjects.length > 0) {
+        flashDance(point, render);
+        boxItemElement.scrollIntoView({ behavior: 'smooth' });
     }
 
     onMount(() => {
@@ -125,7 +132,7 @@
         render();
     });
 
-    const toggleHide = function() {
+    const toggleHide = function () {
         point.visible = !point.visible;
         render();
     };
@@ -135,7 +142,7 @@
             return;
         }
 
-        if(selected){
+        if (selected) {
             switch (e.key) {
                 case 'Backspace':
                     toggleHide();
@@ -143,7 +150,6 @@
                 case 'p':
                     animation = !animation;
                     break;
-                        
             }
         }
     };
@@ -211,9 +217,22 @@
     }
 </script>
 
-<div class={'boxItem' + (selected ? ' selected' : '')} on:keydown
-     hidden={!show}>
-    <ObjHeader bind:minimize bind:selectedObjects {onClose} {toggleHide} objHidden={!point.visible} {color} {onSelect}>
+<div
+    class="boxItem"
+    class:selected
+    bind:this={boxItemElement}
+    on:keydown
+    hidden={!show}
+>
+    <ObjHeader
+        bind:minimize
+        bind:selectedObjects
+        {onClose}
+        {toggleHide}
+        objHidden={!point.visible}
+        {color}
+        {onSelect}
+    >
         Point <M size="sm">\langle p_1, p_2, p_3 \rangle</M>
     </ObjHeader>
     <div hidden={minimize}>
@@ -293,9 +312,9 @@
 </div>
 
 <style>
-    .dynamic-container {
+    /* .dynamic-container {
         grid-column: 0 / 5;
-    }
+    } */
     .t-box {
         display: inline-block;
         width: 40%;

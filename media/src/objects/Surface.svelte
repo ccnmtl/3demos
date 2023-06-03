@@ -1,7 +1,7 @@
 <script>
     import { onMount, onDestroy, createEventDispatcher } from 'svelte';
     import * as THREE from 'three';
-    import { create, all, abs } from 'mathjs';
+    import { create, all } from 'mathjs';
     // import { beforeUpdate } from 'svelte';
 
     import { dependsOn } from './Vector.svelte';
@@ -25,6 +25,7 @@
         checksum,
         ParametricGeometry,
     } from '../utils.js';
+    import { flashDance } from '../sceneUtils';
     import InputChecker from '../form-components/InputChecker.svelte';
     import ColorBar from '../settings/ColorBar.svelte';
 
@@ -586,43 +587,43 @@
         render();
     });
 
-    const flashDance = (mesh) => {
-        // console.log(mesh);
-        const mat = mesh.material;
-        const color = mat.color;
-        const newcol = {};
-        color.getHSL(newcol);
-        const oo = mat.opacity;
-        let t = 0;
-        let last = null;
-        let req;
-        let animate = (time) => {
-            if (last === null) {
-                t = 0;
-            } else {
-                t += (time - last) / 400;
-            }
-            const T = (Math.pow(1 - abs(4 * abs(1 / 2 - t) - 1), 2) * 2) / 3;
-            last = time;
-            color.setHSL(newcol.h, newcol.s, (1 - T) * newcol.l + T);
-            mat.opacity = (1 - T) * oo + T;
-            if (t >= 1) {
-                t = 0;
-                last = null;
-                // mat.opacity = oo;
-                // color.setHSL(newcol.h, newcol.s, newcol.l);
-            } else {
-                cancelAnimationFrame(req);
-                req = requestAnimationFrame(animate);
-            }
-            render();
-        };
+    // const flashDance = (mesh, render=render) => {
+    //     // console.log(mesh);
+    //     const mat = mesh.material;
+    //     const color = mat.color;
+    //     const newcol = {};
+    //     color.getHSL(newcol);
+    //     const oo = mat.opacity;
+    //     let t = 0;
+    //     let last = null;
+    //     let req;
+    //     let animate = (time) => {
+    //         if (last === null) {
+    //             t = 0;
+    //         } else {
+    //             t += (time - last) / 400;
+    //         }
+    //         const T = ((1 / 2 - Math.cos(2 * Math.PI * t) / 2) * 3) / 4;
+    //         last = time;
+    //         color.setHSL(newcol.h, newcol.s, (1 - T) * newcol.l + T);
+    //         mat.opacity = (1 - T) * oo + T;
+    //         if (t >= 1) {
+    //             t = 0;
+    //             last = null;
+    //             // mat.opacity = oo;
+    //             // color.setHSL(newcol.h, newcol.s, newcol.l);
+    //         } else {
+    //             cancelAnimationFrame(req);
+    //             req = requestAnimationFrame(animate);
+    //         }
+    //         render();
+    //     };
 
-        requestAnimationFrame(animate);
-    };
+    //     requestAnimationFrame(animate);
+    // };
 
     $: if (selected && selectedObjects.length > 0) {
-        surfaceMesh.children.map(flashDance);
+        surfaceMesh.children.map((mesh) => flashDance(mesh, render));
         boxItemElement.scrollIntoView({ behavior: 'smooth' });
     }
 
