@@ -233,7 +233,7 @@
         tabEl.click();
     };
 
-    const resizeObserver = new ResizeObserver(entries => {
+    const resizeObserver = new ResizeObserver((entries) => {
         for (let entry of entries) {
             if (entry && entry.contentRect && entry.contentRect.width) {
                 panelWidth = entry.contentRect.width;
@@ -798,6 +798,8 @@
         display: flex;
         flex-direction: column;
         gap: 0.25em;
+        max-height: 60vh;
+        overflow-y: auto;
     }
 
     .object-box-title {
@@ -811,5 +813,11 @@
         color: white;
         /* font-size: 1.25em; */
         padding: 5px;
+    }
+
+    .accordion-header {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
+            Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue',
+            sans-serif;
     }
 </style>

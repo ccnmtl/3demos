@@ -24,11 +24,12 @@
         blockGeometry,
         checksum,
     } from '../utils.js';
+    import { flashDance } from '../sceneUtils';
 
     export let uuid;
     export let onRenderObject = function () {};
     export let onDestroyObject = function () {};
-    export let onSelect = function() {};
+    export let onSelect = function () {};
 
     export let params = {
         a: '-2',
@@ -563,11 +564,11 @@
             if (selectedObjects[selectedObjects.length - 1] === uuid) {
                 selectedPoint = point;
             }
-            plusMaterial.opacity = 0.7;
-            minusMaterial.opacity = 0.7;
+            // plusMaterial.opacity = 0.7;
+            // minusMaterial.opacity = 0.7;
         } else {
-            plusMaterial.opacity = 0.3;
-            minusMaterial.opacity = 0.3;
+            // plusMaterial.opacity = 0.3;
+            // minusMaterial.opacity = 0.3;
         }
         plusMaterial.color.set(color);
         const hsl = {};
@@ -575,6 +576,12 @@
         hsl.h = (hsl.h + 0.618033988749895) % 1;
         minusMaterial.color.setHSL(hsl.h, hsl.s, hsl.l);
         render();
+    }
+
+    let boxItemElement;
+    $: if (selected && selectedObjects.length > 0) {
+        surfaceMesh.children.map((mesh) => flashDance(mesh, render));
+        boxItemElement.scrollIntoView({ behavior: 'smooth' });
     }
 
     const update = function (dt) {
@@ -862,7 +869,7 @@
         levelReq = requestAnimationFrame(updateLevelShift);
     };
 
-    const toggleHide = function() {
+    const toggleHide = function () {
         surfaceMesh.visible = !surfaceMesh.visible;
         render();
     };
@@ -890,7 +897,7 @@
                     render();
                     break;
                 case 'Backspace':
-                    if(selected){
+                    if (selected) {
                         toggleHide();
                     }
                     break;
@@ -944,8 +951,16 @@
     window.addEventListener('keyup', onKeyUp, true);
 </script>
 
-<div class={'boxItem' + (selected ? ' selected' : '')} on:keydown>
-    <ObjHeader bind:minimize bind:selectedObjects {onClose} {toggleHide} objHidden={!surfaceMesh.visible} {color} {onSelect}>
+<div class="boxItem" class:selected bind:this={boxItemElement} on:keydown>
+    <ObjHeader
+        bind:minimize
+        bind:selectedObjects
+        {onClose}
+        {toggleHide}
+        objHidden={!surfaceMesh.visible}
+        {color}
+        {onSelect}
+    >
         Graph of function
     </ObjHeader>
     <div hidden={minimize}>
@@ -1083,7 +1098,7 @@
                     />
                 {/each}
 
-                <span class="box-1 ">
+                <span class="box-1">
                     <span class="t-box">t = {texString1}</span>
                 </span>
                 <input

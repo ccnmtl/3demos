@@ -50,8 +50,8 @@
         if (uuid === null) {
             selectedObjects = [];
         } else {
-            if (selectedObjects.includes(uuid)){
-                selectedObjects = selectedObjects.filter(obj => obj !== uuid);
+            if (selectedObjects.includes(uuid)) {
+                selectedObjects = selectedObjects.filter((obj) => obj !== uuid);
             } else {
                 //Can't just push. Assignment needed to trigger dynamic update
                 selectedObjects = selectedObjects.concat(uuid);
@@ -399,7 +399,8 @@
             raycaster
         );
         let nearestVisible = intersects.find(
-            intersect => intersect.object.visible && intersect.object.parent.visible
+            (intersect) =>
+                intersect.object.visible && intersect.object.parent.visible
         );
         if (nearestVisible) {
             let obj = nearestVisible.object;
@@ -415,7 +416,7 @@
     };
 
     const onDblClick = function (e) {
-        if (!e.shiftKey){
+        if (!e.shiftKey) {
             selectedObjects = [];
         }
         selectObject(hoveredObject);
@@ -492,10 +493,11 @@
                 }
                 chatBuffer = [...chatBuffer, data.message.chatMessage];
             }
-        } else if (data.message.pollResponse && (
+        } else if (
+            data.message.pollResponse &&
             // Show if I am the host, or I am a client with showPollResults
-            isHost || showPollResults
-        )) {
+            (isHost || showPollResults)
+        ) {
             const sessionKey = data.message.session_key;
             if (!(lockPoll && pollResponses[sessionKey])) {
                 if (data.message.poll === 'select point') {
@@ -532,7 +534,8 @@
             if (results && results.objects !== null) {
                 objectResponses.clear();
                 objectResponses.children = objectLoader.parse(
-                    results.objects).children;
+                    results.objects
+                ).children;
                 render();
             }
 
@@ -569,29 +572,29 @@
         if (!objects) {
             return;
         } else if (selectedObjects.length === 0) {
-            selectedObjects = [
-                objects[(moveDown ? objects.length - 1 : 0)].uuid
-            ];
+            selectedObjects = [objects[moveDown ? objects.length - 1 : 0].uuid];
         } else if (selectedObjects.length === objects.length) {
             return;
-        }else {
+        } else {
             const selectedIndex = objects
-            .map((x) => x.uuid)
-            .indexOf(selectedObjects[moveDown ? selectedObjects.length-1 : 0]);
+                .map((x) => x.uuid)
+                .indexOf(
+                    selectedObjects[moveDown ? selectedObjects.length - 1 : 0]
+                );
             const newIdx = modFloor(
                 selectedIndex + (moveDown ? -1 : 1),
                 objects.length
-                );
+            );
             if (e.shiftKey) {
-                selectedObjects = moveDown ?
-                    selectedObjects.concat([objects[newIdx].uuid]) :
-                    [objects[newIdx].uuid].concat(selectedObjects);
+                selectedObjects = moveDown
+                    ? selectedObjects.concat([objects[newIdx].uuid])
+                    : [objects[newIdx].uuid].concat(selectedObjects);
             } else {
                 selectedObjects = [objects[newIdx].uuid];
             }
         }
         render();
-    }
+    };
 
     const keyDown = (e) => {
         if (e.target.matches('input')) {

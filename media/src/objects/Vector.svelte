@@ -28,12 +28,13 @@
     import M from '../M.svelte';
     import ObjHeader from './ObjHeader.svelte';
     import { ArrowBufferGeometry, checksum } from '../utils.js';
+    import { flashDance } from '../sceneUtils';
     import InputChecker from '../form-components/InputChecker.svelte';
 
     export let uuid;
     export let onRenderObject = function () {};
     export let onDestroyObject = function () {};
-    export let onSelect = function() {};
+    export let onSelect = function () {};
 
     export let params = {
         a: '-1',
@@ -156,13 +157,14 @@
 
     // recolor on demand
     $: {
-        if ( selectedObjects.length === 0 || selected) {
-            arrowMaterial.opacity = 1.0;
-        } else {
-            arrowMaterial.opacity = 0.3;
-        }
         arrowMaterial.color.set(color);
         render();
+    }
+
+    let boxItemElement;
+    $: if (selected && selectedObjects.length > 0) {
+        flashDance(arrow, render);
+        boxItemElement.scrollIntoView({ behavior: 'smooth' });
     }
 
     onMount(() => {
@@ -182,7 +184,7 @@
         render();
     });
 
-    const toggleHide = function() {
+    const toggleHide = function () {
         arrow.visible = !arrow.visible;
         render();
     };
@@ -278,11 +280,21 @@
 </script>
 
 <div
-    class={'boxItem' + (selected ? ' selected' : '')}
+    class="boxItem"
+    class:selected
+    bind:this={boxItemElement}
     hidden={!show}
     on:keydown
 >
-    <ObjHeader bind:minimize bind:selectedObjects {onClose} {toggleHide} objHidden={!arrow.visible} {color} {onSelect}>
+    <ObjHeader
+        bind:minimize
+        bind:selectedObjects
+        {onClose}
+        {toggleHide}
+        objHidden={!arrow.visible}
+        {color}
+        {onSelect}
+    >
         Vector <M size="sm">\langle v_1, v_2, v_3 \rangle</M>
     </ObjHeader>
     <div hidden={minimize}>
@@ -385,9 +397,9 @@
 </div>
 
 <style>
-    .dynamic-container {
+    /* .dynamic-container {
         grid-column: 0 / 5;
-    }
+    } */
     input.form-control {
         color: black;
     }

@@ -22,6 +22,8 @@
         SphericalSolidGeometry,
     } from '../utils.js';
 
+    import { flashDance } from '../sceneUtils';
+
     import InputChecker from '../form-components/InputChecker.svelte';
     import ColorBar from '../settings/ColorBar.svelte';
     // import ObjectParamInput from '../form-components/ObjectParamInput.svelte';
@@ -175,15 +177,21 @@
     });
 
     $: {
-        if (selectedObjects.length === 0 || selected) {
-            material.opacity = 1.0;
-            colorMaterial.opacity = 1.0;
-        } else {
-            material.opacity = 0.5;
-            colorMaterial.opacity = 0.5;
-        }
+        // if (selectedObjects.length === 0 || selected) {
+        //     material.opacity = 1.0;
+        //     colorMaterial.opacity = 1.0;
+        // } else {
+        //     material.opacity = 0.5;
+        //     colorMaterial.opacity = 0.5;
+        // }
         material.color.set(color);
         render();
+    }
+
+    let boxItemElement;
+    $: if (selected && selectedObjects.length > 0) {
+        flashDance(box, render);
+        boxItemElement.scrollIntoView({ behavior: 'smooth' });
     }
 
     const whiteLineMaterial = new THREE.LineBasicMaterial({
@@ -354,7 +362,7 @@
     render();
 </script>
 
-<div class="boxItem" class:selected on:keydown>
+<div class="boxItem" class:selected bind:this={boxItemElement} on:keydown>
     <ObjHeader
         bind:minimize
         bind:selectedObjects

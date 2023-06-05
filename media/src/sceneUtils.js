@@ -114,8 +114,50 @@ const findPointerIntersects = function (objects, pointer, camera, raycaster) {
     return intersects;
 };
 
+/**
+ * "Flash" the object by animating its color to opaque white and back.
+ * @param {THREE.Object3D} mesh 
+ * @param {function} render 
+ */
+const flashDance = (mesh, render) => {
+    // console.log(mesh);
+    const mat = mesh.material;
+    const color = mat.color;
+    const newcol = {};
+    color.getHSL(newcol);
+    const oo = mat.opacity;
+    let t = 0;
+    let last = null;
+    let req;
+    let animate = (time) => {
+        if (last === null) {
+            t = 0;
+        } else {
+            t += (time - last) / 400;
+        }
+        const T = ((1 / 2 - Math.cos(2 * Math.PI * t) / 2) * 3) / 4;
+        last = time;
+        color.setHSL(newcol.h, newcol.s, (1 - T) * newcol.l + T);
+        mat.opacity = (1 - T) * oo + T;
+        if (t >= 1) {
+            t = 0;
+            last = null;
+            mat.opacity = oo;
+            color.setHSL(newcol.h, newcol.s, newcol.l);
+        } else {
+            cancelAnimationFrame(req);
+            req = requestAnimationFrame(animate);
+        }
+        render();
+    };
+
+    requestAnimationFrame(animate);
+};
+
+
 export {
     makeObject,
+    flashDance,
     removeObject,
     updateObject,
     publishScene,
