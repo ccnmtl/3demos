@@ -4,6 +4,8 @@
     const math = create(all, config);
 
     import { dependsOn } from './Vector.svelte';
+
+    let titleIndex = 0;
 </script>
 
 <script>
@@ -18,6 +20,7 @@
     import { checksum } from '../utils.js';
     import { flashDance } from '../sceneUtils';
     import InputChecker from '../form-components/InputChecker.svelte';
+    import Nametag from './Nametag.svelte';
 
     // export let paramString;
 
@@ -33,6 +36,7 @@
     };
 
     export let color = '#FFFF33';
+    export let title;
 
     // useless code to suppress dev warnings
     export let camera;
@@ -120,6 +124,8 @@
 
     onMount(() => {
         if (animation) dispatch('animate');
+        titleIndex++;
+        title = title || `Point ${titleIndex}`;
     });
     onDestroy(() => {
         onDestroyObject(point);
@@ -233,7 +239,8 @@
         {color}
         {onSelect}
     >
-        Point <M size="sm">\langle p_1, p_2, p_3 \rangle</M>
+        <Nametag bind:title />
+        <M size="sm">\langle p_1, p_2, p_3 \rangle</M>
     </ObjHeader>
     <div hidden={minimize}>
         <div class="threedemos-container container">

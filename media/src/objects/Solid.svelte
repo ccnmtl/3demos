@@ -1,5 +1,9 @@
+<script context="module">
+    let titleIndex = 0;
+</script>
+
 <script>
-    import { onDestroy } from 'svelte';
+    import { onMount, onDestroy } from 'svelte';
     import * as THREE from 'three';
     import { create, all } from 'mathjs';
 
@@ -26,6 +30,7 @@
 
     import InputChecker from '../form-components/InputChecker.svelte';
     import ColorBar from '../settings/ColorBar.svelte';
+    import Nametag from './Nametag.svelte';
     // import ObjectParamInput from '../form-components/ObjectParamInput.svelte';
 
     export let uuid;
@@ -33,7 +38,10 @@
     export let onDestroyObject = function () {};
     export let onSelect = function () {};
 
-    // onMount(onRenderObject);
+    onMount(() => {
+        titleIndex++;
+        title = title || `Solid Region ${titleIndex}`;
+    });
     onDestroy(() => {
         scene.remove(solidGroup);
         box.geometry.dispose();
@@ -90,6 +98,7 @@
 
     let minimize = false;
     export let color = '#5432ff';
+    export let title;
     // export let animation = false;
 
     let nX = 60;
@@ -370,7 +379,7 @@
         {toggleHide}
         objHidden={!solidGroup.visible}
         {color}
-        {onSelect}>Solid Region</ObjHeader
+        {onSelect}><Nametag bind:title /></ObjHeader
     >
     <div hidden={minimize}>
         <div class="threedemos-container container">

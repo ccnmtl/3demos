@@ -1,6 +1,4 @@
 <script>
-    import { e } from 'mathjs';
-
     export let title;
 
     let edit = false;

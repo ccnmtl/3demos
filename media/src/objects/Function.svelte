@@ -1,3 +1,7 @@
+<script context="module">
+    let titleIndex = 0;
+</script>
+
 <script>
     import { onMount, onDestroy, createEventDispatcher } from 'svelte';
     import * as THREE from 'three';
@@ -6,6 +10,7 @@
     import M from '../M.svelte';
     import ObjHeader from './ObjHeader.svelte';
     import InputChecker from '../form-components/InputChecker.svelte';
+    import Nametag from './Nametag.svelte';
     import PlayButtons from '../form-components/PlayButtons.svelte';
     import { dependsOn } from './Vector.svelte';
     import { tickTock } from '../stores';
@@ -105,6 +110,7 @@
     export let selected;
     export let selectedObjects;
     export let selectedPoint;
+    export let title;
 
     let minimize = false;
 
@@ -806,6 +812,9 @@
     };
 
     onMount(() => {
+        titleIndex++;
+        title = title || `Graph ${titleIndex}`;
+
         params.t0 = params.t0 || '0';
         params.t1 = params.t1 || '1';
         updateSurface();
@@ -961,7 +970,7 @@
         {color}
         {onSelect}
     >
-        Graph of function
+        <Nametag bind:title />
     </ObjHeader>
     <div hidden={minimize}>
         <div class="threedemos-container container">

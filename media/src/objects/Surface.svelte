@@ -1,3 +1,7 @@
+<script context="module">
+    let titleIndex = 0;
+</script>
+
 <script>
     import { onMount, onDestroy, createEventDispatcher } from 'svelte';
     import * as THREE from 'three';
@@ -7,6 +11,7 @@
     import { dependsOn } from './Vector.svelte';
     import M from '../M.svelte';
     import ObjHeader from './ObjHeader.svelte';
+    import Nametag from './Nametag.svelte';
     import PlayButtons from '../form-components/PlayButtons.svelte';
     import { densityColormap, tickTock, vMax, vMin } from '../stores';
 
@@ -46,6 +51,7 @@
         t1: '1',
     };
     export let color = '#3232ff';
+    export let title;
 
     export let animation = false;
 
@@ -568,6 +574,9 @@
 
     // onMount(updateSurface);
     onMount(() => {
+        titleIndex++;
+        title = title || `Parametric Surface ${titleIndex}`;
+
         params.t0 = params.t0 || '0';
         params.t1 = params.t1 || '1';
         // updateSurface();
@@ -883,7 +892,7 @@
         {color}
         {onSelect}
     >
-        Parametric surface
+        <Nametag bind:title />
     </ObjHeader>
     <div hidden={minimize}>
         <div class="threedemos-container container">

@@ -476,7 +476,7 @@
 
                         <div class="objectBoxInner">
                             <!-- Main Loop, if you will -->
-                            {#each objects as { uuid, kind, params, color, animation } (uuid)}
+                            {#each objects as { uuid, kind, params, color, title, animation } (uuid)}
                                 <div
                                     transition:slide={{
                                         delay: 0,
@@ -504,6 +504,7 @@
                                                 );
                                         }}
                                         bind:color
+                                        bind:title
                                         bind:animation
                                         {uuid}
                                         {gridStep}

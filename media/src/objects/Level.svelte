@@ -1,10 +1,15 @@
+<script context="module">
+    let titleIndex = 0;
+</script>
+
 <script>
-    import { onDestroy } from 'svelte';
+    import { onDestroy, onMount } from 'svelte';
     import * as THREE from 'three';
     import { create, all } from 'mathjs';
 
     import M from '../M.svelte';
     import ObjHeader from './ObjHeader.svelte';
+    import Nametag from './Nametag.svelte';
     import ObjectParamInput from '../form-components/ObjectParamInput.svelte';
     import InputChecker from '../form-components/InputChecker.svelte';
 
@@ -38,6 +43,7 @@
     export let selected;
     export let selectedObjects;
     export let selectedPoint;
+    export let title;
 
     export let camera,
         controls,
@@ -218,6 +224,10 @@
         loading = false;
         render();
     };
+    onMount(() => {
+        titleIndex++;
+        title = title || `Level Surface ${titleIndex}`;
+    });
 
     onDestroy(() => {
         onDestroyObject(...mesh.children);
@@ -447,7 +457,7 @@
         {color}
         {onSelect}
     >
-        <strong>Level surface </strong>
+        <Nametag bind:title />
         <span hidden={!loading}>
             <i class="fa fa-spinner fa-pulse fa-fw" />
             <span class="sr-only">Loading...</span>

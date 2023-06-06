@@ -1,3 +1,7 @@
+<script context="module">
+    let titleIndex = 0;
+</script>
+
 <script>
     import { onMount, onDestroy, createEventDispatcher } from 'svelte';
     import * as THREE from 'three';
@@ -5,6 +9,7 @@
 
     import M from '../M.svelte';
     import ObjHeader from './ObjHeader.svelte';
+    import Nametag from './Nametag.svelte';
     import { ArrowBufferGeometry, rk4, norm1, checksum } from '../utils.js';
     import { flashDance } from '../sceneUtils';
     import { tickTock } from '../stores';
@@ -43,6 +48,7 @@
     export let selectedObjects;
     export let selected;
     export let color = '#373765';
+    export let title;
 
     let minimize = false;
     let flowTrails = true;
@@ -326,6 +332,9 @@
     scene.add(trails);
 
     onMount(() => {
+        titleIndex++;
+        title = title || `Vector Field ${titleIndex}`;
+
         updateField();
         maxLength = initFlowArrows(flowArrows, gridMax, params.nVec);
         updateFlowArrows(flowArrows, fieldF, 0);
@@ -414,7 +423,7 @@
         {color}
         {onSelect}
     >
-        Vector Field
+        <Nametag bind:title />
     </ObjHeader>
     <div hidden={minimize}>
         <div class="threedemos-container container">

@@ -17,6 +17,8 @@
                 });
                 return nodes.some((node) => node.name === ch);
             });
+
+    let titleIndex = 0;
 </script>
 
 <script>
@@ -27,6 +29,7 @@
     import PlayButtons from '../form-components/PlayButtons.svelte';
     import M from '../M.svelte';
     import ObjHeader from './ObjHeader.svelte';
+    import Nametag from './Nametag.svelte';
     import { ArrowBufferGeometry, checksum } from '../utils.js';
     import { flashDance } from '../sceneUtils';
     import InputChecker from '../form-components/InputChecker.svelte';
@@ -63,6 +66,7 @@
     export let animation = false;
     export let selected;
     export let selectedObjects;
+    export let title;
 
     let minimize = false;
 
@@ -168,6 +172,8 @@
     }
 
     onMount(() => {
+        titleIndex++;
+        title = title || `Vector ${titleIndex}`;
         if (animation) dispatch('animate');
     });
     onDestroy(() => {
@@ -295,7 +301,8 @@
         {color}
         {onSelect}
     >
-        Vector <M size="sm">\langle v_1, v_2, v_3 \rangle</M>
+        <Nametag bind:title />
+        <M size="sm">\langle v_1, v_2, v_3 \rangle</M>
     </ObjHeader>
     <div hidden={minimize}>
         <div class="threedemos-container container">

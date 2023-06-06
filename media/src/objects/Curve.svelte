@@ -1,5 +1,5 @@
 <script context="module">
-    let i = 0;
+    let titleIndex = 0;
 </script>
 
 <script>
@@ -31,6 +31,7 @@
 
     const dispatch = createEventDispatcher();
 
+    export let title;
     export let uuid;
     export let onRenderObject = function () {};
     export let onDestroyObject = function () {};
@@ -45,8 +46,6 @@
         y: 't^2',
         z: 't^3',
     };
-
-    i++;
 
     let xyz;
     let boxItemElement;
@@ -365,6 +364,8 @@
             frame.visible = true;
             dispatch('animate');
         }
+        titleIndex++;
+        title = title || `Space Curve ${titleIndex}`;
     });
     onDestroy(() => {
         onDestroyObject(tube);
@@ -495,7 +496,7 @@
         {onSelect}
         objHidden={!tube.visible}
     >
-        <Nametag title={`Space Curve ${i}`} />
+        <Nametag bind:title />
     </ObjHeader>
     <div hidden={minimize}>
         <div class="threedemos-container container">
