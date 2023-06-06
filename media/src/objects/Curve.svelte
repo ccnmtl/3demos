@@ -1,3 +1,7 @@
+<script context="module">
+    let i = 0;
+</script>
+
 <script>
     import {
         onMount,
@@ -5,6 +9,7 @@
         createEventDispatcher,
         beforeUpdate,
     } from 'svelte';
+    import Nametag from './Nametag.svelte';
     import * as THREE from 'three';
     import { create, all } from 'mathjs';
 
@@ -40,6 +45,8 @@
         y: 't^2',
         z: 't^3',
     };
+
+    i++;
 
     let xyz;
     let boxItemElement;
@@ -488,7 +495,7 @@
         {onSelect}
         objHidden={!tube.visible}
     >
-        Space Curve
+        <Nametag title={`Space Curve ${i}`} />
     </ObjHeader>
     <div hidden={minimize}>
         <div class="threedemos-container container">
