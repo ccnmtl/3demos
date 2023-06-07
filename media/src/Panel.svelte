@@ -303,9 +303,10 @@
     style:transform={`translateX(${panelOffset}%)`}
 >
     <div id="panelAccordion" class="accordion">
-        <h1 class="flex-grow-1 px-2">
-            <a href="/" title="Home" class="text-body">3Demos (βeta)</a>
-        </h1>
+        <a href="/" title="Home" class="demos-logo">
+            <img alt="3Demos logo"
+                 src={window.STATIC_PREFIX + '/3demos-logo.svg'} />
+        </a>
 
         <div class="accordion-item demos-panel-box">
             <h2 class="accordion-header">
@@ -731,6 +732,10 @@
 <style>
     :global(#panelAccordion .collapse-info .nav-link:not(.active)) {
         color: white;
+    }
+
+    .demos-logo img {
+        height: 38px;
     }
 
     .demos-panel {
