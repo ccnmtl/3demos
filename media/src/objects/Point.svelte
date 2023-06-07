@@ -126,6 +126,9 @@
         if (animation) dispatch('animate');
         titleIndex++;
         title = title || `Point ${titleIndex}`;
+
+        selectedObjects = [];
+        setTimeout(onSelect, 350);
     });
     onDestroy(() => {
         onDestroyObject(point);

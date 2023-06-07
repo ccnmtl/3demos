@@ -227,6 +227,9 @@
     onMount(() => {
         titleIndex++;
         title = title || `Level Surface ${titleIndex}`;
+
+        selectedObjects = [];
+        setTimeout(onSelect, 350);
     });
 
     onDestroy(() => {

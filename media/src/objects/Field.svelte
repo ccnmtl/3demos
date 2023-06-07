@@ -340,6 +340,9 @@
         updateFlowArrows(flowArrows, fieldF, 0);
         render();
         if (animation) dispatch('animate');
+
+        selectedObjects = [];
+        setTimeout(onSelect, 350);
     });
     onDestroy(() => {
         onDestroyObject(flowArrows);

@@ -820,6 +820,9 @@
         updateSurface();
         updateBoxes();
         if (animation) dispatch('animate');
+
+        selectedObjects = [];
+        setTimeout(onSelect, 350);
     });
     onDestroy(() => {
         onDestroyObject(...surfaceMesh.children);

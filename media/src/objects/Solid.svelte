@@ -41,6 +41,8 @@
     onMount(() => {
         titleIndex++;
         title = title || `Solid Region ${titleIndex}`;
+        selectedObjects = [];
+        setTimeout(onSelect, 350);
     });
     onDestroy(() => {
         scene.remove(solidGroup);
@@ -200,7 +202,8 @@
     let boxItemElement;
     $: if (selected && selectedObjects.length > 0) {
         flashDance(box, render);
-        boxItemElement.scrollIntoView({ behavior: 'smooth' });
+        boxItemElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // console.log("I am scroll into view, I can't think of nothin' else.");
     }
 
     const whiteLineMaterial = new THREE.LineBasicMaterial({

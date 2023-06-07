@@ -175,6 +175,9 @@
         titleIndex++;
         title = title || `Vector ${titleIndex}`;
         if (animation) dispatch('animate');
+
+        selectedObjects = [];
+        setTimeout(onSelect, 350);
     });
     onDestroy(() => {
         onDestroyObject(arrows);

@@ -366,6 +366,9 @@
         }
         titleIndex++;
         title = title || `Space Curve ${titleIndex}`;
+
+        selectedObjects = [];
+        setTimeout(onSelect, 350);
     });
     onDestroy(() => {
         onDestroyObject(tube);
