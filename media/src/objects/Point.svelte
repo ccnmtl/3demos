@@ -4,6 +4,8 @@
     const math = create(all, config);
 
     import { dependsOn } from './Vector.svelte';
+
+    let titleIndex = 0;
 </script>
 
 <script>
@@ -16,14 +18,16 @@
     import M from '../M.svelte';
     import ObjHeader from './ObjHeader.svelte';
     import { checksum } from '../utils.js';
+    import { flashDance } from '../sceneUtils';
     import InputChecker from '../form-components/InputChecker.svelte';
+    import Nametag from './Nametag.svelte';
 
     // export let paramString;
 
     export let uuid;
     export let onRenderObject = function () {};
     export let onDestroyObject = function () {};
-    export let onSelect = function() {};
+    export let onSelect = function () {};
 
     export let params = {
         a: '-1',
@@ -32,6 +36,7 @@
     };
 
     export let color = '#FFFF33';
+    export let title;
 
     // useless code to suppress dev warnings
     export let camera;
@@ -54,12 +59,17 @@
     export let gridStep;
     export let animation = false;
     export let selected;
+    export let selectedObjects;
 
-    let hidden = false;
+    let minimize = false;
 
     const dispatch = createEventDispatcher();
 
-    const pointMaterial = new THREE.MeshLambertMaterial({ color });
+    const pointMaterial = new THREE.MeshLambertMaterial({
+        color,
+        transparent: true,
+        opacity: 1.0,
+    });
     const point = new THREE.Mesh(
         new THREE.SphereGeometry(gridStep / 8, 16, 16),
         pointMaterial
@@ -97,12 +107,28 @@
 
     // recolor on demand
     $: {
+        // if (selectedObjects.length === 0 || selected) {
+        //     pointMaterial.opacity = 1.0;
+        // } else {
+        //     pointMaterial.opacity = 0.3;
+        // }
         pointMaterial.color.set(color);
         render();
     }
 
+    let boxItemElement;
+    $: if (selected && selectedObjects.length > 0) {
+        flashDance(point, render);
+        boxItemElement.scrollIntoView({ behavior: 'smooth' });
+    }
+
     onMount(() => {
         if (animation) dispatch('animate');
+        titleIndex++;
+        title = title || `Point ${titleIndex}`;
+
+        selectedObjects = [];
+        setTimeout(onSelect, 350);
     });
     onDestroy(() => {
         onDestroyObject(point);
@@ -115,16 +141,25 @@
         render();
     });
 
+    const toggleHide = function () {
+        point.visible = !point.visible;
+        render();
+    };
+
     const onKeyDown = (e) => {
         if (e.target.matches('input')) {
             return;
         }
 
-        switch (e.key) {
-            case 'Backspace':
-                point.visible = !point.visible;
-                render();
-                break;
+        if (selected) {
+            switch (e.key) {
+                case 'Backspace':
+                    toggleHide();
+                    break;
+                case 'p':
+                    animation = !animation;
+                    break;
+            }
         }
     };
 
@@ -156,7 +191,7 @@
             }
             valuation = Number.isFinite(parsedVal.evaluate(localParms));
         } catch (e) {
-            console.log('Parse error in expression', val, e);
+            console.error('Parse error in expression', val, e);
             return false;
         }
         return valuation;
@@ -191,12 +226,26 @@
     }
 </script>
 
-<div class={'boxItem' + (selected ? ' selected' : '')} on:keydown
-     hidden={!show}>
-    <ObjHeader bind:hidden {onClose} {color} {onSelect}>
-        Point <M size="sm">\langle p_1, p_2, p_3 \rangle</M>
+<div
+    class="boxItem"
+    class:selected
+    bind:this={boxItemElement}
+    on:keydown
+    hidden={!show}
+>
+    <ObjHeader
+        bind:minimize
+        bind:selectedObjects
+        {onClose}
+        {toggleHide}
+        objHidden={!point.visible}
+        {color}
+        {onSelect}
+    >
+        <Nametag bind:title />
+        <M size="sm">\langle p_1, p_2, p_3 \rangle</M>
     </ObjHeader>
-    <div {hidden}>
+    <div hidden={minimize}>
         <div class="threedemos-container container">
             {#each ['a', 'b', 'c'] as name}
                 <span class="box-1"><M size="sm">{varNames[name]} =</M></span>
@@ -250,11 +299,6 @@
                     bind:animation
                     on:animate
                     on:pause={() => (last = null)}
-                    on:stop={() => {
-                        tau = 0;
-                        last = null;
-                        update();
-                    }}
                     on:rew={() => {
                         tau = 0;
                         update();
@@ -278,9 +322,9 @@
 </div>
 
 <style>
-    .dynamic-container {
+    /* .dynamic-container {
         grid-column: 0 / 5;
-    }
+    } */
     .t-box {
         display: inline-block;
         width: 40%;

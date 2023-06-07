@@ -1,5 +1,9 @@
+<script context="module">
+    let titleIndex = 0;
+</script>
+
 <script>
-    import { onDestroy } from 'svelte';
+    import { onMount, onDestroy } from 'svelte';
     import * as THREE from 'three';
     import { create, all } from 'mathjs';
 
@@ -7,7 +11,7 @@
     import M from '../M.svelte';
     import ObjHeader from './ObjHeader.svelte';
     // import PlayButtons from '../form-components/PlayButtons.svelte';
-    import { vMin, vMax } from '../stores';
+    import { vMin, vMax, densityColormap } from '../stores';
 
     const config = {};
     const math = create(all, config);
@@ -22,8 +26,11 @@
         SphericalSolidGeometry,
     } from '../utils.js';
 
+    import { flashDance } from '../sceneUtils';
+
     import InputChecker from '../form-components/InputChecker.svelte';
     import ColorBar from '../settings/ColorBar.svelte';
+    import Nametag from './Nametag.svelte';
     // import ObjectParamInput from '../form-components/ObjectParamInput.svelte';
 
     export let uuid;
@@ -31,7 +38,12 @@
     export let onDestroyObject = function () {};
     export let onSelect = function () {};
 
-    // onMount(onRenderObject);
+    onMount(() => {
+        titleIndex++;
+        title = title || `Solid Region ${titleIndex}`;
+        selectedObjects = [];
+        setTimeout(onSelect, 350);
+    });
     onDestroy(() => {
         scene.remove(solidGroup);
         box.geometry.dispose();
@@ -40,8 +52,30 @@
         borders.material.dispose();
 
         onDestroyObject(box);
+        window.removeEventListener('keydown', onKeyDown, false);
         render();
     });
+
+    const toggleHide = function () {
+        solidGroup.visible = !solidGroup.visible;
+        render();
+    };
+
+    const onKeyDown = (e) => {
+        if (e.target.matches('input')) {
+            return;
+        }
+
+        switch (e.key) {
+            case 'Backspace':
+                if (selected) {
+                    toggleHide();
+                }
+                break;
+        }
+    };
+
+    window.addEventListener('keydown', onKeyDown, false);
 
     export let params = {
         coords: 'rect',
@@ -62,9 +96,11 @@
     export let render = () => {};
     export let onClose = () => {};
     export let selected;
+    export let selectedObjects;
 
-    let hidden = false;
+    let minimize = false;
     export let color = '#5432ff';
+    export let title;
     // export let animation = false;
 
     let nX = 60;
@@ -85,6 +121,7 @@
         shininess: 70,
         side: THREE.DoubleSide,
         vertexColors: true,
+        transparent: true,
     });
 
     const colorMeBadd = (mesh, f) => {
@@ -103,13 +140,17 @@
 
         colorBufferVertices(mesh, (x, y, z) => {
             const value = f(x, y, z);
-            return blueUpRedDown((2 * (value - $vMin)) / ($vMax - $vMin) - 1);
+            return blueUpRedDown(
+                (2 * (value - $vMin)) / ($vMax - $vMin) - 1,
+                0.8,
+                $densityColormap
+            );
         });
     };
 
     $: ($vMin, $vMax), chooseDensity && colorMeBadd(box, densityFunc);
 
-    $: if (chooseDensity) {
+    $: if (chooseDensity && $densityColormap) {
         densityString = densityString || '1';
         compiledDensity = math.parse(densityString).compile();
         densityFunc = (x, y, z) => compiledDensity.evaluate({ x, y, z });
@@ -142,11 +183,28 @@
         shininess: 80,
         side: THREE.DoubleSide,
         vertexColors: false,
-        transparent: false,
+        transparent: true,
         opacity: 0.7,
     });
 
-    $: material.color.set(color) && render();
+    $: {
+        // if (selectedObjects.length === 0 || selected) {
+        //     material.opacity = 1.0;
+        //     colorMaterial.opacity = 1.0;
+        // } else {
+        //     material.opacity = 0.5;
+        //     colorMaterial.opacity = 0.5;
+        // }
+        material.color.set(color);
+        render();
+    }
+
+    let boxItemElement;
+    $: if (selected && selectedObjects.length > 0) {
+        flashDance(box, render);
+        boxItemElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // console.log("I am scroll into view, I can't think of nothin' else.");
+    }
 
     const whiteLineMaterial = new THREE.LineBasicMaterial({
         color: 0xffffff,
@@ -253,7 +311,7 @@
                 geom = new SphericalSolidGeometry(A, B, C, D, E, F, nX * 2, nX);
                 break;
             default:
-                console.log('Something went wrong with the coord system.');
+                console.error('Something went wrong with the coord system.');
                 break;
         }
 
@@ -298,13 +356,13 @@
             }
             valuation = V.evaluate(u1);
         } catch (error) {
-            console.log('ParseError in evaluation.', error);
+            console.error('ParseError in evaluation.', error);
             return false;
         }
         if (Number.isFinite(valuation)) {
             return true;
         } else {
-            console.log('Evaluation error. Incomplete expression, maybe.');
+            console.error('Evaluation error. Incomplete expression, maybe.');
             return false;
         }
     };
@@ -316,9 +374,17 @@
     render();
 </script>
 
-<div class="boxItem" class:selected on:keydown>
-    <ObjHeader bind:hidden {onClose} {color} {onSelect}>Solid Region</ObjHeader>
-    <div {hidden}>
+<div class="boxItem" class:selected bind:this={boxItemElement} on:keydown>
+    <ObjHeader
+        bind:minimize
+        bind:selectedObjects
+        {onClose}
+        {toggleHide}
+        objHidden={!solidGroup.visible}
+        {color}
+        {onSelect}><Nametag bind:title /></ObjHeader
+    >
+    <div hidden={minimize}>
         <div class="threedemos-container container">
             <span class="box-1">Coordinates</span>
             <select class="box-2" bind:value={params.coords}>
@@ -476,7 +542,11 @@
                     }}
                 />
                 <div class="box colorbar-container">
-                    <ColorBar vMin={$vMin} vMax={$vMax} />
+                    <ColorBar
+                        vMin={$vMin}
+                        vMax={$vMax}
+                        cmap={$densityColormap}
+                    />
                 </div>
             {:else}
                 <span class="box box-2">

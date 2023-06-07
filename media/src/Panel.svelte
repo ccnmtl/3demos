@@ -2,24 +2,22 @@
     /**
      * Main 3Demos control panel, to the left of the scene.
      */
-    import { onMount } from 'svelte';
+    import { onMount, onDestroy } from 'svelte';
     import { slide } from 'svelte/transition';
     import { quintOut } from 'svelte/easing';
 
-    import {
-        ButtonDropdown,
-        DropdownItem,
-        DropdownMenu,
-        DropdownToggle,
-        TabContent,
-        TabPane,
-    } from 'sveltestrap';
+    import { TabContent, TabPane } from 'sveltestrap';
 
-    import Intro from './Intro.svelte';
+    import HowTo from './docs/HowTo.svelte';
+    import About from './docs/About.svelte';
     import Polls from './polls/Polls.svelte';
 
-    import { makeHSLColor, querySelectorIncludesText } from './utils';
-    import { makeObject, publishScene } from './sceneUtils';
+    import {
+        // makeHSLColor,
+        querySelectorIncludesText,
+        tripleToHex,
+    } from './utils';
+    import { publishScene } from './sceneUtils';
 
     import Session from './session/Session.svelte';
 
@@ -32,8 +30,8 @@
     import Point from './objects/Point.svelte';
     import Solid from './objects/Solid.svelte';
 
-    import Story from './Story.svelte';
-    import M from './M.svelte';
+    import { evaluate_cmap } from './js-colormaps';
+    import { colorMap } from './stores';
 
     export let debug, currentMode;
     export let currentControls;
@@ -52,17 +50,17 @@
 
     export let blowUpObjects = function () {};
     export let selectObject = function () {};
-    export let selectedObject;
+    export let selectedObjects;
     export let selectedPoint;
-    export let altDown;
     export let chatBuffer;
     export let isPollsOpen;
+    export let lockPoll;
     export let objectResponses;
 
     const PANEL_DELAY = 200;
     let showPanel = true;
-    let panelWidth = 400;
-    let minWidth = 300;
+    let panelWidth = 370;
+    let panelOffset = 0;
     let panelTransition = '';
     let panelTransitionProperty = '';
 
@@ -78,143 +76,131 @@
     };
 
     const onPublishScene = function () {
-        publishScene(objects, socket);
+        publishScene(objects, selectedObjects, socket);
     };
 
-    const onClickPoint = function () {
-        objects = [
-            ...objects,
-            {
-                uuid: crypto.randomUUID(),
-                kind: 'point',
-                params: {
-                    a: `${Math.random()}`.slice(0, 5),
-                    b: `${Math.random()}`.slice(0, 5),
-                    c: `${Math.random()}`.slice(0, 5),
-                    t0: '0',
-                    t1: '1',
-                },
-                color: `#${makeHSLColor(Math.random()).getHexString()}`,
-            },
-        ];
+    let nextHue = 0;
+    const nextColorUp = () => {
+        const cm = evaluate_cmap(nextHue, $colorMap);
+        nextHue += 1 / Math.sqrt(3);
+        nextHue = nextHue % 1;
+        // console.log('colorerer', nextHue, $colorMap);
+        return tripleToHex(cm);
     };
 
-    const onClickVector = function () {
-        objects = [
-            ...objects,
-            {
-                uuid: crypto.randomUUID(),
-                kind: 'vector',
-                params: {
-                    a: `${2 * Math.random() - 1}`.slice(0, 5),
-                    b: `${2 * Math.random() - 1}`.slice(0, 5),
-                    c: `${2 * Math.random() - 1}`.slice(0, 5),
-                    x: '0',
-                    y: '0',
-                    z: '0',
-                    t0: '0',
-                    t1: '1',
-                },
-                color: `#${makeHSLColor(Math.random()).getHexString()}`,
-            },
-        ];
-    };
-
-    const onClickSpaceCurve = function () {
-        objects = [
-            ...objects,
-            {
-                uuid: crypto.randomUUID(),
-                kind: 'curve',
-                params: {
-                    a: '0',
-                    b: '2*pi',
-                    x: 'cos(t)',
-                    y: 'sin(t)',
-                    z: `${
-                        1 / 4 + Math.round(100 * Math.random()) / 100
-                    } * cos(${Math.ceil(10 * Math.random()).toString()}*t)`,
-                },
-                color: `#${makeHSLColor(Math.random()).getHexString()}`,
-            },
-        ];
-    };
-
-    const onClickGraph = function () {
-        objects = makeObject(
-            null,
-            'graph',
-            {
-                a: '-2',
-                b: '2',
-                c: '-2',
-                d: '2',
-                z: `cos(${Math.ceil(
-                    3 * Math.random()
-                ).toString()}*x + ${Math.ceil(
-                    2 * Math.random()
-                ).toString()}*y)/(1 + x^2 + y^2)`,
-                t0: '0',
-                t1: '1',
-            },
-            objects
-        );
-    };
-
-    const onClickLevelSurface = function () {
-        objects = makeObject(
-            null,
-            'level',
-            {
-                g: 'x^2 + 2 y^2 - z^2',
-                k: '1',
-                a: '-2',
-                b: '2',
-                c: '-2',
-                d: '2',
-                e: '-2',
-                f: '2',
-            },
-            objects
-        );
-    };
-
-    const onClickParSurf = function () {
-        objects = makeObject(
-            null,
-            'surface',
-            {
+    /**
+     * This is a object of functions, keyed on the 3demos object kind, which return a (randomized) default
+     * for each object kind.
+     */
+    const defaultParams = {
+        point: () => ({
+            a: `${Math.random()}`.slice(0, 5),
+            b: `${Math.random()}`.slice(0, 5),
+            c: `${Math.random()}`.slice(0, 5),
+            t0: '0',
+            t1: '1',
+        }),
+        vector: () => ({
+            a: `${2 * Math.random() - 1}`.slice(0, 5),
+            b: `${2 * Math.random() - 1}`.slice(0, 5),
+            c: `${2 * Math.random() - 1}`.slice(0, 5),
+            x: '0',
+            y: '0',
+            z: '0',
+            t0: '0',
+            t1: '1',
+        }),
+        curve: () => ({
+            a: '0',
+            b: '2*pi',
+            x: 'cos(t)',
+            y: 'sin(t)',
+            z: `${
+                1 / 4 + Math.round(100 * Math.random()) / 100
+            } * cos(${Math.ceil(10 * Math.random()).toString()}*t)`,
+        }),
+        graph: () => ({
+            a: '-2',
+            b: '2',
+            c: '-2',
+            d: '2',
+            z: `${Math.ceil(
+                4 * Math.random()
+            ).toString()} / 4 * cos(${Math.ceil(
+                3 * Math.random()
+            ).toString()}*x + ${Math.ceil(
+                2 * Math.random()
+            ).toString()}*y)/(1 + x^2 + y^2)`,
+            t0: '0',
+            t1: '1',
+        }),
+        level: () => ({
+            g: (Math.random() > 0.5 ? '-' : '') + 'x^2 + 2 y^2 - z^2',
+            k: (Math.ceil(16 * Math.random()) / 2 - 4).toString(),
+            a: '-2',
+            b: '2',
+            c: '-2',
+            d: '2',
+            e: '-2',
+            f: '2',
+        }),
+        surface: () => {
+            const k = Math.ceil(10 * Math.random());
+            const l = Math.ceil(10 * Math.random());
+            const R = (k / 20).toString();
+            return {
                 a: '0',
-                b: '2*pi',
-                c: '0',
-                d: '2*pi',
-                x: 'cos(u)*(1 + sin(v)/3)',
-                y: 'sin(u)*(1 + sin(v)/3)',
-                z: '-cos(v)/3',
-            },
-            objects
-        );
+                b: `${(2.1 - k / 10).toString()} * pi`,
+                c: `${(l / 10).toString()} * pi`,
+                d: `${(l / 10 + 1).toString()} * pi`,
+                x: `cos(u)*(1 + ${R}*sin(v))`,
+                y: `sin(u)*(1 + ${R}*sin(v))`,
+                z: `-${R}*cos(v)`,
+            };
+        },
+        solid: () => {
+            const k = Math.ceil(10 * Math.random());
+            const l = Math.ceil(10 * Math.random());
+            const m = Math.ceil(10 * Math.random());
+            const n = Math.ceil(10 * Math.random());
+            return {
+                coords: 'rect',
+                a: `-${k / 5}`,
+                b: `${l / 5}`,
+                c: `-${m / 5}`,
+                d: `${n / 5}`,
+                e: '0',
+                f: `1 - ((x - ${m / 10})^2 + (y + ${k / 10})^2) / 8`,
+            };
+        },
+        field: () => {
+            const comps = ['1', '-1', 'x', 'y', 'z', '-x', '-y', '-z'];
+            const p = comps[Math.ceil(comps.length * Math.random())];
+            const q = comps[Math.ceil(comps.length * Math.random())];
+            const r = comps[Math.ceil(comps.length * Math.random())];
+            return { p, q, r, nVec: 6 };
+        },
     };
 
-    const onClickVectorField = function () {
+    let kindToAdd = null;
+
+    $: if (kindToAdd) {
         objects = [
             ...objects,
             {
                 uuid: crypto.randomUUID(),
-                kind: 'field',
-                params: {
-                    p: 'y',
-                    q: 'z',
-                    r: 'x',
-                    nVec: 6,
-                },
+                kind: kindToAdd,
+                params: defaultParams[kindToAdd](),
+                color: nextColorUp(),
             },
         ];
-    };
+
+        kindToAdd = null;
+    }
 
     const onTogglePanel = function () {
         panelTransition = `all ${PANEL_DELAY}ms ease`;
-        panelTransitionProperty = 'width min-width';
+        panelTransitionProperty = 'transform';
 
         showPanel = !showPanel;
 
@@ -246,6 +232,14 @@
         );
         tabEl.click();
     };
+
+    const resizeObserver = new ResizeObserver((entries) => {
+        for (let entry of entries) {
+            if (entry && entry.contentRect && entry.contentRect.width) {
+                panelWidth = entry.contentRect.width;
+            }
+        }
+    });
 
     onMount(() => {
         const urlParams = new URLSearchParams(location.search);
@@ -282,22 +276,35 @@
                 if (debug) console.log(objects);
             }
         }
+
+        const panelEl = document.querySelector('.demos-panel');
+        resizeObserver.observe(panelEl);
     });
 
-    $: panelWidth = showPanel ? 400 : 0;
-    $: minWidth = showPanel ? 300 : 0;
+    onDestroy(() => {
+        const panelEl = document.querySelector('.demos-panel');
+        resizeObserver.unobserve(panelEl);
+    });
+
+    const onKeyDown = (e) => {
+        if (e.key === 'Escape') {
+            onTogglePanel();
+        }
+    };
+    window.addEventListener('keydown', onKeyDown, false);
+
+    $: panelOffset = showPanel ? 0 : -100;
 </script>
 
 <div
     class="demos-panel"
     style:transition={panelTransition}
     style:transition-property={panelTransitionProperty}
-    style:width={panelWidth + 'px'}
-    style:min-width={minWidth + 'px'}
+    style:transform={`translateX(${panelOffset}%)`}
 >
     <div id="panelAccordion" class="accordion">
         <h1 class="flex-grow-1 px-2">
-            <a href="/" title="Home">3Demos (βeta)</a>
+            <a href="/" title="Home" class="text-body">3Demos (βeta)</a>
         </h1>
 
         <div class="accordion-item demos-panel-box">
@@ -322,11 +329,11 @@
                     <div class="collapse-info">
                         <TabContent on:tab={(e) => (currentMode = e.detail)}>
                             <TabPane
-                                tabId="intro"
-                                tab="Intro"
-                                active={currentMode === 'intro'}
+                                tabId="how-to"
+                                tab="Creation"
+                                active={currentMode === 'how-to'}
                             >
-                                <Intro />
+                                <HowTo />
                             </TabPane>
                             <TabPane
                                 tabId="session"
@@ -339,16 +346,26 @@
                                     bind:objects
                                     bind:currentPoll
                                     bind:chatBuffer
+                                    {pollResponses}
                                     {selectedPoint}
+                                    {selectedObjects}
                                     {isHost}
                                 />
                             </TabPane>
                             <TabPane
                                 tabId="story"
                                 tab="Story"
+                                disabled
                                 active={currentMode === 'story'}
                             >
-                                <Story bind:objects />
+                                Story Mode
+                            </TabPane>
+                            <TabPane
+                                tabId="about"
+                                tab="About"
+                                active={currentMode === 'about'}
+                            >
+                                <About />
                             </TabPane>
                         </TabContent>
                     </div>
@@ -377,9 +394,12 @@
                     data-bs-parent="#panelAccordion"
                 >
                     <Polls
-                        bind:socket
                         bind:pollResponses
                         bind:isPollsOpen
+                        bind:lockPoll
+                        bind:objects
+                        bind:currentPoll
+                        {socket}
                         {objectResponses}
                         render={requestFrameIfNotRequested}
                     />
@@ -415,81 +435,26 @@
                             role="toolbar"
                         >
                             <div class="btn-group mb-2">
-                                <ButtonDropdown>
-                                    <DropdownToggle size="sm" color="primary">
-                                        Add Object
-                                        <i class="fa fa-plus" />
-                                    </DropdownToggle>
-                                    <DropdownMenu>
-                                        <DropdownItem on:click={onClickPoint}>
-                                            Point <M size="sm"
-                                                >P = ( a, b, c )</M
-                                            >
-                                        </DropdownItem>
-                                        <DropdownItem on:click={onClickVector}>
-                                            Vector <M size="sm"
-                                                >\mathbf v = \langle a, b, c
-                                                \rangle</M
-                                            >
-                                        </DropdownItem>
-                                        <DropdownItem
-                                            on:click={onClickSpaceCurve}
-                                        >
-                                            Space Curve <M size="sm"
-                                                >\mathbf r(t)</M
-                                            >
-                                        </DropdownItem>
-                                        <DropdownItem on:click={onClickGraph}>
-                                            Graph <M size="sm">z = f(x,y)</M>
-                                        </DropdownItem>
-                                        <DropdownItem
-                                            on:click={onClickLevelSurface}
-                                        >
-                                            Level Surface <M size="sm"
-                                                >g(x,y,z) = k</M
-                                            >
-                                        </DropdownItem>
-                                        <DropdownItem on:click={onClickParSurf}>
-                                            Parametric Surface <M size="sm"
-                                                >\mathbf r(u,v)</M
-                                            >
-                                        </DropdownItem>
-                                        <DropdownItem
-                                            on:click={() => {
-                                                objects = [
-                                                    ...objects,
-                                                    {
-                                                        uuid: crypto.randomUUID(),
-                                                        kind: 'solid',
-                                                        params: {
-                                                            coords: 'rect',
-                                                            a: '-1',
-                                                            b: '1',
-                                                            c: '-1',
-                                                            d: 'x',
-                                                            e: '0',
-                                                            f: '1 - (x^2 + y^2) / 2',
-                                                        },
-                                                        color: `#${makeHSLColor(
-                                                            Math.random()
-                                                        ).getHexString()}`,
-                                                    },
-                                                ];
-                                            }}
-                                        >
-                                            Solid Region <M size="sm"
-                                                >{'E \\subset \\mathbb{R}^3'}</M
-                                            >
-                                        </DropdownItem>
-                                        <DropdownItem
-                                            on:click={onClickVectorField}
-                                        >
-                                            Vector Field<M size="sm"
-                                                >\mathbf F(x,y,z)</M
-                                            >
-                                        </DropdownItem>
-                                    </DropdownMenu>
-                                </ButtonDropdown>
+                                <select
+                                    bind:value={kindToAdd}
+                                    name="add-object-menu"
+                                    id="add-object-menu"
+                                >
+                                    <option value={null}
+                                        >Add Object &#xFF0B;</option
+                                    >
+                                    <option value="point">point</option>
+                                    <option value="vector">vector</option>
+                                    <option value="curve">curve</option>
+                                    <option value="graph">graph</option>
+                                    <option value="level">level surface</option>
+                                    <option value="surface"
+                                        >parametric surface</option
+                                    >
+                                    <option value="solid">solid region</option>
+                                    <option value="field">vector field</option>
+                                </select>
+
                                 <button
                                     class="btn btn-sm btn-danger"
                                     on:click={blowUpObjects}
@@ -511,7 +476,7 @@
 
                         <div class="objectBoxInner">
                             <!-- Main Loop, if you will -->
-                            {#each objects as { uuid, kind, params, color, animation } (uuid)}
+                            {#each objects as { uuid, kind, params, color, title, animation } (uuid)}
                                 <div
                                     transition:slide={{
                                         delay: 0,
@@ -532,15 +497,23 @@
                                             objects = objects.filter(
                                                 (b) => b.uuid !== uuid
                                             );
+                                            selectedObjects =
+                                                selectedObjects.filter(
+                                                    (objectId) =>
+                                                        objectId !== uuid
+                                                );
                                         }}
                                         bind:color
+                                        bind:title
                                         bind:animation
                                         {uuid}
                                         {gridStep}
                                         {gridMax}
                                         on:animate={animateIfNotAnimating}
-                                        on:keydown={altDown}
-                                        selected={selectedObject === uuid}
+                                        bind:selectedObjects
+                                        selected={selectedObjects.includes(
+                                            uuid
+                                        )}
                                         onSelect={() => selectObject(uuid)}
                                         bind:selectedPoint
                                     />
@@ -739,10 +712,13 @@
 <!-- end .demos-panel -->
 
 <div
-    class="panel-hider bg-info bg-opacity-25 border border-info border-start-0 rounded-end-circle"
+    class="panel-button panel-hider bg-info bg-opacity-25 border border-info border-start-0 rounded-end-circle"
     title={showPanel ? 'Hide panel' : 'Show panel'}
     on:click={onTogglePanel}
     on:keypress={onTogglePanel}
+    style:transition={panelTransition}
+    style:transition-property={panelTransitionProperty}
+    style:transform={`translateX(${showPanel ? 0 : -panelWidth}px)`}
 >
     <div class="align-middle text-center">
         {#if showPanel}
@@ -754,21 +730,50 @@
 </div>
 
 <style>
+    :global(#panelAccordion .collapse-info .nav-link:not(.active)) {
+        color: white;
+    }
+
     .demos-panel {
         z-index: 1;
 
         min-width: 300px;
-        width: 400px;
+        /* default width */
+        width: 370px;
         max-width: 60%;
+
+        height: fit-content;
+        max-height: 100%;
 
         background-color: transparent;
 
         overflow-y: auto;
         overflow-x: hidden;
-        resize: horizontal;
 
-        /* Remove this if you don't want the 3D effect */
-        perspective: 1000px;
+        resize: horizontal;
+    }
+
+    .panel-button {
+        cursor: pointer;
+        position: relative;
+
+        min-width: 28px;
+        height: 38px;
+
+        z-index: 2;
+    }
+
+    .panel-button:hover {
+        background-color: rgba(255, 255, 150, 0.6) !important;
+    }
+
+    .panel-button > div {
+        position: relative;
+        top: 6px;
+    }
+
+    .panel-button.panel-hider {
+        top: 40px;
     }
 
     .chapterBox,
@@ -794,6 +799,8 @@
         display: flex;
         flex-direction: column;
         gap: 0.25em;
+        max-height: 60vh;
+        overflow-y: auto;
     }
 
     .object-box-title {
@@ -802,23 +809,16 @@
         justify-content: space-between;
     }
 
-    .panel-hider {
-        cursor: pointer;
-        position: relative;
-        top: 40px;
-
-        min-width: 25px;
-        height: 40px;
-
-        z-index: 2;
+    select {
+        background-color: blue;
+        color: white;
+        /* font-size: 1.25em; */
+        padding: 5px;
     }
 
-    .panel-hider:hover {
-        background-color: rgba(255, 255, 150, 0.6) !important;
-    }
-
-    .panel-hider > div {
-        position: relative;
-        top: 6px;
+    .accordion-header {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
+            Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue',
+            sans-serif;
     }
 </style>

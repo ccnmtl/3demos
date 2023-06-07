@@ -5,6 +5,8 @@
     export let socket;
     export let isHost;
     export let selectedPoint;
+    export let objects;
+    export let selectedObjects;
 
     let submitted = false;
     let response = null;
@@ -28,12 +30,14 @@
                     response = el.value;
                 }
             });
-        } else if (currentPoll.type == 'select point') {
+        } else if (currentPoll.type === 'select point') {
             response = [
                 selectedPoint.position.x.toFixed(2),
                 selectedPoint.position.y.toFixed(2),
                 selectedPoint.position.z.toFixed(2)
             ]
+        } else if (currentPoll.type === 'select object') {
+            response = objects.find((x) => x.uuid === selectedObjects[0]);
         }
 
         // Send response over websocket
@@ -48,13 +52,13 @@
         submitted = true;
     };
 
-    const onPollUpdate = function() {
-        // Un-submit the form when the instructor broadcasts a new
-        // poll.
+    const unsubmitPoll = function() {
         submitted = false;
     };
 
-    $: onPollUpdate(currentPoll);
+    // Un-submit the form when the instructor broadcasts a new
+    // poll.
+    $: unsubmitPoll(currentPoll);
 </script>
 
 
@@ -71,10 +75,17 @@
                         x: {response[0]},
                         y: {response[1]},
                         z: {response[2]}
+                    {:else if currentPoll.type == 'select object'}
+                        {response.kind}
                     {:else}
                         {response}
                     {/if}
                 </p>
+
+                <button class="btn btn-secondary" on:click={unsubmitPoll}>
+                    Edit response
+                </button>
+
             {:else}
             <form on:submit={handleOnSubmit}>
                 <div class="mb-3">

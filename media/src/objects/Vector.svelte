@@ -17,27 +17,27 @@
                 });
                 return nodes.some((node) => node.name === ch);
             });
-    // console.log('Depends test', dependsOn({ x: 'sin(t) + 5' }));
+
+    let titleIndex = 0;
 </script>
 
 <script>
     import { onMount, onDestroy, createEventDispatcher } from 'svelte';
-    // import { slide } from 'svelte/transition';
     import * as THREE from 'three';
     import { tickTock } from '../stores';
 
     import PlayButtons from '../form-components/PlayButtons.svelte';
     import M from '../M.svelte';
     import ObjHeader from './ObjHeader.svelte';
+    import Nametag from './Nametag.svelte';
     import { ArrowBufferGeometry, checksum } from '../utils.js';
+    import { flashDance } from '../sceneUtils';
     import InputChecker from '../form-components/InputChecker.svelte';
-
-    // export let paramString;
 
     export let uuid;
     export let onRenderObject = function () {};
     export let onDestroyObject = function () {};
-    export let onSelect = function() {};
+    export let onSelect = function () {};
 
     export let params = {
         a: '-1',
@@ -65,8 +65,10 @@
     export let gridStep;
     export let animation = false;
     export let selected;
+    export let selectedObjects;
+    export let title;
 
-    let hidden = false;
+    let minimize = false;
 
     const dispatch = createEventDispatcher();
 
@@ -75,8 +77,8 @@
         shininess: 80,
         side: THREE.DoubleSide,
         vertexColors: false,
-        transparent: false,
-        opacity: 0.7,
+        transparent: true,
+        opacity: 1.0,
     });
     const vfScale = gridStep * 5;
     const arrowArgs = {
@@ -127,7 +129,6 @@
             );
         }
         while (arrows.children.length > N1 - N0 + 1) {
-            // console.log(arrows.children, arrows.children.length);
             const arrow = arrows.children[arrows.children.length - 1];
             arrow.geometry.dispose();
             arrows.remove(arrow);
@@ -164,9 +165,19 @@
         render();
     }
 
+    let boxItemElement;
+    $: if (selected && selectedObjects.length > 0) {
+        flashDance(arrow, render);
+        boxItemElement.scrollIntoView({ behavior: 'smooth' });
+    }
+
     onMount(() => {
-        // console.log('mountin\'');
+        titleIndex++;
+        title = title || `Vector ${titleIndex}`;
         if (animation) dispatch('animate');
+
+        selectedObjects = [];
+        setTimeout(onSelect, 350);
     });
     onDestroy(() => {
         onDestroyObject(arrows);
@@ -182,16 +193,24 @@
         render();
     });
 
+    const toggleHide = function () {
+        arrow.visible = !arrow.visible;
+        render();
+    };
+
     const onKeyDown = (e) => {
         if (e.target.matches('input')) {
             return;
         }
-
-        switch (e.key) {
-            case 'Backspace':
-                arrow.visible = !arrow.visible;
-                render();
-                break;
+        if (selected) {
+            switch (e.key) {
+                case 'Backspace':
+                    toggleHide();
+                    break;
+                case 'p':
+                    animation = !animation;
+                    break;
+            }
         }
     };
 
@@ -233,7 +252,7 @@
             }
             valuation = Number.isFinite(parsedVal.evaluate(localParms));
         } catch (e) {
-            console.log('Parse error in expression', val, e);
+            console.error('Parse error in expression', val, e);
             return false;
         }
         return valuation;
@@ -270,14 +289,25 @@
 </script>
 
 <div
-    class={'boxItem' + (selected ? ' selected' : '')}
+    class="boxItem"
+    class:selected
+    bind:this={boxItemElement}
     hidden={!show}
     on:keydown
 >
-    <ObjHeader bind:hidden {onClose} {color} {onSelect}>
-        Vector <M size="sm">\langle v_1, v_2, v_3 \rangle</M>
+    <ObjHeader
+        bind:minimize
+        bind:selectedObjects
+        {onClose}
+        {toggleHide}
+        objHidden={!arrow.visible}
+        {color}
+        {onSelect}
+    >
+        <Nametag bind:title />
+        <M size="sm">\langle v_1, v_2, v_3 \rangle</M>
     </ObjHeader>
-    <div {hidden}>
+    <div hidden={minimize}>
         <div class="threedemos-container container">
             {#each ['a', 'b', 'c', 'x', 'y', 'z'] as name}
                 {#if name === 'x'}
@@ -298,7 +328,6 @@
             {/each}
 
             {#if isDynamic}
-                <!-- <div class="dynamic-container" transition:slide> -->
                 {#each ['t0', 't1'] as name}
                     {#if name === 't1'}
                         <span class="box box-3"
@@ -333,15 +362,9 @@
                 />
 
                 <PlayButtons
-                    className="box box-2"
                     bind:animation
                     on:animate
                     on:pause={() => (last = null)}
-                    on:stop={() => {
-                        tau = 0;
-                        last = null;
-                        update();
-                    }}
                     on:rew={() => {
                         tau = 0;
                         update();
@@ -351,7 +374,6 @@
             {/if}
 
             {#if isDiscrete}
-                <!-- <div class="dynamic-container" transition:slide> -->
                 <input
                     class="form-control form-control-sm box-1"
                     type="number"
@@ -385,9 +407,9 @@
 </div>
 
 <style>
-    .dynamic-container {
+    /* .dynamic-container {
         grid-column: 0 / 5;
-    }
+    } */
     input.form-control {
         color: black;
     }

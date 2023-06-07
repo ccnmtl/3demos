@@ -4,8 +4,9 @@
     import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
     import { drawAxes, drawGrid, labelAxes, freeChildren } from '../utils';
     import { makeObject } from '../sceneUtils';
-    import { vMin, vMax } from '../stores';
+    import { vMin, vMax, colorMap, densityColormap } from '../stores';
     import WindowHeader from './WindowHeader.svelte';
+    import { colorMapNames } from '../js-colormaps';
 
     const dispatch = createEventDispatcher();
 
@@ -146,11 +147,14 @@
     class="settings-box"
     class:grid={showSettings}
     hidden={!showSettings}
-    id="settings-box">
-
-    <WindowHeader title="Settings" onClick={() => {
-        showSettings = false;
-    }} />
+    id="settings-box"
+>
+    <WindowHeader
+        title="Settings"
+        onClick={() => {
+            showSettings = false;
+        }}
+    />
 
     <div class="row justify-content-between">
         <div class="col-12">
@@ -198,12 +202,66 @@
             />
         </label>
     </div>
+
+    <div class="row py-1 mx-1">
+        <div class="col-6 me-auto">
+            <label for="colormap"
+                ><a
+                    href="https://matplotlib.org/stable/gallery/color/colormap_reference.html#colormap-reference"
+                    target="_blank">Color Map</a
+                ></label
+            >
+        </div>
+        <div class="col-6 overflow-hidden">
+            <input
+                type="text"
+                name="colormap"
+                id="colormap-select"
+                list="cmaps"
+                value={$colorMap}
+                on:input={(e) => {
+                    const val = e.target.value;
+                    // console.log('densemap update', val);
+                    if (colorMapNames.includes(val)) {
+                        $colorMap = e.target.value;
+                    }
+                }}
+            />
+        </div>
+        <datalist id="cmaps">
+            {#each colorMapNames as cm}
+                <option value={cm} />
+            {/each}
+        </datalist>
+    </div>
+    <div class="row my-1 mx-1">
+        <div class="col-6 me-auto">
+            <label for="densitymap">Density C-Map</label>
+        </div>
+        <div class="col-6 overflow-hidden">
+            <input
+                type="text"
+                name="densitymap"
+                id="densitymap-select"
+                list="cmaps"
+                value={$densityColormap}
+                on:input={(e) => {
+                    const val = e.target.value;
+                    // console.log('densemap update', val);
+                    if (colorMapNames.includes(val)) {
+                        $densityColormap = e.target.value;
+                    }
+                }}
+            />
+        </div>
+    </div>
+
     <div class="row align-items-center">
         <div class="col-6">
-            <label class="col-5" for="vmin">vMin</label>
-            <input class="col-6" id="vmin" type="number" bind:value={$vMin} />
-            <label class="col-5" for="vmax">vMax</label>
-            <input class="col-6" id="vmax" type="number" bind:value={$vMax} />
+            <label class="col-5 my-1" for="vmin">vMin</label>
+            <input class="col-6 my-1" id="vmin" type="number" bind:value={$vMin} />
+            <label class="col-5 my-1" for="vmax">vMax</label>
+            <input class="col-6 my-1" id="vmax" type="number" bind:value={$vMax} />
         </div>
         <div class="col-4">
             <button
@@ -215,7 +273,7 @@
                     render();
                 }}
             >
-                    Reset
+                Reset
             </button>
         </div>
     </div>
@@ -225,11 +283,14 @@
     class="settings-box"
     class:grid={showUpload}
     hidden={!showUpload}
-    id="upload-box">
-
-    <WindowHeader title="Upload Scene" onClick={() => {
-        showUpload = false;
-    }} />
+    id="upload-box"
+>
+    <WindowHeader
+        title="Upload Scene"
+        onClick={() => {
+            showUpload = false;
+        }}
+    />
 
     <form>
         <label for="sceneUpload">Upload a scene</label>
@@ -271,7 +332,12 @@
     >
         <i class="fa fa-upload" />
     </button>
-    <button class="button" id="download" title="Download Scene" on:click={downloadScene}>
+    <button
+        class="button"
+        id="download"
+        title="Download Scene"
+        on:click={downloadScene}
+    >
         <i class="fa fa-download" />
     </button>
     <button
@@ -289,12 +355,13 @@
         <i class="fa fa-camera" />
     </button>
     {#if roomId}
-    <a href="/" class="button" title="Exit room">
-        <i class="fa fa-sign-out-alt" />
-    </a>
+        <a href="/" class="button" title="Exit room">
+            <i class="fa fa-sign-out-alt" />
+        </a>
     {/if}
-</div><!-- end .settings-buttons -->
+</div>
 
+<!-- end .settings-buttons -->
 
 <style>
     .button {

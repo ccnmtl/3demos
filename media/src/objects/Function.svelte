@@ -1,3 +1,7 @@
+<script context="module">
+    let titleIndex = 0;
+</script>
+
 <script>
     import { onMount, onDestroy, createEventDispatcher } from 'svelte';
     import * as THREE from 'three';
@@ -6,6 +10,7 @@
     import M from '../M.svelte';
     import ObjHeader from './ObjHeader.svelte';
     import InputChecker from '../form-components/InputChecker.svelte';
+    import Nametag from './Nametag.svelte';
     import PlayButtons from '../form-components/PlayButtons.svelte';
     import { dependsOn } from './Vector.svelte';
     import { tickTock } from '../stores';
@@ -24,11 +29,12 @@
         blockGeometry,
         checksum,
     } from '../utils.js';
+    import { flashDance } from '../sceneUtils';
 
     export let uuid;
     export let onRenderObject = function () {};
     export let onDestroyObject = function () {};
-    export let onSelect = function() {};
+    export let onSelect = function () {};
 
     export let params = {
         a: '-2',
@@ -67,7 +73,7 @@
                 })
             );
         } catch (e) {
-            console.log('Parse error in expression', val, e);
+            console.error('Parse error in expression', val, e);
             return false;
         }
         return valuation;
@@ -102,10 +108,11 @@
     export let onClose = () => {};
     export let animation = false;
     export let selected;
+    export let selectedObjects;
     export let selectedPoint;
-    $: selectedPoint = selected ? point : selectedPoint;
+    export let title;
 
-    let hidden = false;
+    let minimize = false;
 
     const colorMaterial = new THREE.MeshPhongMaterial({
         color: 0xffffff,
@@ -113,7 +120,7 @@
         side: THREE.FrontSide,
         vertexColors: true,
         transparent: false,
-        opacity: 0.85,
+        opacity: 0.5,
     });
     const boxEdgeMaterial = new THREE.LineBasicMaterial({
         color: 0xffffff,
@@ -277,7 +284,7 @@
         side: THREE.FrontSide,
         vertexColors: false,
         transparent: true,
-        opacity: 0.7,
+        opacity: 0.5,
         depthTest: true,
     });
     const minusMaterial = new THREE.MeshPhongMaterial({
@@ -286,7 +293,7 @@
         side: THREE.BackSide,
         vertexColors: false,
         transparent: true,
-        opacity: 0.7,
+        opacity: 0.5,
     });
 
     // Set other side a complementary color.
@@ -559,12 +566,28 @@
 
     // Keep color fresh
     $: {
+        if (selectedObjects.length === 0 || selected) {
+            if (selectedObjects[selectedObjects.length - 1] === uuid) {
+                selectedPoint = point;
+            }
+            // plusMaterial.opacity = 0.7;
+            // minusMaterial.opacity = 0.7;
+        } else {
+            // plusMaterial.opacity = 0.3;
+            // minusMaterial.opacity = 0.3;
+        }
         plusMaterial.color.set(color);
         const hsl = {};
         plusMaterial.color.getHSL(hsl);
         hsl.h = (hsl.h + 0.618033988749895) % 1;
         minusMaterial.color.setHSL(hsl.h, hsl.s, hsl.l);
         render();
+    }
+
+    let boxItemElement;
+    $: if (selected && selectedObjects.length > 0) {
+        surfaceMesh.children.map((mesh) => flashDance(mesh, render));
+        boxItemElement.scrollIntoView({ behavior: 'smooth' });
     }
 
     const update = function (dt) {
@@ -789,11 +812,17 @@
     };
 
     onMount(() => {
+        titleIndex++;
+        title = title || `Graph ${titleIndex}`;
+
         params.t0 = params.t0 || '0';
         params.t1 = params.t1 || '1';
         updateSurface();
         updateBoxes();
         if (animation) dispatch('animate');
+
+        selectedObjects = [];
+        setTimeout(onSelect, 350);
     });
     onDestroy(() => {
         onDestroyObject(...surfaceMesh.children);
@@ -852,6 +881,11 @@
         levelReq = requestAnimationFrame(updateLevelShift);
     };
 
+    const toggleHide = function () {
+        surfaceMesh.visible = !surfaceMesh.visible;
+        render();
+    };
+
     const onKeyDown = (e) => {
         if (e.target.matches('input')) {
             return;
@@ -875,8 +909,9 @@
                     render();
                     break;
                 case 'Backspace':
-                    surfaceMesh.visible = !surfaceMesh.visible;
-                    render();
+                    if (selected) {
+                        toggleHide();
+                    }
                     break;
                 case 't':
                     point.visible = !point.visible;
@@ -928,11 +963,19 @@
     window.addEventListener('keyup', onKeyUp, true);
 </script>
 
-<div class={'boxItem' + (selected ? ' selected' : '')} on:keydown>
-    <ObjHeader bind:hidden {onClose} {color} {onSelect}>
-        Graph of function
+<div class="boxItem" class:selected bind:this={boxItemElement} on:keydown>
+    <ObjHeader
+        bind:minimize
+        bind:selectedObjects
+        {onClose}
+        {toggleHide}
+        objHidden={!surfaceMesh.visible}
+        {color}
+        {onSelect}
+    >
+        <Nametag bind:title />
     </ObjHeader>
-    <div {hidden}>
+    <div hidden={minimize}>
         <div class="threedemos-container container">
             <span class="box-1">
                 <M size="sm">f(x,y[,t]) =</M>
@@ -1067,7 +1110,7 @@
                     />
                 {/each}
 
-                <span class="box-1 ">
+                <span class="box-1">
                     <span class="t-box">t = {texString1}</span>
                 </span>
                 <input
@@ -1091,10 +1134,6 @@
                     bind:animation
                     on:animate
                     on:pause={() => (last = null)}
-                    on:stop={() => {
-                        tau = 0;
-                        last = null;
-                    }}
                     on:rew={() => (tau = 0)}
                 />
                 <!-- </div> -->

@@ -1,3 +1,7 @@
+<script context="module">
+    let titleIndex = 0;
+</script>
+
 <script>
     import { onMount, onDestroy, createEventDispatcher } from 'svelte';
     import * as THREE from 'three';
@@ -5,7 +9,9 @@
 
     import M from '../M.svelte';
     import ObjHeader from './ObjHeader.svelte';
+    import Nametag from './Nametag.svelte';
     import { ArrowBufferGeometry, rk4, norm1, checksum } from '../utils.js';
+    import { flashDance } from '../sceneUtils';
     import { tickTock } from '../stores';
     // import ObjectParamInput from '../form-components/ObjectParamInput.svelte';
     import InputChecker from '../form-components/InputChecker.svelte';
@@ -20,7 +26,7 @@
     export let uuid;
     export let onRenderObject = function () {};
     export let onDestroyObject = function () {};
-    export let onSelect = function() {};
+    export let onSelect = function () {};
 
     export let params = {
         p: 'y',
@@ -39,10 +45,12 @@
     export let animation = false;
     export let onClose = () => {};
     export let gridMax, gridStep;
+    export let selectedObjects;
     export let selected;
     export let color = '#373765';
+    export let title;
 
-    let hidden = false;
+    let minimize = false;
     let flowTrails = true;
 
     /**
@@ -58,14 +66,18 @@
 
             valuation = Number.isFinite(parsedVal.evaluate({ x, y, z }));
         } catch (e) {
-            console.log('Parse error in expression', val, e);
+            console.error('Parse error in expression', val, e);
             return false;
         }
         return valuation;
     };
 
     const flowArrows = new THREE.Object3D();
-    const fieldMaterial = new THREE.MeshLambertMaterial({ color });
+    const fieldMaterial = new THREE.MeshLambertMaterial({
+        color,
+        transparent: true,
+        opacity: 0.5,
+    });
     const trailMaterial = new THREE.LineBasicMaterial({
         color: 0xffffff,
         vertexColors: true,
@@ -75,6 +87,11 @@
     let interpretColor;
     // Keep color fresh
     $: {
+        // if (selectedObjects.length === 0 || selected) {
+        //     fieldMaterial.opacity = 1.0;
+        // } else {
+        //     fieldMaterial.opacity = 0.3;
+        // }
         fieldMaterial.color.set(color);
         const hsl = {};
         fieldMaterial.color.getHSL(hsl);
@@ -95,6 +112,13 @@
             trails.geometry.attributes.color.needsUpdate = true;
         }
         render();
+    }
+
+    let boxItemElement;
+    $: if (selected && selectedObjects.length > 0) {
+        flashDance(flowArrows.children[0], render);
+        // flashDance(trails, render); // doesn't work]]
+        boxItemElement.scrollIntoView({ behavior: 'smooth' });
     }
 
     const trailGeometry = new THREE.BufferGeometry();
@@ -308,11 +332,17 @@
     scene.add(trails);
 
     onMount(() => {
+        titleIndex++;
+        title = title || `Vector Field ${titleIndex}`;
+
         updateField();
         maxLength = initFlowArrows(flowArrows, gridMax, params.nVec);
         updateFlowArrows(flowArrows, fieldF, 0);
         render();
         if (animation) dispatch('animate');
+
+        selectedObjects = [];
+        setTimeout(onSelect, 350);
     });
     onDestroy(() => {
         onDestroyObject(flowArrows);
@@ -349,43 +379,56 @@
         dispatch('animate');
     }
 
+    const toggleHide = function () {
+        flowArrows.visible = !flowArrows.visible;
+        render();
+    };
+
     const onKeyDown = (e) => {
         if (e.target.matches('input')) {
             return;
         }
-
-        switch (e.key) {
-            case 'Backspace':
-                flowArrows.visible = !flowArrows.visible;
-                render();
-                break;
-            case 't':
-                trails.visible = !trails.visible;
-                freeTrails();
-                render();
-                break;
-            case 'p':
-                flowArrows.visible = true;
-                animation = !animation;
-                if (animation) {
-                    dispatch('animate');
-                }
-                render();
-                break;
-            case 'r':
-                rewindArrows();
-                break;
+        if (selected) {
+            switch (e.key) {
+                case 'Backspace':
+                    toggleHide();
+                    break;
+                case 't':
+                    trails.visible = !trails.visible;
+                    freeTrails();
+                    render();
+                    break;
+                case 'p':
+                    flowArrows.visible = true;
+                    animation = !animation;
+                    if (animation) {
+                        dispatch('animate');
+                    }
+                    render();
+                    break;
+                case 'r':
+                    rewindArrows();
+                    break;
+            }
         }
     };
 
     window.addEventListener('keydown', onKeyDown, false);
 </script>
 
-<div class={'boxItem' + (selected ? ' selected' : '')} on:keydown>
-    <ObjHeader bind:hidden {onClose} {color} {onSelect}>
-        Vector Field
+<div class="boxItem" class:selected bind:this={boxItemElement} on:keydown>
+    <ObjHeader
+        bind:minimize
+        bind:selectedObjects
+        {onClose}
+        {toggleHide}
+        objHidden={!flowArrows.visible}
+        {color}
+        {onSelect}
+    >
+        <Nametag bind:title />
     </ObjHeader>
-    <div {hidden}>
+    <div hidden={minimize}>
         <div class="threedemos-container container">
             {#each ['p', 'q', 'r'] as name}
                 <span class="box-1"
@@ -439,17 +482,6 @@
                 on:animate
                 on:play={() => (flowArrows.visible = true)}
                 on:pause={() => (last = null)}
-                on:stop={() => {
-                    flowArrows.visible = false;
-                    freeTrails();
-                    freeChildren(flowArrows);
-                    maxLength = initFlowArrows(
-                        flowArrows,
-                        gridMax,
-                        params.nVec
-                    );
-                    render();
-                }}
                 on:rew={rewindArrows}
             />
 

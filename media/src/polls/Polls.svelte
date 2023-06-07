@@ -11,6 +11,9 @@
     export let objectResponses;
     export let isPollsOpen;
     export let render;
+    export let objects;
+    export let currentPoll;
+    export let lockPoll;
 
     let polls = loadPolls();
     // Init empty polls to some basic examples
@@ -21,7 +24,8 @@
             new Poll('multiple choice',
                      'Question test 2', ['a', 'b', 'c', 'd']),
             new Poll('numeric', 'What is the square root of 2?'),
-            new Poll('select point', 'Select your favorite point.')
+            new Poll('select point', 'Select your favorite point.'),
+            new Poll('select object', 'Select your favorite object.')
         ];
     }
 
@@ -75,6 +79,8 @@
 
     const onClickBroadcast = function(e, p) {
         pollResponses = {};
+        lockPoll = false;
+        currentPoll = p;
         currentPollType = p.type;
 
         // Send the given poll to session participants
@@ -159,7 +165,13 @@
             </TabPane>
         <TabPane tabId="responses" tab="Responses"
                  active={activeTab === 'responses'}>
-            <PollResponses bind:currentPollType bind:pollResponses {objectResponses} {render}/>
+            <PollResponses role="host"
+                           bind:objects
+                           bind:lockPoll
+                           {currentPoll}
+                           {currentPollType} {pollResponses}
+                           {socket}
+                           {objectResponses} {render} />
         </TabPane>
     </TabContent>
 </div>

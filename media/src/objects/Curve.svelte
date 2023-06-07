@@ -1,3 +1,7 @@
+<script context="module">
+    let titleIndex = 0;
+</script>
+
 <script>
     import {
         onMount,
@@ -5,6 +9,7 @@
         createEventDispatcher,
         beforeUpdate,
     } from 'svelte';
+    import Nametag from './Nametag.svelte';
     import * as THREE from 'three';
     import { create, all } from 'mathjs';
 
@@ -15,6 +20,7 @@
         ParametricCurve,
         checksum,
     } from '../utils.js';
+    import { flashDance } from '../sceneUtils';
     import InputChecker from '../form-components/InputChecker.svelte';
 
     import { tickTock } from '../stores';
@@ -25,10 +31,11 @@
 
     const dispatch = createEventDispatcher();
 
+    export let title;
     export let uuid;
     export let onRenderObject = function () {};
     export let onDestroyObject = function () {};
-    export let onSelect = function() {};
+    export let onSelect = function () {};
 
     // export let paramString;
 
@@ -41,6 +48,7 @@
     };
 
     let xyz;
+    let boxItemElement;
 
     $: {
         const [x, y, z] = [params.x, params.y, params.z].map((f) =>
@@ -66,13 +74,13 @@
             const t = (A.evaluate() + B.evaluate()) / 2;
             valuation = V.evaluate({ t });
         } catch (error) {
-            console.log('ParseError in evaluation.', error);
+            console.error('ParseError in evaluation.', error);
             return false;
         }
         if (Number.isFinite(valuation)) {
             return true;
         } else {
-            console.log('Evaluation error. Incomplete expression, maybe.');
+            console.error('Evaluation error. Incomplete expression, maybe.');
             return false;
         }
     };
@@ -88,6 +96,7 @@
     export let camera;
     export let gridStep;
     export let animation = false;
+    export let selectedObjects;
     export let selected;
     let last;
 
@@ -108,7 +117,7 @@
 
     let TNB = false;
     let osculatingCircle = false;
-    let hidden = false;
+    let minimize = false;
     // let stopButton, rewButton;
 
     const curveMaterial = new THREE.MeshPhongMaterial({
@@ -116,7 +125,8 @@
         shininess: 80,
         side: THREE.DoubleSide,
         vertexColors: false,
-        transparent: false,
+        transparent: true,
+        opacity: 0.5,
     });
 
     beforeUpdate(() => {
@@ -354,6 +364,11 @@
             frame.visible = true;
             dispatch('animate');
         }
+        titleIndex++;
+        title = title || `Space Curve ${titleIndex}`;
+
+        selectedObjects = [];
+        setTimeout(onSelect, 350);
     });
     onDestroy(() => {
         onDestroyObject(tube);
@@ -381,6 +396,11 @@
 
     $: texString1 = `${stringifyT(tau)}`;
 
+    $: if (selected && selectedObjects.length > 0) {
+        flashDance(tube, render);
+        boxItemElement.scrollIntoView({ behavior: 'smooth' });
+    }
+
     const raycaster = new THREE.Raycaster();
 
     let mouseVector = new THREE.Vector2();
@@ -404,49 +424,54 @@
         }
     };
 
+    const toggleHide = function () {
+        if (tube.visible) {
+            tube.visible = false;
+            circleTube.visible = false;
+        } else {
+            tube.visible = true;
+            circleTube.visible = osculatingCircle;
+        }
+        render();
+    };
+
     const onKeyDown = (e) => {
         if (e.target.matches('input')) {
             return;
         }
-
-        switch (e.key) {
-            case 'Backspace':
-                if (tube.visible) {
-                    tube.visible = false;
-                    circleTube.visible = false;
-                } else {
-                    tube.visible = true;
-                    circleTube.visible = osculatingCircle;
-                }
-                render();
-                break;
-            case 'Shift':
-                window.addEventListener('mousemove', onMouseMove, false);
-                frame.visible = true;
-                break;
-            case 'c':
-                controls.target.set(
-                    point.position.x,
-                    point.position.y,
-                    point.position.z
-                );
-                render();
-                break;
-            case 'o':
-                osculatingCircle = !osculatingCircle;
-                render();
-                break;
-            case 'p':
-                animation = !animation;
-                break;
-            case 's':
-                TNB = !TNB;
-                render();
-                break;
-            case 't':
-                frame.visible = !frame.visible;
-                render();
-                break;
+        if (selected) {
+            switch (e.key) {
+                case 'Backspace':
+                    toggleHide();
+                    break;
+                case 'Shift':
+                    window.addEventListener('mousemove', onMouseMove, false);
+                    frame.visible = true;
+                    break;
+                case 'c':
+                    controls.target.set(
+                        point.position.x,
+                        point.position.y,
+                        point.position.z
+                    );
+                    render();
+                    break;
+                case 'o':
+                    osculatingCircle = !osculatingCircle;
+                    render();
+                    break;
+                case 'p':
+                    animation = !animation;
+                    break;
+                case 's':
+                    TNB = !TNB;
+                    render();
+                    break;
+                case 't':
+                    frame.visible = !frame.visible;
+                    render();
+                    break;
+            }
         }
     };
 
@@ -464,11 +489,19 @@
     window.addEventListener('keyup', onKeyUp, false);
 </script>
 
-<div class={'boxItem' + (selected ? ' selected' : '')} on:keydown>
-    <ObjHeader bind:hidden {onClose} {color} {onSelect}>
-        Space Curve
+<div class="boxItem" class:selected bind:this={boxItemElement} on:keydown>
+    <ObjHeader
+        bind:minimize
+        bind:selectedObjects
+        {toggleHide}
+        {onClose}
+        {color}
+        {onSelect}
+        objHidden={!tube.visible}
+    >
+        <Nametag bind:title />
     </ObjHeader>
-    <div {hidden}>
+    <div hidden={minimize}>
         <div class="threedemos-container container">
             {#each ['x', 'y', 'z'] as name}
                 <span class="box-1"><M size="sm">{name}(t) =</M></span>
@@ -494,7 +527,7 @@
                             math.parse(b).evaluate()
                         );
                     } catch (e) {
-                        console.log('Parsing error', e);
+                        console.error('Parsing error', e);
                         return false;
                     }
                 }}
@@ -515,7 +548,7 @@
                             math.parse(val).evaluate()
                         );
                     } catch (e) {
-                        console.log('Parsing error', e);
+                        console.error('Parsing error', e);
                         return false;
                     }
                 }}
@@ -544,6 +577,12 @@
                 }}
                 class="box box-2"
             />
+            <PlayButtons
+                bind:animation
+                on:animate
+                on:pause={() => (last = null)}
+                on:rew={() => (tau = 0)}
+            />
             <span class="box-1">Frame</span>
             <label class="switch box box-2">
                 <input
@@ -555,46 +594,6 @@
                 />
                 <span class="slider round" />
             </label>
-
-            <PlayButtons
-                bind:animation
-                on:animate
-                on:pause={() => (last = null)}
-                on:stop={() => {
-                    tau = 0;
-                    last = null;
-                }}
-                on:rew={() => (tau = 0)}
-            />
-            <!-- <span class="play-buttons box-4">
-                <button class="btn box-1" on:click={() => startAnimation(true)}>
-                    {#if !animation}
-                        <i class="fa fa-play" />
-                    {:else}
-                        <i class="fa fa-pause" />
-                    {/if}
-                </button>
-                <button
-                    class="btn box-3"
-                    on:click={() => {
-                        animation = false;
-                        render();
-                    }}
-                    bind:this={stopButton}
-                >
-                    <i class="fa fa-stop" />
-                </button>
-                <button
-                    class="btn box-4"
-                    on:click={() => {
-                        tau = 0;
-                        update(0);
-                    }}
-                    bind:this={rewButton}
-                >
-                    <i class="fa fa-fast-backward" />
-                </button>
-            </span> -->
 
             <span class="box-1">Reparamterize by <M>s</M></span>
             <label class="switch box box-2">

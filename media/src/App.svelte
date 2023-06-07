@@ -5,9 +5,6 @@
     import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
     import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
     import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
-    import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
-    import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
-    import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass.js';
 
     // import components
     import Panel from './Panel.svelte';
@@ -39,26 +36,31 @@
 
     let scaleAnimation = false;
     let scaleUpdate;
-    let selectedObject = null;
+    let selectedObjects = [];
     let hoveredObject = null;
     let selectedPoint = null;
+    let lockPoll = false;
 
     let canvas;
     let isPollsOpen = false;
-    let composer, outlinePass;
+
+    let showPollResults = false;
 
     const selectObject = (uuid) => {
-        selectedObject = uuid;
-
-        if (uuid) {
-            const obj = sceneObjects.find((x) => x.name === uuid);
-            outlinePass.selectedObjects = [obj];
+        if (uuid === null) {
+            selectedObjects = [];
         } else {
-            outlinePass.selectedObjects = [];
+            if (selectedObjects.includes(uuid)) {
+                selectedObjects = selectedObjects.filter((obj) => obj !== uuid);
+            } else {
+                //Can't just push. Assignment needed to trigger dynamic update
+                selectedObjects = selectedObjects.concat(uuid);
+            }
         }
-
         render();
     };
+
+    const objectLoader = new THREE.ObjectLoader();
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(
@@ -203,7 +205,6 @@
         const needResize = canvas.width !== width || canvas.height !== height;
         if (needResize) {
             renderer.setSize(width, height, false);
-            composer.setSize(width, height, false);
         }
         return needResize;
     };
@@ -239,7 +240,7 @@
         }
 
         currentControls?.update();
-        composer.render(scene, currentCamera);
+        renderer.render(scene, currentCamera);
         if (debug) {
             stats.end();
         }
@@ -278,7 +279,7 @@
         }
 
         currentControls?.update();
-        composer.render(scene, currentCamera);
+        renderer.render(scene, currentCamera);
     };
 
     /**
@@ -289,19 +290,6 @@
             antialias: true,
             canvas: el,
         });
-        // post-processing
-        composer = new EffectComposer(renderer);
-
-        const renderPass = new RenderPass(scene, camera);
-        composer.addPass(renderPass);
-
-        outlinePass = new OutlinePass(
-            new THREE.Vector2(window.innerWidth, window.innerHeight),
-            scene,
-            camera
-        );
-        // TODO
-        // composer.addPass(outlinePass);
 
         controls = new OrbitControls(camera, el);
         controls2 = new OrbitControls(camera2, el);
@@ -360,6 +348,7 @@
     export const blowUpObjects = () => {
         if (confirm('Remove all objects in the scene?')) {
             objects = [];
+            selectedObjects = [];
         }
     };
 
@@ -409,14 +398,16 @@
             currentCamera,
             raycaster
         );
-        if (intersects.length > 0) {
-            if (intersects[0].object) {
-                let obj = intersects[0].object;
-                let uuid = obj.name || obj.parent.name;
-                if (uuid) {
-                    document.body.style.cursor = 'pointer';
-                    hoveredObject = uuid;
-                }
+        let nearestVisible = intersects.find(
+            (intersect) =>
+                intersect.object.visible && intersect.object.parent.visible
+        );
+        if (nearestVisible) {
+            let obj = nearestVisible.object;
+            let uuid = obj.name || obj.parent.name;
+            if (uuid) {
+                document.body.style.cursor = 'pointer';
+                hoveredObject = uuid;
             }
         } else {
             document.body.style.cursor = 'auto';
@@ -424,7 +415,10 @@
         }
     };
 
-    const onDblClick = function () {
+    const onDblClick = function (e) {
+        if (!e.shiftKey) {
+            selectedObjects = [];
+        }
         selectObject(hoveredObject);
     };
 
@@ -460,8 +454,8 @@
         scene.add(objectResponses);
     });
 
-    let currentChapter = 'Intro';
-    let currentMode = 'intro';
+    let currentChapter = 'How To';
+    let currentMode = 'how-to';
 
     let pollResponses = {};
 
@@ -499,29 +493,60 @@
                 }
                 chatBuffer = [...chatBuffer, data.message.chatMessage];
             }
-        } else if (data.message.pollResponse && isHost) {
+        } else if (
+            data.message.pollResponse &&
+            // Show if I am the host, or I am a client with showPollResults
+            (isHost || showPollResults)
+        ) {
             const sessionKey = data.message.session_key;
-            if (data.message.poll === 'select point') {
-                if (pollResponses[sessionKey]) {
-                    objectResponses.remove(pollResponses[sessionKey]);
+            if (!(lockPoll && pollResponses[sessionKey])) {
+                if (data.message.poll === 'select point') {
+                    if (pollResponses[sessionKey]) {
+                        objectResponses.remove(pollResponses[sessionKey]);
+                    }
+                    isPollsOpen = false;
+                    let xyz = data.message.pollResponse;
+                    let response = new THREE.Mesh(pointGeometry, pollMaterial);
+                    pollResponses[sessionKey] = response;
+                    response.position.set(xyz[0], xyz[1], xyz[2]);
+                    objectResponses.add(response);
+                    render();
+                } else {
+                    pollResponses[sessionKey] = data.message.pollResponse;
                 }
-                isPollsOpen = false;
-                let xyz = data.message.pollResponse;
-                let response = new THREE.Mesh(pointGeometry, pollMaterial);
-                pollResponses[sessionKey] = response;
-                response.position.set(xyz[0], xyz[1], xyz[2]);
-                objectResponses.add(response);
-                render();
-            } else {
-                pollResponses[sessionKey] = data.message.pollResponse;
             }
         } else if (data.message.broadcastPoll) {
             currentPoll = handlePollEvent(data);
+
+            // Clear user's poll responses when a new poll is broadcast.
+            pollResponses = {};
+
             if (panel) {
                 // When user receives a poll, display the appropriate
                 // panel view so they can see it.
                 panel.showMainPanelItem();
             }
+        } else if (data.message.showPollResults) {
+            showPollResults = true;
+            const results = data.message.showPollResults;
+            pollResponses = results.results;
+
+            if (results && results.objects !== null) {
+                objectResponses.clear();
+                objectResponses.children = objectLoader.parse(
+                    results.objects
+                ).children;
+                render();
+            }
+
+            if (panel) {
+                // When user receives pollResults broadcast, display the
+                // appropriate panel view so they can see it.
+                panel.showMainPanelItem();
+            }
+        } else if (data.message.hidePollResults) {
+            showPollResults = false;
+            pollResponses = null;
         } else if (data.message.updateActiveUsers) {
             if (typeof data.message.updateActiveUsers === 'number') {
                 activeUserCount = data.message.updateActiveUsers;
@@ -543,55 +568,58 @@
         socket = makeSocket(roomId, handleSocketMessage);
     }
 
-    const altDown = (e) => {
+    const keySelect = function (e, moveDown) {
+        if (!objects) {
+            return;
+        } else if (selectedObjects.length === 0) {
+            selectedObjects = [objects[moveDown ? objects.length - 1 : 0].uuid];
+        } else if (selectedObjects.length === objects.length) {
+            return;
+        } else {
+            const selectedIndex = objects
+                .map((x) => x.uuid)
+                .indexOf(
+                    selectedObjects[moveDown ? selectedObjects.length - 1 : 0]
+                );
+            const newIdx = modFloor(
+                selectedIndex + (moveDown ? -1 : 1),
+                objects.length
+            );
+            if (e.shiftKey) {
+                selectedObjects = moveDown
+                    ? selectedObjects.concat([objects[newIdx].uuid])
+                    : [objects[newIdx].uuid].concat(selectedObjects);
+            } else {
+                selectedObjects = [objects[newIdx].uuid];
+            }
+        }
+        render();
+    };
+
+    const keyDown = (e) => {
         if (e.target.matches('input')) {
             return;
         }
-
-        if (e.altKey) {
-            switch (e.code) {
-                case 'BracketRight':
-                    e.preventDefault();
-                    if (!objects) {
-                        return;
-                    }
-
-                    if (!selectedObject) {
-                        selectedObject = objects[objects.length - 1].uuid;
-                    } else {
-                        const selectedIndex = objects
-                            .map((x) => x.uuid)
-                            .indexOf(selectedObject);
-                        const newIdx = modFloor(
-                            selectedIndex - 1,
-                            objects.length
-                        );
-                        selectedObject = objects[newIdx].uuid;
-                    }
-                    break;
-                case 'BracketLeft':
-                    e.preventDefault();
-                    if (!objects) {
-                        return;
-                    }
-
-                    if (!selectedObject) {
-                        selectedObject = objects[0].uuid;
-                    } else {
-                        const selectedIndex = objects
-                            .map((x) => x.uuid)
-                            .indexOf(selectedObject);
-                        const newIdx = modFloor(
-                            selectedIndex + 1,
-                            objects.length
-                        );
-                        selectedObject = objects[newIdx].uuid;
-                    }
-                    break;
-            }
+        switch (e.key) {
+            case 'd':
+                selectedObjects = [];
+                render();
+                break;
+            case '[':
+                keySelect(e, true);
+                break;
+            case '{':
+                keySelect(e, true);
+                break;
+            case ']':
+                keySelect(e, false);
+                break;
+            case '}':
+                keySelect(e, false);
+                break;
         }
     };
-    window.addEventListener('keydown', altDown, false);
+    window.addEventListener('keydown', keyDown, false);
 </script>
 
 <main>
@@ -607,10 +635,11 @@
             bind:gridMax
             bind:chatBuffer
             bind:pollResponses
+            bind:lockPoll
             {isHost}
             {blowUpObjects}
             {selectObject}
-            {selectedObject}
+            bind:selectedObjects
             {scene}
             {onRenderObject}
             {onDestroyObject}
@@ -621,7 +650,6 @@
             {animateIfNotAnimating}
             {roomId}
             {currentPoll}
-            {altDown}
             bind:selectedPoint
             {objectResponses}
             bind:isPollsOpen

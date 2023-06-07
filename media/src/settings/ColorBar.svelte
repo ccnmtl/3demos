@@ -1,9 +1,10 @@
 <script>
-    import { onMount } from 'svelte';
+    import { afterUpdate } from 'svelte';
     import { blueUpRedDown } from '../utils';
 
     export let vMin = 0;
     export let vMax = 1;
+    export let cmap = 'gist_earth';
 
     let container;
     let canvas;
@@ -11,7 +12,7 @@
 
     $: vRange = vMax - vMin;
 
-    onMount(() => {
+    afterUpdate(() => {
         canvas.width = container.clientWidth;
         canvas.height = container.clientHeight / 2;
 
@@ -21,7 +22,11 @@
         const grd = context.createLinearGradient(0, 0, canvas.width, 0);
 
         for (let x = 0; x <= 1; x += 0.125) {
-            const hexString = blueUpRedDown(x * 2 - 1).getHexString();
+            const hexString = blueUpRedDown(
+                x * 2 - 1,
+                0.8,
+                cmap
+            ).getHexString();
             grd.addColorStop(x, '#' + hexString);
         }
         context.fillStyle = grd;

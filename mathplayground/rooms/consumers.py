@@ -70,8 +70,7 @@ class RoomsConsumer(AsyncWebsocketConsumer):
         message = text_data_json['message']
 
         if message.get('pollResponse'):
-            # Send poll response to instructor
-            # TODO - currently sends to everyone.
+            # Send poll response to everyone
             message['session_key'] = session.session_key
             await self.channel_layer.group_send(
                 self.room_group_name,
@@ -114,6 +113,11 @@ class RoomsConsumer(AsyncWebsocketConsumer):
         elif message.get('broadcastPoll'):
             new_poll = message.get('broadcastPoll', {})
             state['poll'] = new_poll
+        elif message.get('showPollResults'):
+            poll_results = message.get('showPollResults', {})
+            state['pollResults'] = poll_results
+        elif message.get('hidePollResults'):
+            state['pollResults'] = None
 
         scene.save_state(state)
 
@@ -138,8 +142,10 @@ class RoomsConsumer(AsyncWebsocketConsumer):
         session = self.scope['session']
 
         # Don't send events to myself.
-        # Well, except for the updateActiveUsers event.
-        if 'updateActiveUsers' not in message and \
+        # Well, except for the updateActiveUsers event and
+        # pollResponse event.
+        if ('updateActiveUsers' not in message) and \
+           ('pollResponse' not in message) and \
            event.get('session_key') == session.session_key:
             return
 

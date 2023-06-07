@@ -1,5 +1,6 @@
 <script>
     import Poll from '../polls/Poll.svelte';
+    import PollResponses from '../polls/PollResponses.svelte';
     import Chatroom from './Chatroom.svelte';
     import {getRoomUrl} from '../utils.js';
 
@@ -10,6 +11,8 @@
     export let objects;
     export let chatBuffer;
     export let selectedPoint;
+    export let selectedObjects;
+    export let pollResponses;
 
     let role = 'student';
     if (isHost) {
@@ -33,7 +36,22 @@
     <Chatroom {socket} {role} {chatBuffer} />
 
     {#if currentPoll}
-        <Poll bind:currentPoll bind:socket {isHost} {selectedPoint}/>
+        <Poll bind:currentPoll bind:socket
+              {isHost}
+              {selectedPoint} {objects}
+              {selectedObjects} />
+    {/if}
+
+    {#if pollResponses && Object.keys(pollResponses).length > 0 &&
+        role === 'student'}
+        <PollResponses
+            {currentPoll}
+            currentPollType={currentPoll.type}
+            {objects}
+            {role}
+            {socket}
+            {pollResponses}
+            />
     {/if}
 </p>
 {:else}

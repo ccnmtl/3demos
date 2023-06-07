@@ -1,10 +1,15 @@
+<script context="module">
+    let titleIndex = 0;
+</script>
+
 <script>
-    import { onDestroy } from 'svelte';
+    import { onDestroy, onMount } from 'svelte';
     import * as THREE from 'three';
     import { create, all } from 'mathjs';
 
     import M from '../M.svelte';
     import ObjHeader from './ObjHeader.svelte';
+    import Nametag from './Nametag.svelte';
     import ObjectParamInput from '../form-components/ObjectParamInput.svelte';
     import InputChecker from '../form-components/InputChecker.svelte';
 
@@ -14,11 +19,12 @@
     import { updateParams } from './levelWorker.js';
 
     import { marchingCubes, ArrowBufferGeometry, checksum } from '../utils.js';
+    import { flashDance } from '../sceneUtils';
 
     export let uuid;
-    export let onRenderObject = function() {};
-    export let onDestroyObject = function() {};
-    export let onSelect = function() {};
+    export let onRenderObject = function () {};
+    export let onDestroyObject = function () {};
+    export let onSelect = function () {};
 
     export let params = {
         g: 'x^2 - y^2 + z^2',
@@ -35,8 +41,9 @@
     export let render = () => {};
     export let onClose = () => {};
     export let selected;
+    export let selectedObjects;
     export let selectedPoint;
-    $: selectedPoint = selected ? point : selectedPoint;
+    export let title;
 
     export let camera,
         controls,
@@ -44,7 +51,7 @@
         gridStep;
     // showLevelCurves = false;
 
-    let hidden = false;
+    let minimize = false;
     let loading = false;
 
     const geometry = new THREE.BufferGeometry();
@@ -71,12 +78,28 @@
 
     // $: col = new THREE.Color(color);
     $: {
+        if (selectedObjects.length === 0 || selected) {
+            if (selectedObjects[selectedObjects.length - 1] === uuid) {
+                selectedPoint = point;
+            }
+            // plusMaterial.opacity = 0.7;
+            // minusMaterial.opacity = 0.7;
+        } else {
+            // plusMaterial.opacity = 0.3;
+            // minusMaterial.opacity = 0.3;
+        }
         plusMaterial.color.set(color);
         const hsl = {};
         plusMaterial.color.getHSL(hsl);
         hsl.h = (hsl.h + 0.618033988749895) % 1;
         minusMaterial.color.setHSL(hsl.h, hsl.s, hsl.l);
         render();
+    }
+
+    let boxItemElement;
+    $: if (selected && selectedObjects.length > 0) {
+        mesh.children.map((mesh) => flashDance(mesh, render));
+        boxItemElement.scrollIntoView({ behavior: 'smooth' });
     }
 
     const whiteLineMaterial = new THREE.LineBasicMaterial({
@@ -125,7 +148,7 @@
                 })
             );
         } catch (e) {
-            console.log('Parse error in expression', val, e);
+            console.error('Parse error in expression', val, e);
             return false;
         }
         return valuation;
@@ -201,6 +224,13 @@
         loading = false;
         render();
     };
+    onMount(() => {
+        titleIndex++;
+        title = title || `Level Surface ${titleIndex}`;
+
+        selectedObjects = [];
+        setTimeout(onSelect, 350);
+    });
 
     onDestroy(() => {
         onDestroyObject(...mesh.children);
@@ -354,6 +384,11 @@
         }
     };
 
+    const toggleHide = function () {
+        mesh.visible = !mesh.visible;
+        render();
+    };
+
     const onKeyDown = (e) => {
         if (e.target.matches('input')) {
             return;
@@ -362,8 +397,9 @@
         if (selected) {
             switch (e.key) {
                 case 'Backspace':
-                    mesh.visible = !mesh.visible;
-                    render();
+                    if (selected) {
+                        toggleHide();
+                    }
                     break;
                 case 'Shift':
                     window.addEventListener('mousemove', onMouseMove, false);
@@ -414,15 +450,23 @@
     window.addEventListener('keyup', onKeyUp, false);
 </script>
 
-<div class={'boxItem' + (selected ? ' selected' : '')} on:keydown>
-    <ObjHeader bind:hidden {onClose} {color} {onSelect}>
-        <strong>Level surface </strong>
+<div class="boxItem" class:selected bind:this={boxItemElement} on:keydown>
+    <ObjHeader
+        bind:minimize
+        bind:selectedObjects
+        {onClose}
+        {toggleHide}
+        objHidden={!mesh.visible}
+        {color}
+        {onSelect}
+    >
+        <Nametag bind:title />
         <span hidden={!loading}>
             <i class="fa fa-spinner fa-pulse fa-fw" />
             <span class="sr-only">Loading...</span>
         </span>
     </ObjHeader>
-    <div {hidden}>
+    <div hidden={minimize}>
         <div class="threedemos-container container">
             <span class="box-1"><M size="sm">g(x,y,z) =</M></span>
             <InputChecker
