@@ -3,6 +3,8 @@
     import { create, all } from 'mathjs';
     import { norm2 } from '../utils';
 
+    import M from '../M.svelte';
+
     const config = {};
     const math = create(all, config);
 
@@ -116,13 +118,13 @@
             math.parse(params[c])
         );
         texStrings.r =
-            '\\left \\langle ' +
+            '\\begin{bmatrix} ' +
             X.toTex() +
-            ', ' +
+            ' \\\\ ' +
             Y.toTex() +
-            ', ' +
+            ' \\\\ ' +
             Z.toTex() +
-            '\\right \\rangle';
+            ' \\\\ \\end{bmatrix}';
         texStrings.a = A.toTex();
         texStrings.b = B.toTex();
 
@@ -174,11 +176,10 @@
 
 <article {hidden}>
     <p>
-        Suppose we have a curve {`\\( C \\)`} in space parameterized by a smooth
-        function
-        {`\\( \\mathbf{r}(t) \\)`} for {`\\( a \\leq t \\leq b \\)`} and we wish
-        to know how long it is. That is, we want to compute the
-        <b>arc length</b> of {`\\( C \\)`}.
+        Suppose we have a curve <M>C</M> in space parameterized by a smooth function
+        <M>{`\\mathbf{r}(t)`}</M> for <M>{`a \\leq t \\leq b`}</M> and we wish to
+        know how long it is. That is, we want to compute the
+        <b>arc length</b> of <M>C</M>.
     </p>
 
     <p>
@@ -199,11 +200,13 @@
         </select>
     </p>
 
-    {`\\[ \\mathbf{r}(t) = ${texStrings.r} \\]`}
-    {`\\[ ${texStrings.a} \\leq t \\leq ${texStrings.b} \\]`}
+    <M display>{`\\mathbf{r}(t) = ${texStrings.r}`}</M>
+    <M display>{`${texStrings.a} \\leq t \\leq ${texStrings.b}`}</M>
 
     <p>
-        We can estimate the length by selecting a finite number {`\\( N = ${nVects} \\)`}
+        We can estimate the length by selecting a finite number <M>
+            {`N = ${nVects}`}
+        </M>
         <span class="row">
             <input
                 type="range"
@@ -218,31 +221,40 @@
             />
         </span>
         of positions along the curve and measuring the distance between them. To
-        wit, we select a partition of {'\\( [a,b] \\)'}.:
+        wit, we select a partition of <M>{'[a,b]'}</M>.:
     </p>
 
-    {'\\begin{align} t_0 &= a \\\\ t_1 &= a + \\Delta t \\\\ \\vdots  \\\\ t_N &= a + N \\Delta t = b \\\\ \\end{align}'}
+    <M align>
+        {'t_0 &= a \\\\ t_1 &= a + \\Delta t \\\\ \\vdots  \\\\ t_N &= a + N \\Delta t = b \\\\'}
+    </M>
 
     <p>
-        where {'\\( \\Delta t = \\frac{b - a}{N} \\).'}.
+        where <M>{'\\Delta t = \\frac{b - a}{N} \\).'}</M>.
     </p>
 
     <p>Thus we can approximate arc length as</p>
 
-    {`\\[ \\sum_{i = 1}^{${nVects}} |\\mathbf r(t_i) - \\mathbf r(t_{i - 1})| \\]`}
-    {`\\[ \\approx ${Math.round(1000 * lengthApproximation) / 1000}. \\]`}
+    <M display>
+        {`\\sum_{i = 1}^{${nVects}} |\\mathbf r(t_i) - \\mathbf r(t_{i - 1})|`}
+    </M>
+    <M display>
+        {`\\approx ${Math.round(1000 * lengthApproximation) / 1000}.`}
+    </M>
 
     <p>
-        As {'\\(N \\to \\infty, \\Delta t \\to 0 \\)'}, and this approximation
-        becomes a Riemann sum (after multiplying and dividing by {'\\( \\Delta t \\)'})
-        converging to the exact arc length.
+        As <M>{'N \\to \\infty, \\Delta t \\to 0'}</M>, and this approximation
+        becomes a Riemann sum (after multiplying and dividing by <M
+            >{'\\Delta t'}</M
+        >) converging to the exact arc length.
     </p>
     <p>
-        That is, {`\\( \\sum\\limits_{i = 1}^{N} \\frac{|\\mathbf r(t_i) - \\mathbf r(t_{i - 1})|}{\\Delta t} \\Delta t \\to  \\)`}
+        That is, <M>
+            {` \\sum\\limits_{i = 1}^{N} \\frac{|\\mathbf r(t_i) - \\mathbf r(t_{i - 1})|}{\\Delta t} \\Delta t \\to  `}
+        </M>
         <span class="defin">
-            {"\\[ \\int_a^b |\\mathbf r ' (t) |\\,dt \\]"}
+            <M display size="lg">{" \\int_a^b |\\mathbf r ' (t) |\\,dt "}</M>
         </span>
-        which is the definition of arc length {`\\( s \\)`}.
+        which is the definition of arc length <M>s</M>.
     </p>
 </article>
 
