@@ -2380,7 +2380,18 @@ function tripleToHex(vec) {
     return `#${hex(r)}${hex(g)}${hex(b)}`;
 }
 
+/**
+ * Good ol' l2 norm
+ * @param  {...Number[]} v - array of values
+ * @returns {Number} the (l2) magnitude of v
+ */
+const norm2 = (...v) => {
+    const tot = v.reduce((x, y) => x + y * y, 0);
+    return Math.sqrt(tot);
+};
+
 export {
+    norm2,
     joinUrl,
     getRoomUrl,
     convertToURLParams,

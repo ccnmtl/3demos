@@ -32,6 +32,8 @@
 
     import { evaluate_cmap } from './js-colormaps';
     import { colorMap } from './stores';
+    import Story from './Story.svelte';
+    import { tick } from 'svelte';
 
     export let debug, currentMode;
     export let currentControls;
@@ -116,7 +118,7 @@
             x: 'cos(t)',
             y: 'sin(t)',
             z: `${
-                1 / 4 + Math.round(100 * Math.random()) / 100
+                1 / 4 + Math.round(10 * Math.random()) / 10
             } * cos(${Math.ceil(10 * Math.random()).toString()}*t)`,
         }),
         graph: () => ({
@@ -185,16 +187,23 @@
     let kindToAdd = null;
 
     $: if (kindToAdd) {
+        const uuid = crypto.randomUUID();
         objects = [
             ...objects,
             {
-                uuid: crypto.randomUUID(),
+                uuid,
                 kind: kindToAdd,
                 params: defaultParams[kindToAdd](),
                 color: nextColorUp(),
             },
         ];
 
+        selectedObjects = [];
+
+        setTimeout(async () => {
+            await tick();
+            selectObject(uuid);
+        }, 350); // why 350? I don't know. Autoscroll has some race condition I don't get.
         kindToAdd = null;
     }
 
@@ -304,8 +313,10 @@
 >
     <div id="panelAccordion" class="accordion">
         <a href="/" title="Home" class="demos-logo">
-            <img alt="3Demos logo"
-                 src={window.STATIC_PREFIX + '/3demos-logo.svg'} />
+            <img
+                alt="3Demos logo"
+                src={window.STATIC_PREFIX + '/3demos-logo.svg'}
+            />
         </a>
 
         <div class="accordion-item demos-panel-box">
@@ -356,10 +367,9 @@
                             <TabPane
                                 tabId="story"
                                 tab="Story"
-                                disabled
                                 active={currentMode === 'story'}
                             >
-                                Story Mode
+                                <Story bind:objects />
                             </TabPane>
                             <TabPane
                                 tabId="about"

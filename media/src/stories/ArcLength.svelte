@@ -1,17 +1,20 @@
 <script>
-    import M from '../M.svelte';
+    import { onDestroy } from 'svelte';
     import { create, all } from 'mathjs';
-    import {
-        ButtonDropdown,
-        DropdownItem,
-        DropdownMenu,
-        DropdownToggle,
-    } from 'sveltestrap';
+    import { norm2 } from '../utils';
 
     const config = {};
     const math = create(all, config);
 
     export let objects = [];
+
+    const backupObjects = [...objects];
+
+    const vecId = crypto.randomUUID();
+
+    onDestroy(() => {
+        objects = [...backupObjects];
+    });
 
     const texStrings = {
         r: '\\langle x(t), y(t), z(t) \\rangle',
@@ -20,13 +23,6 @@
     };
 
     // eslint-disable no-useless-escape
-
-    /**
-     * Less organized, equals signs do not line up. The screen reader reads
-     * each line individually. I think it provides better pacing.
-     */
-
-    const texString = `\\( \\Large \\Delta t = \\frac{b - a}{N} \\)`;
 
     /**
      * Alternative structure - More organized, but the screen reader reads the
@@ -42,43 +38,54 @@
     // eslint-enable
 
     let hidden = false;
-    let nVectsElement;
     let lengthApproximation = 0;
 
-    const toggleHidden = function () {
-        hidden = !hidden;
-    };
-
-    const exampleCurveParams = {
-        Crown: {
-            a: '0',
-            b: '2*pi',
-            x: 'sin(t)',
-            y: 'cos(t)',
-            z: 'cos(3t)/3 + 1/2',
+    const exampleCurves = [
+        {
+            uuid: crypto.randomUUID(),
+            kind: 'curve',
+            title: 'Helix',
+            params: {
+                a: '0',
+                b: '4pi',
+                x: 'cos(t)',
+                y: 'sin(t)',
+                z: 't / (4pi)',
+            },
             color: '#CB44CB',
         },
-        Twist: {
-            a: '-1.5',
-            b: '1.5',
-            x: 't',
-            y: 't^2',
-            z: 't^3',
+        {
+            uuid: crypto.randomUUID(),
+            kind: 'curve',
+            title: 'Crown',
+            params: {
+                a: '0',
+                b: '2*pi',
+                x: 'sin(t)',
+                y: 'cos(t)',
+                z: 'cos(3t)/3 + 1/2',
+            },
+            color: '#CB44CB',
         },
-        Helix: {
-            a: '0',
-            b: '4pi',
-            x: 'cos(t)',
-            y: 'sin(t)',
-            z: 't / (4pi)',
+        {
+            uuid: crypto.randomUUID(),
+            kind: 'curve',
+            title: 'Twist',
+            params: {
+                a: '-1.5',
+                b: '1.5',
+                x: 't',
+                y: 't^2',
+                z: 't^3',
+            },
+            color: '#CB44CB',
         },
-    };
+        ...backupObjects.filter((obj) => obj.kind === 'curve'),
+    ];
 
     let exTitle = null;
-    let exId = null;
-    let vecId = null;
-    let nVects = 10;
-    let firstVectorObject = null;
+    let nVects = 3;
+    // let firstVectorObject = null;
 
     const toN = (
         nVects,
@@ -102,7 +109,9 @@
 
     const addCurve = function (title) {
         exTitle = title;
-        const params = exampleCurveParams[title];
+        const obj = exampleCurves.find((obj) => obj.title === title);
+        if (!obj) return;
+        const params = obj.params;
         const [X, Y, Z, A, B] = ['x', 'y', 'z', 'a', 'b'].map((c) =>
             math.parse(params[c])
         );
@@ -117,12 +126,8 @@
         texStrings.a = A.toTex();
         texStrings.b = B.toTex();
 
-        objects = objects.filter((b) => b.uuid !== exId && b.uuid !== vecId);
-        exId = crypto.randomUUID();
-        vecId = crypto.randomUUID();
         objects = [
-            ...objects,
-            { uuid: exId, kind: 'curve', params },
+            obj,
             {
                 uuid: vecId,
                 kind: 'vector',
@@ -143,151 +148,113 @@
                     y: Y.transform(toN(nVects, false, A, B)),
                     z: Z.transform(toN(nVects, false, A, B)),
                     n0: 0,
-                    n1: nVects,
+                    n1: nVects - 1,
                 },
+                color: '#BB0000',
             },
         ];
-        addVectors(nVects);
+        // addVectors(nVects);
+        let tot = 0;
+
+        // WARNING: Mathematician coding style...
+        const aa = A.evaluate();
+        const bb = B.evaluate();
+        const dt = (bb - aa) / nVects;
+        for (let i = 0; i < nVects; i++) {
+            const t = aa + i * dt;
+            tot += norm2(
+                X.evaluate({ t: t + dt }) - X.evaluate({ t }),
+                Y.evaluate({ t: t + dt }) - Y.evaluate({ t }),
+                Z.evaluate({ t: t + dt }) - Z.evaluate({ t })
+            );
+        }
+        lengthApproximation = tot;
     };
-
-    const addVectors = function (num) {
-        const [v] = objects.filter((b) => b.uuid == vecId);
-        console.log(v);
-        v.n1 = num;
-        objects = [...objects];
-    };
-    //     if (exTitle) {
-    //         // clear out old vectors
-    //         if (firstVectorObject) {
-    //             objects.splice(objects.indexOf(firstVectorObject), nVects);
-    //         }
-
-    //         const params = exampleCurveParams[exTitle];
-    //         const [X, Y, Z, A, B] = ['x', 'y', 'z', 'a', 'b'].map((c) =>
-    //             math.parse(params[c])
-    //         );
-    //         const a = A.evaluate(),
-    //             b = B.evaluate();
-    //         const dt = (b - a) / num;
-
-    //         const vecs = [];
-
-    //         lengthApproximation = 0;
-    //         let x0 = X.evaluate({ t: a });
-    //         let y0 = Y.evaluate({ t: a });
-    //         let z0 = Z.evaluate({ t: a });
-    //         let x1, y1, z1;
-
-    //         for (let i = 0; i < num; i++) {
-    //             x1 = X.evaluate({ t: a + (i + 1) * dt });
-    //             y1 = Y.evaluate({ t: a + (i + 1) * dt });
-    //             z1 = Z.evaluate({ t: a + (i + 1) * dt });
-
-    //             vecs.push({
-    //                 uuid: crypto.randomUUID(),
-    //                 kind: 'vector',
-    //                 params: {
-    //                     a: (x1 - x0).toString(),
-    //                     b: (y1 - y0).toString(),
-    //                     c: (z1 - z0).toString(),
-    //                     x: x0.toString(),
-    //                     y: y0.toString(),
-    //                     z: z0.toString(),
-    //                     show: false,
-    //                 },
-    //             });
-
-    //             lengthApproximation += Math.sqrt(
-    //                 (x1 - x0) * (x1 - x0) +
-    //                     (y1 - y0) * (y1 - y0) +
-    //                     (z1 - z0) * (z1 - z0)
-    //             );
-
-    //             x0 = x1;
-    //             y0 = y1;
-    //             z0 = z1;
-    //         }
-    //         firstVectorObject = num > 0 ? vecs[0] : null;
-    //         nVects = num;
-
-    //         objects = [...objects, ...vecs];
-    //     }
-    // };
 </script>
 
-<button
-    class="btn btn-light"
-    aria-label={(hidden ? 'Show' : 'Hide') + ' Arc Length and Curvature'}
-    on:click={toggleHidden}
->
-    Arc Length &amp; Curvature
-</button>
 <article {hidden}>
     <p>
-        Suppose we have a curve <M>C</M> in space parameterized by a smooth function
-        <M>{`\\mathbf{r}(t)`}</M> for <M>a \leq t \leq b</M> and we wish to know
-        how long it is. That is, we want to compute the
-        <b>arc length</b> of <M>C</M>.
+        Suppose we have a curve {`\\( C \\)`} in space parameterized by a smooth
+        function
+        {`\\( \\mathbf{r}(t) \\)`} for {`\\( a \\leq t \\leq b \\)`} and we wish
+        to know how long it is. That is, we want to compute the
+        <b>arc length</b> of {`\\( C \\)`}.
     </p>
-
-    <p class="row">
-        <ButtonDropdown class="col-auto">
-            <DropdownToggle caret class="btn btn-light dropdown-toggle">
-                Examples
-            </DropdownToggle>
-            <DropdownMenu>
-                {#each Object.keys(exampleCurveParams) as title}
-                    <DropdownItem on:click={() => addCurve(title)}>
-                        {title}
-                    </DropdownItem>
-                {/each}
-                <!-- <DropdownItem on:click={() => addCurve(1, "Twist")}>
-                    Twist
-                </DropdownItem> -->
-            </DropdownMenu>
-        </ButtonDropdown>
-        <span class="col-auto ml-2 mt-2">
-            {exTitle ? 'Currently viewing: ' + exTitle : ''}
-        </span>
-    </p>
-
-    <M display>{`\\mathbf{r}(t) = `} {texStrings.r}</M>
-    <M display>{texStrings.a} {`\\leq t \\leq`} {texStrings.b}</M>
 
     <p>
-        We can estimate the length by selecting a finite number <M
-            >N =
-            {nVects}</M
-        >
-        <input
-            bind:this={nVectsElement}
-            type="range"
-            min="0"
-            value="0"
-            max="20"
-            step="1"
-            on:change={(e) => {
-                console.log(e);
-                nVects = math.evaluate(e.target.value);
-                // addVectors(nVects);
+        <span class="col-auto ml-2 mt-2"> Choose curve: </span>
+
+        <select
+            class="col-auto"
+            name="choose-curve"
+            id="choose-curve"
+            bind:value={exTitle}
+            on:change={() => {
                 addCurve(exTitle);
             }}
-        />
-        of positions along the curve and measuring the distance between them. To
-        wit, we select a partition of <M>[a, b]</M>:
+        >
+            {#each exampleCurves as { title }}
+                <option value={title}>{title}</option>
+            {/each}
+        </select>
     </p>
-    <M display
-        >{`t_0 = a \\quad t_1 = a + \\Delta t\\quad \\ldots \\quad t_N = a + N \\Delta t = b`}</M
-    >
+
+    {`\\[ \\mathbf{r}(t) = ${texStrings.r} \\]`}
+    {`\\[ ${texStrings.a} \\leq t \\leq ${texStrings.b} \\]`}
 
     <p>
-        where {texString}.
+        We can estimate the length by selecting a finite number {`\\( N = ${nVects} \\)`}
+        <span class="row">
+            <input
+                type="range"
+                min="1"
+                value={nVects}
+                max="40"
+                step="1"
+                on:input={(e) => {
+                    nVects = math.evaluate(e.target.value);
+                    addCurve(exTitle);
+                }}
+            />
+        </span>
+        of positions along the curve and measuring the distance between them. To
+        wit, we select a partition of {'\\( [a,b] \\)'}.:
     </p>
 
-    <p>Thus we can approximate</p>
-    <M display>
-        {`\\text{Arc length} \\approx \\sum_{i = 1}^{${nVects}} |\\mathbf r(t_i) - \\mathbf r(t_{i - 1})| \\approx ${
-            Math.round(1000 * lengthApproximation) / 1000
-        }.`}
-    </M>
+    {'\\begin{align} t_0 &= a \\\\ t_1 &= a + \\Delta t \\\\ \\vdots  \\\\ t_N &= a + N \\Delta t = b \\\\ \\end{align}'}
+
+    <p>
+        where {'\\( \\Delta t = \\frac{b - a}{N} \\).'}.
+    </p>
+
+    <p>Thus we can approximate arc length as</p>
+
+    {`\\[ \\sum_{i = 1}^{${nVects}} |\\mathbf r(t_i) - \\mathbf r(t_{i - 1})| \\]`}
+    {`\\[ \\approx ${Math.round(1000 * lengthApproximation) / 1000}. \\]`}
+
+    <p>
+        As {'\\(N \\to \\infty, \\Delta t \\to 0 \\)'}, and this approximation
+        becomes a Riemann sum (after multiplying and dividing by {'\\( \\Delta t \\)'})
+        converging to the exact arc length.
+    </p>
+    <p>
+        That is, {`\\( \\sum\\limits_{i = 1}^{N} \\frac{|\\mathbf r(t_i) - \\mathbf r(t_{i - 1})|}{\\Delta t} \\Delta t \\to  \\)`}
+        <span class="defin">
+            {"\\[ \\int_a^b |\\mathbf r ' (t) |\\,dt \\]"}
+        </span>
+        which is the definition of arc length {`\\( s \\)`}.
+    </p>
 </article>
+
+<style>
+    select {
+        background-color: blue;
+        color: white;
+        padding: 3px;
+        margin: 3px;
+    }
+
+    .defin {
+        background-color: green;
+    }
+</style>
