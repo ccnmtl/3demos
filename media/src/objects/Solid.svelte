@@ -41,9 +41,8 @@
     onMount(() => {
         titleIndex++;
         title = title || `Solid Region ${titleIndex}`;
-        selectedObjects = [];
-        setTimeout(onSelect, 350);
     });
+
     onDestroy(() => {
         scene.remove(solidGroup);
         box.geometry.dispose();
@@ -200,11 +199,15 @@
     }
 
     let boxItemElement;
-    $: if (selected && selectedObjects.length > 0) {
+    /**
+     * Close on mesh so reactive statement doesn't react when individual parameters change.
+     */
+    const flash = () => {
         flashDance(box, render);
         boxItemElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
         // console.log("I am scroll into view, I can't think of nothin' else.");
-    }
+    };
+    $: if (selected && selectedObjects.length > 0) flash();
 
     const whiteLineMaterial = new THREE.LineBasicMaterial({
         color: 0xffffff,

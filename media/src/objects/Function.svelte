@@ -585,10 +585,14 @@
     }
 
     let boxItemElement;
-    $: if (selected && selectedObjects.length > 0) {
+    /**
+     * Close on mesh so reactive statement doesn't react when individual parameters change.
+     */
+    const flash = () => {
         surfaceMesh.children.map((mesh) => flashDance(mesh, render));
         boxItemElement.scrollIntoView({ behavior: 'smooth' });
-    }
+    };
+    $: if (selected && selectedObjects.length > 0) flash();
 
     const update = function (dt) {
         const t0 = math.parse(params.t0).evaluate();
@@ -820,10 +824,8 @@
         updateSurface();
         updateBoxes();
         if (animation) dispatch('animate');
-
-        selectedObjects = [];
-        setTimeout(onSelect, 350);
     });
+
     onDestroy(() => {
         onDestroyObject(...surfaceMesh.children);
 

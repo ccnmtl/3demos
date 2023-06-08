@@ -97,10 +97,14 @@
     }
 
     let boxItemElement;
-    $: if (selected && selectedObjects.length > 0) {
+    /**
+     * Close over mesh so reactive statement doesn't react when individual parameters change.
+     */
+    const flash = () => {
         mesh.children.map((mesh) => flashDance(mesh, render));
         boxItemElement.scrollIntoView({ behavior: 'smooth' });
-    }
+    };
+    $: if (selected && selectedObjects.length > 0) flash();
 
     const whiteLineMaterial = new THREE.LineBasicMaterial({
         color: 0xffffff,
@@ -227,9 +231,6 @@
     onMount(() => {
         titleIndex++;
         title = title || `Level Surface ${titleIndex}`;
-
-        selectedObjects = [];
-        setTimeout(onSelect, 350);
     });
 
     onDestroy(() => {

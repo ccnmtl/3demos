@@ -117,19 +117,21 @@
     }
 
     let boxItemElement;
-    $: if (selected && selectedObjects.length > 0) {
+    /**
+     * Close over mesh so reactive statement doesn't react when individual parameters change.
+     */
+    const flash = () => {
         flashDance(point, render);
         boxItemElement.scrollIntoView({ behavior: 'smooth' });
-    }
+    };
+    $: if (selected && selectedObjects.length > 0) flash();
 
     onMount(() => {
         if (animation) dispatch('animate');
         titleIndex++;
         title = title || `Point ${titleIndex}`;
-
-        selectedObjects = [];
-        setTimeout(onSelect, 350);
     });
+
     onDestroy(() => {
         onDestroyObject(point);
         // if (point) {

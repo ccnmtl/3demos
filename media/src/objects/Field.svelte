@@ -115,11 +115,14 @@
     }
 
     let boxItemElement;
-    $: if (selected && selectedObjects.length > 0) {
+    /**
+     * Close on mesh so reactive statement doesn't react when individual parameters change.
+     */
+    const flash = () => {
         flashDance(flowArrows.children[0], render);
-        // flashDance(trails, render); // doesn't work]]
         boxItemElement.scrollIntoView({ behavior: 'smooth' });
-    }
+    };
+    $: if (selected && selectedObjects.length > 0) flash();
 
     const trailGeometry = new THREE.BufferGeometry();
 
@@ -340,9 +343,6 @@
         updateFlowArrows(flowArrows, fieldF, 0);
         render();
         if (animation) dispatch('animate');
-
-        selectedObjects = [];
-        setTimeout(onSelect, 350);
     });
     onDestroy(() => {
         onDestroyObject(flowArrows);

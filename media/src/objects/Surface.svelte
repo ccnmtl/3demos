@@ -581,9 +581,6 @@
         params.t1 = params.t1 || '1';
         // updateSurface();
         if (animation) dispatch('animate');
-
-        selectedObjects = [];
-        setTimeout(onSelect, 350);
     });
 
     onDestroy(() => {
@@ -599,10 +596,14 @@
         render();
     });
 
-    $: if (selected && selectedObjects.length > 0) {
+    /**
+     * Close on mesh so reactive statement doesn't react when individual parameters change.
+     */
+    const flash = () => {
         surfaceMesh.children.map((mesh) => flashDance(mesh, render));
         boxItemElement.scrollIntoView({ behavior: 'smooth' });
-    }
+    };
+    $: if (selected && selectedObjects.length > 0) flash();
 
     // Select a point
     const tanFrame = new THREE.Object3D();

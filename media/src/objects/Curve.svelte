@@ -366,10 +366,8 @@
         }
         titleIndex++;
         title = title || `Space Curve ${titleIndex}`;
-
-        selectedObjects = [];
-        setTimeout(onSelect, 350);
     });
+
     onDestroy(() => {
         onDestroyObject(tube);
 
@@ -396,10 +394,15 @@
 
     $: texString1 = `${stringifyT(tau)}`;
 
-    $: if (selected && selectedObjects.length > 0) {
+    /**
+     * Close on mesh so reactive statement doesn't react when individual parameters change.
+     */
+    const flash = () => {
         flashDance(tube, render);
         boxItemElement.scrollIntoView({ behavior: 'smooth' });
-    }
+    };
+
+    $: if (selected && selectedObjects.length > 0) flash();
 
     const raycaster = new THREE.Raycaster();
 
