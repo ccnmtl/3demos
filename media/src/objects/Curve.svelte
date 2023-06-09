@@ -399,7 +399,7 @@
      */
     const flash = () => {
         flashDance(tube, render);
-        boxItemElement.scrollIntoView({ behavior: 'smooth' });
+        boxItemElement?.scrollIntoView({ behavior: 'smooth' });
     };
 
     $: if (selected && selectedObjects.length > 0) flash();

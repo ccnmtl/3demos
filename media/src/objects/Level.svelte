@@ -102,7 +102,7 @@
      */
     const flash = () => {
         mesh.children.map((mesh) => flashDance(mesh, render));
-        boxItemElement.scrollIntoView({ behavior: 'smooth' });
+        boxItemElement?.scrollIntoView({ behavior: 'smooth' });
     };
     $: if (selected && selectedObjects.length > 0) flash();
 

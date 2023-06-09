@@ -204,7 +204,7 @@
      */
     const flash = () => {
         flashDance(box, render);
-        boxItemElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        boxItemElement?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         // console.log("I am scroll into view, I can't think of nothin' else.");
     };
     $: if (selected && selectedObjects.length > 0) flash();

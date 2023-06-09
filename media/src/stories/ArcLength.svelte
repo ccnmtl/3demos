@@ -8,9 +8,14 @@
     const config = {};
     const math = create(all, config);
 
-    export let objects = [];
+    export let objects;
 
-    const backupObjects = [...objects];
+    const backupObjects = [
+        ...objects.map((obj) => {
+            obj.selected = false;
+            return obj;
+        }),
+    ];
 
     const vecId = crypto.randomUUID();
 
