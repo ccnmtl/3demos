@@ -196,6 +196,12 @@
 {/if}
 <div bind:this={d3container} {hidden}></div>
 
+{#if currentPoll && currentPoll.prompt}
+    <p class="ms-1">
+        {currentPoll.prompt}
+    </p>
+{/if}
+
 <style>
     .response-item:focus {
         border-color: black;
