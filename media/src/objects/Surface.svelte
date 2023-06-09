@@ -33,6 +33,8 @@
     export let onRenderObject = function () {};
     export let onDestroyObject = function () {};
     export let onSelect = function () {};
+    export let sync;
+    export let syncAnimation;
 
     export let params = {
         a: '-2',
@@ -147,6 +149,12 @@
     // Only run the update if the params have changed.
     $: hashTag = checksum(JSON.stringify(params));
     $: hashTag, updateSurface();
+    $: {
+        syncAnimation;
+        if (selected) {
+            tau = 0;
+        }
+    }
 
     // Check midpoint of parameter space and see if all is ok.
     const chickenParms = (val, { a, b, c, d, t0, t1 }) => {
@@ -221,16 +229,6 @@
 
     // Keep color fresh
     $: {
-        if (selectedObjects.length === 0 || selected) {
-            if (selectedObjects[selectedObjects.length - 1] === uuid) {
-                selectedPoint = point;
-            }
-            // plusMaterial.opacity = 0.7;
-            // minusMaterial.opacity = 0.7;
-        } else {
-            // plusMaterial.opacity = 0.3;
-            // minusMaterial.opacity = 0.3;
-        }
         plusMaterial.color.set(color);
         const hsl = {};
         plusMaterial.color.getHSL(hsl);
@@ -587,42 +585,12 @@
         render();
     });
 
-    // const flashDance = (mesh, render=render) => {
-    //     // console.log(mesh);
-    //     const mat = mesh.material;
-    //     const color = mat.color;
-    //     const newcol = {};
-    //     color.getHSL(newcol);
-    //     const oo = mat.opacity;
-    //     let t = 0;
-    //     let last = null;
-    //     let req;
-    //     let animate = (time) => {
-    //         if (last === null) {
-    //             t = 0;
-    //         } else {
-    //             t += (time - last) / 400;
-    //         }
-    //         const T = ((1 / 2 - Math.cos(2 * Math.PI * t) / 2) * 3) / 4;
-    //         last = time;
-    //         color.setHSL(newcol.h, newcol.s, (1 - T) * newcol.l + T);
-    //         mat.opacity = (1 - T) * oo + T;
-    //         if (t >= 1) {
-    //             t = 0;
-    //             last = null;
-    //             // mat.opacity = oo;
-    //             // color.setHSL(newcol.h, newcol.s, newcol.l);
-    //         } else {
-    //             cancelAnimationFrame(req);
-    //             req = requestAnimationFrame(animate);
-    //         }
-    //         render();
-    //     };
+    $: if (selectedObjects[selectedObjects.length - 1] === uuid) {
+        selectedPoint = point;
+    }
 
-    //     requestAnimationFrame(animate);
-    // };
-
-    $: if (selected && selectedObjects.length > 0) {
+    $: if (selected) {
+        surfaceMesh.visible = sync;
         surfaceMesh.children.map((mesh) => flashDance(mesh, render));
         boxItemElement.scrollIntoView({ behavior: 'smooth' });
     }
@@ -814,8 +782,8 @@
         } else if (selected) {
             switch (e.key) {
                 case 'Backspace':
-                    if (selected) {
-                        toggleHide();
+                    if (selectedObjects[0] === uuid) {
+                        sync = !sync;
                     }
                     break;
                 case 'Shift':
@@ -831,7 +799,9 @@
                     render();
                     break;
                 case 't':
-                    tanFrame.visible = !tanFrame.visible;
+                    if (uuid === selectedObjects[selectedObjects.length-1]) {
+                        tanFrame.visible = !tanFrame.visible;
+                    }
                     render();
                     break;
                 case 'y':
@@ -1009,7 +979,12 @@
                     bind:animation
                     on:animate
                     on:pause={() => (last = null)}
-                    on:rew={() => (tau = 0)}
+                    on:rew={() => {
+                        tau = 0;
+                        if (selected) {
+                            syncAnimation = !syncAnimation;
+                        }
+                    }}
                 />
             {/if}
 

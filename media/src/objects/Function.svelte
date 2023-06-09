@@ -29,7 +29,9 @@
     export let uuid;
     export let onRenderObject = function () {};
     export let onDestroyObject = function () {};
-    export let onSelect = function () {};
+    export let onSelect = function() {};
+    export let sync;
+    export let syncAnimation;
 
     export let params = {
         a: '-2',
@@ -557,19 +559,15 @@
     $: isDynamic = dependsOn(params, 't');
     $: hashTag = checksum(JSON.stringify(params));
     $: hashTag, updateSurface();
+    $: {
+        syncAnimation;
+        if (selected) {
+            tau = 0;
+        }
+    }
 
     // Keep color fresh
     $: {
-        if (selectedObjects.length === 0 || selected) {
-            if (selectedObjects[selectedObjects.length - 1] === uuid) {
-                selectedPoint = point;
-            }
-            // plusMaterial.opacity = 0.7;
-            // minusMaterial.opacity = 0.7;
-        } else {
-            // plusMaterial.opacity = 0.3;
-            // minusMaterial.opacity = 0.3;
-        }
         plusMaterial.color.set(color);
         const hsl = {};
         plusMaterial.color.getHSL(hsl);
@@ -578,8 +576,13 @@
         render();
     }
 
+    $: if (selectedObjects[selectedObjects.length - 1] === uuid) {
+        selectedPoint = point;
+    }
+
     let boxItemElement;
-    $: if (selected && selectedObjects.length > 0) {
+    $: if (selected) {
+        surfaceMesh.visible = sync;
         surfaceMesh.children.map((mesh) => flashDance(mesh, render));
         boxItemElement.scrollIntoView({ behavior: 'smooth' });
     }
@@ -897,13 +900,15 @@
                     render();
                     break;
                 case 'Backspace':
-                    if (selected) {
-                        toggleHide();
+                    if (selectedObjects[0] === uuid) {
+                        sync = !sync;
                     }
                     break;
                 case 't':
-                    point.visible = !point.visible;
-                    render();
+                    if (uuid === selectedObjects[selectedObjects.length-1]) {
+                        point.visible = !point.visible;
+                        render();
+                    }
                     break;
                 case 'y':
                     planeShard.visible = !planeShard.visible;
@@ -914,8 +919,13 @@
                     render();
                     break;
                 case 'i':
-                    boxMesh.visible = !boxMesh.visible;
-                    render();
+                    if (uuid === selectedObjects[selectedObjects.length-1]) {
+                        tau = 0;
+                        update(0);
+                        animation = false;
+                        boxMesh.visible = !boxMesh.visible;
+                        render();
+                    }
                     break;
                 case '>':
                     data.N = Math.min(101, data.N + 1);
@@ -1122,7 +1132,12 @@
                     bind:animation
                     on:animate
                     on:pause={() => (last = null)}
-                    on:rew={() => (tau = 0)}
+                    on:rew={() => {
+                        tau = 0;
+                        if (selected) {
+                            syncAnimation = !syncAnimation;
+                        }
+                    }}
                 />
                 <!-- </div> -->
             {/if}

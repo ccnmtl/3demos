@@ -29,7 +29,8 @@
     export let uuid;
     export let onRenderObject = function () {};
     export let onDestroyObject = function () {};
-    export let onSelect = function () {};
+    export let onSelect = function() {};
+    export let sync;
 
     // export let paramString;
 
@@ -59,6 +60,7 @@
     // Only run the update if the params have changed.
     $: hashTag = checksum(JSON.stringify(params));
     $: hashTag, updateCurve();
+    $: sync;
 
     // Check midpoint of parameter space and see if all is ok.
     const chickenParms = (val, { a, b }) => {
@@ -82,7 +84,7 @@
     // Meta-parameters
     export let color = '#FFDD33';
     export let tau = 0;
-
+    export let syncAnimation;
     export let scene;
     export let render = () => {};
     export let onClose = () => {};
@@ -130,6 +132,9 @@
     });
     // Keep updated
     $: {
+        if (selected) {
+            tube.visible = sync;
+        }
         curveMaterial.color.set(color);
         render();
     }
@@ -389,6 +394,12 @@
         flashDance(tube, render);
         boxItemElement.scrollIntoView({ behavior: 'smooth' });
     }
+    $: {
+        syncAnimation;
+        if (selected) {
+            tau = 0;
+        }
+    }
 
     const raycaster = new THREE.Raycaster();
 
@@ -408,7 +419,7 @@
             point.position.x = intersect.point.x;
             point.position.y = intersect.point.y;
             point.position.z = intersect.point.z;
-
+            frame.visible = true;
             render();
         }
     };
@@ -431,18 +442,26 @@
         if (selected) {
             switch (e.key) {
                 case 'Backspace':
-                    toggleHide();
+                    if (selectedObjects[0] === uuid) {
+                        sync = !sync;
+                    }
+                    if (sync) {
+                        circleTube.visible = osculatingCircle;
+                    } else {
+                        circleTube.visible = false;
+                    }
                     break;
                 case 'Shift':
                     window.addEventListener('mousemove', onMouseMove, false);
-                    frame.visible = true;
                     break;
                 case 'c':
-                    controls.target.set(
-                        point.position.x,
-                        point.position.y,
-                        point.position.z
-                    );
+                    if(selectedObjects[selectedObjects.length-1] === uuid) {
+                        controls.target.set(
+                            point.position.x,
+                            point.position.y,
+                            point.position.z
+                        );
+                    }
                     render();
                     break;
                 case 'o':
@@ -457,7 +476,9 @@
                     render();
                     break;
                 case 't':
-                    frame.visible = !frame.visible;
+                    if (uuid === selectedObjects[selectedObjects.length-1]) {
+                        frame.visible = !frame.visible;
+                    }
                     render();
                     break;
             }
@@ -570,7 +591,12 @@
                 bind:animation
                 on:animate
                 on:pause={() => (last = null)}
-                on:rew={() => (tau = 0)}
+                on:rew={() => {
+                    tau = 0;
+                    if (selected) {
+                        syncAnimation = !syncAnimation;
+                    }
+                }}
             />
             <span class="box-1">Frame</span>
             <label class="switch box box-2">
