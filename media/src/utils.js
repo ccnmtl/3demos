@@ -2357,6 +2357,150 @@ class SphericalSolidGeometry extends THREE.BufferGeometry {
 }
 
 /**
+ * Converts output of `evaluate_cmap` to HTML #rrggbb string.
+ * @param {int[3]} vec 
+ * @returns {string}
+ */
+function tripleToHex(vec) {
+    const [r, g, b] = vec;
+    return `#${hex(r)}${hex(g)}${hex(b)}`;
+}
+
+/** 
+ * @callback FieldFunction
+ * @param {number} x
+ * @param {number} y
+ * @param {number} z
+ * @returns {Array<number>[3]}
+ */
+
+class FluxBoxGeometry extends THREE.BufferGeometry {
+    /**
+     * Produce a geometry of parallelopipeds from a flux integral. Divide each direction into N pieces, Use a frame of r_u, r_v, and F as the edges of each parallelopiped. 
+     * @param {FieldFunction} F - vector field
+     * @param {function} r - parametric surface
+     * @param {number} a - lower u
+     * @param {number} b - upper u
+     * @param {number|function} c - lower v
+     * @param {number|function} d - upper v
+     * @param {int} N - resolution
+     * @param {number} t - scale vector field at each
+     * @param {boolean} shards - only show tangent pieces (e.g., for surface area)
+     */
+    constructor(F, r, a, b, c, d, N = 10, t = 1, shards = false) {
+        super();
+
+        const dt = 1e-4; // for computing diffs
+        const dt2 = dt / 2;
+
+        const points = [];
+        const normals = [];
+
+        const du = (b - a) / N;
+        let dv;
+
+        const normal = new THREE.Vector3();
+
+        for (let i = 0; i < N; i++) {
+            const u = a + i * du;
+            dv = (d(u) - c(u)) / N;
+            for (let j = 0; j < N; j++) {
+                const v = c(u) + j * dv;
+                const [x, y, z] = r(u, v);
+                const [xu1, yu1, zu1] = r(u + dt2, v);
+                const [xu0, yu0, zu0] = r(u - dt2, v);
+                const ru = new THREE.Vector3((xu1 - xu0) / dt, (yu1 - yu0) / dt, (zu1 - zu0) / dt);
+                const [xv1, yv1, zv1] = r(u, v + dt2);
+                const [xv0, yv0, zv0] = r(u, v - dt2);
+                const rv = new THREE.Vector3((xv1 - xv0) / dt, (yv1 - yv0) / dt, (zv1 - zv0) / dt);
+                const f = new THREE.Vector3(...F(x, y, z));
+
+                // top
+                normal.copy(ru.clone().cross(rv).normalize());
+
+                if (shards) { t = 0; }
+
+                points.push(x + t * f.x, y + t * f.y, z + t * f.z);
+                points.push(x + t * f.x + du * ru.x, y + t * f.y + du * ru.y, z + t * f.z + du * ru.z);
+                points.push(x + t * f.x + dv * rv.x, y + t * f.y + dv * rv.y, z + t * f.z + dv * rv.z);
+                points.push(x + t * f.x + du * ru.x, y + t * f.y + du * ru.y, z + t * f.z + du * ru.z);
+                points.push(x + t * f.x + du * ru.x + dv * rv.x, y + t * f.y + du * ru.y + dv * rv.y, z + t * f.z + du * ru.z + dv * rv.z);
+                points.push(x + t * f.x + dv * rv.x, y + t * f.y + dv * rv.y, z + t * f.z + dv * rv.z);
+
+                for (let index = 0; index < 6; index++) normals.push(normal.x, normal.y, normal.z);
+                if (!shards) {
+                    // bottom
+
+                    points.push(x + du * ru.x, y + du * ru.y, z + du * ru.z);
+                    points.push(x, y, z);
+                    points.push(x + dv * rv.x, y + dv * rv.y, z + dv * rv.z);
+                    points.push(x + du * ru.x, y + du * ru.y, z + du * ru.z);
+                    points.push(x + dv * rv.x, y + dv * rv.y, z + dv * rv.z);
+                    points.push(x + du * ru.x + dv * rv.x, y + du * ru.y + dv * rv.y, z + du * ru.z + dv * rv.z);
+
+                    for (let index = 0; index < 6; index++) normals.push(-normal.x, -normal.y, -normal.z);
+
+
+
+                    // front
+
+                    normal.copy(ru.clone().cross(f).normalize());
+                    points.push(x, y, z);
+                    points.push(x + du * ru.x, y + du * ru.y, z + du * ru.z);
+                    points.push(x + t * f.x, y + t * f.y, z + t * f.z);
+                    points.push(x + du * ru.x, y + du * ru.y, z + du * ru.z);
+                    points.push(x + du * ru.x + t * f.x, y + du * ru.y + t * f.y, z + du * ru.z + t * f.z);
+                    points.push(x + t * f.x, y + t * f.y, z + t * f.z);
+
+                    for (let index = 0; index < 6; index++) normals.push(-normal.x, -normal.y, -normal.z);
+
+                    // back
+
+                    points.push(x + dv * rv.x + du * ru.x, y + dv * rv.y + du * ru.y, z + dv * rv.z + du * ru.z);
+                    points.push(x + dv * rv.x, y + dv * rv.y, z + dv * rv.z);
+                    points.push(x + dv * rv.x + t * f.x, y + dv * rv.y + t * f.y, z + dv * rv.z + t * f.z);
+                    points.push(x + dv * rv.x + du * ru.x + t * f.x, y + dv * rv.y + du * ru.y + t * f.y, z + du * ru.z + t * f.z + dv * rv.z);
+                    points.push(x + dv * rv.x + du * ru.x, y + dv * rv.y + du * ru.y, z + dv * rv.z + du * ru.z);
+                    points.push(x + dv * rv.x + t * f.x, y + dv * rv.y + t * f.y, z + dv * rv.z + t * f.z);
+
+                    for (let index = 0; index < 6; index++) normals.push(normal.x, normal.y, normal.z);
+
+                    // left
+
+                    normal.copy(f.clone().cross(rv).normalize());
+                    points.push(x, y, z);
+                    points.push(x + t * f.x, y + t * f.y, z + t * f.z);
+                    points.push(x + t * f.x + dv * rv.x, y + t * f.y + dv * rv.y, z + t * f.z + dv * rv.z);
+                    points.push(x, y, z);
+                    points.push(x + t * f.x + dv * rv.x, y + t * f.y + dv * rv.y, z + t * f.z + dv * rv.z);
+                    points.push(x + dv * rv.x, y + dv * rv.y, z + dv * rv.z);
+
+                    for (let index = 0; index < 6; index++) normals.push(normal.x, normal.y, normal.z);
+
+                    // right
+
+                    points.push(x + du * ru.x + t * f.x, y + du * ru.y + t * f.y, z + du * ru.z + t * f.z);
+                    points.push(x + du * ru.x, y + du * ru.y, z + du * ru.z);
+                    points.push(x + du * ru.x + t * f.x + dv * rv.x, y + t * f.y + dv * rv.y, z + du * ru.z + t * f.z + dv * rv.z);
+                    points.push(x + du * ru.x + t * f.x + dv * rv.x, y + du * ru.y + t * f.y + dv * rv.y, z + du * ru.z + t * f.z + dv * rv.z);
+                    points.push(x + du * ru.x, y + du * ru.y, z + du * ru.z);
+                    points.push(x + du * ru.x + dv * rv.x, y + du * ru.y + dv * rv.y, z + du * ru.z + dv * rv.z);
+
+                    for (let index = 0; index < 6; index++) normals.push(-normal.x, -normal.y, -normal.z);
+
+
+                }
+
+            }
+        }
+
+
+        this.setAttribute('position', new THREE.Float32BufferAttribute(points, 3));
+        this.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+    }
+}
+
+/**
  * 
  * @param {int} x 
  * @returns {strint} 2 character hex code for int
@@ -2370,15 +2514,7 @@ const hex = (x) => {
     }
 };
 
-/**
- * Converts output of `evaluate_cmap` to HTML #rrggbb string.
- * @param {int[3]} vec 
- * @returns {string}
- */
-function tripleToHex(vec) {
-    const [r, g, b] = vec;
-    return `#${hex(r)}${hex(g)}${hex(b)}`;
-}
+
 
 /**
  * Good ol' l2 norm
@@ -2412,6 +2548,7 @@ export {
     RectangularSolidGeometry,
     CylindricalSolidGeometry,
     SphericalSolidGeometry,
+    FluxBoxGeometry,
     nextHue,
     makeHSLColor,
     blockGeometry,
