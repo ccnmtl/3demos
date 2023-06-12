@@ -5,7 +5,7 @@
 
 <ul>
     <li>
-        <Badge>Esc</Badge>
+        <Badge>h</Badge>
         Hide/Show the MENU
     </li>
     <li>
