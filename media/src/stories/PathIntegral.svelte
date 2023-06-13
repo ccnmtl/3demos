@@ -5,5 +5,7 @@
 <div>
     <h1>Path Integrals</h1>
 
-    <M>{`\\int_C f\\,ds`}</M>
+    <M display>{`\\int_C f\\,ds`}</M>
+
+    <p>Coming soon...</p>
 </div>
