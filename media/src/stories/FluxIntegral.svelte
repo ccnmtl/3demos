@@ -59,7 +59,7 @@
                 c: '0',
                 d: '1',
                 x: 'cos(u)',
-                y: 'sin(u)',
+                y: '2 * sin(u)',
                 z: 'v',
                 t0: '0',
                 t1: '1',
@@ -115,6 +115,18 @@
             },
             color: '#1212CC',
         },
+        {
+            uuid: 'flux-story-field-003-',
+            kind: 'field',
+            title: 'Half up/Half down',
+            params: {
+                p: '0',
+                q: '0',
+                r: 'x',
+                nVec: 4,
+            },
+            color: '#1212CC',
+        },
         ...backupObjects.filter((obj) => obj.kind === 'field'),
     ];
 
@@ -128,6 +140,7 @@
         objects.find((o) => o.kind === 'surface') || exampleSurfaces[0];
     let currentField =
         objects.find((o) => o.kind === 'field') || exampleFields[0];
+    currentField.flowTrails = false;
     onMount(() => {
         // currentField =
         //     objects.find((o) => o.kind === 'field')?.uuid ||
@@ -144,8 +157,8 @@
             element.material?.dispose();
         }
         scene.remove(boxes);
-        // render();
         objects = [...backupObjects];
+        render();
     });
 
     let r = (u, v) => [u, v, 1 / 2 - (u * u) / 4 - (v * v) / 2];
@@ -209,6 +222,7 @@
                     Q.evaluate({ x, y, z }),
                     R.evaluate({ x, y, z })
                 );
+            currentField.flowTrails = false;
             objects = [
                 ...objects.filter((o) => o.kind !== 'field'),
                 currentField,

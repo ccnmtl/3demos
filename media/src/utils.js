@@ -2385,8 +2385,10 @@ class FluxBoxGeometry extends THREE.BufferGeometry {
      * @param {number|function} d - upper v
      * @param {int} N - resolution
      * @param {boolean} shards - only show tangent pieces (e.g., for surface area)
+     * @param {number} [t=1] - scale factor for vector field
+     * @param {number} [s = 0.5] - sample point parameter (0 SW to 1 NE)
      */
-    constructor(F, r, a, b, c, d, N = 10, shards = false, t = 1) {
+    constructor(F, r, a, b, c, d, N = 10, shards = false, t = 1, s = 0.5) {
         super();
 
         t = shards ? 0 : t;
@@ -2407,11 +2409,11 @@ class FluxBoxGeometry extends THREE.BufferGeometry {
         const normal = new THREE.Vector3();
 
         for (let i = 0; i < N; i++) {
-            const u = a + i * du;
+            const u = a + (i + s) * du;
             dv = (d(u) - c(u)) / N;
             for (let j = 0; j < N; j++) {
-                const v = c(u) + j * dv;
-                const [x, y, z] = r(u, v);
+                const v = c(u) + (j + s) * dv;
+                let [x, y, z] = r(u, v);
                 const [xu1, yu1, zu1] = r(u + dt2, v);
                 const [xu0, yu0, zu0] = r(u - dt2, v);
                 const ru = new THREE.Vector3((xu1 - xu0) / dt, (yu1 - yu0) / dt, (zu1 - zu0) / dt);
@@ -2425,6 +2427,11 @@ class FluxBoxGeometry extends THREE.BufferGeometry {
                 const f = new THREE.Vector3(...F(x, y, z));
 
                 this.lastF.push(f.x, f.y, f.z);
+
+                // adjust for sample point
+                x -= (du * ru.x + dv * rv.x) * s;
+                y -= (du * ru.y + dv * rv.y) * s;
+                z -= (du * ru.z + dv * rv.z) * s;
 
                 // top
                 normal.copy(ru.clone().cross(rv).normalize());
