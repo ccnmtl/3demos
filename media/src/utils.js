@@ -2420,7 +2420,7 @@ class FluxBoxGeometry extends THREE.BufferGeometry {
                 const rv = new THREE.Vector3((xv1 - xv0) / dt, (yv1 - yv0) / dt, (zv1 - zv0) / dt);
 
                 // separate top and bottom for z-fighting on zeros of F.
-                const tol = 1e-3;
+                // const tol = 1e-3;
 
                 const f = new THREE.Vector3(...F(x, y, z));
 
@@ -2537,79 +2537,75 @@ class FluxBoxGeometry extends THREE.BufferGeometry {
                     points[pIndex + 2] += dt * fz;
 
                 }
-
-                //         points.push(x + t * f.x, y + t * f.y, z + t * f.z);
-                //         points.push(x + t * f.x + du * ru.x, y + t * f.y + du * ru.y, z + t * f.z + du * ru.z);
-                //         points.push(x + t * f.x + dv * rv.x, y + t * f.y + dv * rv.y, z + t * f.z + dv * rv.z);
-                //         points.push(x + t * f.x + du * ru.x, y + t * f.y + du * ru.y, z + t * f.z + du * ru.z);
-                //         points.push(x + t * f.x + du * ru.x + dv * rv.x, y + t * f.y + du * ru.y + dv * rv.y, z + t * f.z + du * ru.z + dv * rv.z);
-                //         points.push(x + t * f.x + dv * rv.x, y + t * f.y + dv * rv.y, z + t * f.z + dv * rv.z);
-
-                //         for (let index = 0; index < 6; index++) normals.push(normal.x, normal.y, normal.z);
-                //         if (!shards) {
-                //             // bottom
-
-                //             points.push(x + du * ru.x, y + du * ru.y, z + du * ru.z);
-                //             points.push(x, y, z);
-                //             points.push(x + dv * rv.x, y + dv * rv.y, z + dv * rv.z);
-                //             points.push(x + du * ru.x, y + du * ru.y, z + du * ru.z);
-                //             points.push(x + dv * rv.x, y + dv * rv.y, z + dv * rv.z);
-                //             points.push(x + du * ru.x + dv * rv.x, y + du * ru.y + dv * rv.y, z + du * ru.z + dv * rv.z);
-
-                //             for (let index = 0; index < 6; index++) normals.push(-normal.x, -normal.y, -normal.z);
-
-
-
-                //             // front
-
-                //             points.push(x, y, z);
-                //             points.push(x + du * ru.x, y + du * ru.y, z + du * ru.z);
-                //            14 points.push(x + t * f.x, y + t * f.y, z + t * f.z);
-                //             points.push(x + du * ru.x, y + du * ru.y, z + du * ru.z);
-                //            16 points.push(x + du * ru.x + t * f.x, y + du * ru.y + t * f.y, z + du * ru.z + t * f.z);
-                //            17 points.push(x + t * f.x, y + t * f.y, z + t * f.z);
-
-
-                //             // back
-
-                //             points.push(x + dv * rv.x + du * ru.x, y + dv * rv.y + du * ru.y, z + dv * rv.z + du * ru.z);
-                //             points.push(x + dv * rv.x, y + dv * rv.y, z + dv * rv.z);
-                //            20 points.push(x + dv * rv.x + t * f.x, y + dv * rv.y + t * f.y, z + dv * rv.z + t * f.z);
-                //            21 points.push(x + dv * rv.x + du * ru.x + t * f.x, y + dv * rv.y + du * ru.y + t * f.y, z + du * ru.z + t * f.z + dv * rv.z);
-                //             points.push(x + dv * rv.x + du * ru.x, y + dv * rv.y + du * ru.y, z + dv * rv.z + du * ru.z);
-                //            23 points.push(x + dv * rv.x + t * f.x, y + dv * rv.y + t * f.y, z + dv * rv.z + t * f.z);
-
-                //             for (let index = 0; index < 6; index++) normals.push(normal.x, normal.y, normal.z);
-
-                //             // left
-
-                //             points.push(x, y, z);
-                //            25 points.push(x + t * f.x, y + t * f.y, z + t * f.z);
-                //            26 points.push(x + t * f.x + dv * rv.x, y + t * f.y + dv * rv.y, z + t * f.z + dv * rv.z);
-                //             points.push(x, y, z);
-                //            28 points.push(x + t * f.x + dv * rv.x, y + t * f.y + dv * rv.y, z + t * f.z + dv * rv.z);
-                //             points.push(x + dv * rv.x, y + dv * rv.y, z + dv * rv.z);
-
-                //             for (let index = 0; index < 6; index++) normals.push(normal.x, normal.y, normal.z);
-
-                //             // right
-
-                //           30  points.push(x + du * ru.x + t * f.x, y + du * ru.y + t * f.y, z + du * ru.z + t * f.z);
-                //             points.push(x + du * ru.x, y + du * ru.y, z + du * ru.z);
-                //            32 points.push(x + du * ru.x + t * f.x + dv * rv.x, y + t * f.y + dv * rv.y, z + du * ru.z + t * f.z + dv * rv.z);
-                //            33 points.push(x + du * ru.x + t * f.x + dv * rv.x, y + du * ru.y + t * f.y + dv * rv.y, z + du * ru.z + t * f.z + dv * rv.z);
-                //             points.push(x + du * ru.x, y + du * ru.y, z + du * ru.z);
-                //             points.push(x + du * ru.x + dv * rv.x, y + du * ru.y + dv * rv.y, z + du * ru.z + dv * rv.z);
-
-                //             for (let index = 0; index < 6; index++) normals.push(-normal.x, -normal.y, -normal.z);
-
-
-                //         }
-
-                //     }
-                // }
             }
         }
+        this.lastT = t;
+        this.attributes.position.needsUpdate = true;
+
+    }
+}
+
+class FluxBoxEdgesGeometry extends THREE.BufferGeometry {
+    /**
+     * Produce a geometry of parallelopipeds from a flux integral. Divide each direction into N pieces, Use a frame of r_u, r_v, and F as the edges of each parallelopiped. 
+     * @param {FluxBoxGeometry} geo - vector field
+     * @param {boolean=false} shards - only show tangent pieces (e.g., for surface area)
+     * @param {number=1} t - scaling factor for vector field
+     */
+    constructor(geo, shards = false, t = 1) {
+        super();
+
+        const points = geo.attributes.position.array;
+
+        t = shards ? 0 : t;
+
+
+        // save values for adjusting height in F direction
+        this.lastT = t;
+        const N = geo.lastN;
+        const Fs = geo.lastF;
+
+        const vertices = [];
+        for (let i = 0; i < N; i++) {
+            for (let j = 0; j < N; j++) {
+                const pointIndex = i * N + j;
+                const A = points.slice(pointIndex * 108 + 21, pointIndex * 108 + 24);
+                const B = points.slice(pointIndex * 108 + 18, pointIndex * 108 + 21);
+                const C = points.slice(pointIndex * 108 + 33, pointIndex * 108 + 36);
+                const D = points.slice(pointIndex * 108 + 24, pointIndex * 108 + 27);
+
+                const [fx, fy, fz] = Fs.slice((pointIndex) * 3, (pointIndex + 1) * 3);
+
+
+                // 12 edges
+                vertices.push(...A, ...B);
+                vertices.push(...B, ...C);
+                vertices.push(...C, ...D);
+                vertices.push(...D, ...A);
+
+                if (!shards && t > 0) {
+                    vertices.push(...A, A[0] + t * fx, A[1] + t * fy, A[2] + t * fz);
+                    vertices.push(...B, B[0] + t * fx, B[1] + t * fy, B[2] + t * fz);
+                    vertices.push(...C, C[0] + t * fx, C[1] + t * fy, C[2] + t * fz);
+                    vertices.push(...D, D[0] + t * fx, D[1] + t * fy, D[2] + t * fz);
+
+                    vertices.push(B[0] + t * fx, B[1] + t * fy, B[2] + t * fz, A[0] + t * fx, A[1] + t * fy, A[2] + t * fz);
+                    vertices.push(C[0] + t * fx, C[1] + t * fy, C[2] + t * fz, B[0] + t * fx, B[1] + t * fy, B[2] + t * fz);
+                    vertices.push(D[0] + t * fx, D[1] + t * fy, D[2] + t * fz, C[0] + t * fx, C[1] + t * fy, C[2] + t * fz);
+                    vertices.push(A[0] + t * fx, A[1] + t * fy, A[2] + t * fz, D[0] + t * fx, D[1] + t * fy, D[2] + t * fz);
+                }
+            }
+        }
+
+
+        this.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+    }
+
+    /**
+     * scale the edge in the vector field direction
+     * @param {number} t - new time
+     */
+    changeT(t) {
         this.lastT = t;
         this.attributes.position.needsUpdate = true;
 
@@ -2665,6 +2661,7 @@ export {
     CylindricalSolidGeometry,
     SphericalSolidGeometry,
     FluxBoxGeometry,
+    FluxBoxEdgesGeometry,
     nextHue,
     makeHSLColor,
     blockGeometry,

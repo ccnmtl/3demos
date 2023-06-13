@@ -4,11 +4,11 @@
 
     import { all, create } from 'mathjs';
     import M from '../M.svelte';
-    import { FluxBoxGeometry } from '../utils';
+    import { FluxBoxEdgesGeometry, FluxBoxGeometry } from '../utils';
     import { onMount, onDestroy } from 'svelte';
-    import { createEventDispatcher } from 'svelte';
+    // import { createEventDispatcher } from 'svelte';
 
-    const dispatch = createEventDispatcher();
+    // const dispatch = createEventDispatcher();
 
     import { tickTock } from '../stores';
 
@@ -34,19 +34,7 @@
     $: if (animation) drawNext($tickTock);
 
     const drawFirst = (anim) => {
-        if (anim) {
-            console.log("dispatchin' ?? or am I?");
-            currentField.animation = true;
-            objects = [
-                ...objects.filter((o) => o.kind !== 'field'),
-                currentField,
-            ];
-            // dispatch('animate');
-        } else {
-            console.log("falsifyin'");
-            currentField.animation = false;
-            updateTau(tau);
-        }
+        currentField.animation = anim;
     };
 
     $: drawFirst(animation);
@@ -60,7 +48,7 @@
         }),
     ];
 
-    $: exampleSurfaces = [
+    const exampleSurfaces = [
         {
             uuid: 'flux-story-example-001-',
             kind: 'surface',
@@ -84,12 +72,12 @@
             title: 'Dome',
             params: {
                 a: '0',
-                b: '1',
-                c: '-1',
-                d: '1',
-                x: 'u',
-                y: 'v',
-                z: '1/2 - u^2 / 4 - v^2 / 2',
+                b: 'pi / 2',
+                c: '0',
+                d: 'pi',
+                x: 'sin(u) cos(v)',
+                y: 'sin(u) sin(v)',
+                z: 'cos(u)',
                 t0: '0',
                 t1: '1',
             },
@@ -102,7 +90,7 @@
         ),
     ];
 
-    $: exampleFields = [
+    const exampleFields = [
         {
             uuid: 'flux-story-field-001-',
             kind: 'field',
@@ -113,7 +101,7 @@
                 r: 'z',
                 nVec: 4,
             },
-            color: '#12CC12',
+            color: '#128812',
         },
         {
             uuid: 'flux-story-field-002-',
@@ -136,6 +124,10 @@
         depthTest: true,
     });
 
+    let currentSurface =
+        objects.find((o) => o.kind === 'surface') || exampleSurfaces[0];
+    let currentField =
+        objects.find((o) => o.kind === 'field') || exampleFields[0];
     onMount(() => {
         // currentField =
         //     objects.find((o) => o.kind === 'field')?.uuid ||
@@ -173,17 +165,18 @@
 
     // console.log(geo);
 
-    const plusMaterial = new THREE.MeshLambertMaterial({
-        color: '#CB44CB',
+    const plusMaterial = new THREE.MeshPhongMaterial({
+        color: '#a4a4a4',
+        shininess: 80,
         side: THREE.FrontSide,
         transparent: false,
-        opacity: 0.5,
+        opacity: 0.7,
     });
 
     const minusMaterial = new THREE.MeshLambertMaterial({
-        color: '#44CB44',
+        color: '#CC1212',
         side: THREE.BackSide,
-        transparent: false,
+        transparent: true,
         opacity: 0.5,
     });
 
@@ -192,7 +185,7 @@
     boxes.add(new THREE.Mesh(geo, minusMaterial));
 
     const borders = new THREE.LineSegments(
-        new THREE.EdgesGeometry(geo, 50),
+        new FluxBoxEdgesGeometry(geo, 50),
         whiteLineMaterial
     );
     boxes.add(borders);
@@ -201,10 +194,6 @@
 
     let tau = 0;
     let nBoxes = 3;
-    let currentSurface =
-        objects.find((o) => o.kind === 'surface') || exampleSurfaces[0];
-    let currentField =
-        objects.find((o) => o.kind === 'field') || exampleFields[0];
 
     const setF = (obj) => {
         // const obj = exampleFields.find((o) => o.uuid === uuid);
@@ -220,6 +209,10 @@
                     Q.evaluate({ x, y, z }),
                     R.evaluate({ x, y, z })
                 );
+            objects = [
+                ...objects.filter((o) => o.kind !== 'field'),
+                currentField,
+            ];
         } else {
             F = () => new THREE.Vector3(0, 0, 0);
         }
@@ -245,10 +238,12 @@
             u1 = B.evaluate();
             v0 = (u) => C.evaluate({ u });
             v1 = (u) => D.evaluate({ u });
-            plusMaterial.color.set(obj.color);
-            const hsl = {};
-            plusMaterial.color.getHSL(hsl);
-            minusMaterial.color.setHSL(hsl.h + 0.6, hsl.s, hsl.l);
+
+            // // Match color to that of surface
+            // plusMaterial.color.set(obj.color);
+            // const hsl = {};
+            // plusMaterial.color.getHSL(hsl);
+            // minusMaterial.color.setHSL(hsl.h + 0.6, hsl.s, hsl.l);
         } else {
             r = (u, v) => [u, v, (u * u) / 4 - (v * v) / 4];
             u0 = -1;
@@ -266,7 +261,11 @@
         geo = new FluxBoxGeometry(F, r, A, B, C, D, N, false, tau + 1e-3);
         boxes.children[0].geometry = geo;
         boxes.children[1].geometry = geo;
-        boxes.children[2].geometry = new THREE.EdgesGeometry(geo, 15);
+        boxes.children[2].geometry = new FluxBoxEdgesGeometry(
+            geo,
+            false,
+            tau + 1e-3
+        );
         render();
     };
 
@@ -275,13 +274,10 @@
     const updateTau = (t) => {
         geo.changeT(t);
         boxes.children[1].visible = t > 0;
-        if (!animation) {
-            boxes.children[2].geometry.dispose();
-            boxes.children[2].geometry = new THREE.EdgesGeometry(
-                geo,
-                whiteLineMaterial
-            );
-        }
+        boxes.children[2].geometry?.dispose();
+        const edges = new FluxBoxEdgesGeometry(geo, false, t);
+        boxes.children[2].geometry = edges;
+
         render();
     };
 
@@ -309,15 +305,7 @@
     </p>
 
     <p>
-        Choose a vector field: <select
-            bind:value={currentField}
-            on:change={() => {
-                objects = [
-                    ...objects.filter((o) => o.kind !== 'field'),
-                    currentField,
-                ];
-            }}
-        >
+        Choose a vector field: <select bind:value={currentField}>
             {#each exampleFields as obj}
                 <option value={obj}>{obj.title}</option>
             {/each}
