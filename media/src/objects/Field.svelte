@@ -50,8 +50,11 @@
     export let color = '#373765';
     export let title;
 
+    export let meta;
+
+    let flowTrails = meta.flowTrails === true;
+    // console.log(meta, flowTrails);
     let minimize = false;
-    let flowTrails = true;
 
     /**
      *  "Check parameters"
@@ -396,7 +399,7 @@
                     toggleHide();
                     break;
                 case 't':
-                    trails.visible = !trails.visible;
+                    flowTrails = !flowTrails;
                     freeTrails();
                     render();
                     break;

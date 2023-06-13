@@ -493,7 +493,7 @@
 
                         <div class="objectBoxInner">
                             <!-- Main Loop, if you will -->
-                            {#each objects as { uuid, kind, params, color, title, animation } (uuid)}
+                            {#each objects as { uuid, kind, params, color, title, animation, ...etc } (uuid)}
                                 <div
                                     transition:slide={{
                                         delay: 0,
@@ -510,6 +510,7 @@
                                         controls={currentControls}
                                         render={requestFrameIfNotRequested}
                                         {params}
+                                        meta={etc}
                                         onClose={() => {
                                             objects = objects.filter(
                                                 (b) => b.uuid !== uuid
