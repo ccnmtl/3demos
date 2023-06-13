@@ -22,7 +22,9 @@
 
 <article>
     <div class="container">
-        <select name="some-menu" id="some-menu" bind:value={currentOption}>
+        <select class="form-select mb-1 bg-primary border-primary text-light"
+                aria-label="Select documentation section"
+                bind:value={currentOption}>
             {#each options as { title, comp }}
                 <option value={comp}>{title}</option> ]
             {/each}
@@ -31,13 +33,3 @@
 
     <svelte:component this={currentOption} />
 </article>
-
-<style>
-    select {
-        background-color: blue;
-        color: white;
-        font-size: 1.25em;
-        padding: 5px;
-        margin: 5px;
-    }
-</style>
