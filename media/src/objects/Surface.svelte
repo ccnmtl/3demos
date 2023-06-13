@@ -38,6 +38,8 @@
     export let onRenderObject = function () {};
     export let onDestroyObject = function () {};
     export let onSelect = function () {};
+    export let sync;
+    export let syncAnimation;
 
     export let params = {
         a: '-2',
@@ -153,6 +155,12 @@
     // Only run the update if the params have changed.
     $: hashTag = checksum(JSON.stringify(params));
     $: hashTag, updateSurface();
+    $: {
+        syncAnimation;
+        if (selected) {
+            tau = 0;
+        }
+    }
 
     // Check midpoint of parameter space and see if all is ok.
     const chickenParms = (val, { a, b, c, d, t0, t1 }) => {
@@ -227,16 +235,6 @@
 
     // Keep color fresh
     $: {
-        if (selectedObjects.length === 0 || selected) {
-            if (selectedObjects[selectedObjects.length - 1] === uuid) {
-                selectedPoint = point;
-            }
-            // plusMaterial.opacity = 0.7;
-            // minusMaterial.opacity = 0.7;
-        } else {
-            // plusMaterial.opacity = 0.3;
-            // minusMaterial.opacity = 0.3;
-        }
         plusMaterial.color.set(color);
         const hsl = {};
         plusMaterial.color.getHSL(hsl);
@@ -596,6 +594,14 @@
         render();
     });
 
+    $: if (selectedObjects[selectedObjects.length - 1] === uuid) {
+        selectedPoint = point;
+    }
+
+    $: if (selected) {
+        surfaceMesh.visible = sync;
+    }
+
     /**
      * Close on mesh so reactive statement doesn't react when individual parameters change.
      */
@@ -792,8 +798,8 @@
         } else if (selected) {
             switch (e.key) {
                 case 'Backspace':
-                    if (selected) {
-                        toggleHide();
+                    if (selectedObjects[0] === uuid) {
+                        sync = !sync;
                     }
                     break;
                 case 'Shift':
@@ -809,7 +815,9 @@
                     render();
                     break;
                 case 't':
-                    tanFrame.visible = !tanFrame.visible;
+                    if (uuid === selectedObjects[selectedObjects.length - 1]) {
+                        tanFrame.visible = !tanFrame.visible;
+                    }
                     render();
                     break;
                 case 'y':
@@ -987,7 +995,12 @@
                     bind:animation
                     on:animate
                     on:pause={() => (last = null)}
-                    on:rew={() => (tau = 0)}
+                    on:rew={() => {
+                        tau = 0;
+                        if (selected) {
+                            syncAnimation = !syncAnimation;
+                        }
+                    }}
                 />
             {/if}
 

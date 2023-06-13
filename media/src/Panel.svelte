@@ -53,6 +53,7 @@
     export let blowUpObjects = function () {};
     export let selectObject = function () {};
     export let selectedObjects;
+    export let sync;
     export let selectedPoint;
     export let chatBuffer;
     export let isPollsOpen;
@@ -65,6 +66,7 @@
     let panelOffset = 0;
     let panelTransition = '';
     let panelTransitionProperty = '';
+    let syncAnimation = 0;
 
     const kindToComponent = {
         point: Point,
@@ -297,7 +299,7 @@
     });
 
     const onKeyDown = (e) => {
-        if (e.key === 'Escape') {
+        if (e.key === 'h') {
             onTogglePanel();
         }
     };
@@ -454,12 +456,10 @@
                             <div class="btn-group mb-2">
                                 <select
                                     bind:value={kindToAdd}
-                                    name="add-object-menu"
-                                    id="add-object-menu"
-                                >
-                                    <option value={null}
-                                        >Add Object &#xFF0B;</option
-                                    >
+                                    class="demos-obj-select form-select bg-primary border-primary text-light">
+                                    <option value={null}>
+                                        Add Object &#xFF0B;
+                                    </option>
                                     <option value="point">point</option>
                                     <option value="vector">vector</option>
                                     <option value="curve">curve</option>
@@ -529,6 +529,8 @@
                                         {gridMax}
                                         on:animate={animateIfNotAnimating}
                                         bind:selectedObjects
+                                        bind:sync
+                                        bind:syncAnimation
                                         selected={selectedObjects.includes(
                                             uuid
                                         )}
@@ -831,16 +833,15 @@
         justify-content: space-between;
     }
 
-    select {
-        background-color: blue;
-        color: white;
-        /* font-size: 1.25em; */
-        padding: 5px;
-    }
-
     .accordion-header {
         font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
             Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue',
             sans-serif;
+    }
+
+    .demos-obj-select {
+        border-bottom-right-radius: 0;
+        border-top-right-radius: 0;
+        width: inherit;
     }
 </style>

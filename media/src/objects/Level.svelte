@@ -78,22 +78,16 @@
 
     // $: col = new THREE.Color(color);
     $: {
-        if (selectedObjects.length === 0 || selected) {
-            if (selectedObjects[selectedObjects.length - 1] === uuid) {
-                selectedPoint = point;
-            }
-            // plusMaterial.opacity = 0.7;
-            // minusMaterial.opacity = 0.7;
-        } else {
-            // plusMaterial.opacity = 0.3;
-            // minusMaterial.opacity = 0.3;
-        }
         plusMaterial.color.set(color);
         const hsl = {};
         plusMaterial.color.getHSL(hsl);
         hsl.h = (hsl.h + 0.618033988749895) % 1;
         minusMaterial.color.setHSL(hsl.h, hsl.s, hsl.l);
         render();
+    }
+
+    $: if (selectedObjects[selectedObjects.length - 1] === uuid) {
+        selectedPoint = point;
     }
 
     let boxItemElement;
@@ -398,8 +392,8 @@
         if (selected) {
             switch (e.key) {
                 case 'Backspace':
-                    if (selected) {
-                        toggleHide();
+                    if (selectedObjects[0] === uuid) {
+                        sync = !sync;
                     }
                     break;
                 case 'Shift':
@@ -415,7 +409,9 @@
                     render();
                     break;
                 case 't':
-                    tanFrame.visible = !tanFrame.visible;
+                    if (uuid === selectedObjects[selectedObjects.length - 1]) {
+                        tanFrame.visible = !tanFrame.visible;
+                    }
                     render();
                     break;
                 case 'y':
