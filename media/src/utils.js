@@ -2384,14 +2384,19 @@ class FluxBoxGeometry extends THREE.BufferGeometry {
      * @param {number|function} c - lower v
      * @param {number|function} d - upper v
      * @param {int} N - resolution
-     * @param {number} t - scale vector field at each
      * @param {boolean} shards - only show tangent pieces (e.g., for surface area)
      */
-    constructor(F, r, a, b, c, d, N = 10, t = 1, shards = false) {
+    constructor(F, r, a, b, c, d, N = 10, shards = false, t = 1) {
         super();
 
+        t = shards ? 0 : t;
         const dt = 1e-4; // for computing diffs
         const dt2 = dt / 2;
+
+        // save values for adjusting height in F direction
+        this.lastT = t;
+        this.lastN = N;
+        this.lastF = [];
 
         const points = [];
         const normals = [];
@@ -2413,12 +2418,16 @@ class FluxBoxGeometry extends THREE.BufferGeometry {
                 const [xv1, yv1, zv1] = r(u, v + dt2);
                 const [xv0, yv0, zv0] = r(u, v - dt2);
                 const rv = new THREE.Vector3((xv1 - xv0) / dt, (yv1 - yv0) / dt, (zv1 - zv0) / dt);
+
+                // separate top and bottom for z-fighting on zeros of F.
+                const tol = 1e-3;
+
                 const f = new THREE.Vector3(...F(x, y, z));
+
+                this.lastF.push(f.x, f.y, f.z);
 
                 // top
                 normal.copy(ru.clone().cross(rv).normalize());
-
-                if (shards) { t = 0; }
 
                 points.push(x + t * f.x, y + t * f.y, z + t * f.z);
                 points.push(x + t * f.x + du * ru.x, y + t * f.y + du * ru.y, z + t * f.z + du * ru.z);
@@ -2481,7 +2490,7 @@ class FluxBoxGeometry extends THREE.BufferGeometry {
 
                     points.push(x + du * ru.x + t * f.x, y + du * ru.y + t * f.y, z + du * ru.z + t * f.z);
                     points.push(x + du * ru.x, y + du * ru.y, z + du * ru.z);
-                    points.push(x + du * ru.x + t * f.x + dv * rv.x, y + t * f.y + dv * rv.y, z + du * ru.z + t * f.z + dv * rv.z);
+                    points.push(x + du * ru.x + t * f.x + dv * rv.x, y + du * ru.y + t * f.y + dv * rv.y, z + du * ru.z + t * f.z + dv * rv.z);
                     points.push(x + du * ru.x + t * f.x + dv * rv.x, y + du * ru.y + t * f.y + dv * rv.y, z + du * ru.z + t * f.z + dv * rv.z);
                     points.push(x + du * ru.x, y + du * ru.y, z + du * ru.z);
                     points.push(x + du * ru.x + dv * rv.x, y + du * ru.y + dv * rv.y, z + du * ru.z + dv * rv.z);
@@ -2497,6 +2506,113 @@ class FluxBoxGeometry extends THREE.BufferGeometry {
 
         this.setAttribute('position', new THREE.Float32BufferAttribute(points, 3));
         this.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+    }
+
+    /**
+     * scale the edge in the vector field direction
+     * @param {number} t - new time
+     */
+    changeT(t) {
+
+        const points = this.attributes.position.array;
+        // console.log("changing T", points.length);
+
+        const dt = t - this.lastT;
+        const N = this.lastN;
+        const Fs = this.lastF;
+
+        // where the "top" vertices are located
+        const topIndices = [0, 1, 2, 3, 4, 5, 14, 16, 17, 20, 21, 23, 25, 26, 28, 30, 32, 33];
+
+        for (let i = 0; i < N; i++) {
+            for (let j = 0; j < N; j++) {
+                const [fx, fy, fz] = Fs.slice((i * N + j) * 3, (i * N + j + 1) * 3);
+
+                //         // top
+                for (let k = 0; k < topIndices.length; k++) {
+                    const pIndex = 3 * (topIndices[k] + 36 * (i * N + j));
+                    // console.log(i, j, k, N, topIndices[k], pIndex);
+                    points[pIndex] += dt * fx;
+                    points[pIndex + 1] += dt * fy;
+                    points[pIndex + 2] += dt * fz;
+
+                }
+
+                //         points.push(x + t * f.x, y + t * f.y, z + t * f.z);
+                //         points.push(x + t * f.x + du * ru.x, y + t * f.y + du * ru.y, z + t * f.z + du * ru.z);
+                //         points.push(x + t * f.x + dv * rv.x, y + t * f.y + dv * rv.y, z + t * f.z + dv * rv.z);
+                //         points.push(x + t * f.x + du * ru.x, y + t * f.y + du * ru.y, z + t * f.z + du * ru.z);
+                //         points.push(x + t * f.x + du * ru.x + dv * rv.x, y + t * f.y + du * ru.y + dv * rv.y, z + t * f.z + du * ru.z + dv * rv.z);
+                //         points.push(x + t * f.x + dv * rv.x, y + t * f.y + dv * rv.y, z + t * f.z + dv * rv.z);
+
+                //         for (let index = 0; index < 6; index++) normals.push(normal.x, normal.y, normal.z);
+                //         if (!shards) {
+                //             // bottom
+
+                //             points.push(x + du * ru.x, y + du * ru.y, z + du * ru.z);
+                //             points.push(x, y, z);
+                //             points.push(x + dv * rv.x, y + dv * rv.y, z + dv * rv.z);
+                //             points.push(x + du * ru.x, y + du * ru.y, z + du * ru.z);
+                //             points.push(x + dv * rv.x, y + dv * rv.y, z + dv * rv.z);
+                //             points.push(x + du * ru.x + dv * rv.x, y + du * ru.y + dv * rv.y, z + du * ru.z + dv * rv.z);
+
+                //             for (let index = 0; index < 6; index++) normals.push(-normal.x, -normal.y, -normal.z);
+
+
+
+                //             // front
+
+                //             points.push(x, y, z);
+                //             points.push(x + du * ru.x, y + du * ru.y, z + du * ru.z);
+                //            14 points.push(x + t * f.x, y + t * f.y, z + t * f.z);
+                //             points.push(x + du * ru.x, y + du * ru.y, z + du * ru.z);
+                //            16 points.push(x + du * ru.x + t * f.x, y + du * ru.y + t * f.y, z + du * ru.z + t * f.z);
+                //            17 points.push(x + t * f.x, y + t * f.y, z + t * f.z);
+
+
+                //             // back
+
+                //             points.push(x + dv * rv.x + du * ru.x, y + dv * rv.y + du * ru.y, z + dv * rv.z + du * ru.z);
+                //             points.push(x + dv * rv.x, y + dv * rv.y, z + dv * rv.z);
+                //            20 points.push(x + dv * rv.x + t * f.x, y + dv * rv.y + t * f.y, z + dv * rv.z + t * f.z);
+                //            21 points.push(x + dv * rv.x + du * ru.x + t * f.x, y + dv * rv.y + du * ru.y + t * f.y, z + du * ru.z + t * f.z + dv * rv.z);
+                //             points.push(x + dv * rv.x + du * ru.x, y + dv * rv.y + du * ru.y, z + dv * rv.z + du * ru.z);
+                //            23 points.push(x + dv * rv.x + t * f.x, y + dv * rv.y + t * f.y, z + dv * rv.z + t * f.z);
+
+                //             for (let index = 0; index < 6; index++) normals.push(normal.x, normal.y, normal.z);
+
+                //             // left
+
+                //             points.push(x, y, z);
+                //            25 points.push(x + t * f.x, y + t * f.y, z + t * f.z);
+                //            26 points.push(x + t * f.x + dv * rv.x, y + t * f.y + dv * rv.y, z + t * f.z + dv * rv.z);
+                //             points.push(x, y, z);
+                //            28 points.push(x + t * f.x + dv * rv.x, y + t * f.y + dv * rv.y, z + t * f.z + dv * rv.z);
+                //             points.push(x + dv * rv.x, y + dv * rv.y, z + dv * rv.z);
+
+                //             for (let index = 0; index < 6; index++) normals.push(normal.x, normal.y, normal.z);
+
+                //             // right
+
+                //           30  points.push(x + du * ru.x + t * f.x, y + du * ru.y + t * f.y, z + du * ru.z + t * f.z);
+                //             points.push(x + du * ru.x, y + du * ru.y, z + du * ru.z);
+                //            32 points.push(x + du * ru.x + t * f.x + dv * rv.x, y + t * f.y + dv * rv.y, z + du * ru.z + t * f.z + dv * rv.z);
+                //            33 points.push(x + du * ru.x + t * f.x + dv * rv.x, y + du * ru.y + t * f.y + dv * rv.y, z + du * ru.z + t * f.z + dv * rv.z);
+                //             points.push(x + du * ru.x, y + du * ru.y, z + du * ru.z);
+                //             points.push(x + du * ru.x + dv * rv.x, y + du * ru.y + dv * rv.y, z + du * ru.z + dv * rv.z);
+
+                //             for (let index = 0; index < 6; index++) normals.push(-normal.x, -normal.y, -normal.z);
+
+
+                //         }
+
+                //     }
+                // }
+            }
+        }
+        this.lastT = t;
+        this.attributes.position.needsUpdate = true;
+
     }
 }
 

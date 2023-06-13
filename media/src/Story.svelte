@@ -5,6 +5,8 @@
     import FluxIntegral from './stories/FluxIntegral.svelte';
 
     export let objects;
+    export let scene;
+    export let render;
 
     let currentStory = null;
 </script>
@@ -19,7 +21,13 @@
 
 {#if currentStory}
     <div class="story-content-box">
-        <svelte:component this={currentStory} bind:objects />
+        <svelte:component
+            this={currentStory}
+            bind:objects
+            {scene}
+            {render}
+            on:animate
+        />
     </div>
 {:else}
     <p>

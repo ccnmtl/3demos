@@ -180,7 +180,8 @@
             const p = comps[Math.ceil(comps.length * Math.random())];
             const q = comps[Math.ceil(comps.length * Math.random())];
             const r = comps[Math.ceil(comps.length * Math.random())];
-            return { p, q, r, nVec: 6 };
+
+            return { p, q, r, nVec: '6' };
         },
     };
 
@@ -369,7 +370,12 @@
                                 tab="Story"
                                 active={currentMode === 'story'}
                             >
-                                <Story bind:objects />
+                                <Story
+                                    bind:objects
+                                    {scene}
+                                    render={requestFrameIfNotRequested}
+                                    on:animate={animateIfNotAnimating}
+                                />
                             </TabPane>
                             <TabPane
                                 tabId="about"
