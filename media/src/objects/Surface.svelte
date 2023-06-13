@@ -38,8 +38,6 @@
     export let onRenderObject = function () {};
     export let onDestroyObject = function () {};
     export let onSelect = function () {};
-    export let sync;
-    export let syncAnimation;
 
     export let params = {
         a: '-2',
@@ -155,12 +153,6 @@
     // Only run the update if the params have changed.
     $: hashTag = checksum(JSON.stringify(params));
     $: hashTag, updateSurface();
-    $: {
-        syncAnimation;
-        if (selected) {
-            tau = 0;
-        }
-    }
 
     // Check midpoint of parameter space and see if all is ok.
     const chickenParms = (val, { a, b, c, d, t0, t1 }) => {
@@ -598,10 +590,6 @@
         selectedPoint = point;
     }
 
-    $: if (selected) {
-        surfaceMesh.visible = sync;
-    }
-
     /**
      * Close on mesh so reactive statement doesn't react when individual parameters change.
      */
@@ -798,9 +786,7 @@
         } else if (selected) {
             switch (e.key) {
                 case 'Backspace':
-                    if (selectedObjects[0] === uuid) {
-                        sync = !sync;
-                    }
+                    toggleHide();
                     break;
                 case 'Shift':
                     window.addEventListener('mousemove', onMouseMove, false);
@@ -997,9 +983,6 @@
                     on:pause={() => (last = null)}
                     on:rew={() => {
                         tau = 0;
-                        if (selected) {
-                            syncAnimation = !syncAnimation;
-                        }
                     }}
                 />
             {/if}

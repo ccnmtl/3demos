@@ -90,7 +90,6 @@
     // Meta-parameters
     export let color = '#FFDD33';
     export let tau = 0;
-    export let syncAnimation;
     export let scene;
     export let render = () => {};
     export let onClose = () => {};
@@ -601,9 +600,6 @@
                 on:pause={() => (last = null)}
                 on:rew={() => {
                     tau = 0;
-                    if (selected) {
-                        syncAnimation = !syncAnimation;
-                    }
                 }}
             />
             <span class="box-1">Frame</span>

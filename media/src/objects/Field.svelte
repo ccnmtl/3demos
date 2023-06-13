@@ -92,9 +92,6 @@
     $: {
         // if (selectedObjects.length === 0 || selected) {
         //     fieldMaterial.opacity = 1.0;
-        if (selected) {
-            flowArrows.visible = sync;
-        }
         // } else {
         //     fieldMaterial.opacity = 0.3;
         // }
@@ -129,13 +126,6 @@
         boxItemElement?.scrollIntoView({ behavior: 'smooth' });
     };
     $: if (selected && selectedObjects.length > 0) flash();
-
-    $: {
-        syncAnimation;
-        if (selected) {
-            rewindArrows();
-        }
-    }
 
     const trailGeometry = new THREE.BufferGeometry();
 
@@ -422,7 +412,7 @@
                     render();
                     break;
                 case 'r':
-                    syncAnimation = !syncAnimation;
+                    rewindArrows();
                     break;
             }
         }
@@ -497,12 +487,7 @@
                 on:animate
                 on:play={() => (flowArrows.visible = true)}
                 on:pause={() => (last = null)}
-                on:rew={() => {
-                    if (selected) {
-                        syncAnimation = !syncAnimation;
-                    }
-                    rewindArrows();
-                }}
+                on:rew={rewindArrows}
             />
 
             <span class="box box-2">
