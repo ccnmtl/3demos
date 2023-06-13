@@ -36,7 +36,6 @@
     export let onRenderObject = function () {};
     export let onDestroyObject = function () {};
     export let onSelect = function () {};
-    export let sync;
 
     // export let paramString;
 
@@ -66,7 +65,6 @@
     // Only run the update if the params have changed.
     $: hashTag = checksum(JSON.stringify(params));
     $: hashTag, updateCurve();
-    $: sync;
 
     // Check midpoint of parameter space and see if all is ok.
     const chickenParms = (val, { a, b }) => {
@@ -137,9 +135,6 @@
     });
     // Keep updated
     $: {
-        if (selected) {
-            tube.visible = sync;
-        }
         curveMaterial.color.set(color);
         render();
     }
@@ -450,12 +445,7 @@
             switch (e.key) {
                 case 'Backspace':
                     if (selectedObjects[0] === uuid) {
-                        sync = !sync;
-                    }
-                    if (sync) {
-                        circleTube.visible = osculatingCircle;
-                    } else {
-                        circleTube.visible = false;
+                        toggleHide();
                     }
                     break;
                 case 'Shift':

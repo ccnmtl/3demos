@@ -37,7 +37,6 @@
     let scaleAnimation = false;
     let scaleUpdate;
     let selectedObjects = [];
-    let sync = null;
     let hoveredObject = null;
     let selectedPoint = null;
     let lockPoll = false;
@@ -56,12 +55,9 @@
             } else {
                 //Can't just push. Assignment needed to trigger dynamic update
                 selectedObjects = selectedObjects.concat(uuid);
-                sync = true;
             }
         }
-        if (selectedObjects.length === 0) {
-            sync = null;
-        }
+
         render();
     };
 
@@ -642,7 +638,6 @@
             bind:pollResponses
             bind:lockPoll
             bind:selectedObjects
-            bind:sync
             bind:selectedPoint
             bind:isPollsOpen
             {isHost}

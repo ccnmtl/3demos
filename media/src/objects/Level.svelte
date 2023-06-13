@@ -393,7 +393,7 @@
             switch (e.key) {
                 case 'Backspace':
                     if (selectedObjects[0] === uuid) {
-                        sync = !sync;
+                        toggleHide();
                     }
                     break;
                 case 'Shift':

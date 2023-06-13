@@ -37,7 +37,6 @@
     export let onRenderObject = function () {};
     export let onDestroyObject = function () {};
     export let onSelect = function () {};
-    export let sync;
 
     onMount(() => {
         titleIndex++;
@@ -69,7 +68,7 @@
             switch (e.key) {
                 case 'Backspace':
                     if (selectedObjects[0] === uuid) {
-                        sync = !sync;
+                        toggleHide();
                     }
                     break;
                 case 'd':
@@ -195,9 +194,6 @@
         // if (selectedObjects.length === 0 || selected) {
         //     material.opacity = 1.0;
         //     colorMaterial.opacity = 1.0;
-        if (selected) {
-            solidGroup.visible = sync;
-        }
         // } else {
         //     material.opacity = 0.5;
         //     colorMaterial.opacity = 0.5;
