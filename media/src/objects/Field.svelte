@@ -75,8 +75,8 @@
     const flowArrows = new THREE.Object3D();
     const fieldMaterial = new THREE.MeshLambertMaterial({
         color,
-        transparent: true,
-        opacity: 0.5,
+        transparent: false,
+        // opacity: 0.5,
     });
     const trailMaterial = new THREE.LineBasicMaterial({
         color: 0xffffff,
@@ -375,6 +375,8 @@
         update(currentTime - last);
         last = currentTime;
     }
+
+    // Move to afterUpdate?
     $: if (animation) {
         dispatch('animate');
     }
@@ -432,7 +434,7 @@
         <div class="threedemos-container container">
             {#each ['p', 'q', 'r'] as name}
                 <span class="box-1"
-                    ><M size="sm">{name.toUpperCase()}(t) =</M></span
+                    ><M size="sm">{name.toUpperCase()}(x,y,z) =</M></span
                 >
                 <InputChecker
                     value={params[name]}
