@@ -150,18 +150,18 @@
     });
 
     onDestroy(() => {
-        onDestroyObject(point);
+        onDestroyObject(points);
         // if (point) {
-        point.geometry?.dispose();
-        point.material?.dispose();
+        pointGeo?.dispose();
+        pointMaterial?.dispose();
 
-        scene.remove(point);
+        scene.remove(points);
         window.removeEventListener('keydown', onKeyDown, false);
         render();
     });
 
     const toggleHide = function () {
-        point.visible = !point.visible;
+        points.visible = !points.visible;
         render();
     };
 

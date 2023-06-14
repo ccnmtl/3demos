@@ -1,0 +1,1 @@
+[{"uuid":"e0594f08-e38e-40a4-881c-ac41dee0eb79","kind":"point","params":{"a":"cos(n * pi / 8)","b":"sin(n * pi / 8)","c":"cos(t * n * pi / 8)","t0":"0","t1":"16","n0":0,"n1":15},"color":"#282669","animation":true,"title":"Point 1"}]
