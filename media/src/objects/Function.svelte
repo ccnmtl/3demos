@@ -1,3 +1,7 @@
+<script context="module">
+    let titleIndex = 0;
+</script>
+
 <script>
     import { onMount, onDestroy, createEventDispatcher } from 'svelte';
     import * as THREE from 'three';
@@ -6,6 +10,7 @@
     import M from '../M.svelte';
     import ObjHeader from './ObjHeader.svelte';
     import InputChecker from '../form-components/InputChecker.svelte';
+    import Nametag from './Nametag.svelte';
     import PlayButtons from '../form-components/PlayButtons.svelte';
     import { dependsOn } from './Vector.svelte';
     import { tickTock } from '../stores';
@@ -29,9 +34,7 @@
     export let uuid;
     export let onRenderObject = function () {};
     export let onDestroyObject = function () {};
-    export let onSelect = function() {};
-    export let sync;
-    export let syncAnimation;
+    export let onSelect = function () {};
 
     export let params = {
         a: '-2',
@@ -107,6 +110,7 @@
     export let selected;
     export let selectedObjects;
     export let selectedPoint;
+    export let title;
 
     let minimize = false;
 
@@ -559,12 +563,6 @@
     $: isDynamic = dependsOn(params, 't');
     $: hashTag = checksum(JSON.stringify(params));
     $: hashTag, updateSurface();
-    $: {
-        syncAnimation;
-        if (selected) {
-            tau = 0;
-        }
-    }
 
     // Keep color fresh
     $: {
@@ -581,11 +579,14 @@
     }
 
     let boxItemElement;
-    $: if (selected) {
-        surfaceMesh.visible = sync;
+    /**
+     * Close on mesh so reactive statement doesn't react when individual parameters change.
+     */
+    const flash = () => {
         surfaceMesh.children.map((mesh) => flashDance(mesh, render));
-        boxItemElement.scrollIntoView({ behavior: 'smooth' });
-    }
+        boxItemElement?.scrollIntoView({ behavior: 'smooth' });
+    };
+    $: if (selected && selectedObjects.length > 0) flash();
 
     const update = function (dt) {
         const t0 = math.parse(params.t0).evaluate();
@@ -809,12 +810,16 @@
     };
 
     onMount(() => {
+        titleIndex++;
+        title = title || `Graph ${titleIndex}`;
+
         params.t0 = params.t0 || '0';
         params.t1 = params.t1 || '1';
         updateSurface();
         updateBoxes();
         if (animation) dispatch('animate');
     });
+
     onDestroy(() => {
         onDestroyObject(...surfaceMesh.children);
 
@@ -900,12 +905,10 @@
                     render();
                     break;
                 case 'Backspace':
-                    if (selectedObjects[0] === uuid) {
-                        sync = !sync;
-                    }
+                    surfaceMesh.visible = !surfaceMesh.visible;
                     break;
                 case 't':
-                    if (uuid === selectedObjects[selectedObjects.length-1]) {
+                    if (uuid === selectedObjects[selectedObjects.length - 1]) {
                         point.visible = !point.visible;
                         render();
                     }
@@ -919,7 +922,7 @@
                     render();
                     break;
                 case 'i':
-                    if (uuid === selectedObjects[selectedObjects.length-1]) {
+                    if (uuid === selectedObjects[selectedObjects.length - 1]) {
                         tau = 0;
                         update(0);
                         animation = false;
@@ -971,7 +974,7 @@
         {color}
         {onSelect}
     >
-        Graph of function
+        <Nametag bind:title />
     </ObjHeader>
     <div hidden={minimize}>
         <div class="threedemos-container container">
@@ -1134,9 +1137,6 @@
                     on:pause={() => (last = null)}
                     on:rew={() => {
                         tau = 0;
-                        if (selected) {
-                            syncAnimation = !syncAnimation;
-                        }
                     }}
                 />
                 <!-- </div> -->

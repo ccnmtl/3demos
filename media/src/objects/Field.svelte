@@ -1,3 +1,7 @@
+<script context="module">
+    let titleIndex = 0;
+</script>
+
 <script>
     import { onMount, onDestroy, createEventDispatcher } from 'svelte';
     import * as THREE from 'three';
@@ -5,6 +9,7 @@
 
     import M from '../M.svelte';
     import ObjHeader from './ObjHeader.svelte';
+    import Nametag from './Nametag.svelte';
     import { ArrowBufferGeometry, rk4, norm1, checksum } from '../utils.js';
     import { flashDance } from '../sceneUtils';
     import { tickTock } from '../stores';
@@ -43,11 +48,13 @@
     export let selectedObjects;
     export let selected;
     export let color = '#373765';
-    export let sync;
-    export let syncAnimation;
+    export let title;
 
+    export let meta;
+
+    let flowTrails = meta.flowTrails === true;
+    // console.log(meta, flowTrails);
     let minimize = false;
-    let flowTrails = true;
 
     /**
      *  "Check parameters"
@@ -71,8 +78,8 @@
     const flowArrows = new THREE.Object3D();
     const fieldMaterial = new THREE.MeshLambertMaterial({
         color,
-        transparent: true,
-        opacity: 0.5,
+        transparent: false,
+        // opacity: 0.5,
     });
     const trailMaterial = new THREE.LineBasicMaterial({
         color: 0xffffff,
@@ -85,9 +92,6 @@
     $: {
         // if (selectedObjects.length === 0 || selected) {
         //     fieldMaterial.opacity = 1.0;
-        if (selected) {
-            flowArrows.visible = sync;
-        }
         // } else {
         //     fieldMaterial.opacity = 0.3;
         // }
@@ -114,18 +118,14 @@
     }
 
     let boxItemElement;
-    $: if (selected && selectedObjects.length > 0) {
+    /**
+     * Close on mesh so reactive statement doesn't react when individual parameters change.
+     */
+    const flash = () => {
         flashDance(flowArrows.children[0], render);
-        // flashDance(trails, render); // doesn't work]]
-        boxItemElement.scrollIntoView({ behavior: 'smooth' });
-    }
-
-    $: {
-        syncAnimation;
-        if (selected) {
-            rewindArrows();
-        }
-    }
+        boxItemElement?.scrollIntoView({ behavior: 'smooth' });
+    };
+    $: if (selected && selectedObjects.length > 0) flash();
 
     const trailGeometry = new THREE.BufferGeometry();
 
@@ -338,6 +338,9 @@
     scene.add(trails);
 
     onMount(() => {
+        titleIndex++;
+        title = title || `Vector Field ${titleIndex}`;
+
         updateField();
         maxLength = initFlowArrows(flowArrows, gridMax, params.nVec);
         updateFlowArrows(flowArrows, fieldF, 0);
@@ -375,6 +378,8 @@
         update(currentTime - last);
         last = currentTime;
     }
+
+    // Move to afterUpdate?
     $: if (animation) {
         dispatch('animate');
     }
@@ -391,14 +396,10 @@
         if (selected) {
             switch (e.key) {
                 case 'Backspace':
-                if (selectedObjects[0] === uuid) {
-                        sync = !sync;
-                    }
+                    toggleHide();
                     break;
                 case 't':
-                    if (uuid === selectedObjects[selectedObjects.length-1]) {
-                        trails.visible = !trails.visible;
-                    }
+                    flowTrails = !flowTrails;
                     freeTrails();
                     render();
                     break;
@@ -411,7 +412,7 @@
                     render();
                     break;
                 case 'r':
-                    syncAnimation = !syncAnimation;
+                    rewindArrows();
                     break;
             }
         }
@@ -430,13 +431,13 @@
         {color}
         {onSelect}
     >
-        Vector Field
+        <Nametag bind:title />
     </ObjHeader>
     <div hidden={minimize}>
         <div class="threedemos-container container">
             {#each ['p', 'q', 'r'] as name}
                 <span class="box-1"
-                    ><M size="sm">{name.toUpperCase()}(t) =</M></span
+                    ><M size="sm">{name.toUpperCase()}(x,y,z) =</M></span
                 >
                 <InputChecker
                     value={params[name]}
@@ -486,12 +487,7 @@
                 on:animate
                 on:play={() => (flowArrows.visible = true)}
                 on:pause={() => (last = null)}
-                on:rew={() => {
-                    if (selected) {
-                        syncAnimation = !syncAnimation;
-                    }
-                    rewindArrows();
-                }}
+                on:rew={rewindArrows}
             />
 
             <span class="box box-2">

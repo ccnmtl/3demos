@@ -1,3 +1,7 @@
+<script context="module">
+    let titleIndex = 0;
+</script>
+
 <script>
     import { onMount, onDestroy, createEventDispatcher } from 'svelte';
     import * as THREE from 'three';
@@ -7,6 +11,7 @@
     import { dependsOn } from './Vector.svelte';
     import M from '../M.svelte';
     import ObjHeader from './ObjHeader.svelte';
+    import Nametag from './Nametag.svelte';
     import PlayButtons from '../form-components/PlayButtons.svelte';
     import { densityColormap, tickTock, vMax, vMin } from '../stores';
 
@@ -33,8 +38,6 @@
     export let onRenderObject = function () {};
     export let onDestroyObject = function () {};
     export let onSelect = function () {};
-    export let sync;
-    export let syncAnimation;
 
     export let params = {
         a: '-2',
@@ -48,6 +51,7 @@
         t1: '1',
     };
     export let color = '#3232ff';
+    export let title;
 
     export let animation = false;
 
@@ -149,12 +153,6 @@
     // Only run the update if the params have changed.
     $: hashTag = checksum(JSON.stringify(params));
     $: hashTag, updateSurface();
-    $: {
-        syncAnimation;
-        if (selected) {
-            tau = 0;
-        }
-    }
 
     // Check midpoint of parameter space and see if all is ok.
     const chickenParms = (val, { a, b, c, d, t0, t1 }) => {
@@ -213,7 +211,7 @@
         shininess: 80,
         side: THREE.BackSide,
         vertexColors: false,
-        transparent: true,
+        transparent: false,
         opacity: 0.7,
     });
     const plusMaterial = new THREE.MeshPhongMaterial({
@@ -221,7 +219,7 @@
         shininess: 80,
         side: THREE.FrontSide,
         vertexColors: false,
-        transparent: true,
+        transparent: false,
         opacity: 0.7,
     });
 
@@ -566,6 +564,9 @@
 
     // onMount(updateSurface);
     onMount(() => {
+        titleIndex++;
+        title = title || `Parametric Surface ${titleIndex}`;
+
         params.t0 = params.t0 || '0';
         params.t1 = params.t1 || '1';
         // updateSurface();
@@ -589,11 +590,14 @@
         selectedPoint = point;
     }
 
-    $: if (selected) {
-        surfaceMesh.visible = sync;
+    /**
+     * Close on mesh so reactive statement doesn't react when individual parameters change.
+     */
+    const flash = () => {
         surfaceMesh.children.map((mesh) => flashDance(mesh, render));
-        boxItemElement.scrollIntoView({ behavior: 'smooth' });
-    }
+        boxItemElement?.scrollIntoView({ behavior: 'smooth' });
+    };
+    $: if (selected && selectedObjects.length > 0) flash();
 
     // Select a point
     const tanFrame = new THREE.Object3D();
@@ -782,9 +786,7 @@
         } else if (selected) {
             switch (e.key) {
                 case 'Backspace':
-                    if (selectedObjects[0] === uuid) {
-                        sync = !sync;
-                    }
+                    toggleHide();
                     break;
                 case 'Shift':
                     window.addEventListener('mousemove', onMouseMove, false);
@@ -799,7 +801,7 @@
                     render();
                     break;
                 case 't':
-                    if (uuid === selectedObjects[selectedObjects.length-1]) {
+                    if (uuid === selectedObjects[selectedObjects.length - 1]) {
                         tanFrame.visible = !tanFrame.visible;
                     }
                     render();
@@ -853,7 +855,7 @@
         {color}
         {onSelect}
     >
-        Parametric surface
+        <Nametag bind:title />
     </ObjHeader>
     <div hidden={minimize}>
         <div class="threedemos-container container">
@@ -981,9 +983,6 @@
                     on:pause={() => (last = null)}
                     on:rew={() => {
                         tau = 0;
-                        if (selected) {
-                            syncAnimation = !syncAnimation;
-                        }
                     }}
                 />
             {/if}

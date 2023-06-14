@@ -4,6 +4,8 @@
     const math = create(all, config);
 
     import { dependsOn } from './Vector.svelte';
+
+    let titleIndex = 0;
 </script>
 
 <script>
@@ -18,6 +20,7 @@
     import { checksum } from '../utils.js';
     import { flashDance } from '../sceneUtils';
     import InputChecker from '../form-components/InputChecker.svelte';
+    import Nametag from './Nametag.svelte';
 
     // export let paramString;
 
@@ -25,8 +28,6 @@
     export let onRenderObject = function () {};
     export let onDestroyObject = function () {};
     export let onSelect = function () {};
-    export let sync;
-    export let syncAnimation;
 
     export let params = {
         a: '-1',
@@ -35,6 +36,7 @@
     };
 
     export let color = '#FFFF33';
+    export let title;
 
     // useless code to suppress dev warnings
     export let camera;
@@ -102,37 +104,29 @@
     $: isDynamic = dependsOn(params);
     $: hashTag = checksum(JSON.stringify(params));
     $: hashTag, updatePoint();
-    $: {
-        syncAnimation;
-        if (selected) {
-            tau = 0;
-            update();
-        }
-    }
 
     // recolor on demand
     $: {
-        // if (selectedObjects.length === 0 || selected) {
-        //     pointMaterial.opacity = 1.0;
-        if (selected) {
-            point.visible = sync;
-        }
-        // } else {
-        //     pointMaterial.opacity = 0.3;
-        // }
         pointMaterial.color.set(color);
         render();
     }
 
     let boxItemElement;
-    $: if (selected && selectedObjects.length > 0) {
+    /**
+     * Close over mesh so reactive statement doesn't react when individual parameters change.
+     */
+    const flash = () => {
         flashDance(point, render);
-        boxItemElement.scrollIntoView({ behavior: 'smooth' });
-    }
+        boxItemElement?.scrollIntoView({ behavior: 'smooth' });
+    };
+    $: if (selected && selectedObjects.length > 0) flash();
 
     onMount(() => {
         if (animation) dispatch('animate');
+        titleIndex++;
+        title = title || `Point ${titleIndex}`;
     });
+
     onDestroy(() => {
         onDestroyObject(point);
         // if (point) {
@@ -157,12 +151,13 @@
         if (selected) {
             switch (e.key) {
                 case 'Backspace':
-                    if (selectedObjects[0] === uuid) {
-                        sync = !sync;
-                    }
+                    toggleHide();
                     break;
                 case 'p':
                     animation = !animation;
+                    break;
+                case 'r':
+                    tau = 0;
                     break;
             }
         }
@@ -247,7 +242,8 @@
         {color}
         {onSelect}
     >
-        Point <M size="sm">\langle p_1, p_2, p_3 \rangle</M>
+        <Nametag bind:title />
+        <M size="sm">\langle p_1, p_2, p_3 \rangle</M>
     </ObjHeader>
     <div hidden={minimize}>
         <div class="threedemos-container container">
@@ -305,9 +301,6 @@
                     on:pause={() => (last = null)}
                     on:rew={() => {
                         tau = 0;
-                        if (selected) {
-                            syncAnimation = !syncAnimation;
-                        }
                         update();
                     }}
                 />

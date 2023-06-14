@@ -1,3 +1,7 @@
+<script context="module">
+    let titleIndex = 0;
+</script>
+
 <script>
     import {
         onMount,
@@ -5,6 +9,7 @@
         createEventDispatcher,
         beforeUpdate,
     } from 'svelte';
+    import Nametag from './Nametag.svelte';
     import * as THREE from 'three';
     import { create, all } from 'mathjs';
 
@@ -26,11 +31,11 @@
 
     const dispatch = createEventDispatcher();
 
+    export let title;
     export let uuid;
     export let onRenderObject = function () {};
     export let onDestroyObject = function () {};
-    export let onSelect = function() {};
-    export let sync;
+    export let onSelect = function () {};
 
     // export let paramString;
 
@@ -60,7 +65,6 @@
     // Only run the update if the params have changed.
     $: hashTag = checksum(JSON.stringify(params));
     $: hashTag, updateCurve();
-    $: sync;
 
     // Check midpoint of parameter space and see if all is ok.
     const chickenParms = (val, { a, b }) => {
@@ -84,7 +88,6 @@
     // Meta-parameters
     export let color = '#FFDD33';
     export let tau = 0;
-    export let syncAnimation;
     export let scene;
     export let render = () => {};
     export let onClose = () => {};
@@ -132,9 +135,6 @@
     });
     // Keep updated
     $: {
-        if (selected) {
-            tube.visible = sync;
-        }
         curveMaterial.color.set(color);
         render();
     }
@@ -363,7 +363,10 @@
             frame.visible = true;
             dispatch('animate');
         }
+        titleIndex++;
+        title = title || `Space Curve ${titleIndex}`;
     });
+
     onDestroy(() => {
         onDestroyObject(tube);
 
@@ -390,16 +393,15 @@
 
     $: texString1 = `${stringifyT(tau)}`;
 
-    $: if (selected && selectedObjects.length > 0) {
+    /**
+     * Close on mesh so reactive statement doesn't react when individual parameters change.
+     */
+    const flash = () => {
         flashDance(tube, render);
-        boxItemElement.scrollIntoView({ behavior: 'smooth' });
-    }
-    $: {
-        syncAnimation;
-        if (selected) {
-            tau = 0;
-        }
-    }
+        boxItemElement?.scrollIntoView({ behavior: 'smooth' });
+    };
+
+    $: if (selected && selectedObjects.length > 0) flash();
 
     const raycaster = new THREE.Raycaster();
 
@@ -443,19 +445,14 @@
             switch (e.key) {
                 case 'Backspace':
                     if (selectedObjects[0] === uuid) {
-                        sync = !sync;
-                    }
-                    if (sync) {
-                        circleTube.visible = osculatingCircle;
-                    } else {
-                        circleTube.visible = false;
+                        toggleHide();
                     }
                     break;
                 case 'Shift':
                     window.addEventListener('mousemove', onMouseMove, false);
                     break;
                 case 'c':
-                    if(selectedObjects[selectedObjects.length-1] === uuid) {
+                    if (selectedObjects[selectedObjects.length - 1] === uuid) {
                         controls.target.set(
                             point.position.x,
                             point.position.y,
@@ -476,7 +473,7 @@
                     render();
                     break;
                 case 't':
-                    if (uuid === selectedObjects[selectedObjects.length-1]) {
+                    if (uuid === selectedObjects[selectedObjects.length - 1]) {
                         frame.visible = !frame.visible;
                     }
                     render();
@@ -509,7 +506,7 @@
         {onSelect}
         objHidden={!tube.visible}
     >
-        Space Curve
+        <Nametag bind:title />
     </ObjHeader>
     <div hidden={minimize}>
         <div class="threedemos-container container">
@@ -593,9 +590,6 @@
                 on:pause={() => (last = null)}
                 on:rew={() => {
                     tau = 0;
-                    if (selected) {
-                        syncAnimation = !syncAnimation;
-                    }
                 }}
             />
             <span class="box-1">Frame</span>

@@ -1,10 +1,15 @@
+<script context="module">
+    let titleIndex = 0;
+</script>
+
 <script>
-    import { onDestroy } from 'svelte';
+    import { onDestroy, onMount } from 'svelte';
     import * as THREE from 'three';
     import { create, all } from 'mathjs';
 
     import M from '../M.svelte';
     import ObjHeader from './ObjHeader.svelte';
+    import Nametag from './Nametag.svelte';
     import ObjectParamInput from '../form-components/ObjectParamInput.svelte';
     import InputChecker from '../form-components/InputChecker.svelte';
 
@@ -38,7 +43,7 @@
     export let selected;
     export let selectedObjects;
     export let selectedPoint;
-    export let sync;
+    export let title;
 
     export let camera,
         controls,
@@ -86,11 +91,14 @@
     }
 
     let boxItemElement;
-    $: if (selected) {
-        mesh.visible = sync;
+    /**
+     * Close over mesh so reactive statement doesn't react when individual parameters change.
+     */
+    const flash = () => {
         mesh.children.map((mesh) => flashDance(mesh, render));
-        boxItemElement.scrollIntoView({ behavior: 'smooth' });
-    }
+        boxItemElement?.scrollIntoView({ behavior: 'smooth' });
+    };
+    $: if (selected && selectedObjects.length > 0) flash();
 
     const whiteLineMaterial = new THREE.LineBasicMaterial({
         color: 0xffffff,
@@ -214,6 +222,10 @@
         loading = false;
         render();
     };
+    onMount(() => {
+        titleIndex++;
+        title = title || `Level Surface ${titleIndex}`;
+    });
 
     onDestroy(() => {
         onDestroyObject(...mesh.children);
@@ -381,7 +393,7 @@
             switch (e.key) {
                 case 'Backspace':
                     if (selectedObjects[0] === uuid) {
-                        sync = !sync;
+                        toggleHide();
                     }
                     break;
                 case 'Shift':
@@ -397,7 +409,7 @@
                     render();
                     break;
                 case 't':
-                    if (uuid === selectedObjects[selectedObjects.length-1]) {
+                    if (uuid === selectedObjects[selectedObjects.length - 1]) {
                         tanFrame.visible = !tanFrame.visible;
                     }
                     render();
@@ -445,7 +457,7 @@
         {color}
         {onSelect}
     >
-        <strong>Level surface </strong>
+        <Nametag bind:title />
         <span hidden={!loading}>
             <i class="fa fa-spinner fa-pulse fa-fw" />
             <span class="sr-only">Loading...</span>

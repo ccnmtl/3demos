@@ -32,6 +32,8 @@
 
     import { evaluate_cmap } from './js-colormaps';
     import { colorMap } from './stores';
+    import Story from './Story.svelte';
+    import { tick } from 'svelte';
 
     export let debug, currentMode;
     export let currentControls;
@@ -51,7 +53,6 @@
     export let blowUpObjects = function () {};
     export let selectObject = function () {};
     export let selectedObjects;
-    export let sync;
     export let selectedPoint;
     export let chatBuffer;
     export let isPollsOpen;
@@ -64,7 +65,6 @@
     let panelOffset = 0;
     let panelTransition = '';
     let panelTransitionProperty = '';
-    let syncAnimation = 0;
 
     const kindToComponent = {
         point: Point,
@@ -118,7 +118,7 @@
             x: 'cos(t)',
             y: 'sin(t)',
             z: `${
-                1 / 4 + Math.round(100 * Math.random()) / 100
+                1 / 4 + Math.round(10 * Math.random()) / 10
             } * cos(${Math.ceil(10 * Math.random()).toString()}*t)`,
         }),
         graph: () => ({
@@ -180,23 +180,31 @@
             const p = comps[Math.ceil(comps.length * Math.random())];
             const q = comps[Math.ceil(comps.length * Math.random())];
             const r = comps[Math.ceil(comps.length * Math.random())];
-            return { p, q, r, nVec: 6 };
+
+            return { p, q, r, nVec: '6' };
         },
     };
 
     let kindToAdd = null;
 
     $: if (kindToAdd) {
+        const uuid = crypto.randomUUID();
         objects = [
             ...objects,
             {
-                uuid: crypto.randomUUID(),
+                uuid,
                 kind: kindToAdd,
                 params: defaultParams[kindToAdd](),
                 color: nextColorUp(),
             },
         ];
 
+        selectedObjects = [];
+
+        setTimeout(async () => {
+            await tick();
+            selectObject(uuid);
+        }, 350); // why 350? I don't know. Autoscroll has some race condition I don't get.
         kindToAdd = null;
     }
 
@@ -306,8 +314,10 @@
 >
     <div id="panelAccordion" class="accordion">
         <a href="/" title="Home" class="demos-logo">
-            <img alt="3Demos logo"
-                 src={window.STATIC_PREFIX + '/3demos-logo.svg'} />
+            <img
+                alt="3Demos logo"
+                src={window.STATIC_PREFIX + '/3demos-logo.svg'}
+            />
         </a>
 
         <div class="accordion-item demos-panel-box">
@@ -358,10 +368,14 @@
                             <TabPane
                                 tabId="story"
                                 tab="Story"
-                                disabled
                                 active={currentMode === 'story'}
                             >
-                                Story Mode
+                                <Story
+                                    bind:objects
+                                    {scene}
+                                    render={requestFrameIfNotRequested}
+                                    on:animate={animateIfNotAnimating}
+                                />
                             </TabPane>
                             <TabPane
                                 tabId="about"
@@ -440,7 +454,8 @@
                             <div class="btn-group mb-2">
                                 <select
                                     bind:value={kindToAdd}
-                                    class="demos-obj-select form-select bg-primary border-primary text-light">
+                                    class="demos-obj-select form-select bg-primary border-primary text-light"
+                                >
                                     <option value={null}>
                                         Add Object &#xFF0B;
                                     </option>
@@ -477,7 +492,7 @@
 
                         <div class="objectBoxInner">
                             <!-- Main Loop, if you will -->
-                            {#each objects as { uuid, kind, params, color, animation } (uuid)}
+                            {#each objects as { uuid, kind, params, color, title, animation, ...etc } (uuid)}
                                 <div
                                     transition:slide={{
                                         delay: 0,
@@ -494,6 +509,7 @@
                                         controls={currentControls}
                                         render={requestFrameIfNotRequested}
                                         {params}
+                                        meta={etc}
                                         onClose={() => {
                                             objects = objects.filter(
                                                 (b) => b.uuid !== uuid
@@ -505,14 +521,13 @@
                                                 );
                                         }}
                                         bind:color
+                                        bind:title
                                         bind:animation
                                         {uuid}
                                         {gridStep}
                                         {gridMax}
                                         on:animate={animateIfNotAnimating}
                                         bind:selectedObjects
-                                        bind:sync
-                                        bind:syncAnimation
                                         selected={selectedObjects.includes(
                                             uuid
                                         )}

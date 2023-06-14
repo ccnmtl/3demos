@@ -17,6 +17,8 @@
                 });
                 return nodes.some((node) => node.name === ch);
             });
+
+    let titleIndex = 0;
 </script>
 
 <script>
@@ -27,6 +29,7 @@
     import PlayButtons from '../form-components/PlayButtons.svelte';
     import M from '../M.svelte';
     import ObjHeader from './ObjHeader.svelte';
+    import Nametag from './Nametag.svelte';
     import { ArrowBufferGeometry, checksum } from '../utils.js';
     import { flashDance } from '../sceneUtils';
     import InputChecker from '../form-components/InputChecker.svelte';
@@ -35,8 +38,6 @@
     export let onRenderObject = function () {};
     export let onDestroyObject = function () {};
     export let onSelect = function () {};
-    export let sync;
-    export let syncAnimation;
 
     export let params = {
         a: '-1',
@@ -65,6 +66,7 @@
     export let animation = false;
     export let selected;
     export let selectedObjects;
+    export let title;
 
     let minimize = false;
 
@@ -156,30 +158,26 @@
     $: isDiscrete = dependsOn(params, 'n');
     $: hashTag = checksum(JSON.stringify(params));
     $: hashTag, updateVector();
-    $: {
-        syncAnimation;
-        if (selected) {
-            tau = 0;
-            update();
-        }
-    }
 
     // recolor on demand
     $: {
-        if (selected) {
-            arrow.visible = sync;
-        }
         arrowMaterial.color.set(color);
         render();
     }
 
     let boxItemElement;
-    $: if (selected && selectedObjects.length > 0) {
+    /**
+     * Close on mesh so reactive statement doesn't react when individual parameters change.
+     */
+    const flash = () => {
         flashDance(arrow, render);
-        boxItemElement.scrollIntoView({ behavior: 'smooth' });
-    }
+        boxItemElement?.scrollIntoView({ behavior: 'smooth' });
+    };
+    $: if (selected && selectedObjects.length > 0) flash();
 
     onMount(() => {
+        titleIndex++;
+        title = title || `Vector ${titleIndex}`;
         if (animation) dispatch('animate');
     });
     onDestroy(() => {
@@ -208,9 +206,7 @@
         if (selected) {
             switch (e.key) {
                 case 'Backspace':
-                    if (selectedObjects[0] === uuid) {
-                        sync = !sync;
-                    }
+                    toggleHide();
                     break;
                 case 'p':
                     animation = !animation;
@@ -309,7 +305,8 @@
         {color}
         {onSelect}
     >
-        Vector <M size="sm">\langle v_1, v_2, v_3 \rangle</M>
+        <Nametag bind:title />
+        <M size="sm">\langle v_1, v_2, v_3 \rangle</M>
     </ObjHeader>
     <div hidden={minimize}>
         <div class="threedemos-container container">
@@ -371,9 +368,6 @@
                     on:pause={() => (last = null)}
                     on:rew={() => {
                         tau = 0;
-                        if (selected) {
-                            syncAnimation = !syncAnimation;
-                        }
                         update();
                     }}
                 />
