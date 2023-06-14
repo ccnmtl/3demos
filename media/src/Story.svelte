@@ -11,13 +11,18 @@
     let currentStory = null;
 </script>
 
-<select bind:value={currentStory}>
-    <option value={null}>Select Story...</option>
-    <option value={ArcLength}>Arc Length</option>
-    <option value={Linear}>Linearization</option>
-    <option value={PathIntegral}>Path Integrals</option>
-    <option value={FluxIntegral}>Flux Integrals</option>
-</select>
+<div class="btn-group mb-2">
+    <select
+        bind:value={currentStory}
+        class="demos-obj-select form-select bg-primary border-primary text-light"
+    >
+        <option value={null}>Select Story...</option>
+        <option value={ArcLength}>Arc Length</option>
+        <option value={Linear}>Linearization</option>
+        <option value={PathIntegral}>Path Integrals</option>
+        <option value={FluxIntegral}>Flux Integrals</option>
+    </select>
+</div>
 
 {#if currentStory}
     <div class="story-content-box">
@@ -37,14 +42,11 @@
 {/if}
 
 <style>
-    select {
-        background-color: blue;
-        color: white;
-        font-size: 1.25em;
-        padding: 5px;
-        margin: 5px;
+    .demos-obj-select {
+        border-bottom-right-radius: 0;
+        border-top-right-radius: 0;
+        width: inherit;
     }
-
     .story-content-box {
         max-height: 70vh;
         overflow-x: hidden;
