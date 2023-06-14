@@ -2386,9 +2386,10 @@ class FluxBoxGeometry extends THREE.BufferGeometry {
      * @param {int} N - resolution
      * @param {boolean} shards - only show tangent pieces (e.g., for surface area)
      * @param {number} [t=1] - scale factor for vector field
+     * @param {string} [sided = 'pos'] - which side to draw boxes on (one of 'pos', 'neg', or 'both')
      * @param {number} [s = 0.5] - sample point parameter (0 SW to 1 NE)
      */
-    constructor(F, r, a, b, c, d, N = 10, shards = false, t = 1, s = 0.5) {
+    constructor(F, r, a, b, c, d, N = 10, shards = false, t = 1, sided = 'pos', s = 0.5) {
         super();
 
         t = shards ? 0 : t;
@@ -2426,84 +2427,86 @@ class FluxBoxGeometry extends THREE.BufferGeometry {
 
                 const f = new THREE.Vector3(...F(x, y, z));
 
-                this.lastF.push(f.x, f.y, f.z);
-
-                // adjust for sample point
-                x -= (du * ru.x + dv * rv.x) * s;
-                y -= (du * ru.y + dv * rv.y) * s;
-                z -= (du * ru.z + dv * rv.z) * s;
-
-                // top
                 normal.copy(ru.clone().cross(rv).normalize());
+                if (sided === 'both' || (sided === 'pos' && normal.dot(f) >= 0) || (sided === 'neg' && normal.dot(f) < 0)) {
 
-                points.push(x + t * f.x, y + t * f.y, z + t * f.z);
-                points.push(x + t * f.x + du * ru.x, y + t * f.y + du * ru.y, z + t * f.z + du * ru.z);
-                points.push(x + t * f.x + dv * rv.x, y + t * f.y + dv * rv.y, z + t * f.z + dv * rv.z);
-                points.push(x + t * f.x + du * ru.x, y + t * f.y + du * ru.y, z + t * f.z + du * ru.z);
-                points.push(x + t * f.x + du * ru.x + dv * rv.x, y + t * f.y + du * ru.y + dv * rv.y, z + t * f.z + du * ru.z + dv * rv.z);
-                points.push(x + t * f.x + dv * rv.x, y + t * f.y + dv * rv.y, z + t * f.z + dv * rv.z);
+                    this.lastF.push(f.x, f.y, f.z);
 
-                for (let index = 0; index < 6; index++) normals.push(normal.x, normal.y, normal.z);
-                if (!shards) {
-                    // bottom
+                    // adjust for sample point
+                    x -= (du * ru.x + dv * rv.x) * s;
+                    y -= (du * ru.y + dv * rv.y) * s;
+                    z -= (du * ru.z + dv * rv.z) * s;
 
-                    points.push(x + du * ru.x, y + du * ru.y, z + du * ru.z);
-                    points.push(x, y, z);
-                    points.push(x + dv * rv.x, y + dv * rv.y, z + dv * rv.z);
-                    points.push(x + du * ru.x, y + du * ru.y, z + du * ru.z);
-                    points.push(x + dv * rv.x, y + dv * rv.y, z + dv * rv.z);
-                    points.push(x + du * ru.x + dv * rv.x, y + du * ru.y + dv * rv.y, z + du * ru.z + dv * rv.z);
+                    // top
 
-                    for (let index = 0; index < 6; index++) normals.push(-normal.x, -normal.y, -normal.z);
-
-
-
-                    // front
-
-                    normal.copy(ru.clone().cross(f).normalize());
-                    points.push(x, y, z);
-                    points.push(x + du * ru.x, y + du * ru.y, z + du * ru.z);
                     points.push(x + t * f.x, y + t * f.y, z + t * f.z);
-                    points.push(x + du * ru.x, y + du * ru.y, z + du * ru.z);
-                    points.push(x + du * ru.x + t * f.x, y + du * ru.y + t * f.y, z + du * ru.z + t * f.z);
-                    points.push(x + t * f.x, y + t * f.y, z + t * f.z);
-
-                    for (let index = 0; index < 6; index++) normals.push(-normal.x, -normal.y, -normal.z);
-
-                    // back
-
-                    points.push(x + dv * rv.x + du * ru.x, y + dv * rv.y + du * ru.y, z + dv * rv.z + du * ru.z);
-                    points.push(x + dv * rv.x, y + dv * rv.y, z + dv * rv.z);
-                    points.push(x + dv * rv.x + t * f.x, y + dv * rv.y + t * f.y, z + dv * rv.z + t * f.z);
-                    points.push(x + dv * rv.x + du * ru.x + t * f.x, y + dv * rv.y + du * ru.y + t * f.y, z + du * ru.z + t * f.z + dv * rv.z);
-                    points.push(x + dv * rv.x + du * ru.x, y + dv * rv.y + du * ru.y, z + dv * rv.z + du * ru.z);
-                    points.push(x + dv * rv.x + t * f.x, y + dv * rv.y + t * f.y, z + dv * rv.z + t * f.z);
+                    points.push(x + t * f.x + du * ru.x, y + t * f.y + du * ru.y, z + t * f.z + du * ru.z);
+                    points.push(x + t * f.x + dv * rv.x, y + t * f.y + dv * rv.y, z + t * f.z + dv * rv.z);
+                    points.push(x + t * f.x + du * ru.x, y + t * f.y + du * ru.y, z + t * f.z + du * ru.z);
+                    points.push(x + t * f.x + du * ru.x + dv * rv.x, y + t * f.y + du * ru.y + dv * rv.y, z + t * f.z + du * ru.z + dv * rv.z);
+                    points.push(x + t * f.x + dv * rv.x, y + t * f.y + dv * rv.y, z + t * f.z + dv * rv.z);
 
                     for (let index = 0; index < 6; index++) normals.push(normal.x, normal.y, normal.z);
+                    if (!shards) {
+                        // bottom
 
-                    // left
+                        points.push(x + du * ru.x, y + du * ru.y, z + du * ru.z);
+                        points.push(x, y, z);
+                        points.push(x + dv * rv.x, y + dv * rv.y, z + dv * rv.z);
+                        points.push(x + du * ru.x, y + du * ru.y, z + du * ru.z);
+                        points.push(x + dv * rv.x, y + dv * rv.y, z + dv * rv.z);
+                        points.push(x + du * ru.x + dv * rv.x, y + du * ru.y + dv * rv.y, z + du * ru.z + dv * rv.z);
 
-                    normal.copy(f.clone().cross(rv).normalize());
-                    points.push(x, y, z);
-                    points.push(x + t * f.x, y + t * f.y, z + t * f.z);
-                    points.push(x + t * f.x + dv * rv.x, y + t * f.y + dv * rv.y, z + t * f.z + dv * rv.z);
-                    points.push(x, y, z);
-                    points.push(x + t * f.x + dv * rv.x, y + t * f.y + dv * rv.y, z + t * f.z + dv * rv.z);
-                    points.push(x + dv * rv.x, y + dv * rv.y, z + dv * rv.z);
+                        for (let index = 0; index < 6; index++) normals.push(-normal.x, -normal.y, -normal.z);
 
-                    for (let index = 0; index < 6; index++) normals.push(normal.x, normal.y, normal.z);
 
-                    // right
 
-                    points.push(x + du * ru.x + t * f.x, y + du * ru.y + t * f.y, z + du * ru.z + t * f.z);
-                    points.push(x + du * ru.x, y + du * ru.y, z + du * ru.z);
-                    points.push(x + du * ru.x + t * f.x + dv * rv.x, y + du * ru.y + t * f.y + dv * rv.y, z + du * ru.z + t * f.z + dv * rv.z);
-                    points.push(x + du * ru.x + t * f.x + dv * rv.x, y + du * ru.y + t * f.y + dv * rv.y, z + du * ru.z + t * f.z + dv * rv.z);
-                    points.push(x + du * ru.x, y + du * ru.y, z + du * ru.z);
-                    points.push(x + du * ru.x + dv * rv.x, y + du * ru.y + dv * rv.y, z + du * ru.z + dv * rv.z);
+                        // front
 
-                    for (let index = 0; index < 6; index++) normals.push(-normal.x, -normal.y, -normal.z);
+                        normal.copy(ru.clone().cross(f).normalize());
+                        points.push(x, y, z);
+                        points.push(x + du * ru.x, y + du * ru.y, z + du * ru.z);
+                        points.push(x + t * f.x, y + t * f.y, z + t * f.z);
+                        points.push(x + du * ru.x, y + du * ru.y, z + du * ru.z);
+                        points.push(x + du * ru.x + t * f.x, y + du * ru.y + t * f.y, z + du * ru.z + t * f.z);
+                        points.push(x + t * f.x, y + t * f.y, z + t * f.z);
 
+                        for (let index = 0; index < 6; index++) normals.push(-normal.x, -normal.y, -normal.z);
+
+                        // back
+
+                        points.push(x + dv * rv.x + du * ru.x, y + dv * rv.y + du * ru.y, z + dv * rv.z + du * ru.z);
+                        points.push(x + dv * rv.x, y + dv * rv.y, z + dv * rv.z);
+                        points.push(x + dv * rv.x + t * f.x, y + dv * rv.y + t * f.y, z + dv * rv.z + t * f.z);
+                        points.push(x + dv * rv.x + du * ru.x + t * f.x, y + dv * rv.y + du * ru.y + t * f.y, z + du * ru.z + t * f.z + dv * rv.z);
+                        points.push(x + dv * rv.x + du * ru.x, y + dv * rv.y + du * ru.y, z + dv * rv.z + du * ru.z);
+                        points.push(x + dv * rv.x + t * f.x, y + dv * rv.y + t * f.y, z + dv * rv.z + t * f.z);
+
+                        for (let index = 0; index < 6; index++) normals.push(normal.x, normal.y, normal.z);
+
+                        // left
+
+                        normal.copy(f.clone().cross(rv).normalize());
+                        points.push(x, y, z);
+                        points.push(x + t * f.x, y + t * f.y, z + t * f.z);
+                        points.push(x + t * f.x + dv * rv.x, y + t * f.y + dv * rv.y, z + t * f.z + dv * rv.z);
+                        points.push(x, y, z);
+                        points.push(x + t * f.x + dv * rv.x, y + t * f.y + dv * rv.y, z + t * f.z + dv * rv.z);
+                        points.push(x + dv * rv.x, y + dv * rv.y, z + dv * rv.z);
+
+                        for (let index = 0; index < 6; index++) normals.push(normal.x, normal.y, normal.z);
+
+                        // right
+
+                        points.push(x + du * ru.x + t * f.x, y + du * ru.y + t * f.y, z + du * ru.z + t * f.z);
+                        points.push(x + du * ru.x, y + du * ru.y, z + du * ru.z);
+                        points.push(x + du * ru.x + t * f.x + dv * rv.x, y + du * ru.y + t * f.y + dv * rv.y, z + du * ru.z + t * f.z + dv * rv.z);
+                        points.push(x + du * ru.x + t * f.x + dv * rv.x, y + du * ru.y + t * f.y + dv * rv.y, z + du * ru.z + t * f.z + dv * rv.z);
+                        points.push(x + du * ru.x, y + du * ru.y, z + du * ru.z);
+                        points.push(x + du * ru.x + dv * rv.x, y + du * ru.y + dv * rv.y, z + du * ru.z + dv * rv.z);
+
+                        for (let index = 0; index < 6; index++) normals.push(-normal.x, -normal.y, -normal.z);
+                    }
 
                 }
 
@@ -2525,26 +2528,25 @@ class FluxBoxGeometry extends THREE.BufferGeometry {
         // console.log("changing T", points.length);
 
         const dt = t - this.lastT;
-        const N = this.lastN;
+        const N = points.length / 108;
         const Fs = this.lastF;
 
         // where the "top" vertices are located
         const topIndices = [0, 1, 2, 3, 4, 5, 14, 16, 17, 20, 21, 23, 25, 26, 28, 30, 32, 33];
 
         for (let i = 0; i < N; i++) {
-            for (let j = 0; j < N; j++) {
-                const [fx, fy, fz] = Fs.slice((i * N + j) * 3, (i * N + j + 1) * 3);
+            const [fx, fy, fz] = Fs.slice((i) * 3, (i + 1) * 3);
 
-                //         // top
-                for (let k = 0; k < topIndices.length; k++) {
-                    const pIndex = 3 * (topIndices[k] + 36 * (i * N + j));
-                    // console.log(i, j, k, N, topIndices[k], pIndex);
-                    points[pIndex] += dt * fx;
-                    points[pIndex + 1] += dt * fy;
-                    points[pIndex + 2] += dt * fz;
+            //         // top
+            for (let k = 0; k < topIndices.length; k++) {
+                const pIndex = 3 * (topIndices[k] + 36 * (i));
+                // console.log(i, j, k, N, topIndices[k], pIndex);
+                points[pIndex] += dt * fx;
+                points[pIndex + 1] += dt * fy;
+                points[pIndex + 2] += dt * fz;
 
-                }
             }
+
         }
         this.lastT = t;
         this.attributes.position.needsUpdate = true;
@@ -2569,39 +2571,39 @@ class FluxBoxEdgesGeometry extends THREE.BufferGeometry {
 
         // save values for adjusting height in F direction
         this.lastT = t;
-        const N = geo.lastN;
+        const N = points.length / 108;
         const Fs = geo.lastF;
 
         const vertices = [];
-        for (let i = 0; i < N; i++) {
-            for (let j = 0; j < N; j++) {
-                const pointIndex = i * N + j;
-                const A = points.slice(pointIndex * 108 + 21, pointIndex * 108 + 24);
-                const B = points.slice(pointIndex * 108 + 18, pointIndex * 108 + 21);
-                const C = points.slice(pointIndex * 108 + 33, pointIndex * 108 + 36);
-                const D = points.slice(pointIndex * 108 + 24, pointIndex * 108 + 27);
+        for (let pointIndex = 0; pointIndex < N; pointIndex++) {
+            // for (let j = 0; j < N; j++) {
+            // const pointIndex = i * N + j;
+            const A = points.slice(pointIndex * 108 + 21, pointIndex * 108 + 24);
+            const B = points.slice(pointIndex * 108 + 18, pointIndex * 108 + 21);
+            const C = points.slice(pointIndex * 108 + 33, pointIndex * 108 + 36);
+            const D = points.slice(pointIndex * 108 + 24, pointIndex * 108 + 27);
 
-                const [fx, fy, fz] = Fs.slice((pointIndex) * 3, (pointIndex + 1) * 3);
+            const [fx, fy, fz] = Fs.slice((pointIndex) * 3, (pointIndex + 1) * 3);
 
 
-                // 12 edges
-                vertices.push(...A, ...B);
-                vertices.push(...B, ...C);
-                vertices.push(...C, ...D);
-                vertices.push(...D, ...A);
+            // 12 edges
+            vertices.push(...A, ...B);
+            vertices.push(...B, ...C);
+            vertices.push(...C, ...D);
+            vertices.push(...D, ...A);
 
-                if (!shards && t > 0) {
-                    vertices.push(...A, A[0] + t * fx, A[1] + t * fy, A[2] + t * fz);
-                    vertices.push(...B, B[0] + t * fx, B[1] + t * fy, B[2] + t * fz);
-                    vertices.push(...C, C[0] + t * fx, C[1] + t * fy, C[2] + t * fz);
-                    vertices.push(...D, D[0] + t * fx, D[1] + t * fy, D[2] + t * fz);
+            if (!shards && t > 0) {
+                vertices.push(...A, A[0] + t * fx, A[1] + t * fy, A[2] + t * fz);
+                vertices.push(...B, B[0] + t * fx, B[1] + t * fy, B[2] + t * fz);
+                vertices.push(...C, C[0] + t * fx, C[1] + t * fy, C[2] + t * fz);
+                vertices.push(...D, D[0] + t * fx, D[1] + t * fy, D[2] + t * fz);
 
-                    vertices.push(B[0] + t * fx, B[1] + t * fy, B[2] + t * fz, A[0] + t * fx, A[1] + t * fy, A[2] + t * fz);
-                    vertices.push(C[0] + t * fx, C[1] + t * fy, C[2] + t * fz, B[0] + t * fx, B[1] + t * fy, B[2] + t * fz);
-                    vertices.push(D[0] + t * fx, D[1] + t * fy, D[2] + t * fz, C[0] + t * fx, C[1] + t * fy, C[2] + t * fz);
-                    vertices.push(A[0] + t * fx, A[1] + t * fy, A[2] + t * fz, D[0] + t * fx, D[1] + t * fy, D[2] + t * fz);
-                }
+                vertices.push(B[0] + t * fx, B[1] + t * fy, B[2] + t * fz, A[0] + t * fx, A[1] + t * fy, A[2] + t * fz);
+                vertices.push(C[0] + t * fx, C[1] + t * fy, C[2] + t * fz, B[0] + t * fx, B[1] + t * fy, B[2] + t * fz);
+                vertices.push(D[0] + t * fx, D[1] + t * fy, D[2] + t * fz, C[0] + t * fx, C[1] + t * fy, C[2] + t * fz);
+                vertices.push(A[0] + t * fx, A[1] + t * fy, A[2] + t * fz, D[0] + t * fx, D[1] + t * fy, D[2] + t * fz);
             }
+            // }
         }
 
 

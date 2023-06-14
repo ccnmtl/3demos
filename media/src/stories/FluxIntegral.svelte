@@ -164,44 +164,34 @@
     let r = (u, v) => [u, v, 1 / 2 - (u * u) / 4 - (v * v) / 2];
     let F = (x, y) => new THREE.Vector3(0, 1 / 2, y);
 
-    let geo = new FluxBoxGeometry(
-        F,
-        r,
-        0,
-        1,
-        () => -1,
-        () => 1,
-        3,
-        1 / 2,
-        false
-    );
+    let geo;
+    let geoDown;
+    let edgesUp;
+    let edgesDown;
 
     // console.log(geo);
 
     const plusMaterial = new THREE.MeshPhongMaterial({
-        color: '#a4a4a4',
+        color: '#474747',
         shininess: 80,
         side: THREE.FrontSide,
-        transparent: false,
-        opacity: 0.7,
+        transparent: true,
+        opacity: 0.6,
     });
 
-    const minusMaterial = new THREE.MeshLambertMaterial({
+    const minusMaterial = new THREE.MeshPhongMaterial({
         color: '#CC1212',
+        shininess: 80,
         side: THREE.BackSide,
         transparent: true,
-        opacity: 0.5,
+        opacity: 0.6,
     });
 
     const boxes = new THREE.Object3D();
-    boxes.add(new THREE.Mesh(geo, plusMaterial));
-    boxes.add(new THREE.Mesh(geo, minusMaterial));
-
-    const borders = new THREE.LineSegments(
-        new FluxBoxEdgesGeometry(geo, 50),
-        whiteLineMaterial
-    );
-    boxes.add(borders);
+    boxes.add(new THREE.Mesh(undefined, plusMaterial)); // pos boxes
+    boxes.add(new THREE.LineSegments(undefined, whiteLineMaterial)); // pos edges
+    boxes.add(new THREE.Mesh(undefined, minusMaterial)); // neg boxes
+    boxes.add(new THREE.LineSegments(undefined, whiteLineMaterial)); // neg edges
 
     scene.add(boxes);
 
@@ -272,14 +262,19 @@
 
     const updateGeo = (N, F, r, A, B, C, D) => {
         geo?.dispose();
-        geo = new FluxBoxGeometry(F, r, A, B, C, D, N, false, tau + 1e-3);
+        geo = new FluxBoxGeometry(F, r, A, B, C, D, N, false, tau, 'pos');
         boxes.children[0].geometry = geo;
-        boxes.children[1].geometry = geo;
-        boxes.children[2].geometry = new FluxBoxEdgesGeometry(
-            geo,
-            false,
-            tau + 1e-3
-        );
+        edgesUp?.dispose();
+        edgesUp = new FluxBoxEdgesGeometry(geo, false, tau);
+        boxes.children[1].geometry = edgesUp;
+        geoDown?.dispose();
+        geoDown = new FluxBoxGeometry(F, r, A, B, C, D, N, false, tau, 'neg');
+        boxes.children[2].geometry = geoDown;
+        edgesDown?.dispose();
+        edgesDown = new FluxBoxEdgesGeometry(geoDown, false, tau);
+        boxes.children[3].geometry = edgesDown;
+        // boxes.children[1].geometry = geo;
+        // boxes.children[1].geometry = geo;
         render();
     };
 
@@ -287,11 +282,13 @@
 
     const updateTau = (t) => {
         geo.changeT(t);
-        boxes.children[1].visible = t > 0;
-        boxes.children[2].geometry?.dispose();
-        const edges = new FluxBoxEdgesGeometry(geo, false, t);
-        boxes.children[2].geometry = edges;
-
+        edgesUp?.dispose();
+        edgesUp = new FluxBoxEdgesGeometry(geo, false, t);
+        boxes.children[1].geometry = edgesUp;
+        geoDown.changeT(t);
+        edgesDown?.dispose();
+        edgesDown = new FluxBoxEdgesGeometry(geoDown, false, t);
+        boxes.children[3].geometry = edgesDown;
         render();
     };
 
@@ -384,12 +381,16 @@
                 bind:value={nBoxes}
             /></span
         >
-        <span class="col-2"
-            >Show <input
-                type="checkbox"
-                bind:checked={boxes.visible}
-                on:change={render}
-            /></span
-        >
+        <span class="col-2">
+            Show
+            <label class="switch box box-3">
+                <input
+                    type="checkbox"
+                    bind:checked={boxes.visible}
+                    on:change={render}
+                />
+                <span class="slider round" />
+            </label>
+        </span>
     </div>
 </div>

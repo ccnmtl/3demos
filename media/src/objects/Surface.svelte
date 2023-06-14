@@ -211,7 +211,7 @@
         shininess: 80,
         side: THREE.BackSide,
         vertexColors: false,
-        transparent: true,
+        transparent: false,
         opacity: 0.7,
     });
     const plusMaterial = new THREE.MeshPhongMaterial({
@@ -219,7 +219,7 @@
         shininess: 80,
         side: THREE.FrontSide,
         vertexColors: false,
-        transparent: true,
+        transparent: false,
         opacity: 0.7,
     });
 
