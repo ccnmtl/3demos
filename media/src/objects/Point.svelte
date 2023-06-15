@@ -70,13 +70,13 @@
         transparent: true,
         opacity: 1.0,
     });
-    const point = new THREE.Mesh(
-        new THREE.SphereGeometry(gridStep / 8, 16, 16),
-        pointMaterial
-    );
+    const pointGeo = new THREE.SphereGeometry(gridStep / 8, 16, 16);
+    const points = new THREE.Group();
+    const point = new THREE.Mesh(pointGeo, pointMaterial);
     point.position.set(1, 1, 1);
 
-    scene.add(point);
+    points.add(point);
+    scene.add(points);
 
     const updatePoint = function () {
         const { a, b, c } = params;
@@ -91,17 +91,39 @@
             t = 0;
         }
 
-        const [A, B, C] = math.parse([a, b, c]).map((s) => s.evaluate({ t }));
+        let N0, N1;
+        const { n0, n1 } = params;
 
-        point.position.set(A, B, C);
+        N0 = n0 || 0;
+        N1 = n1 || 0;
 
-        point.name = uuid;
-        onRenderObject(point);
+        while (points.children.length < N1 - N0 + 1) {
+            points.add(new THREE.Mesh(pointGeo, pointMaterial));
+        }
+        while (points.children.length > N1 - N0 + 1) {
+            const point = points.children[points.children.length - 1];
+            points.remove(point);
+        }
+
+        const [A, B, C] = math.parse([a, b, c]);
+
+        for (let index = N0; index <= N1; index++) {
+            const point = points.children[index - N0];
+
+            point.position.set(
+                ...[A, B, C].map((s) => s.evaluate({ t, n: index }))
+            );
+        }
+
+        points.name = uuid;
+        onRenderObject(points);
         render();
     };
 
     // call updateVector() when params change
     $: isDynamic = dependsOn(params);
+    $: isDiscrete = dependsOn(params, 'n');
+
     $: hashTag = checksum(JSON.stringify(params));
     $: hashTag, updatePoint();
 
@@ -128,18 +150,18 @@
     });
 
     onDestroy(() => {
-        onDestroyObject(point);
+        onDestroyObject(points);
         // if (point) {
-        point.geometry?.dispose();
-        point.material?.dispose();
+        pointGeo?.dispose();
+        pointMaterial?.dispose();
 
-        scene.remove(point);
+        scene.remove(points);
         window.removeEventListener('keydown', onKeyDown, false);
         render();
     });
 
     const toggleHide = function () {
-        point.visible = !point.visible;
+        points.visible = !points.visible;
         render();
     };
 
@@ -188,6 +210,12 @@
                 const t1 = math.parse(params.t1).evaluate();
 
                 localParms.t = (t0 + t1) / 2;
+            }
+            if (dependsOn({ val }, 'n')) {
+                params.n0 = params.n0 || 0;
+                params.n1 = params.n1 || 0;
+
+                localParms.n = params.n1;
             }
             valuation = Number.isFinite(parsedVal.evaluate(localParms));
         } catch (e) {
@@ -307,6 +335,26 @@
                 <!-- </div> -->
             {/if}
 
+            {#if isDiscrete}
+                <input
+                    class="form-control form-control-sm box-1"
+                    type="number"
+                    max={params.n1}
+                    bind:value={params.n0}
+                    name="n0"
+                />
+                <span class="box box-3">
+                    <M size="sm">{'\\leq n \\leq '}</M>
+                </span>
+                <input
+                    class="form-control form-control-sm box-4"
+                    type="number"
+                    min={params.n0}
+                    bind:value={params.n1}
+                    name="n1"
+                />
+            {/if}
+
             <span class="box-1">Color</span>
             <span class="box box-2">
                 <input
@@ -329,5 +377,8 @@
         display: inline-block;
         width: 40%;
         text-align: left;
+    }
+    input.form-control {
+        color: black;
     }
 </style>
