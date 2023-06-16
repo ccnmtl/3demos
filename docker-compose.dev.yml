@@ -36,7 +36,7 @@ services:
       - /bin/bash
       - -c
       - |
-        # service nginx start
+        service nginx start
         # mkdir /var/log/django
         # touch /var/log/django/mathplayground.log
         nohup redis-server &
