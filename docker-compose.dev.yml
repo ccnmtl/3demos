@@ -1,0 +1,52 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:13.11-alpine
+    container_name: 3demos_postgres
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - '5432:5432'
+    volumes: 
+      - pgdata:/var/lib/postgresql/data
+  # redis:
+  #   image: redis:5.0.7-alpine
+  #   container_name: 3demos_redis
+  #   restart: always
+  #   ports:
+  #     - '6379:6379'
+  #   volumes:
+  #     - redisdata:/data
+  django:
+    container_name: 3demos_app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    links:
+      - postgres:postgres
+      # - redis:redis
+    ports:
+      - 80:80
+      - 8000:8000
+      - 8125:8125
+      # - 8000:8000 # Daphne Web for websockets
+    command:
+      - /bin/bash
+      - -c
+      - |
+        # service nginx start
+        # mkdir /var/log/django
+        # touch /var/log/django/mathplayground.log
+        nohup redis-server &
+        npm run build
+        make runserver
+        # npm run dev
+    volumes:
+      - ./media/src:/app/media/src/
+      - ./mathplayground:/app/mathplayground
+      - ./node_modules:/app/node_modules
+volumes:
+  pgdata:
+  # redisdata:
