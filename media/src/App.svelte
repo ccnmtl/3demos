@@ -386,7 +386,41 @@
         }
     };
 
-    const onPointerMove = function (e, renderer) {
+    // const onPointerMove = function (e, renderer) {
+    //     e.preventDefault();
+
+    //     pointerCoords.x = (e.offsetX / renderer.domElement.clientWidth) * 2 - 1;
+    //     pointerCoords.y =
+    //         -(e.offsetY / renderer.domElement.clientHeight) * 2 + 1;
+
+    //     const intersects = findPointerIntersects(
+    //         sceneObjects,
+    //         pointerCoords,
+    //         currentCamera,
+    //         raycaster
+    //     );
+    //     let nearestVisible = intersects.find(
+    //         (intersect) =>
+    //             intersect.object.visible && intersect.object.parent.visible
+    //     );
+    //     if (nearestVisible) {
+    //         let obj = nearestVisible.object;
+    //         let uuid = obj.name || obj.parent.name;
+    //         if (uuid) {
+    //             document.body.style.cursor = 'pointer';
+    //             hoveredObject = uuid;
+    //         }
+    //     } else {
+    //         document.body.style.cursor = 'auto';
+    //         hoveredObject = null;
+    //     }
+    // };
+
+    const onDblClick = function (e) {
+        if (!e.shiftKey) {
+            selectedObjects = [];
+        }
+
         e.preventDefault();
 
         pointerCoords.x = (e.offsetX / renderer.domElement.clientWidth) * 2 - 1;
@@ -407,19 +441,14 @@
             let obj = nearestVisible.object;
             let uuid = obj.name || obj.parent.name;
             if (uuid) {
-                document.body.style.cursor = 'pointer';
+                // document.body.style.cursor = 'pointer';
                 hoveredObject = uuid;
             }
         } else {
             document.body.style.cursor = 'auto';
             hoveredObject = null;
         }
-    };
 
-    const onDblClick = function (e) {
-        if (!e.shiftKey) {
-            selectedObjects = [];
-        }
         selectObject(hoveredObject);
     };
 
@@ -442,17 +471,41 @@
             animateIfNotAnimating();
         }
 
-        renderer.domElement.addEventListener('pointermove', (e) =>
-            onPointerMove(e, renderer)
-        );
-        renderer.domElement.addEventListener('pointerleave', () => {
-            // Reset cursor to default: let the browser take over
-            // styling here.
-            document.body.style.cursor = 'auto';
-        });
+        // renderer.domElement.addEventListener('pointermove', (e) =>
+        //     onPointerMove(e, renderer)
+        // );
+        // renderer.domElement.addEventListener('pointerleave', () => {
+        //     // Reset cursor to default: let the browser take over
+        //     // styling here.
+        //     document.body.style.cursor = 'auto';
+        // });
         renderer.domElement.addEventListener('dblclick', onDblClick);
         objectResponses = new THREE.Group();
         scene.add(objectResponses);
+
+        // probably a stackexchange snippet, lost the reference
+        const saveBlob = (function () {
+            const a = document.createElement('a');
+            document.body.appendChild(a);
+            a.style.display = 'none';
+            return function saveData(blob, fileName) {
+                const url = window.URL.createObjectURL(blob);
+                a.href = url;
+                a.download = fileName;
+                a.click();
+            };
+        })();
+
+        const elem = document.querySelector('#screenshot');
+        elem.addEventListener('click', () => {
+            renderer.render(scene, camera);
+            canvas.toBlob((blob) => {
+                saveBlob(
+                    blob,
+                    `screencapture-${canvas.width}x${canvas.height}.png`
+                );
+            });
+        });
     });
 
     let currentChapter = 'How To';

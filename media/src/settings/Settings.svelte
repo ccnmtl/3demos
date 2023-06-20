@@ -7,6 +7,7 @@
     import { vMin, vMax, colorMap, densityColormap } from '../stores';
     import WindowHeader from './WindowHeader.svelte';
     import { colorMapNames } from '../js-colormaps';
+    import { offclick } from './offclick';
 
     const dispatch = createEventDispatcher();
 
@@ -143,168 +144,188 @@
     };
 </script>
 
-<div
-    class="settings-box"
-    class:grid={showSettings}
-    hidden={!showSettings}
-    id="settings-box"
->
-    <WindowHeader
-        title="Settings"
-        onClick={() => {
+{#if showSettings}
+    <div
+        class="settings-box"
+        class:grid={showSettings}
+        id="settings-box"
+        use:offclick
+        on:offclick={() => {
+            'caught offclick';
             showSettings = false;
         }}
-    />
-
-    <div class="row justify-content-between">
-        <div class="col-12">
-            <label class="form-label" for="scale">Scale</label>
-            <span class="form-range">
-                <input
-                    type="range"
-                    name="scale"
-                    id="scale"
-                    min="-2"
-                    max="3"
-                    step=".02"
-                    bind:value={scale}
-                    on:change={rescale}
-                />
-                <span class="output text-end">{scala}</span>
-            </span>
-        </div>
-    </div>
-    <div class="form-check form-switch row mb-2">
-        <label class="form-check-label" for="gridVisible">
-            Grid
-            <input
-                class="form-check-input"
-                type="checkbox"
-                name="gridVisible"
-                id="gridVisible"
-                role="switch"
-                aria-checked="true"
-                bind:checked={gridMeshes.visible}
-                on:change={render}
-            />
-        </label>
-        <label class="form-check-label" for="orthoCamera">
-            Orthographic View
-            <input
-                class="form-check-input"
-                type="checkbox"
-                role="switch"
-                aria-checked="false"
-                name="orthoCamera"
-                id="orthoCamera"
-                bind:checked={orthoCamera}
-                on:change={render}
-            />
-        </label>
-    </div>
-
-    <div class="row py-1 mx-1">
-        <div class="col-6 me-auto">
-            <label for="colormap"
-                ><a
-                    href="https://matplotlib.org/stable/gallery/color/colormap_reference.html#colormap-reference"
-                    target="_blank">Color Map</a
-                ></label
-            >
-        </div>
-        <div class="col-6 overflow-hidden">
-            <input
-                type="text"
-                name="colormap"
-                id="colormap-select"
-                list="cmaps"
-                value={$colorMap}
-                on:input={(e) => {
-                    const val = e.target.value;
-                    // console.log('densemap update', val);
-                    if (colorMapNames.includes(val)) {
-                        $colorMap = e.target.value;
-                    }
-                }}
-            />
-        </div>
-        <datalist id="cmaps">
-            {#each colorMapNames as cm}
-                <option value={cm} />
-            {/each}
-        </datalist>
-    </div>
-    <div class="row my-1 mx-1">
-        <div class="col-6 me-auto">
-            <label for="densitymap">Density C-Map</label>
-        </div>
-        <div class="col-6 overflow-hidden">
-            <input
-                type="text"
-                name="densitymap"
-                id="densitymap-select"
-                list="cmaps"
-                value={$densityColormap}
-                on:input={(e) => {
-                    const val = e.target.value;
-                    // console.log('densemap update', val);
-                    if (colorMapNames.includes(val)) {
-                        $densityColormap = e.target.value;
-                    }
-                }}
-            />
-        </div>
-    </div>
-
-    <div class="row align-items-center">
-        <div class="col-6">
-            <label class="col-5 my-1" for="vmin">vMin</label>
-            <input class="col-6 my-1" id="vmin" type="number" bind:value={$vMin} />
-            <label class="col-5 my-1" for="vmax">vMax</label>
-            <input class="col-6 my-1" id="vmax" type="number" bind:value={$vMax} />
-        </div>
-        <div class="col-4">
-            <button
-                class="button settings-button"
-                aria-label="Reset the vmin/vmax for coloring."
-                on:click={() => {
-                    $vMin = -1;
-                    $vMax = 1;
-                    render();
-                }}
-            >
-                Reset
-            </button>
-        </div>
-    </div>
-</div>
-
-<div
-    class="settings-box"
-    class:grid={showUpload}
-    hidden={!showUpload}
-    id="upload-box"
->
-    <WindowHeader
-        title="Upload Scene"
-        onClick={() => {
-            showUpload = false;
-        }}
-    />
-
-    <form>
-        <label for="sceneUpload">Upload a scene</label>
-        <br />
-        <input
-            id="sceneUpload"
-            type="file"
-            accept="application/json"
-            on:change={(e) => {
-                uploadScene(e);
+    >
+        <WindowHeader
+            title="Settings"
+            onClick={() => {
+                showSettings = false;
             }}
         />
-    </form>
-</div>
+
+        <div class="row justify-content-between">
+            <div class="col-12">
+                <label class="form-label" for="scale">Scale</label>
+                <span class="form-range">
+                    <input
+                        type="range"
+                        name="scale"
+                        id="scale"
+                        min="-2"
+                        max="3"
+                        step=".02"
+                        bind:value={scale}
+                        on:change={rescale}
+                    />
+                    <span class="output text-end">{scala}</span>
+                </span>
+            </div>
+        </div>
+        <div class="form-check form-switch row mb-2">
+            <label class="form-check-label" for="gridVisible">
+                Grid
+                <input
+                    class="form-check-input"
+                    type="checkbox"
+                    name="gridVisible"
+                    id="gridVisible"
+                    role="switch"
+                    aria-checked="true"
+                    bind:checked={gridMeshes.visible}
+                    on:change={render}
+                />
+            </label>
+            <label class="form-check-label" for="orthoCamera">
+                Orthographic View
+                <input
+                    class="form-check-input"
+                    type="checkbox"
+                    role="switch"
+                    aria-checked="false"
+                    name="orthoCamera"
+                    id="orthoCamera"
+                    bind:checked={orthoCamera}
+                    on:change={render}
+                />
+            </label>
+        </div>
+
+        <div class="row py-1 mx-1">
+            <div class="col-6 me-auto">
+                <label for="colormap"
+                    ><a
+                        href="https://matplotlib.org/stable/gallery/color/colormap_reference.html#colormap-reference"
+                        target="_blank">Color Map</a
+                    ></label
+                >
+            </div>
+            <div class="col-6 overflow-hidden">
+                <input
+                    type="text"
+                    name="colormap"
+                    id="colormap-select"
+                    list="cmaps"
+                    value={$colorMap}
+                    on:input={(e) => {
+                        const val = e.target.value;
+                        // console.log('densemap update', val);
+                        if (colorMapNames.includes(val)) {
+                            $colorMap = e.target.value;
+                        }
+                    }}
+                />
+            </div>
+            <datalist id="cmaps">
+                {#each colorMapNames as cm}
+                    <option value={cm} />
+                {/each}
+            </datalist>
+        </div>
+        <div class="row my-1 mx-1">
+            <div class="col-6 me-auto">
+                <label for="densitymap">Density C-Map</label>
+            </div>
+            <div class="col-6 overflow-hidden">
+                <input
+                    type="text"
+                    name="densitymap"
+                    id="densitymap-select"
+                    list="cmaps"
+                    value={$densityColormap}
+                    on:input={(e) => {
+                        const val = e.target.value;
+                        // console.log('densemap update', val);
+                        if (colorMapNames.includes(val)) {
+                            $densityColormap = e.target.value;
+                        }
+                    }}
+                />
+            </div>
+        </div>
+
+        <div class="row align-items-center">
+            <div class="col-6">
+                <label class="col-5 my-1" for="vmin">vMin</label>
+                <input
+                    class="col-6 my-1"
+                    id="vmin"
+                    type="number"
+                    bind:value={$vMin}
+                />
+                <label class="col-5 my-1" for="vmax">vMax</label>
+                <input
+                    class="col-6 my-1"
+                    id="vmax"
+                    type="number"
+                    bind:value={$vMax}
+                />
+            </div>
+            <div class="col-4">
+                <button
+                    class="button settings-button"
+                    aria-label="Reset the vmin/vmax for coloring."
+                    on:click={() => {
+                        $vMin = -1;
+                        $vMax = 1;
+                        render();
+                    }}
+                >
+                    Reset
+                </button>
+            </div>
+        </div>
+    </div>
+{/if}
+{#if showUpload}
+    <div
+        class="settings-box"
+        class:grid={showUpload}
+        use:offclick
+        on:offclick={() => {
+            showUpload = false;
+        }}
+        id="upload-box"
+    >
+        <WindowHeader
+            title="Upload Scene"
+            onClick={() => {
+                showUpload = false;
+            }}
+        />
+
+        <form>
+            <label for="sceneUpload">Upload a scene</label>
+            <br />
+            <input
+                id="sceneUpload"
+                type="file"
+                accept="application/json"
+                on:change={(e) => {
+                    uploadScene(e);
+                }}
+            />
+        </form>
+    </div>
+{/if}
 
 <div class="settings-buttons">
     <button
@@ -312,7 +333,7 @@
         id="settings"
         title="Settings"
         on:click={() => {
-            showUpload = false;
+            // showUpload = false;
             showSettings = !showSettings;
         }}
     >
