@@ -21,6 +21,7 @@
 
     let animation = false;
     let last = null;
+    let sampleParam = 0;
 
     const drawNext = (currentTime) => {
         // const currentTime = $tickTock;
@@ -195,7 +196,7 @@
 
     scene.add(boxes);
 
-    let tau = 0;
+    let tau = 1;
     let nBoxes = 3;
 
     const setF = (obj) => {
@@ -260,9 +261,9 @@
 
     $: setRuv(currentSurface);
 
-    const updateGeo = (N, F, r, A, B, C, D) => {
+    const updateGeo = (N, F, r, A, B, C, D, samp) => {
         geo?.dispose();
-        geo = new FluxBoxGeometry(F, r, A, B, C, D, N, false, tau, 'pos');
+        geo = new FluxBoxGeometry(F, r, A, B, C, D, N, false, tau, 'pos', samp);
         boxes.children[0].geometry = geo;
         edgesUp?.dispose();
         edgesUp = new FluxBoxEdgesGeometry(geo, false, tau);
@@ -278,7 +279,7 @@
         render();
     };
 
-    $: updateGeo(nBoxes, F, r, u0, u1, v0, v1);
+    $: updateGeo(nBoxes, F, r, u0, u1, v0, v1, sampleParam);
 
     const updateTau = (t) => {
         geo.changeT(t);
@@ -306,83 +307,86 @@
     </p>
 
     <p>
-        Then the <b>flux</b> of the vector field through the surface is given by
+        Then the <b>flux</b>
+        <M>{'\\Phi'}</M> of the vector field through the surface is given by
 
-        <M display>{`\\iint_\\Omega \\mathbf F\\cdot\\,d\\mathbf S`}</M>
-        <M display>{`=\\iint_\\Omega \\mathbf F\\cdot\\mathbf N\\,dS`}</M>
-        <M display>
-            {`=\\iint_D \\mathbf F(\\mathbf r(u,v)) \\cdot \\mathbf r_u \\times \\mathbf r_v\\,dS.`}
+        <M align>
+            {'\\Phi &= \\iint_\\Omega \\mathbf F\\cdot\\,d\\mathbf S \\\\ &= \\iint_\\Omega \\mathbf F\\cdot\\mathbf N\\,dS \\\\ &= \\iint_D \\mathbf F(\\mathbf r(u,v)) \\cdot \\mathbf r_u \\times \\mathbf r_v\\,dS.'}
         </M>
     </p>
 
     <p>
-        Choose a vector field: <select bind:value={currentField}>
-            {#each exampleFields as obj}
-                <option value={obj}>{obj.title}</option>
-            {/each}
-        </select>
+        We seek to visualize that integrand. Choose an example vector field and
+        parametric surface.
     </p>
 
-    <p>
-        Choose a parametric surface: <select bind:value={currentSurface}>
-            {#each exampleSurfaces as obj}
-                <option value={obj}>{obj.title}</option>
-            {/each}
-        </select>
-    </p>
-
-    <p class="row">
-        <span class="col"><M>{'\\Delta t'}</M></span>
-        <span class="col-8"
-            ><input
-                type="range"
-                min="0"
-                max="1"
-                step="0.01"
-                bind:value={tau}
-            /></span
-        >
-        <span class="col-2"
-            ><button
+    <div class="row">
+        <div class="col-auto">
+            <M>{'\\mathbf F:'}</M>
+            <select
+                bind:value={currentField}
+                class="demos-obj-select m-2 bg-primary border-primary
+                text-light"
+            >
+                {#each exampleFields as obj}
+                    <option value={obj}>{obj.title}</option>
+                {/each}
+            </select>
+        </div>
+        <div class="col-auto">
+            <M>{'\\Omega:'}</M>
+            <select
+                class="demos-obj-select m-2 bg-primary text-light"
+                bind:value={currentSurface}
+            >
+                {#each exampleSurfaces as obj}
+                    <option value={obj}>{obj.title}</option>
+                {/each}
+            </select>
+        </div>
+        <div class="col-auto">
+            <button
+                class=" bg-primary text-light"
                 on:click={() => {
                     setF(currentField);
                     setRuv(currentSurface);
                 }}
             >
                 <i class="bi bi-arrow-clockwise" />
-            </button></span
-        >
+            </button>
+        </div>
+    </div>
+
+    <p>
+        Recall that a triple product <M
+            >{'\\mathbf a\\cdot \\mathbf b \\times \\mathbf c'}</M
+        > measures the (signed) volume of a parallelopiped with edges defined by
+        vectors <M>{'\\mathbf a'}</M>, <M>{'\\mathbf b'}</M>, and <M>
+            {'\\mathbf c'}
+        </M>. We thus divide our surface into <M>{'n^2'}</M> pieces. On each, we
+        take a parallelogram-shaped portion of the tangent plane with edges <M>
+            {'\\mathbf r_u \\Delta u'}
+        </M> and <M>{'\\mathbf r_v \\Delta v'}</M> and sample the vector field <M
+            >{'\\mathbf F'}</M
+        > as the third edge. Adjust <M>n</M> and the sample point below.
     </p>
 
-    <PlayButtons
-        bind:animation
-        on:animate
-        on:play={() => {
-            console.log("playin'");
-            boxes.visible = true;
-            currentField.animation = true;
-        }}
-        on:pause={() => {
-            last = null;
-        }}
-        on:rew={() => {
-            tau = 0;
-        }}
-    />
+    <div class="row my-3">
+        <div class="col-auto">
+            <span class=""><M>{'n = '}</M></span>
+            <span class=""
+                ><input
+                    type="range"
+                    min="1"
+                    max="20"
+                    step="1"
+                    bind:value={nBoxes}
+                /></span
+            >
+        </div>
 
-    <div class="row">
-        <span class="col"><M>{'N = '}</M></span>
-        <span class="col-6"
-            ><input
-                type="range"
-                min="1"
-                max="20"
-                step="1"
-                bind:value={nBoxes}
-            /></span
-        >
-        <span class="col-2">
-            Show
+        <div class="col-auto">
+            show
             <label class="switch box box-3">
                 <input
                     type="checkbox"
@@ -391,6 +395,80 @@
                 />
                 <span class="slider round" />
             </label>
-        </span>
+        </div>
+    </div>
+
+    <p>
+        At this point, we are not looking at time-dependent vector fields. That
+        is, they don't move. Nonetheless, a good way to understand these
+        structures (and to justify the term "flux") is to imagine <M>
+            {'\\mathbf F'}</M
+        > as the velocity field of some fluid. The we can interpret <M>
+            {'\\Phi'}
+        </M> as the net volume flowing per unit time through the surface in the direction
+        of its orientation. By scaling the vector field in time, we can "see" this
+        volume flowing through the surface. <strong>Warning</strong> the
+        quantity <M>{'\\Phi'}</M> is computed as a static computation. This is meant
+        only to help see where positive/negtaive contributions come from.
+    </p>
+
+    <div class="row my-3">
+        <div class="col-auto">
+            <span><M>{'t'}</M></span>
+            <span>
+                <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.01"
+                    bind:value={tau}
+                />
+            </span>
+        </div>
+
+        <div class="col-auto">
+            <PlayButtons
+                bind:animation
+                on:animate
+                on:play={() => {
+                    console.log("playin'");
+                    boxes.visible = true;
+                    currentField.animation = true;
+                }}
+                on:pause={() => {
+                    last = null;
+                }}
+                on:rew={() => {
+                    tau = 0;
+                }}
+            />
+        </div>
+        <div class="col-auto">
+            center
+            <label class="switch box box-3">
+                <input
+                    type="checkbox"
+                    checked={false}
+                    on:change={(e) => {
+                        if (e.target.checked) {
+                            sampleParam = 0.5;
+                        } else {
+                            sampleParam = 0;
+                        }
+                    }}
+                />
+                <span class="slider round" />
+            </label>
+        </div>
     </div>
 </div>
+
+<style>
+    .demos-obj-select {
+        border-bottom-right-radius: 0;
+        border-top-right-radius: 0;
+    }
+    /* .blue-button {
+        background-color: red;
+    } */
+</style>
