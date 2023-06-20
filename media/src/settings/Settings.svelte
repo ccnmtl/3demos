@@ -8,6 +8,7 @@
     import WindowHeader from './WindowHeader.svelte';
     import { colorMapNames } from '../js-colormaps';
     import { offclick } from './offclick';
+    import { get } from 'svelte/store';
 
     const dispatch = createEventDispatcher();
 
@@ -20,6 +21,10 @@
     export let objects;
     export let socket;
     export let roomId;
+
+    import { gridOn, scaleStore } from './settings-stores';
+
+    console.log('setting loading...');
 
     let newGridMeshes;
     const newLineMaterial = lineMaterial.clone();
@@ -51,18 +56,34 @@
 
     let scaleState = gridMax;
     let oldGridMax = gridMax;
+
     let scale = 0;
 
-    $: scala =
-        Math.round(
-            100 *
-                Math.pow(10, Math.floor(scale)) *
-                Math.floor(
-                    Math.pow(10, scale) / Math.pow(10, Math.floor(scale))
-                )
-        ) / 100;
+    const unlog = (s) => {
+        return (
+            Math.round(
+                100 *
+                    Math.pow(10, Math.floor(s)) *
+                    Math.floor(Math.pow(10, s) / Math.pow(10, Math.floor(s)))
+            ) / 100
+        );
+    };
 
-    const rescale = function () {
+    $: scala = unlog(scale);
+
+    $: {
+        // scale = $scaleStore;
+        rescale(unlog($scaleStore));
+    }
+
+    $: {
+        gridMeshes.visible = $gridOn;
+        console.log('reacting to gridon');
+        render();
+    }
+
+    const rescale = function (scala) {
+        console.log("rescalereactin'", scala, $scaleStore);
         if (scala !== gridMax) {
             oldGridMax = scaleState;
             gridMax = scala;
@@ -97,6 +118,7 @@
                 dispatch('animate');
             }
         }
+        scale = Math.log10(scala);
     };
 
     let showSettings = false;
@@ -174,7 +196,9 @@
                         max="3"
                         step=".02"
                         bind:value={scale}
-                        on:change={rescale}
+                        on:change={() => {
+                            $scaleStore = scale;
+                        }}
                     />
                     <span class="output text-end">{scala}</span>
                 </span>
@@ -190,7 +214,7 @@
                     id="gridVisible"
                     role="switch"
                     aria-checked="true"
-                    bind:checked={gridMeshes.visible}
+                    bind:checked={$gridOn}
                     on:change={render}
                 />
             </label>

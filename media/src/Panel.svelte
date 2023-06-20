@@ -32,13 +32,14 @@
 
     import { evaluate_cmap } from './js-colormaps';
     import { colorMap } from './stores';
+    import { gridOn, scaleStore } from './settings/settings-stores';
     import Story from './Story.svelte';
     import { tick } from 'svelte';
 
     export let debug, currentMode;
     export let currentControls;
     export let currentChapter;
-    export let gridMeshes;
+    // export let gridMeshes;
     export let gridStep, gridMax;
     export let objects, isHost;
     export let onRenderObject, onDestroyObject;
@@ -58,6 +59,8 @@
     export let isPollsOpen;
     export let lockPoll;
     export let objectResponses;
+
+    console.log('panel loading...');
 
     const PANEL_DELAY = 200;
     let showPanel = true;
@@ -252,6 +255,7 @@
     });
 
     onMount(() => {
+        console.log('panel onmounted...');
         const urlParams = new URLSearchParams(location.search);
         if (urlParams.keys()) {
             const objectHolder = {};
@@ -262,11 +266,19 @@
                     currentChapter = val;
                 }
                 if (key === 'grid') {
-                    gridMeshes.visible = val === 'true';
+                    $gridOn = val === 'true';
+                    console.log('panel grid key');
                 }
                 if (key === 'debug') {
                     debug = val === 'true';
                     console.log('debuggery: ', debug);
+                }
+                if (key === 'scale') {
+                    setTimeout(() => {
+                        $scaleStore = val;
+
+                        console.log('sclalala search key');
+                    }, 1000);
                 }
                 if (key.slice(0, 3) === 'obj') {
                     const keyParts = key.split('_');
