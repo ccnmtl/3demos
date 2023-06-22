@@ -15,7 +15,7 @@
     import {
         // makeHSLColor,
         querySelectorIncludesText,
-        tripleToHex,
+        tripleToHex, joinUrl
     } from './utils';
     import { publishScene } from './sceneUtils';
 
@@ -316,7 +316,7 @@
         <a href="/" title="Home" class="demos-logo">
             <img
                 alt="3Demos logo"
-                src={window.STATIC_PREFIX + '/3demos-logo.svg'}
+                src={joinUrl(window.STATIC_PREFIX, '/3demos-logo.svg')}
             />
         </a>
 
