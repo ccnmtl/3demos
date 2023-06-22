@@ -159,6 +159,7 @@
             title="Settings"
             onClick={() => {
                 showSettings = false;
+                document.getElementById('settings').focus();
             }}
         />
 
@@ -309,6 +310,7 @@
             title="Upload Scene"
             onClick={() => {
                 showUpload = false;
+                document.getElementById('upload').focus();
             }}
         />
 
