@@ -36,10 +36,14 @@ jobs:
           - 6379:6379
     strategy:
       matrix:
-        python-version: [3.8]
+        python-version: ["3.8", "3.11"]
         node-version: [18.x]
     steps:
       - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
       - name: Run flake8
         run: make flake8
       - name: Run django tests
