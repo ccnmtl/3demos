@@ -64,12 +64,12 @@
         performance.
     </p>
     <a href="https://www.engineering.columbia.edu/" target="_blank" itemprop="url" title="The Fu Foundation School of Engineering and Applied Science">
-        <img class="logo" src={joinUrl(window.STATIC_PREFIX, '/logo-seas.jpg')} alt="SEAS logo" itemprop="logo">
+        <img class="logo" src={joinUrl(window.STATIC_PREFIX, './logo-seas.jpg')} alt="SEAS logo" itemprop="logo">
         <span class="sr-only" itemprop="name">The Fu Foundation School of Engineering and Applied Science</span>
     </a>
     <a href="https://ctl.columbia.edu" title="Columbia University Center for Teaching and Learning"
         target="_blank" itemprop="url">
-        <img class="logo" src={joinUrl(window.STATIC_PREFIX, '/logo-ctl.png')} alt="CTL logo" itemprop="logo" style="margin-top: 10px;">
+        <img class="logo" src={joinUrl(window.STATIC_PREFIX, './logo-ctl.png')} alt="CTL logo" itemprop="logo" style="margin-top: 10px;">
         <span class="sr-only" itemprop="name">Center for Teaching and Learning at Columbia University</span>
     </a>
 </article>
