@@ -453,6 +453,7 @@
             <span class="box-1">Resolution</span>
             <input
                 type="range"
+                title={'Resolution = ' + params.nVec}
                 bind:value={params.nVec}
                 min="1"
                 max="10"
@@ -474,6 +475,7 @@
             <label class="switch box box-2">
                 <input
                     type="checkbox"
+                    title="Trails"
                     name="trailsVisible"
                     id="trailsVisible"
                     bind:checked={flowTrails}
@@ -489,10 +491,11 @@
                 on:pause={() => (last = null)}
                 on:rew={rewindArrows}
             />
-
+            <span class="box-1">Color</span>
             <span class="box box-2">
                 <input
                     type="color"
+                    title={'Current color: ' + color + '. Select a color'}
                     name="colorPicker"
                     id="colorPicker"
                     bind:value={color}

@@ -9,19 +9,21 @@
 <div class={className}>
     <button
         class="btn playpausebtn"
+        title={animation ? 'Pause animation' : 'Play animation'}
         on:click={() => {
             dispatch(animation ? 'pause' : 'animate');
             animation = !animation;
         }}
     >
         {#if !animation}
-            <i class="fa fa-play" />
+            <i class="fa fa-play"/>
         {:else}
-            <i class="fa fa-pause" />
+            <i class="fa fa-pause"/>
         {/if}
     </button>
     <button
         class="btn rewbtn"
+        title="Restart animation"
         on:click={() => {
             dispatch('rew');
             // animation = false;
@@ -39,5 +41,9 @@
     }
     .btn {
         color: white;
+        border: solid 3px transparent;
+    }
+    .btn:hover, .btn:focus {
+        border: solid 3px #6caddf;
     }
 </style>

@@ -874,9 +874,9 @@
 
             {#each ['a', 'b'] as name}
                 {#if name === 'b'}
-                    <span class="box box-3"
-                        ><M size="sm">{'\\leq u \\leq '}</M></span
-                    >
+                    <span class="box box-3">
+                        <M size="sm">{'\\leq u \\leq '}</M>
+                    </span>
                 {/if}
                 <InputChecker
                     className="form-control form-control-sm {name === 'a'
@@ -894,9 +894,9 @@
 
             {#each ['c', 'd'] as name}
                 {#if name === 'd'}
-                    <span class="box box-3"
-                        ><M size="sm">{'\\leq v \\leq '}</M></span
-                    >
+                    <span class="box box-3">
+                        <M size="sm">{'\\leq v \\leq '}</M>
+                    </span>
                 {/if}
                 <InputChecker
                     className="form-control form-control-sm {name === 'c'
@@ -927,9 +927,9 @@
             {#if isDynamic}
                 {#each ['t0', 't1'] as name}
                     {#if name === 't1'}
-                        <span class="box box-3"
-                            ><M size="sm">{'\\leq t \\leq '}</M></span
-                        >
+                        <span class="box box-3">
+                            <M size="sm">{'\\leq t \\leq '}</M>
+                        </span>
                     {/if}
                     <InputChecker
                         className="form-control form-control-sm {name === 't0'
@@ -990,6 +990,7 @@
             <span class="box-1">Resolution</span>
             <input
                 type="range"
+                title={'Resolution = ' + nX}
                 bind:value={nX}
                 min="10"
                 max="80"
@@ -1000,6 +1001,7 @@
             <label class="switch box box-3">
                 <input
                     type="checkbox"
+                    title="Density"
                     name="chooseDensity"
                     id="chooseDensity"
                     bind:checked={chooseDensity}
@@ -1045,9 +1047,11 @@
                     />
                 </div>
             {:else}
+                <span class="box-1">Color</span>
                 <span class="box box-2">
                     <input
                         type="color"
+                        title={'Current color: ' + color + '. Select a color.'}
                         name="colorPicker"
                         id="colorPicker"
                         bind:value={color}

@@ -544,7 +544,9 @@
                     params.a = e.detail;
                 }}
             />
-            <span class="box box-3"><M size="sm">\leq t \leq</M></span>
+            <span class="box box-3">
+                <M size="sm">{'\\leq t \\leq '}</M>
+            </span>
             <InputChecker
                 className="form-control form-control-sm box box-4"
                 value={params.b}
@@ -566,15 +568,18 @@
                 }}
             />
 
-            <span class="box-1">
-                <span class="t-box">t = {texString1}</span>
-            </span>
+            <label for="tau" class="box-1">
+                <M size="sm">{'t = ' + (texString1 ? texString1 : '0.00')}</M>
+            </label>
             <input
                 type="range"
+                id="tau"
+                name="tau"
+                title={'t = ' + (texString1 ? texString1 : '0.00')}
                 bind:value={tau}
                 min="0"
                 max="1"
-                step="0.001"
+                step="0.01"
                 on:input={() => {
                     const { a, b } = params;
                     const A = math.parse(a).evaluate();
@@ -593,32 +598,35 @@
                 }}
             />
             <span class="box-1">Frame</span>
-            <label class="switch box box-2">
+            <div class="switch box box-2">
                 <input
                     type="checkbox"
+                    title="Frame"
                     name="frameVisible"
                     id="frameVisible"
                     bind:checked={frame.visible}
                     on:change={render}
                 />
                 <span class="slider round" />
-            </label>
+            </div>
 
-            <span class="box-1">Reparamterize by <M>s</M></span>
-            <label class="switch box box-2">
+            <span class="box-1">Reparamterize by <M tabindex="-1">s</M></span>
+            <div class="switch box box-2">
                 <input
                     type="checkbox"
+                    title="Reparameterize by s"
                     name="reparamByArcLength"
                     id="reparamByArcLength"
                     bind:checked={TNB}
                     on:change={updateFrame}
                 />
                 <span class="slider round" />
-            </label>
+            </div>
 
             <span class="box-1">Osculating Circle</span>
-            <label class="switch box box-2">
+            <div class="switch box box-2">
                 <input
+                    title="Osculating Circle"
                     type="checkbox"
                     name="osculatingCircle"
                     id="osculatingCircle"
@@ -626,25 +634,18 @@
                     on:change={updateFrame}
                 />
                 <span class="slider round" />
-            </label>
+            </div>
             <span class="box-1">Color</span>
-            <span class="box box-2">
+            <div class="box box-2">
                 <input
                     type="color"
+                    title={'Current color: ' + color + '. Select a color'}
                     name="colorPicker"
                     id="colorPicker"
                     bind:value={color}
                     style="width:85%; padding: 1px 1px;"
                 />
-            </span>
+            </div>
         </div>
     </div>
 </div>
-
-<style>
-    .t-box {
-        display: inline-block;
-        width: 40%;
-        text-align: left;
-    }
-</style>

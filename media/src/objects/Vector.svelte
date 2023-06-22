@@ -313,8 +313,9 @@
             {#each ['a', 'b', 'c', 'x', 'y', 'z'] as name}
                 {#if name === 'x'}
                     <span class="box-1">
-                        Plot at position <M size="sm">(p_1, p_2, p_3)</M>:
+                        Plot at position :
                     </span>
+                    <M class="box-2" size="sm">(p_1, p_2, p_3)</M>
                 {/if}
                 <span class="box-1"><M size="sm">{varNames[name]} =</M></span>
                 <InputChecker
@@ -331,9 +332,9 @@
             {#if isDynamic}
                 {#each ['t0', 't1'] as name}
                     {#if name === 't1'}
-                        <span class="box box-3"
-                            ><M size="sm">{'\\leq t \\leq '}</M></span
-                        >
+                        <span class="box box-3">
+                            <M size="sm">{'\\leq t \\leq '}</M>
+                        </span>
                     {/if}
                     <InputChecker
                         className="form-control form-control-sm {name === 't0'
@@ -349,15 +350,18 @@
                     />
                 {/each}
 
-                <span class="box-1">
-                    <span class="t-box">t = {texString1}</span>
-                </span>
+                <label for="tau" class="box-1">
+                    <M size="sm">{'t = ' + (texString1 ? texString1 : '0.00')}</M>
+                </label>
                 <input
                     type="range"
+                    id="tau"
+                    name="tau"
+                    title={'t = ' + (texString1 ? texString1 : '0.00')}
                     bind:value={tau}
                     min="0"
                     max="1"
-                    step="0.001"
+                    step="0.01"
                     on:input={() => update()}
                     class="box box-2"
                 />
@@ -397,6 +401,7 @@
             <span class="box box-2">
                 <input
                     type="color"
+                    title={'Current color: ' + color + '. Select a color.'}
                     name="colorPicker"
                     id="colorPicker"
                     bind:value={color}

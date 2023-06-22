@@ -994,9 +994,9 @@
 
             {#each ['a', 'b'] as name}
                 {#if name === 'b'}
-                    <span class="box box-3"
-                        ><M size="sm">{'\\leq x \\leq '}</M></span
-                    >
+                    <span class="box box-3">
+                        <M size="sm">{'\\leq x \\leq '}</M>
+                    </span>
                 {/if}
                 <InputChecker
                     className="form-control form-control-sm {name === 'a'
@@ -1014,9 +1014,9 @@
 
             {#each ['c', 'd'] as name}
                 {#if name === 'd'}
-                    <span class="box box-3"
-                        ><M size="sm">{'\\leq y \\leq '}</M></span
-                    >
+                    <span class="box box-3">
+                        <M size="sm">{'\\leq y \\leq '}</M>
+                    </span>
                 {/if}
                 <InputChecker
                     className="form-control form-control-sm {name === 'c'
@@ -1044,9 +1044,10 @@
                 />
             {/each}
 
-            <span class="box-1"> Resolution </span>
+            <span class="box-1">Resolution</span>
             <input
                 type="range"
+                title={'Resolution = ' + data.nX}
                 bind:value={data.nX}
                 min="10"
                 max="60"
@@ -1054,10 +1055,11 @@
                 on:input={updateSurface}
                 class="box box-2"
             />
-            <span class="box-1"> Levels </span>
+            <span class="box-1">Levels</span>
             <label class="switch box box-3">
                 <input
                     type="checkbox"
+                    title="Levels"
                     name="showLevels"
                     id="showLevels"
                     bind:checked={showLevelCurves}
@@ -1071,31 +1073,20 @@
                     class:hidden={!showLevelCurves}
                 >
                     {#if data.levelDelta === 1}
-                        Up <i class="fa fa-caret-up" />
+                        Flatten <i class="fa fa-caret-up" />
                     {:else}
-                        Down <i class="fa fa-caret-down" />
+                        Contour <i class="fa fa-caret-down" />
                     {/if}
                 </button>
             </span>
-            <span class="box-1"> View Graph </span>
-            <label class="switch box box-2">
-                <input
-                    type="checkbox"
-                    name="graphVisible"
-                    id="graphVisible"
-                    bind:checked={surfaceMesh.visible}
-                    on:change={render}
-                />
-                <span class="slider round" />
-            </label>
 
             {#if isDynamic}
                 <!-- <div class="dynamic-container" transition:slide> -->
                 {#each ['t0', 't1'] as name}
                     {#if name === 't1'}
-                        <span class="box box-3"
-                            ><M size="sm">{'\\leq t \\leq '}</M></span
-                        >
+                        <span class="box box-3">
+                            <M size="sm">{'\\leq t \\leq '}</M>
+                        </span>
                     {/if}
                     <InputChecker
                         className="form-control form-control-sm {name === 't0'
@@ -1111,15 +1102,18 @@
                     />
                 {/each}
 
-                <span class="box-1">
-                    <span class="t-box">t = {texString1}</span>
-                </span>
+                <label for="tau" class="box-1">
+                    <M size="sm">{'t = ' + (texString1 ? texString1 : '0.00')}</M>
+                </label>
                 <input
                     type="range"
+                    id="tau"
+                    name="tau"
+                    title={'t = ' + (texString1 ? texString1 : '0.00')}
                     bind:value={tau}
                     min="0"
                     max="1"
-                    step="0.001"
+                    step="0.01"
                     on:input={() => {
                         const t0 = math.evaluate(params.t0);
                         const t1 = math.evaluate(params.t1);
@@ -1146,6 +1140,7 @@
             <label class="switch box box-2">
                 <input
                     type="checkbox"
+                    title="Tangents"
                     name="frameVisible"
                     id="frameVisible"
                     bind:checked={point.visible}
@@ -1153,9 +1148,11 @@
                 />
                 <span class="slider round" />
             </label>
+            <span class="box-1">Color</span>
             <span class="box box-2">
                 <input
                     type="color"
+                    title={'Current color: ' + color + '. Select a color.'}
                     name="colorPicker"
                     id="colorPicker"
                     bind:value={color}
@@ -1166,6 +1163,7 @@
             <label class="switch box box-2">
                 <input
                     type="checkbox"
+                    title="Integrate"
                     name="doIntegral"
                     id="doIntegral"
                     bind:checked={boxMesh.visible}
@@ -1183,6 +1181,7 @@
             </span>
             <input
                 type="range"
+                title={'N = ' + data.N}
                 bind:value={data.N}
                 min="1"
                 max="81"
@@ -1196,6 +1195,7 @@
             <span class="box-1"> Sample </span>
             <input
                 type="range"
+                title={'Sample = ' + data.samp}
                 bind:value={data.samp}
                 min="0"
                 max="4"
@@ -1222,10 +1222,5 @@
     .hidden {
         display: none;
         background-color: aliceblue;
-    }
-    .t-box {
-        display: inline-block;
-        width: 40%;
-        text-align: left;
     }
 </style>

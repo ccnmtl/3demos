@@ -540,10 +540,12 @@
                     params.f = newVal;
                 }}
             />
-
+            
+            <span class="box-1">Color</span>
             <span class="box box-2">
                 <input
                     type="color"
+                    title={'Current color: ' + color + '. Select a color.'}
                     name="colorPicker"
                     id="colorPicker"
                     bind:value={color}
@@ -555,6 +557,7 @@
             <label class="switch box box-2">
                 <input
                     type="checkbox"
+                    title="Tangent plane"
                     value="false"
                     name="frameVisible"
                     id="frameVisible"

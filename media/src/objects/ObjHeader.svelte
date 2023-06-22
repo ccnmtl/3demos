@@ -32,14 +32,14 @@
     <div class="item-header">
         {#if objHidden != null}
             <button
-                title={(objHidden ? 'Show' : 'Hide') + 'object'}
+                title={(objHidden ? 'Show' : 'Hide') + ' object'}
                 on:click={toggleHide}
             >
                 <i class={'fa fa-eye' + (objHidden ? '-slash' : '')} />
             </button>
         {/if}
         <button
-            title={(minimize ? 'Reveal ' : 'Collapse ') + 'object parameters'}
+            title={(minimize ? 'Reveal ' : 'Collapse ') + ' object parameters'}
             on:click={() => {
                 minimize = !minimize;
             }}
