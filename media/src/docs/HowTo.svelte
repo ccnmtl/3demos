@@ -6,6 +6,7 @@
     import DocPolling from './DocPolling.svelte';
     import DocSession from './DocSession.svelte';
     import Intro from './Intro.svelte';
+    import DocQuickNav from './DocQuickNav.svelte';
 
     let currentOption = Intro;
 
@@ -15,6 +16,7 @@
         { title: 'Importing & Formatting', comp: DocImport },
         { title: 'Keyboard Shortcuts', comp: DocKeyControls },
         { title: 'Special Parameters', comp: DocObjParam },
+        { title: 'Quick Nav', comp: DocQuickNav},
         { title: 'Object Window', comp: DocObjWindow },
         { title: 'Polling', comp: DocPolling },
     ];
@@ -26,7 +28,7 @@
                 aria-label="Select documentation section"
                 bind:value={currentOption}>
             {#each options as { title, comp }}
-                <option value={comp}>{title}</option> ]
+                <option value={comp}>{title}</option>
             {/each}
         </select>
     </div>

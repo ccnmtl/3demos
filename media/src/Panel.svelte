@@ -324,6 +324,7 @@
             <h2 class="accordion-header">
                 <button
                     class="accordion-button collapsed"
+                    id="info"
                     type="button"
                     data-bs-toggle="collapse"
                     data-bs-target="#collapseOne"
@@ -396,6 +397,7 @@
                 <h2 class="accordion-header">
                     <button
                         class="accordion-button collapsed"
+                        id="polls"
                         type="button"
                         data-bs-toggle="collapse"
                         data-bs-target="#collapseTwo"
@@ -428,6 +430,7 @@
             <h2 class="accordion-header">
                 <button
                     class="accordion-button collapsed"
+                    id="objects"
                     type="button"
                     data-bs-toggle="collapse"
                     data-bs-target="#collapseThree"

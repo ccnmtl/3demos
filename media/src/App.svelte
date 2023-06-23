@@ -671,6 +671,35 @@
             case '}':
                 keySelect(e, false);
                 break;
+            case '1':
+                document.getElementById('info').focus();
+                break;
+            case '2':
+                if (currentMode === 'session' && isHost) {
+                    document.getElementById('polls').focus();
+                }
+                break;
+            case '3':
+                document.getElementById('objects').focus();
+                break;
+            case '4':
+                document.getElementById('settings').focus();
+                break;
+            case '5':
+                document.getElementById('encodeURL').focus();
+                break;
+            case '6':
+                document.getElementById('upload').focus();
+                break;
+            case '7':
+                document.getElementById('download').focus();
+                break;
+            case '8':
+                document.getElementById('cameraReset').focus();
+                break;
+            case '9':
+                document.getElementById('screenshot').focus();
+                break;
         }
     };
     window.addEventListener('keydown', keyDown, false);

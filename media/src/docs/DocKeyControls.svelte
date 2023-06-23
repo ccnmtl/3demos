@@ -6,14 +6,29 @@
 <ul>
     <li>
         <Badge>h</Badge>
-        Hide/Show the MENU
+        Hide/Show the MENU.
+    </li>
+    <li>
+        <Badge>{`[ / ]`}</Badge>
+        Shift selection to the object just before the first or after the last
+        selected object.
+    </li>
+    <li>
+        <Badge>{`{ / }`}</Badge>
+        Add the object just above or below the respective objects to the
+        selection.
+    </li>
+    <li>
+        <Badge>Esc</Badge>
+        Deselect all objects.
     </li>
     <li>
         <Badge>Backspace</Badge>
-        Hide/Show the selected object
+        Hide/Show the selected objects.
     </li>
     <li>
-        <Badge>p</Badge> Play/Pause animation for the selected object.
+        <Badge>p</Badge>
+        Play/Pause animation for the selected objects.
         <ul>
             <li>Requires <M size="sm">t</M> variable.</li>
             <li>Not available for <em>Solid Region</em> objects.</li>
