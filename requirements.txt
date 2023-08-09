@@ -14,7 +14,7 @@ channels-redis==4.1.0
 charset-normalizer==3.2.0
 constantly==15.1.0
 coverage==7.2.0
-cryptography==41.0.0
+cryptography==41.0.3
 daphne==4.0.0
 Deprecated==1.2.13
 Django==4.2.3
