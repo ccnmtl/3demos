@@ -112,7 +112,16 @@
                 return;
             }
             if (upload.length < 33) {
-                objects = [...objects, ...upload];
+                // Check for missing uuid in upload
+                upload = upload.map((item) => {
+                    return { ...item, uuid: item.uuid || crypto.randomUUID() };
+                });
+                objects = [
+                    ...objects.filter((item) => {
+                        return !upload.map((ob) => ob.uuid).includes(item.uuid);
+                    }),
+                    ...upload,
+                ];
             } else {
                 alert('Object limit of 32 per upload.');
             }
