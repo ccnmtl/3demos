@@ -3,7 +3,6 @@
     import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
     import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
     import { drawAxes, drawGrid, labelAxes, freeChildren } from '../utils';
-    import { makeObject } from '../sceneUtils';
     import { vMin, vMax, colorMap, densityColormap } from '../stores';
     import WindowHeader from './WindowHeader.svelte';
     import { colorMapNames } from '../js-colormaps';
@@ -18,7 +17,7 @@
     export let orthoCamera = false;
     export let encode;
     export let objects;
-    export let socket;
+    // export let socket;
     export let roomId;
 
     let newGridMeshes;
@@ -110,17 +109,19 @@
                 upload = JSON.parse(evt.target.result);
             } catch (SyntaxError) {
                 alert('Improper JSON formatting');
+                return;
             }
             if (upload.length < 33) {
-                for (let i = 0; i < upload.length; i++) {
-                    objects = makeObject(
-                        null,
-                        upload[i].kind,
-                        upload[i].params,
-                        objects,
-                        socket
-                    );
-                }
+                // Check for missing uuid in upload
+                upload = upload.map((item) => {
+                    return { ...item, uuid: item.uuid || crypto.randomUUID() };
+                });
+                objects = [
+                    ...objects.filter((item) => {
+                        return !upload.map((ob) => ob.uuid).includes(item.uuid);
+                    }),
+                    ...upload,
+                ];
             } else {
                 alert('Object limit of 32 per upload.');
             }
