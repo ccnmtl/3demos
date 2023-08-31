@@ -292,6 +292,9 @@
             canvas: el,
         });
 
+        // https://discourse.threejs.org/t/updates-to-lighting-in-three-js-r155/53733
+        renderer.useLegacyLights = true;
+
         controls = new OrbitControls(camera, el);
         controls2 = new OrbitControls(camera2, el);
 
