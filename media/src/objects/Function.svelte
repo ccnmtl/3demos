@@ -906,6 +906,7 @@
                     break;
                 case 'Backspace':
                     surfaceMesh.visible = !surfaceMesh.visible;
+                    render();
                     break;
                 case 't':
                     if (uuid === selectedObjects[selectedObjects.length - 1]) {
