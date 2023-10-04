@@ -60,6 +60,8 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+X_FRAME_OPTIONS = 'ALLOW-FROM https://drew.youngren.nyc'
+
 ROOT_URLCONF = 'mathplayground.urls'
 
 TEMPLATES = [
