@@ -99,7 +99,7 @@
     export let selected;
     let last;
 
-    const update = (dt = 0) => {
+    const updateAnimationCurve = (dt = 0) => {
         const { a, b } = params;
         const A = math.parse(a).evaluate();
         const B = math.parse(b).evaluate();
@@ -351,7 +351,7 @@
     $: if (animation) {
         const currentTime = $tickTock;
         last = last || currentTime;
-        update(currentTime - last);
+        updateAnimationCurve(currentTime - last);
         last = currentTime;
     } else {
         last = null;

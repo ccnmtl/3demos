@@ -549,6 +549,11 @@
     );
     scene.add(curveBall);
 
+    /**
+     *
+     * @param t
+     * @param L
+     */
     const shiftInterpolation = function (t, L) {
         if (t < 2) {
             return L - (L / 2) * t;
@@ -588,7 +593,7 @@
     };
     $: if (selected && selectedObjects.length > 0) flash();
 
-    const update = function (dt) {
+    const updateAnimationGraph = function (dt) {
         const t0 = math.parse(params.t0).evaluate();
         const t1 = math.parse(params.t1).evaluate();
 
@@ -617,7 +622,7 @@
     $: if (animation) {
         const currentTime = $tickTock;
         last = last || currentTime;
-        update(currentTime - last);
+        updateAnimationGraph(currentTime - last);
         last = currentTime;
     } else {
         last = null;
@@ -925,7 +930,7 @@
                 case 'i':
                     if (uuid === selectedObjects[selectedObjects.length - 1]) {
                         tau = 0;
-                        update(0);
+                        updateAnimationGraph(0);
                         animation = false;
                         boxMesh.visible = !boxMesh.visible;
                         render();
