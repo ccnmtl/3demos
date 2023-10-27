@@ -10,6 +10,7 @@
 
     const dispatch = createEventDispatcher();
 
+    export let isMobileView;
     export let scene, camera, render, controls;
     export let gridMax, gridStep;
     export let axesHolder, axesText, gridMeshes, lineMaterial, axesMaterial;
@@ -330,7 +331,7 @@
     </div>
 {/if}
 
-<div class="settings-buttons">
+<div class="settings-buttons" class:mobile={isMobileView}>
     <button
         class="button"
         id="settings"
@@ -403,6 +404,12 @@
 
     .settings-buttons {
         text-align: right;
+    }
+
+    .settings-buttons.mobile {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
     }
 
     .settings-box {

@@ -35,6 +35,8 @@
     import Story from './Story.svelte';
     import { tick } from 'svelte';
 
+    export let isMobileView;
+
     export let debug, currentMode;
     export let currentControls;
     export let currentChapter;
@@ -187,6 +189,8 @@
 
     let kindToAdd = null;
 
+    let selectedMainTabIndex = 0; // Only used in mobile view where tabs are used instead of accordion
+
     $: if (kindToAdd) {
         const uuid = crypto.randomUUID();
         objects = [
@@ -308,35 +312,82 @@
 
 <div
     class="demos-panel"
+    class:mobile={isMobileView}
     style:transition={panelTransition}
     style:transition-property={panelTransitionProperty}
     style:transform={`translateX(${panelOffset}%)`}
 >
-    <div id="panelAccordion" class="accordion">
-        <a href="/" title="Home" class="demos-logo">
-            <img
-                alt="3Demos logo"
-                src={joinUrl(window.STATIC_PREFIX, './3demos-logo.svg')}
-            />
-        </a>
+    <div id="panelAccordion" class:accordion={!isMobileView}>
+        
+        <!-- 3Demos logo on Panel only in desktop view -->
+        {#if !isMobileView}
+            <a href="/" title="Home" class="demos-logo">
+                <img
+                    alt="3Demos logo"
+                    src={joinUrl(window.STATIC_PREFIX, './3demos-logo.svg')}
+                />
+            </a>
+        {/if}
 
-        <div class="accordion-item demos-panel-box">
-            <h2 class="accordion-header">
-                <button
-                    class="accordion-button collapsed"
-                    id="info"
-                    type="button"
-                    data-bs-toggle="collapse"
-                    data-bs-target="#collapseOne"
-                    aria-expanded="false"
-                    aria-controls="collapseOne"
-                >
-                    Info
-                </button>
-            </h2>
+        <!-- Panel tabs only in mobile view -->
+        {#if isMobileView}
+            <ul id="panelTabs" class="nav nav-tabs">
+                <li class="nav-item">
+                    <button
+                        class='nav-link'
+                        class:active={selectedMainTabIndex == 0}
+                        aria-current="page"
+                        on:click={() => {
+                            selectedMainTabIndex = 0;
+                        }}>Info</button
+                    >
+                </li>
+                <li class="nav-item">
+                    <button
+                        class="nav-link disabled"
+                        class:active={selectedMainTabIndex == 1}
+                        tabindex="-1"
+                        aria-disabled="true">Polls</button
+                    >
+                </li>
+                <li class="nav-item">
+                    <button
+                        class='nav-link'
+                        class:active={selectedMainTabIndex == 2}
+                        on:click={() => {
+                            selectedMainTabIndex = 2;
+                        }}>Objects</button
+                    >
+                </li>
+            </ul>
+        {/if}
+
+        <div class="demos-panel-box" class:accordion-item={!isMobileView}>
+            {#if !isMobileView}
+                <h2 class="accordion-header">
+                    <button
+                        class="accordion-button collapsed"
+                        id="info"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#collapseOne"
+                        aria-expanded="false"
+                        aria-controls="collapseOne"
+                        on:click={() => {
+                            selectedMainTabIndex = 0;
+                        }}
+                    >
+                        Info
+                    </button>
+                </h2>
+            {/if}
+
             <div
                 id="collapseOne"
-                class="accordion-collapse collapse show"
+                class:accordion-collapse={!isMobileView && selectedMainTabIndex == 0}
+                class={
+                    selectedMainTabIndex == 0 ? 'show' : 'collapse'
+                }
                 data-bs-parent="#panelAccordion"
             >
                 <div class="chapterBox">
@@ -393,23 +444,31 @@
         <!-- end .demos-panel-box -->
 
         {#if currentMode === 'session' && isHost}
-            <div class="accordion-item demos-panel-box">
-                <h2 class="accordion-header">
-                    <button
-                        class="accordion-button collapsed"
-                        id="polls"
-                        type="button"
-                        data-bs-toggle="collapse"
-                        data-bs-target="#collapseTwo"
-                        aria-expanded="false"
-                        aria-controls="collapseTwo"
-                    >
-                        Polls
-                    </button>
-                </h2>
+            <div class="demos-panel-box" class:accordion-item={!isMobileView}>
+                {#if !isMobileView}
+                    <h2 class="accordion-header">
+                        <button
+                            class="accordion-button collapsed"
+                            id="polls"
+                            type="button"
+                            data-bs-toggle="collapse"
+                            data-bs-target="#collapseTwo"
+                            aria-expanded="false"
+                            aria-controls="collapseTwo"
+                            on:click={() => {
+                                selectedMainTabIndex = 1;
+                            }}
+                        >
+                            Polls
+                        </button>
+                    </h2>
+                {/if}
                 <div
                     id="collapseTwo"
-                    class="accordion-collapse collapse"
+                    class:accordion-collapse={!isMobileView && selectedMainTabIndex == 0}
+                    class={
+                        selectedMainTabIndex == 1 ? 'show' : 'collapse'
+                    }
                     data-bs-parent="#panelAccordion"
                 >
                     <Polls
@@ -426,23 +485,32 @@
             </div>
         {/if}
 
-        <div class="accordion-item demos-panel-box">
-            <h2 class="accordion-header">
-                <button
-                    class="accordion-button collapsed"
-                    id="objects"
-                    type="button"
-                    data-bs-toggle="collapse"
-                    data-bs-target="#collapseThree"
-                    aria-expanded="false"
-                    aria-controls="collapseThree"
-                >
-                    Objects
-                </button>
-            </h2>
+        <div class="demos-panel-box" class:accordion-item={!isMobileView}>
+            {#if !isMobileView}
+                <h2 class="accordion-header">
+                    <button
+                        class="accordion-button collapsed"
+                        id="objects"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#collapseThree"
+                        aria-expanded="false"
+                        aria-controls="collapseThree"
+                        on:click={() => {
+                            selectedMainTabIndex = 2;
+                        }}
+                    >
+                        Objects
+                    </button>
+                </h2>
+            {/if}
+
             <div
                 id="collapseThree"
-                class="accordion-collapse collapse"
+                class:accordion-collapse={!isMobileView && selectedMainTabIndex == 2}
+                class={
+                    selectedMainTabIndex == 2 ? 'show' : 'collapse'
+                }
                 data-bs-parent="#panelAccordion"
             >
                 <div class="objectBoxOuter">
@@ -731,27 +799,34 @@
 </div>
 <!-- end .demos-panel -->
 
-<div
-    class="panel-button panel-hider bg-info bg-opacity-25 border border-info border-start-0 rounded-end-circle"
-    title={showPanel ? 'Hide panel' : 'Show panel'}
-    on:click={onTogglePanel}
-    on:keypress={onTogglePanel}
-    style:transition={panelTransition}
-    style:transition-property={panelTransitionProperty}
-    style:transform={`translateX(${showPanel ? 0 : -panelWidth}px)`}
->
-    <div class="align-middle text-center">
-        {#if showPanel}
-            <i class="bi bi-arrow-bar-left" />
-        {:else}
-            <i class="bi bi-arrow-bar-right" />
-        {/if}
+{#if !isMobileView}
+    <div
+        class="panel-button panel-hider bg-info bg-opacity-25 border border-info border-start-0 rounded-end-circle"
+        title={showPanel ? 'Hide panel' : 'Show panel'}
+        on:click={onTogglePanel}
+        on:keypress={onTogglePanel}
+        style:transition={panelTransition}
+        style:transition-property={panelTransitionProperty}
+        style:transform={`translateX(${showPanel ? 0 : -panelWidth}px)`}
+    >
+        <div class="align-middle text-center">
+            {#if showPanel}
+                <i class="bi bi-arrow-bar-left" />
+            {:else}
+                <i class="bi bi-arrow-bar-right" />
+            {/if}
+        </div>
     </div>
-</div>
+{/if}
 
 <style>
     :global(#panelAccordion .collapse-info .nav-link:not(.active)) {
         color: white;
+    }
+
+    :global(#panelTabs) {
+        background-color: #efefff;
+        padding-top: 5px;
     }
 
     .demos-logo img {
@@ -775,6 +850,14 @@
         overflow-x: hidden;
 
         resize: horizontal;
+    }
+    
+    .demos-panel.mobile {
+        position: fixed;
+        bottom: 0;
+        max-width: 100%;
+        width: 100%;
+        overflow-y: hidden;
     }
 
     .panel-button {
@@ -813,6 +896,11 @@
 
         -webkit-backface-visibility: hidden;
         backface-visibility: hidden;
+    }
+
+    .mobile .chapterBox, .mobile .objectBoxOuter {
+        height: 300px;
+        overflow-y: scroll;
     }
 
     .chapterBox {

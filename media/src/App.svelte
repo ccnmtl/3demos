@@ -16,6 +16,7 @@
         convertToURLParams,
         drawAxes,
         drawGrid,
+        joinUrl,
         labelAxes,
         modFloor,
     } from './utils';
@@ -29,6 +30,8 @@
 
     //import stores
     import { tickTock } from './stores.js';
+
+    let isMobileView = false;
 
     let debug = false;
     let stats;
@@ -356,8 +359,11 @@
         }
     };
 
+    isMobileView = window.innerWidth < 768;
     window.addEventListener('resize', () => {
         requestFrameIfNotRequested();
+
+        isMobileView = window.innerWidth < 768;
     });
 
     /**
@@ -658,6 +664,9 @@
             return;
         }
         switch (e.key) {
+            case 'm':
+                isMobileView = !isMobileView;
+                break;
             case 'Escape':
                 selectedObjects = [];
                 render();
@@ -710,6 +719,16 @@
 
 <main>
     <div class="d-flex demos-mainview">
+        <!-- In the mobile view, the logo is not part of the panel -->
+        {#if isMobileView}
+            <a href="/" title="Home" class="demos-logo">
+                <img
+                    alt="3Demos logo"
+                    src={joinUrl(window.STATIC_PREFIX, './3demos-logo.svg')}
+                />
+            </a>
+        {/if}
+
         <Panel
             bind:this={panel}
             bind:debug
@@ -725,6 +744,7 @@
             bind:selectedObjects
             bind:selectedPoint
             bind:isPollsOpen
+            {isMobileView}
             {isHost}
             {blowUpObjects}
             {selectObject}
@@ -743,8 +763,9 @@
 
         <canvas class="flex-grow-1" tabIndex="0" id="c" bind:this={canvas} />
 
-        <div class="settings-panel-box">
+        <div class="settings-panel-box" class:mobile={isMobileView}>
             <Settings
+                {isMobileView}
                 {scene}
                 {camera}
                 controls={currentControls}
@@ -829,8 +850,22 @@
 
     .settings-panel-box {
         position: fixed;
-        bottom: 0;
         right: 0;
         z-index: 2;
+    }
+
+    .settings-panel-box:not(.mobile) {
+        bottom: 0;
+    }
+
+    .demos-logo {
+        position: absolute;
+        top: 5px;
+        left: 5px;
+        z-index: 1;
+    }
+    
+    .demos-logo img {
+        height: 38px;
     }
 </style>
