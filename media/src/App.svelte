@@ -489,6 +489,30 @@
         //     document.body.style.cursor = 'auto';
         // });
         renderer.domElement.addEventListener('dblclick', onDblClick);
+
+        // Handle double click on touch devices
+        let tapInterval = null;
+        renderer.domElement.addEventListener('touchstart', (e) => {
+            if (tapInterval) {
+                clearTimeout(tapInterval);
+                tapInterval = null;
+                const event = {
+                    // We can't just pass e.preventDefault as is because that throws Illegal invocation
+                    preventDefault: () => {
+                        e.preventDefault();
+                    },
+                    shiftKey: false,
+                    offsetX: e.touches[0].clientX,
+                    offsetY: e.touches[0].clientY,
+                }
+                onDblClick(event);
+            } else {
+                tapInterval = setTimeout(() => {
+                    tapInterval = null;
+                }, 300);
+            }
+        });
+
         objectResponses = new THREE.Group();
         scene.add(objectResponses);
 
