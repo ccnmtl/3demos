@@ -709,7 +709,6 @@
 </div>
 <!-- end .demos-panel -->
 
-<!-- svelte-ignore a11y-no-static-element-interactions -->
 <div
     class="panel-button panel-hider bg-info bg-opacity-25 border border-info border-start-0 rounded-end-circle"
     title={showPanel ? 'Hide panel' : 'Show panel'}
