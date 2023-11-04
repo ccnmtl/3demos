@@ -15,6 +15,7 @@
     <select
         bind:value={currentStory}
         class="demos-obj-select form-select bg-primary border-primary text-light"
+        name="story-selector"
     >
         <option value={null}>Select Story...</option>
         <option value={ArcLength}>Arc Length</option>
