@@ -15,7 +15,8 @@
     import {
         // makeHSLColor,
         querySelectorIncludesText,
-        tripleToHex, joinUrl
+        tripleToHex,
+        joinUrl,
     } from './utils';
     import { publishScene } from './sceneUtils';
 
@@ -59,12 +60,9 @@
     export let lockPoll;
     export let objectResponses;
 
-    const PANEL_DELAY = 200;
-    let showPanel = true;
+    export let showPanel = true;
+    let panelEl;
     let panelWidth = 370;
-    let panelOffset = 0;
-    let panelTransition = '';
-    let panelTransitionProperty = '';
 
     const kindToComponent = {
         point: Point,
@@ -208,21 +206,6 @@
         kindToAdd = null;
     }
 
-    const onTogglePanel = function () {
-        panelTransition = `all ${PANEL_DELAY}ms ease`;
-        panelTransitionProperty = 'transform';
-
-        showPanel = !showPanel;
-
-        // De-activate transition easing by default, so user can still
-        // manually resize the panel without weird transition
-        // interference.
-        setTimeout(() => {
-            panelTransition = '';
-            panelTransitionProperty = '';
-        }, PANEL_DELAY);
-    };
-
     /**
      * Show the "Info" accordion item.
      */
@@ -261,6 +244,9 @@
                 if (key === 'currentChapter') {
                     currentChapter = val;
                 }
+                if (key === 'showPanel') {
+                    showPanel = !(val === 'false');
+                }
                 if (key === 'grid') {
                     gridMeshes.visible = val === 'true';
                 }
@@ -287,31 +273,22 @@
             }
         }
 
-        const panelEl = document.querySelector('.demos-panel');
         resizeObserver.observe(panelEl);
     });
 
     onDestroy(() => {
-        const panelEl = document.querySelector('.demos-panel');
         resizeObserver.unobserve(panelEl);
     });
 
     const onKeyDown = (e) => {
         if (e.key === 'h') {
-            onTogglePanel();
+            showPanel = !showPanel;
         }
     };
     window.addEventListener('keydown', onKeyDown, false);
-
-    $: panelOffset = showPanel ? 0 : -100;
 </script>
 
-<div
-    class="demos-panel"
-    style:transition={panelTransition}
-    style:transition-property={panelTransitionProperty}
-    style:transform={`translateX(${panelOffset}%)`}
->
+<div class="demos-panel" class:collapsed={!showPanel} bind:this={panelEl}>
     <div id="panelAccordion" class="accordion">
         <a href="/" title="Home" class="demos-logo">
             <img
@@ -458,6 +435,7 @@
                                 <select
                                     bind:value={kindToAdd}
                                     class="demos-obj-select form-select bg-primary border-primary text-light"
+                                    name="object-kind-adder"
                                 >
                                     <option value={null}>
                                         Add Object &#xFF0B;
@@ -731,14 +709,14 @@
 </div>
 <!-- end .demos-panel -->
 
+<!-- svelte-ignore a11y-no-static-element-interactions -->
 <div
     class="panel-button panel-hider bg-info bg-opacity-25 border border-info border-start-0 rounded-end-circle"
     title={showPanel ? 'Hide panel' : 'Show panel'}
-    on:click={onTogglePanel}
-    on:keypress={onTogglePanel}
-    style:transition={panelTransition}
-    style:transition-property={panelTransitionProperty}
-    style:transform={`translateX(${showPanel ? 0 : -panelWidth}px)`}
+    on:click={() => (showPanel = !showPanel)}
+    on:keypress={() => (showPanel = !showPanel)}
+    class:collapsed={!showPanel}
+    style="--collapsed-width: translateX(-{panelWidth}px);"
 >
     <div class="align-middle text-center">
         {#if showPanel}
@@ -775,6 +753,12 @@
         overflow-x: hidden;
 
         resize: horizontal;
+
+        transform: translateX(0%);
+        transition: transform 100ms ease-in-out;
+    }
+    .demos-panel.collapsed {
+        transform: translateX(-100%);
     }
 
     .panel-button {
@@ -798,6 +782,11 @@
 
     .panel-button.panel-hider {
         top: 40px;
+        transform: translateX(0%);
+        transition: transform 100ms ease-in-out;
+    }
+    .panel-button.panel-hider.collapsed {
+        transform: var(--collapsed-width);
     }
 
     .chapterBox,

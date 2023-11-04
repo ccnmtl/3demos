@@ -33,6 +33,7 @@
     let debug = false;
     let stats;
     let panel = null;
+    let showPanel = true;
 
     let scaleAnimation = false;
     let scaleUpdate;
@@ -530,6 +531,7 @@
     const makeQueryStringObject = function () {
         const flattenedObjects = {
             currentChapter,
+            showPanel,
         };
         if (gridMeshes.visible) {
             flattenedObjects['grid'] = true;
@@ -725,6 +727,7 @@
             bind:selectedObjects
             bind:selectedPoint
             bind:isPollsOpen
+            bind:showPanel
             {isHost}
             {blowUpObjects}
             {selectObject}
