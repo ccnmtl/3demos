@@ -39,7 +39,6 @@
     export let debug, currentMode;
     export let currentControls;
     export let currentChapter;
-    export let gridMeshes;
     export let gridStep, gridMax;
     export let objects, isHost;
     export let onRenderObject, onDestroyObject;
@@ -227,40 +226,19 @@
     onMount(() => {
         const urlParams = new URLSearchParams(location.search);
         if (urlParams.keys()) {
-            const objectHolder = {};
+            // const objectHolder = {};
             urlParams.forEach((val, key) => {
                 // This is bad and stupid, and hopefully it will be done better.
                 // make a viewStatus object, maybe?
                 if (key === 'currentChapter') {
                     currentChapter = val;
-                }
-                if (key === 'showPanel') {
+                } else if (key === 'showPanel') {
                     showPanel = !(val === 'false');
-                }
-                if (key === 'grid') {
-                    gridMeshes.visible = val === 'true';
-                }
-                if (key === 'debug') {
+                } else if (key === 'debug') {
                     debug = val === 'true';
                     console.log('debuggery: ', debug);
                 }
-                if (key.slice(0, 3) === 'obj') {
-                    const keyParts = key.split('_');
-                    const obj = objectHolder[keyParts[0]] || { params: {} };
-                    if (keyParts[1] === 'params') {
-                        obj.params[keyParts[2]] = val;
-                    } else {
-                        obj[keyParts[1]] = val;
-                    }
-                    objectHolder[keyParts[0]] = obj;
-                }
             });
-
-            for (const val of Object.values(objectHolder)) {
-                // objects = makeObject(val.uuid, val.kind, val.params, objects);
-                objects = [...objects, { uuid: crypto.randomUUID(), ...val }];
-                if (debug) console.log(objects);
-            }
         }
     });
 
