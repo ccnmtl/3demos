@@ -18,6 +18,7 @@
         drawGrid,
         labelAxes,
         modFloor,
+        scaleExp,
     } from './utils';
     import {
         // removeObject,
@@ -28,22 +29,68 @@
     import { handlePollEvent } from './polls/utils';
 
     //import stores
-    import { tickTock } from './stores.js';
+    import { tickTock, viewScale } from './stores.js';
 
     let debug = false;
     let stats;
     let panel = null;
+    let showPanel = true;
 
     let scaleAnimation = false;
     let scaleUpdate;
     let selectedObjects = [];
     let hoveredObject = null;
     let selectedPoint = null;
-    let lockPoll = false;
+
+    // The objects array is the declarative data that the scene is based on.
+    let objects = [];
+
+    let gridMax = 1;
+    let gridStep = 1 / 5;
+
+    let currentChapter = 'How To';
+    let currentMode = 'how-to';
+
+    const urlParams = new URLSearchParams(location.search);
+    if (urlParams.keys()) {
+        const objectHolder = {};
+        urlParams.forEach((val, key) => {
+            // This is bad and stupid, and hopefully it will be done better.
+            // make a viewStatus object, maybe?
+
+            if (key === 'grid') {
+                gridMeshes.visible = val === 'true';
+            } else if (key === 'scale') {
+                $viewScale = parseFloat(val);
+                gridMax = scaleExp($viewScale);
+                gridStep = gridMax / 10;
+            } else if (key === 'debug') {
+                debug = val === 'true';
+                console.log('debuggery: ', debug);
+            } else if (key.slice(0, 3) === 'obj') {
+                console.log('got a obj');
+                const keyParts = key.split('_');
+                const obj = objectHolder[keyParts[0]] || { params: {} };
+                if (keyParts[1] === 'params') {
+                    obj.params[keyParts[2]] = val;
+                } else {
+                    obj[keyParts[1]] = val;
+                }
+                objectHolder[keyParts[0]] = obj;
+            }
+        });
+        for (const val of Object.values(objectHolder)) {
+            // objects = makeObject(val.uuid, val.kind, val.params, objects);
+            objects = [...objects, { uuid: crypto.randomUUID(), ...val }];
+            if (debug) console.log(objects);
+        }
+        console.log('Initializing...', objects);
+    }
 
     let canvas;
     let isPollsOpen = false;
 
+    let lockPoll = false;
     let showPollResults = false;
 
     const selectObject = (uuid) => {
@@ -111,8 +158,6 @@
         }
     }
 
-    let gridMax = 1,
-        gridStep = 1 / 5;
     const pi = Math.PI;
 
     // Make z the default up
@@ -170,7 +215,7 @@
     });
 
     // Make xy grid lines (off by default).
-    let gridMeshes = drawGrid({ lineMaterial });
+    let gridMeshes = drawGrid({ gridMax, gridStep, lineMaterial });
     gridMeshes.renderDepth = -1;
     gridMeshes.visible = false;
     scene.add(gridMeshes);
@@ -192,6 +237,8 @@
     let [axesText] = labelAxes(
         {
             scene,
+            gridMax,
+            gridStep,
             render: requestFrameIfNotRequested,
         },
         fontLoader,
@@ -200,7 +247,7 @@
 
     // from https://threejs.org/manual/#en/responsive
     const resizeRendererToDisplaySize = function (renderer) {
-        const canvas = renderer.domElement;
+        // const canvas = renderer.domElement;
         const width = canvas.clientWidth;
         const height = canvas.clientHeight;
         const needResize = canvas.width !== width || canvas.height !== height;
@@ -267,7 +314,7 @@
         }
 
         if (resizeRendererToDisplaySize(renderer)) {
-            const canvas = renderer.domElement;
+            // const canvas = renderer.domElement;
             if (orthoCamera) {
                 currentCamera.top = canvas.clientHeight / 2;
                 currentCamera.bottom = canvas.clientHeight / -2;
@@ -318,9 +365,6 @@
 
         return renderer;
     };
-
-    // The objects array is the declarative data that the scene is based on.
-    export let objects = [];
 
     // sceneObjects is the array of three.js objects present in the
     // scene. It's derived from the objects array, as a result of how
@@ -505,14 +549,11 @@
             canvas.toBlob((blob) => {
                 saveBlob(
                     blob,
-                    `screencapture-${canvas.width}x${canvas.height}.png`
+                    `3Demos-screencapture-${canvas.width}x${canvas.height}.png`
                 );
             });
         });
     });
-
-    let currentChapter = 'How To';
-    let currentMode = 'how-to';
 
     let pollResponses = {};
 
@@ -530,6 +571,8 @@
     const makeQueryStringObject = function () {
         const flattenedObjects = {
             currentChapter,
+            scale: $viewScale,
+            showPanel,
         };
         if (gridMeshes.visible) {
             flattenedObjects['grid'] = true;
@@ -716,7 +759,6 @@
             bind:currentMode
             bind:objects
             bind:currentChapter
-            bind:gridMeshes
             bind:gridStep
             bind:gridMax
             bind:chatBuffer
@@ -725,6 +767,7 @@
             bind:selectedObjects
             bind:selectedPoint
             bind:isPollsOpen
+            bind:showPanel
             {isHost}
             {blowUpObjects}
             {selectObject}

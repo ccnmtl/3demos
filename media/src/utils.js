@@ -2647,6 +2647,20 @@ const norm2 = (...v) => {
     return Math.sqrt(tot);
 };
 
+/**
+ * exponential function for scale (log10) values
+ * @param {Number} scale 
+ * @returns {Number} approximate exponential for scaling axes
+ */
+const scaleExp = (scale) => Math.round(
+    100 *
+    Math.pow(10, Math.floor(scale)) *
+    Math.floor(
+        Math.pow(10, scale) /
+        Math.pow(10, Math.floor(scale))
+    )
+) / 100;
+
 export {
     norm2,
     joinUrl,
@@ -2678,5 +2692,6 @@ export {
     querySelectorIncludesText,
     checksum,
     modFloor,
-    tripleToHex
+    tripleToHex,
+    scaleExp,
 };
