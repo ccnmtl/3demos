@@ -14,16 +14,22 @@
     export let render;
     let tau = 0;
     let sau = 0;
+    let integralValue = 0;
+    let animateIntegral = false;
 
+    // tags for animation (I for Integral animation; others for diffChoice animation)
     let raf;
+    let rafI;
     let last;
+    let lastI;
 
     const toDx = (time) => {
         cancelAnimationFrame(raf);
         if (!last) last = time;
-        const dt = (time - last) / 10000;
+        const dt = (time - last) / 1000;
         sau = Math.min(0.99, sau + dt);
         if (sau < 0.99) {
+            last = time;
             raf = requestAnimationFrame(toDx);
         } else {
             last = undefined;
@@ -32,9 +38,10 @@
     const toDy = (time) => {
         cancelAnimationFrame(raf);
         if (!last) last = time;
-        const dt = (time - last) / 10000;
+        const dt = (time - last) / 1000;
         sau = Math.max(-0.99, sau - dt);
         if (sau > -0.99) {
+            last = time;
             raf = requestAnimationFrame(toDy);
         } else {
             last = undefined;
@@ -44,17 +51,37 @@
         cancelAnimationFrame(raf);
         const sgn = -Math.sign(sau);
         if (!last) last = time;
-        const dt = (sgn * (time - last)) / 10000;
-        // console.log(sau, dt);
+        const dt = (sgn * (time - last)) / 1000;
         if (sau < 0) {
             sau = Math.min(0, sau + dt);
         } else if (sau > 0) {
             sau = Math.max(0, sau + dt);
         }
         if (sau !== 0) {
+            last = time;
             raf = requestAnimationFrame(toDs);
         } else {
             last = undefined;
+        }
+    };
+
+    /**
+     * Animate to integral. Stick inside RAF, runs the parameter from a to b
+     * @param time <Number>
+     */
+    const toI = (time) => {
+        cancelAnimationFrame(rafI);
+        const a = math.parse(curveData[pathChoice].r.a).evaluate();
+        const b = math.parse(curveData[pathChoice].r.b).evaluate();
+        if (!lastI) lastI = time;
+        const dt = (time - lastI) / 1000;
+        tau = Math.min(tau + dt / (b - a), 1);
+        if (tau < 1) {
+            lastI = time;
+            rafI = requestAnimationFrame(toI);
+        } else {
+            lastI = undefined;
+            animateIntegral = false;
         }
     };
 
@@ -86,8 +113,29 @@
 
     const wall = new THREE.Mesh(undefined, minusMaterial);
     const backwall = new THREE.Mesh(undefined, plusMaterial);
+    const ceiling = new THREE.Mesh(undefined, wireMaterial);
+    const segs = new THREE.Line(
+        new THREE.BufferGeometry(),
+        new THREE.LineBasicMaterial({ color: 0x0000ff })
+    );
     wall.add(backwall);
+    wall.add(ceiling);
+    wall.add(segs);
+    // console.log(segs.geometry);
     scene.add(wall);
+
+    $: {
+        ceiling.geometry?.dispose();
+        ceiling.geometry = new ParametricGeometry(
+            (u, v, vec) => {
+                const x = -2 * 2 + u * (4 * 2);
+                const y = -2 * 2 + v * (4 * 2);
+                vec.set(x, y, funcData[funcChoice].func(x, y));
+            },
+            35,
+            35
+        );
+    }
 
     $: {
         wall.geometry.dispose();
@@ -110,15 +158,32 @@
             35
         );
         backwall.geometry = wall.geometry;
+
+        const x = math.parse(curveData[pathChoice].r.x);
+        const y = math.parse(curveData[pathChoice].r.y);
+
+        const points = [];
+        const X = x.evaluate({ t: T });
+        const Y = y.evaluate({ t: T });
+        const Z = funcData[funcChoice].func(X, Y);
+        points.push(new THREE.Vector3(X, Y, 0));
+        points.push(new THREE.Vector3(X, Y, Z));
+        points.push(
+            new THREE.Vector3(
+                X * (1 + Math.min(0, sau)),
+                Y * (1 - Math.max(0, sau)),
+                Z
+            )
+        );
+        // console.log(points);
+        segs.geometry.setFromPoints(points);
         render();
 
         // Compute integral numerically
         let fn;
-        const x = math.parse(curveData[pathChoice].r.x);
-        const y = math.parse(curveData[pathChoice].r.y);
         const xp = math.derivative(x, 't');
         const yp = math.derivative(y, 't');
-        if ((diffChoice = 'ds')) {
+        if (diffChoice === 'ds') {
             console.log('im in ds');
             fn = (t) =>
                 funcData[funcChoice].func(
@@ -129,8 +194,20 @@
                     Math.pow(xp.evaluate({ t }), 2) +
                         Math.pow(yp.evaluate({ t }), 2)
                 );
+        } else if (diffChoice === 'dx') {
+            fn = (t) =>
+                funcData[funcChoice].func(
+                    x.evaluate({ t }),
+                    y.evaluate({ t })
+                ) * xp.evaluate({ t });
+        } else if (diffChoice === 'dy') {
+            fn = (t) =>
+                funcData[funcChoice].func(
+                    x.evaluate({ t }),
+                    y.evaluate({ t })
+                ) * yp.evaluate({ t });
         }
-        console.log('int', gaussLegendre(fn, a, T, 30));
+        integralValue = gaussLegendre(fn, a, T, 30);
     }
 
     const curveId = crypto.randomUUID();
@@ -156,12 +233,12 @@
         },
         other: {
             r: {
-                x: '(1 + t/4)*cos(4*pi*t)',
-                y: '2*t - sin(8*t)/2',
+                x: '(1 + t/32)*cos(pi*t / 2)',
+                y: 't/4 - sin(t)/2',
                 a: '0',
-                b: '1',
+                b: '8',
             },
-            tex: '(1 + t/4)\\cos(4 \\pi t), 2t - \\sin(8 t)/2',
+            tex: '(1 + t/32)\\cos( \\frac{\\pi}{2} t), t/4 - \\sin(t)/2',
         },
     };
 
@@ -211,11 +288,11 @@
 </script>
 
 <div>
-    <h1>Path Integrals</h1>
-
     <p>
-        Let $C$ be a path in $\RR^n$ parametrized by $\vec r(t)$ for $a \leq t
-        \leq b$.
+        Let <M>C</M> be a path in <M>{'\\mathbb{R}^n'}</M> parametrized by <M
+            >\vec r(t)</M
+        > for
+        <M>a \leq t \leq b</M>.
     </p>
     <div id="path-selection" class="selectables">
         <button
@@ -237,7 +314,23 @@
     <M display>
         {`\\langle x(t), y(t) \\rangle = \\langle  ${curveData[pathChoice].tex}  \\rangle`}
     </M>
-    <p>Let $f$ be a continuous scalar field on $\RR^n$.</p>
+    <M display>
+        {`${math.parse(curveData[pathChoice].r.a).toTex()} \\leq t \\leq ${math
+            .parse(curveData[pathChoice].r.b)
+            .toTex()} `}
+    </M>
+    <p>
+        Let <M>f</M> be a continuous scalar field on <M>{'\\mathbb{R}^n'}</M>.
+        Show graph:
+        <label class="switch box box-3">
+            <input
+                type="checkbox"
+                bind:checked={ceiling.visible}
+                on:change={render}
+            />
+            <span class="slider round" />
+        </label>
+    </p>
     <div id="func-selection" class="selectables">
         <button
             class="btn-choice"
@@ -256,9 +349,11 @@
         >
     </div>
 
+    <M display>{`f(x,y) = ${funcData[funcChoice].tex}`}</M>
+
     <p>
-        We can integrate $f$ over $C$ with respect to arc length $ds$ or one or
-        another coordinates, $dx$, $dy$, etc.
+        Choose "how" to integrate: with respect to arc length <M>ds</M> or one or
+        another coordinates, <M>dx</M>, <M>dy</M>, etc.
     </p>
     <div id="diff-selection" class="selectables">
         <button
@@ -286,12 +381,53 @@
             }}><M>dy</M></button
         >
     </div>
-    <M display>{`\\int_C f\\,${diffChoice} `}</M>
+    <p>
+        We integrate (gradually using controls below) along the curve and
+        compute the accumulation.
+    </p>
+    <M display>{`\\int_C f\\,${diffChoice} = `}</M>
+    <M display
+        >{`\\int_{${curveData[pathChoice].r.a}}^{${
+            Math.round(100 * T) / 100
+        }} \\left(${funcData[funcChoice].tex
+            .replace('x', 'x(t)')
+            .replace('y', 'y(t)')}\\right) \\, ${
+            diffChoice === 'ds'
+                ? "\\sqrt{x'(t)^2 + y'(t)^2}"
+                : diffChoice === 'dx'
+                ? "x'(t)"
+                : "y'(t)"
+        }\\,dt`}
+    </M>
+    <M display
+        >{`
+        = ${Math.round(1000 * integralValue) / 1000}
+        `}
+    </M>
 
-    <input type="range" bind:value={tau} min="0" max="1" step="0.005" />
+    <input
+        type="range"
+        bind:value={tau}
+        min="0"
+        max="1"
+        step="0.005"
+        style="width: 80%"
+    />
 
-    <PlayButtons />
-    sau: <input type="range" bind:value={sau} min="-1" max="1" step="0.005" />
+    <PlayButtons
+        bind:animation={animateIntegral}
+        on:play={() => (rafI = requestAnimationFrame(toI))}
+        on:pause={() => {
+            cancelAnimationFrame(rafI);
+            lastI = null;
+        }}
+        on:rew={() => {
+            cancelAnimationFrame(rafI);
+            lastI = null;
+            tau = 0;
+            animateIntegral = false;
+        }}
+    />
 </div>
 
 <style>
