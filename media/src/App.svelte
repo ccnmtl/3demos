@@ -46,7 +46,7 @@
     let objects = [];
 
     let gridMax = 1;
-    let gridStep = 1 / 5;
+    let gridStep = 1 / 10;
 
     let currentChapter = 'How To';
     let currentMode = 'how-to';
