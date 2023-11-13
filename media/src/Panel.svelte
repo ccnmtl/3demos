@@ -172,9 +172,9 @@
         },
         field: () => {
             const comps = ['1', '-1', 'x', 'y', 'z', '-x', '-y', '-z'];
-            const p = comps[Math.ceil(comps.length * Math.random())];
-            const q = comps[Math.ceil(comps.length * Math.random())];
-            const r = comps[Math.ceil(comps.length * Math.random())];
+            const p = comps[Math.floor(comps.length * Math.random())];
+            const q = comps[Math.floor(comps.length * Math.random())];
+            const r = comps[Math.floor(comps.length * Math.random())];
 
             return { p, q, r, nVec: '6' };
         },
