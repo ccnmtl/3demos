@@ -134,8 +134,8 @@
 
     const trails = new THREE.LineSegments(trailGeometry, trailMaterial);
 
-    const vfScale = gridStep * 5;
-    const arrowArgs = {
+    $: vfScale = gridStep * 5;
+    $: arrowArgs = {
         radiusTop: vfScale / 60,
         radiusBottom: vfScale / 150,
         heightTop: vfScale / 16,
