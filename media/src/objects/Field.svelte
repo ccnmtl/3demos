@@ -167,7 +167,6 @@
     };
 
     const initFlowArrows = function (arrows, lim = gridMax, N = params.nVec) {
-        console.log('init flow ', gridMax, gridStep);
         const vec = new THREE.Vector3();
         let maxLength = 0;
 
