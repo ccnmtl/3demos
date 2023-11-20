@@ -2621,6 +2621,141 @@ class FluxBoxEdgesGeometry extends THREE.BufferGeometry {
     }
 }
 
+class ShardsGeometry extends THREE.BufferGeometry {
+    /**
+     * Produce a geometry of parallelograms tangent to a surface. Divide each direction into N pieces, Use a frame of r_u and r_v as the edges of each parallelogram. 
+     * @param {function} r - parametric surface
+     * @param {number} a - lower u
+     * @param {number} b - upper u
+     * @param {number|function} c - lower v
+     * @param {number|function} d - upper v
+     * @param {int} N - resolution
+     * @param {number} [s = 0.5] - sample point parameter (0 SW to 1 NE)
+     */
+    constructor(r, a, b, c, d, N = 10, s = 0.5) {
+        super();
+
+        const dt = 1e-4; // for computing diffs
+        const dt2 = dt / 2;
+
+        const points = [];
+        const normals = [];
+
+        const du = (b - a) / N;
+        let dv;
+
+        const normal = new THREE.Vector3();
+
+        for (let i = 0; i < N; i++) {
+            const u = a + (i + s) * du;
+            dv = (d(u) - c(u)) / N;
+            for (let j = 0; j < N; j++) {
+                const v = c(u) + (j + s) * dv;
+                let [x, y, z] = r(u, v);
+                const [xu1, yu1, zu1] = r(u + dt2, v);
+                const [xu0, yu0, zu0] = r(u - dt2, v);
+                const ru = new THREE.Vector3((xu1 - xu0) / dt, (yu1 - yu0) / dt, (zu1 - zu0) / dt);
+                const [xv1, yv1, zv1] = r(u, v + dt2);
+                const [xv0, yv0, zv0] = r(u, v - dt2);
+                const rv = new THREE.Vector3((xv1 - xv0) / dt, (yv1 - yv0) / dt, (zv1 - zv0) / dt);
+
+                normal.copy(ru.clone().cross(rv).normalize());
+
+                // adjust for sample point
+                x -= (du * ru.x + dv * rv.x) * s;
+                y -= (du * ru.y + dv * rv.y) * s;
+                z -= (du * ru.z + dv * rv.z) * s;
+
+                // top
+
+                points.push(x, y, z);
+                points.push(x + du * ru.x, y + du * ru.y, z + du * ru.z);
+                points.push(x + dv * rv.x, y + dv * rv.y, z + dv * rv.z);
+                points.push(x + du * ru.x, y + du * ru.y, z + du * ru.z);
+                points.push(x + du * ru.x + dv * rv.x, y + du * ru.y + dv * rv.y, z + du * ru.z + dv * rv.z);
+                points.push(x + dv * rv.x, y + dv * rv.y, z + dv * rv.z);
+
+
+
+                for (let index = 0; index < 6; index++) { normals.push(-normal.x, -normal.y, -normal.z); }
+            }
+
+
+
+
+        }
+
+
+    }
+}
+
+class ShardsEdgesGeometry extends THREE.BufferGeometry {
+    /**
+     * Produce a geometry of parallelopipeds from a flux integral. Divide each direction into N pieces, Use a frame of r_u, r_v, and F as the edges of each parallelopiped. 
+     * @param {FluxBoxGeometry} geo - vector field
+     * @param {boolean=false} shards - only show tangent pieces (e.g., for surface area)
+     * @param {number=1} t - scaling factor for vector field
+     */
+    constructor(geo, shards = false, t = 1) {
+        super();
+
+        const points = geo.attributes.position.array;
+
+        t = shards ? 0 : t;
+
+
+        // save values for adjusting height in F direction
+        this.lastT = t;
+        const N = points.length / 108;
+        const Fs = geo.lastF;
+
+        const vertices = [];
+        for (let pointIndex = 0; pointIndex < N; pointIndex++) {
+            // for (let j = 0; j < N; j++) {
+            // const pointIndex = i * N + j;
+            const A = points.slice(pointIndex * 108 + 21, pointIndex * 108 + 24);
+            const B = points.slice(pointIndex * 108 + 18, pointIndex * 108 + 21);
+            const C = points.slice(pointIndex * 108 + 33, pointIndex * 108 + 36);
+            const D = points.slice(pointIndex * 108 + 24, pointIndex * 108 + 27);
+
+            const [fx, fy, fz] = Fs.slice((pointIndex) * 3, (pointIndex + 1) * 3);
+
+
+            // 12 edges
+            vertices.push(...A, ...B);
+            vertices.push(...B, ...C);
+            vertices.push(...C, ...D);
+            vertices.push(...D, ...A);
+
+            if (!shards && t > 0) {
+                vertices.push(...A, A[0] + t * fx, A[1] + t * fy, A[2] + t * fz);
+                vertices.push(...B, B[0] + t * fx, B[1] + t * fy, B[2] + t * fz);
+                vertices.push(...C, C[0] + t * fx, C[1] + t * fy, C[2] + t * fz);
+                vertices.push(...D, D[0] + t * fx, D[1] + t * fy, D[2] + t * fz);
+
+                vertices.push(B[0] + t * fx, B[1] + t * fy, B[2] + t * fz, A[0] + t * fx, A[1] + t * fy, A[2] + t * fz);
+                vertices.push(C[0] + t * fx, C[1] + t * fy, C[2] + t * fz, B[0] + t * fx, B[1] + t * fy, B[2] + t * fz);
+                vertices.push(D[0] + t * fx, D[1] + t * fy, D[2] + t * fz, C[0] + t * fx, C[1] + t * fy, C[2] + t * fz);
+                vertices.push(A[0] + t * fx, A[1] + t * fy, A[2] + t * fz, D[0] + t * fx, D[1] + t * fy, D[2] + t * fz);
+            }
+            // }
+        }
+
+
+        this.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+    }
+
+    /**
+     * scale the edge in the vector field direction
+     * @param {number} t - new time
+     */
+    changeT(t) {
+        this.lastT = t;
+        this.attributes.position.needsUpdate = true;
+
+    }
+}
+
 /**
  * 
  * @param {int} x 
@@ -2685,6 +2820,8 @@ export {
     SphericalSolidGeometry,
     FluxBoxGeometry,
     FluxBoxEdgesGeometry,
+    ShardsGeometry,
+    ShardsEdgesGeometry,
     nextHue,
     makeHSLColor,
     blockGeometry,
