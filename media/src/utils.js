@@ -1283,10 +1283,18 @@ function labelAxes({
     return [axesText, font];
 }
 
-// Gauss-Legendre quadrature via https://rosettacode.org/wiki/Numerical_integration/Gauss-Legendre_Quadrature#JavaScript
 
 const factorial = (n) => (n <= 1 ? 1 : n * factorial(n - 1));
 const M = (n) => (n - (n % 2 !== 0)) / 2;
+
+/**
+ * Gauss-Legendre quadrature via https://rosettacode.org/wiki/Numerical_integration/Gauss-Legendre_Quadrature#JavaScript
+ * @param {function} fn function to integrate
+ * @param {number} a lower bound
+ * @param {number} b upper bound
+ * @param {number} n number of sample points
+ * @returns 
+ */
 const gaussLegendre = (fn, a, b, n) => {
     // coefficients of the Legendre polynomial
     const coef = [...Array(M(n) + 1)].map(
@@ -2635,6 +2643,8 @@ class ShardsGeometry extends THREE.BufferGeometry {
     constructor(r, a, b, c, d, N = 10, s = 0.5) {
         super();
 
+        this.area = 0;
+
         const dt = 1e-4; // for computing diffs
         const dt2 = dt / 2;
 
@@ -2659,7 +2669,11 @@ class ShardsGeometry extends THREE.BufferGeometry {
                 const [xv0, yv0, zv0] = r(u, v - dt2);
                 const rv = new THREE.Vector3((xv1 - xv0) / dt, (yv1 - yv0) / dt, (zv1 - zv0) / dt);
 
-                normal.copy(ru.clone().cross(rv).normalize());
+                normal.copy(ru.clone().cross(rv));
+                this.area += normal.length() * du * dv;
+                normal.normalize();
+
+                // const tol = 1e-3; // perturb position for z-fighting
 
                 // adjust for sample point
                 x -= (du * ru.x + dv * rv.x) * s;

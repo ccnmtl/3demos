@@ -3,7 +3,11 @@
 
     import { all, create } from 'mathjs';
     import M from '../M.svelte';
-    import { ShardsEdgesGeometry, ShardsGeometry } from '../utils';
+    import {
+        ShardsEdgesGeometry,
+        ShardsGeometry,
+        // gaussLegendre,
+    } from '../utils';
     import { onMount, onDestroy } from 'svelte';
     // import { createEventDispatcher } from 'svelte';
 
@@ -27,7 +31,7 @@
         }),
     ];
 
-    let exampleSurfaces = [
+    const standardExamples = [
         {
             uuid: 'area-story-example-001-',
             kind: 'surface',
@@ -39,7 +43,7 @@
                 d: '2',
                 x: 'u v - 1',
                 y: 'u - v',
-                z: 'sin(u v) - u^2 / 20',
+                z: 'sin(u v) - (u - v)^2 / 20',
                 t0: '0',
                 t1: '1',
             },
@@ -54,14 +58,35 @@
                 b: 'pi / 2',
                 c: '0',
                 d: 'pi',
-                x: 'sin(u) cos(v)',
-                y: 'sin(u) sin(v)',
+                x: 'sin(u) sin(v)',
+                y: 'sin(u) cos(v)',
                 z: 'cos(u)',
                 t0: '0',
                 t1: '1',
             },
             color: '#44CB44',
         },
+        {
+            uuid: 'area-story-example-003-',
+            kind: 'surface',
+            title: 'Football',
+            params: {
+                a: '-pi / 2',
+                b: 'pi / 2',
+                c: '0',
+                d: '2*pi',
+                x: 'u',
+                y: 'cos(u) cos(v)',
+                z: 'cos(u) sin(v)',
+                t0: '0',
+                t1: '1',
+            },
+            color: '#44CB44',
+        },
+    ];
+
+    let exampleSurfaces = [
+        ...standardExamples,
         ...backupObjects.filter(
             (obj) =>
                 obj.kind === 'surface' &&
@@ -110,8 +135,8 @@
     const plusMaterial = new THREE.MeshStandardMaterial({
         color: 0xffffff,
         side: THREE.DoubleSide,
-        roughness: 0.5,
-        metalness: 0.7,
+        roughness: 0.4,
+        metalness: 0.8,
     });
 
     // const plusMaterial = new THREE.MeshPhongMaterial({
@@ -143,6 +168,7 @@
 
     let u0, u1, v0, v1;
     const setRuv = (obj) => {
+        // const dt = 1e-4;
         // const obj = exampleSurfaces.find((o) => o.uuid === uuid);
         if (obj) {
             const { x, y, z, a, b, c, d } = obj.params;
@@ -159,6 +185,16 @@
             u1 = B.evaluate();
             v0 = (u) => C.evaluate({ u });
             v1 = (u) => D.evaluate({ u });
+
+            // const ru = new THREE.Vector3();
+            // const rv = new THREE.Vector3();
+
+            // totalArea = gaussLegendre(
+            //     (x) => gaussLegendre((y) => x*y, v0(x), v1(x), 10),
+            //     u0,
+            //     u1,
+            //     10
+            // );
 
             // // Match color to that of surface
             // plusMaterial.color.set(obj.color);
@@ -177,9 +213,13 @@
 
     $: setRuv(currentSurface);
 
+    let approxArea = 0;
+    // let totalArea = 0;
+
     const updateGeo = (N, r, A, B, C, D, samp) => {
         geo?.dispose();
         geo = new ShardsGeometry(r, A, B, C, D, N, samp);
+        approxArea = geo.area;
         boxes.children[0].geometry = geo;
         edgesUp?.dispose();
         edgesUp = new ShardsEdgesGeometry(geo);
@@ -195,7 +235,9 @@
 <div>
     <p>
         Let <M>{`\\mathbf r: D\\to \\Omega \\subset \\mathbb{R}^3`}</M> be a smooth
-        parametrization of a surface with $D\subset \RR^2$ a domain in $uv$-space.
+        parametrization of a surface with <M>{`D\\subset \\mathbb{R}^2`}</M> a domain
+        in
+        <M>uv</M>-space.
     </p>
 
     <p>
@@ -205,17 +247,12 @@
         defined by
 
         <M align>
-            {`\\vec r_u\\,\\Delta u &=
-            \\left\\langle x_u, y_u, z_u \\right\\rangle\\Delta u \\\\ \\vec
-            r_v\\,\\Delta v &= \\left\\langle x_v, y_v, z_v
+            {`\\mathbf r_u\\,\\Delta u &=
+            \\left\\langle \\frac{\\partial x}{\\partial u}, \\frac{\\partial y}{\\partial u}, \\frac{\\partial z}{\\partial u} \\right\\rangle\\Delta u \\\\ \\mathbf
+            r_v\\,\\Delta v &= \\left\\langle \\frac{\\partial x}{\\partial v}, \\frac{\\partial y}{\\partial v}, \\frac{\\partial z}{\\partial v} 
             \\right\\rangle\\Delta v \\\\ 
             `}
         </M>
-    </p>
-
-    <p>
-        We seek to visualize that integrand. Choose an example vector field and
-        parametric surface.
     </p>
 
     <div class="row">
@@ -235,51 +272,17 @@
                 class=" bg-primary text-light"
                 on:click={() => {
                     exampleSurfaces = [
-                        {
-                            uuid: 'area-story-example-001-',
-                            kind: 'surface',
-                            title: 'Example 1',
-                            params: {
-                                a: '0',
-                                b: '2',
-                                c: '0',
-                                d: '2',
-                                x: 'u v - 1',
-                                y: 'u - v',
-                                z: 'sin(u v) - u^2 / 20',
-                                t0: '0',
-                                t1: '1',
-                            },
-                            color: '#44CB44',
-                        },
-                        {
-                            uuid: 'area-story-example-002-',
-                            kind: 'surface',
-                            title: 'Dome',
-                            params: {
-                                a: '0',
-                                b: 'pi / 2',
-                                c: '0',
-                                d: 'pi',
-                                x: 'sin(u) cos(v)',
-                                y: 'sin(u) sin(v)',
-                                z: 'cos(u)',
-                                t0: '0',
-                                t1: '1',
-                            },
-                            color: '#44CB44',
-                        },
+                        ...standardExamples,
                         ...objects.filter(
                             (obj) =>
                                 obj.kind === 'surface' &&
                                 obj.uuid.slice(0, 18) !== 'area-story-example'
                         ),
                     ];
-                    setRuv(
-                        objects.find(
-                            (o) => o.kind === 'surface' || exampleSurfaces[0]
-                        )
-                    );
+                    currentSurface =
+                        objects.find((o) => o.kind === 'surface') ||
+                        exampleSurfaces[0];
+                    setRuv(currentSurface);
                 }}
             >
                 <i class="bi bi-arrow-clockwise" />
@@ -298,7 +301,7 @@
                 ><input
                     type="range"
                     min="1"
-                    max="20"
+                    max="35"
                     step="1"
                     bind:value={nBoxes}
                 /></span
@@ -316,26 +319,38 @@
                 <span class="slider round" />
             </label>
         </div>
-    </div>
 
-    <div class="col-auto">
-        center
-        <label class="switch box box-3">
-            <input
-                type="checkbox"
-                checked={false}
-                on:change={(e) => {
-                    if (e.target.checked) {
-                        sampleParam = 0.5;
-                    } else {
-                        sampleParam = 0;
-                    }
-                }}
-            />
-            <span class="slider round" />
-        </label>
+        <div class="col-auto">
+            center
+            <label class="switch box box-3">
+                <input
+                    type="checkbox"
+                    checked={false}
+                    on:change={(e) => {
+                        if (e.target.checked) {
+                            sampleParam = 0.5;
+                        } else {
+                            sampleParam = 0;
+                        }
+                    }}
+                />
+                <span class="slider round" />
+            </label>
+        </div>
     </div>
 </div>
+
+<p>
+    Adding each area gives <M>
+        {`\\sum \\Delta S = \\sum |\\mathbf r_u \\times \\mathbf r_v|\\,\\Delta u \\,\\Delta v \\approx ${approxArea}`}.
+    </M>
+</p>
+
+<p>
+    As the number of subdivisions heads to <M>\infty</M>, we get <M display>
+        {`\\text{SA} = \\int\\limits_\\Omega dS = \\int\\limits_D |\\mathbf r_u \\times \\mathbf r_v|\\,du\\,dv `}.
+    </M>
+</p>
 
 <style>
     .demos-obj-select {
