@@ -2675,70 +2675,46 @@ class ShardsGeometry extends THREE.BufferGeometry {
                 points.push(x + du * ru.x + dv * rv.x, y + du * ru.y + dv * rv.y, z + du * ru.z + dv * rv.z);
                 points.push(x + dv * rv.x, y + dv * rv.y, z + dv * rv.z);
 
-
-
-                for (let index = 0; index < 6; index++) { normals.push(-normal.x, -normal.y, -normal.z); }
+                for (let index = 0; index < 6; index++) { normals.push(normal.x, normal.y, normal.z); }
             }
-
-
-
 
         }
 
-
+        this.setAttribute('position', new THREE.Float32BufferAttribute(points, 3));
+        this.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
     }
+
+
 }
 
 class ShardsEdgesGeometry extends THREE.BufferGeometry {
     /**
      * Produce a geometry of parallelopipeds from a flux integral. Divide each direction into N pieces, Use a frame of r_u, r_v, and F as the edges of each parallelopiped. 
-     * @param {FluxBoxGeometry} geo - vector field
-     * @param {boolean=false} shards - only show tangent pieces (e.g., for surface area)
-     * @param {number=1} t - scaling factor for vector field
+     * @param {ShardsGeometry} geo - Geometry to outline
      */
-    constructor(geo, shards = false, t = 1) {
+    constructor(geo) {
         super();
 
         const points = geo.attributes.position.array;
 
-        t = shards ? 0 : t;
-
-
-        // save values for adjusting height in F direction
-        this.lastT = t;
-        const N = points.length / 108;
-        const Fs = geo.lastF;
+        const N = points.length / 18;
 
         const vertices = [];
         for (let pointIndex = 0; pointIndex < N; pointIndex++) {
             // for (let j = 0; j < N; j++) {
             // const pointIndex = i * N + j;
-            const A = points.slice(pointIndex * 108 + 21, pointIndex * 108 + 24);
-            const B = points.slice(pointIndex * 108 + 18, pointIndex * 108 + 21);
-            const C = points.slice(pointIndex * 108 + 33, pointIndex * 108 + 36);
-            const D = points.slice(pointIndex * 108 + 24, pointIndex * 108 + 27);
-
-            const [fx, fy, fz] = Fs.slice((pointIndex) * 3, (pointIndex + 1) * 3);
+            const A = points.slice(pointIndex * 18 + 0, pointIndex * 18 + 3);
+            const B = points.slice(pointIndex * 18 + 3, pointIndex * 18 + 6);
+            const C = points.slice(pointIndex * 18 + 12, pointIndex * 18 + 15);
+            const D = points.slice(pointIndex * 18 + 9, pointIndex * 18 + 12);
 
 
-            // 12 edges
+
+            // 4 edges
             vertices.push(...A, ...B);
             vertices.push(...B, ...C);
             vertices.push(...C, ...D);
             vertices.push(...D, ...A);
-
-            if (!shards && t > 0) {
-                vertices.push(...A, A[0] + t * fx, A[1] + t * fy, A[2] + t * fz);
-                vertices.push(...B, B[0] + t * fx, B[1] + t * fy, B[2] + t * fz);
-                vertices.push(...C, C[0] + t * fx, C[1] + t * fy, C[2] + t * fz);
-                vertices.push(...D, D[0] + t * fx, D[1] + t * fy, D[2] + t * fz);
-
-                vertices.push(B[0] + t * fx, B[1] + t * fy, B[2] + t * fz, A[0] + t * fx, A[1] + t * fy, A[2] + t * fz);
-                vertices.push(C[0] + t * fx, C[1] + t * fy, C[2] + t * fz, B[0] + t * fx, B[1] + t * fy, B[2] + t * fz);
-                vertices.push(D[0] + t * fx, D[1] + t * fy, D[2] + t * fz, C[0] + t * fx, C[1] + t * fy, C[2] + t * fz);
-                vertices.push(A[0] + t * fx, A[1] + t * fy, A[2] + t * fz, D[0] + t * fx, D[1] + t * fy, D[2] + t * fz);
-            }
-            // }
         }
 
 

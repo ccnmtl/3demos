@@ -1,16 +1,13 @@
 <script>
-    import PlayButtons from '../form-components/PlayButtons.svelte';
     import * as THREE from 'three';
 
     import { all, create } from 'mathjs';
     import M from '../M.svelte';
-    import { FluxBoxEdgesGeometry, FluxBoxGeometry } from '../utils';
+    import { ShardsEdgesGeometry, ShardsGeometry } from '../utils';
     import { onMount, onDestroy } from 'svelte';
     // import { createEventDispatcher } from 'svelte';
 
     // const dispatch = createEventDispatcher();
-
-    import { tickTock } from '../stores';
 
     export let scene;
     export let render;
@@ -19,11 +16,7 @@
     const config = {};
     const math = create(all, config);
 
-    let animation = false;
-    let last = null;
     let sampleParam = 0;
-
-    const shards = true;
 
     export let objects;
 
@@ -34,23 +27,23 @@
         }),
     ];
 
-    const exampleSurfaces = [
+    let exampleSurfaces = [
         {
             uuid: 'area-story-example-001-',
             kind: 'surface',
-            title: 'Cylinder',
+            title: 'Example 1',
             params: {
                 a: '0',
-                b: '2 pi',
+                b: '2',
                 c: '0',
-                d: '1',
-                x: 'cos(u)',
-                y: '2 * sin(u)',
-                z: 'v',
+                d: '2',
+                x: 'u v - 1',
+                y: 'u - v',
+                z: 'sin(u v) - u^2 / 20',
                 t0: '0',
                 t1: '1',
             },
-            color: '#CB44CB',
+            color: '#44CB44',
         },
         {
             uuid: 'area-story-example-002-',
@@ -67,12 +60,12 @@
                 t0: '0',
                 t1: '1',
             },
-            color: '#CB44CB',
+            color: '#44CB44',
         },
         ...backupObjects.filter(
             (obj) =>
                 obj.kind === 'surface' &&
-                obj.uuid.slice(0, 18) !== 'flux-story-example'
+                obj.uuid.slice(0, 18) !== 'area-story-example'
         ),
     ];
 
@@ -106,40 +99,46 @@
     });
 
     let r = (u, v) => [u, v, 1 / 2 - (u * u) / 4 - (v * v) / 2];
-    let F = (x, y) => new THREE.Vector3(0, 1 / 2, y);
 
     let geo;
-    let geoDown;
+    // let geoDown;
     let edgesUp;
-    let edgesDown;
+    // let edgesDown;
 
     // console.log(geo);
 
-    const plusMaterial = new THREE.MeshPhongMaterial({
-        color: '#474747',
-        shininess: 80,
-        side: THREE.FrontSide,
-        transparent: true,
-        opacity: 0.6,
+    const plusMaterial = new THREE.MeshStandardMaterial({
+        color: 0xffffff,
+        side: THREE.DoubleSide,
+        roughness: 0.5,
+        metalness: 0.7,
     });
 
-    const minusMaterial = new THREE.MeshPhongMaterial({
-        color: '#CC1212',
-        shininess: 80,
-        side: THREE.BackSide,
-        transparent: true,
-        opacity: 0.6,
-    });
+    // const plusMaterial = new THREE.MeshPhongMaterial({
+    //     color: '#C7C7C7',
+    //     shininess: 90,
+    //     side: THREE.DoubleSide,
+    //     transparent: false,
+    //     opacity: 1,
+    // });
+
+    // const minusMaterial = new THREE.MeshPhongMaterial({
+    //     color: '#CC1212',
+    //     shininess: 80,
+    //     side: THREE.BackSide,
+    //     transparent: true,
+    //     opacity: 0.6,
+    // });
 
     const boxes = new THREE.Object3D();
     boxes.add(new THREE.Mesh(undefined, plusMaterial)); // pos boxes
     boxes.add(new THREE.LineSegments(undefined, whiteLineMaterial)); // pos edges
-    boxes.add(new THREE.Mesh(undefined, minusMaterial)); // neg boxes
-    boxes.add(new THREE.LineSegments(undefined, whiteLineMaterial)); // neg edges
+    // boxes.add(new THREE.Mesh(undefined, minusMaterial)); // neg boxes
+    // boxes.add(new THREE.LineSegments(undefined, whiteLineMaterial)); // neg edges
 
     scene.add(boxes);
 
-    let tau = 1;
+    // let tau = 1;
     let nBoxes = 3;
 
     let u0, u1, v0, v1;
@@ -178,69 +177,39 @@
 
     $: setRuv(currentSurface);
 
-    const updateGeo = (N, F, r, A, B, C, D, samp) => {
+    const updateGeo = (N, r, A, B, C, D, samp) => {
         geo?.dispose();
-        geo = new FluxBoxGeometry(
-            F,
-            r,
-            A,
-            B,
-            C,
-            D,
-            N,
-            shards,
-            tau,
-            'pos',
-            samp
-        );
+        geo = new ShardsGeometry(r, A, B, C, D, N, samp);
         boxes.children[0].geometry = geo;
         edgesUp?.dispose();
-        edgesUp = new FluxBoxEdgesGeometry(geo, shards, tau);
+        edgesUp = new ShardsEdgesGeometry(geo);
         boxes.children[1].geometry = edgesUp;
-        geoDown?.dispose();
-        geoDown = new FluxBoxGeometry(F, r, A, B, C, D, N, false, tau, 'neg');
-        boxes.children[2].geometry = geoDown;
-        edgesDown?.dispose();
-        edgesDown = new FluxBoxEdgesGeometry(geoDown, false, tau);
-        boxes.children[3].geometry = edgesDown;
         // boxes.children[1].geometry = geo;
         // boxes.children[1].geometry = geo;
         render();
     };
 
-    $: updateGeo(nBoxes, F, r, u0, u1, v0, v1, sampleParam);
-
-    const updateTau = (t) => {
-        geo.changeT(t);
-        edgesUp?.dispose();
-        edgesUp = new FluxBoxEdgesGeometry(geo, false, t);
-        boxes.children[1].geometry = edgesUp;
-        geoDown.changeT(t);
-        edgesDown?.dispose();
-        edgesDown = new FluxBoxEdgesGeometry(geoDown, false, t);
-        boxes.children[3].geometry = edgesDown;
-        render();
-    };
-
-    $: updateTau(tau);
+    $: updateGeo(nBoxes, r, u0, u1, v0, v1, sampleParam);
 </script>
 
 <div>
-    <h1>Flux Integrals</h1>
-
     <p>
-        Let <M>{`\\mathbf r: D\\to \\Omega \\subset \\mathbb{R}^3`}</M> be a parametric
-        surface oriented with normal <M>{`\\mathbf N`}</M> and <M>
-            {`\\mathbf F`}
-        </M> a vector field continuous on <M>{`\\Omega`}</M>.
+        Let <M>{`\\mathbf r: D\\to \\Omega \\subset \\mathbb{R}^3`}</M> be a smooth
+        parametrization of a surface with $D\subset \RR^2$ a domain in $uv$-space.
     </p>
 
     <p>
-        Then the <b>flux</b>
-        <M>{'\\Phi'}</M> of the vector field through the surface is given by
+        Then, we can approximate the <strong>surface area</strong> of <M
+            >\Omega</M
+        > by using parallelogram-shaped pieces of the tangent planes. The edges are
+        defined by
 
         <M align>
-            {'\\Phi &= \\iint_\\Omega \\mathbf F\\cdot\\,d\\mathbf S \\\\ &= \\iint_\\Omega \\mathbf F\\cdot\\mathbf N\\,dS \\\\ &= \\iint_D \\mathbf F(\\mathbf r(u,v)) \\cdot \\mathbf r_u \\times \\mathbf r_v\\,dS.'}
+            {`\\vec r_u\\,\\Delta u &=
+            \\left\\langle x_u, y_u, z_u \\right\\rangle\\Delta u \\\\ \\vec
+            r_v\\,\\Delta v &= \\left\\langle x_v, y_v, z_v
+            \\right\\rangle\\Delta v \\\\ 
+            `}
         </M>
     </p>
 
@@ -265,7 +234,52 @@
             <button
                 class=" bg-primary text-light"
                 on:click={() => {
-                    setRuv(currentSurface);
+                    exampleSurfaces = [
+                        {
+                            uuid: 'area-story-example-001-',
+                            kind: 'surface',
+                            title: 'Example 1',
+                            params: {
+                                a: '0',
+                                b: '2',
+                                c: '0',
+                                d: '2',
+                                x: 'u v - 1',
+                                y: 'u - v',
+                                z: 'sin(u v) - u^2 / 20',
+                                t0: '0',
+                                t1: '1',
+                            },
+                            color: '#44CB44',
+                        },
+                        {
+                            uuid: 'area-story-example-002-',
+                            kind: 'surface',
+                            title: 'Dome',
+                            params: {
+                                a: '0',
+                                b: 'pi / 2',
+                                c: '0',
+                                d: 'pi',
+                                x: 'sin(u) cos(v)',
+                                y: 'sin(u) sin(v)',
+                                z: 'cos(u)',
+                                t0: '0',
+                                t1: '1',
+                            },
+                            color: '#44CB44',
+                        },
+                        ...objects.filter(
+                            (obj) =>
+                                obj.kind === 'surface' &&
+                                obj.uuid.slice(0, 18) !== 'area-story-example'
+                        ),
+                    ];
+                    setRuv(
+                        objects.find(
+                            (o) => o.kind === 'surface' || exampleSurfaces[0]
+                        )
+                    );
                 }}
             >
                 <i class="bi bi-arrow-clockwise" />
@@ -274,17 +288,7 @@
     </div>
 
     <p>
-        Recall that a triple product <M
-            >{'\\mathbf a\\cdot \\mathbf b \\times \\mathbf c'}</M
-        > measures the (signed) volume of a parallelopiped with edges defined by
-        vectors <M>{'\\mathbf a'}</M>, <M>{'\\mathbf b'}</M>, and <M>
-            {'\\mathbf c'}
-        </M>. We thus divide our surface into <M>{'n^2'}</M> pieces. On each, we
-        take a parallelogram-shaped portion of the tangent plane with edges <M>
-            {'\\mathbf r_u \\Delta u'}
-        </M> and <M>{'\\mathbf r_v \\Delta v'}</M> and sample the vector field <M
-            >{'\\mathbf F'}</M
-        > as the third edge. Adjust <M>n</M> and the sample point below.
+        Adjust <M>n</M> and the sample point below.
     </p>
 
     <div class="row my-3">
@@ -314,51 +318,22 @@
         </div>
     </div>
 
-    <p>
-        At this point, we are not looking at time-dependent vector fields. That
-        is, they don't move. Nonetheless, a good way to understand these
-        structures (and to justify the term "flux") is to imagine <M>
-            {'\\mathbf F'}</M
-        > as the velocity field of some fluid. The we can interpret <M>
-            {'\\Phi'}
-        </M> as the net volume flowing per unit time through the surface in the direction
-        of its orientation. By scaling the vector field in time, we can "see" this
-        volume flowing through the surface. <strong>Warning</strong> the
-        quantity <M>{'\\Phi'}</M> is computed as a static computation. This is meant
-        only to help see where positive/negtaive contributions come from.
-    </p>
-
-    <div class="row my-3">
-        <div class="col-auto">
-            <span><M>{'t'}</M></span>
-            <span>
-                <input
-                    type="range"
-                    min="0"
-                    max="1"
-                    step="0.01"
-                    bind:value={tau}
-                />
-            </span>
-        </div>
-
-        <div class="col-auto">
-            center
-            <label class="switch box box-3">
-                <input
-                    type="checkbox"
-                    checked={false}
-                    on:change={(e) => {
-                        if (e.target.checked) {
-                            sampleParam = 0.5;
-                        } else {
-                            sampleParam = 0;
-                        }
-                    }}
-                />
-                <span class="slider round" />
-            </label>
-        </div>
+    <div class="col-auto">
+        center
+        <label class="switch box box-3">
+            <input
+                type="checkbox"
+                checked={false}
+                on:change={(e) => {
+                    if (e.target.checked) {
+                        sampleParam = 0.5;
+                    } else {
+                        sampleParam = 0;
+                    }
+                }}
+            />
+            <span class="slider round" />
+        </label>
     </div>
 </div>
 
