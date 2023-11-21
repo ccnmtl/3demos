@@ -1283,10 +1283,18 @@ function labelAxes({
     return [axesText, font];
 }
 
-// Gauss-Legendre quadrature via https://rosettacode.org/wiki/Numerical_integration/Gauss-Legendre_Quadrature#JavaScript
 
 const factorial = (n) => (n <= 1 ? 1 : n * factorial(n - 1));
 const M = (n) => (n - (n % 2 !== 0)) / 2;
+
+/**
+ * Gauss-Legendre quadrature via https://rosettacode.org/wiki/Numerical_integration/Gauss-Legendre_Quadrature#JavaScript
+ * @param {function} fn function to integrate
+ * @param {number} a lower bound
+ * @param {number} b upper bound
+ * @param {number} n number of sample points
+ * @returns 
+ */
 const gaussLegendre = (fn, a, b, n) => {
     // coefficients of the Legendre polynomial
     const coef = [...Array(M(n) + 1)].map(
@@ -2621,6 +2629,123 @@ class FluxBoxEdgesGeometry extends THREE.BufferGeometry {
     }
 }
 
+class ShardsGeometry extends THREE.BufferGeometry {
+    /**
+     * Produce a geometry of parallelograms tangent to a surface. Divide each direction into N pieces, Use a frame of r_u and r_v as the edges of each parallelogram. 
+     * @param {function} r - parametric surface
+     * @param {number} a - lower u
+     * @param {number} b - upper u
+     * @param {number|function} c - lower v
+     * @param {number|function} d - upper v
+     * @param {int} N - resolution
+     * @param {number} [s = 0.5] - sample point parameter (0 SW to 1 NE)
+     */
+    constructor(r, a, b, c, d, N = 10, s = 0.5) {
+        super();
+
+        this.area = 0;
+
+        const dt = 1e-4; // for computing diffs
+        const dt2 = dt / 2;
+
+        const points = [];
+        const normals = [];
+
+        const du = (b - a) / N;
+        let dv;
+
+        const normal = new THREE.Vector3();
+
+        for (let i = 0; i < N; i++) {
+            const u = a + (i + s) * du;
+            dv = (d(u) - c(u)) / N;
+            for (let j = 0; j < N; j++) {
+                const v = c(u) + (j + s) * dv;
+                let [x, y, z] = r(u, v);
+                const [xu1, yu1, zu1] = r(u + dt2, v);
+                const [xu0, yu0, zu0] = r(u - dt2, v);
+                const ru = new THREE.Vector3((xu1 - xu0) / dt, (yu1 - yu0) / dt, (zu1 - zu0) / dt);
+                const [xv1, yv1, zv1] = r(u, v + dt2);
+                const [xv0, yv0, zv0] = r(u, v - dt2);
+                const rv = new THREE.Vector3((xv1 - xv0) / dt, (yv1 - yv0) / dt, (zv1 - zv0) / dt);
+
+                normal.copy(ru.clone().cross(rv));
+                this.area += normal.length() * du * dv;
+                normal.normalize();
+
+                // const tol = 1e-3; // perturb position for z-fighting
+
+                // adjust for sample point
+                x -= (du * ru.x + dv * rv.x) * s;
+                y -= (du * ru.y + dv * rv.y) * s;
+                z -= (du * ru.z + dv * rv.z) * s;
+
+                // top
+
+                points.push(x, y, z);
+                points.push(x + du * ru.x, y + du * ru.y, z + du * ru.z);
+                points.push(x + dv * rv.x, y + dv * rv.y, z + dv * rv.z);
+                points.push(x + du * ru.x, y + du * ru.y, z + du * ru.z);
+                points.push(x + du * ru.x + dv * rv.x, y + du * ru.y + dv * rv.y, z + du * ru.z + dv * rv.z);
+                points.push(x + dv * rv.x, y + dv * rv.y, z + dv * rv.z);
+
+                for (let index = 0; index < 6; index++) { normals.push(normal.x, normal.y, normal.z); }
+            }
+
+        }
+
+        this.setAttribute('position', new THREE.Float32BufferAttribute(points, 3));
+        this.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+    }
+
+
+}
+
+class ShardsEdgesGeometry extends THREE.BufferGeometry {
+    /**
+     * Produce a geometry of parallelopipeds from a flux integral. Divide each direction into N pieces, Use a frame of r_u, r_v, and F as the edges of each parallelopiped. 
+     * @param {ShardsGeometry} geo - Geometry to outline
+     */
+    constructor(geo) {
+        super();
+
+        const points = geo.attributes.position.array;
+
+        const N = points.length / 18;
+
+        const vertices = [];
+        for (let pointIndex = 0; pointIndex < N; pointIndex++) {
+            // for (let j = 0; j < N; j++) {
+            // const pointIndex = i * N + j;
+            const A = points.slice(pointIndex * 18 + 0, pointIndex * 18 + 3);
+            const B = points.slice(pointIndex * 18 + 3, pointIndex * 18 + 6);
+            const C = points.slice(pointIndex * 18 + 12, pointIndex * 18 + 15);
+            const D = points.slice(pointIndex * 18 + 9, pointIndex * 18 + 12);
+
+
+
+            // 4 edges
+            vertices.push(...A, ...B);
+            vertices.push(...B, ...C);
+            vertices.push(...C, ...D);
+            vertices.push(...D, ...A);
+        }
+
+
+        this.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+    }
+
+    /**
+     * scale the edge in the vector field direction
+     * @param {number} t - new time
+     */
+    changeT(t) {
+        this.lastT = t;
+        this.attributes.position.needsUpdate = true;
+
+    }
+}
+
 /**
  * 
  * @param {int} x 
@@ -2685,6 +2810,8 @@ export {
     SphericalSolidGeometry,
     FluxBoxGeometry,
     FluxBoxEdgesGeometry,
+    ShardsGeometry,
+    ShardsEdgesGeometry,
     nextHue,
     makeHSLColor,
     blockGeometry,
