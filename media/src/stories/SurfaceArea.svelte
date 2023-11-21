@@ -6,7 +6,7 @@
     import {
         ShardsEdgesGeometry,
         ShardsGeometry,
-        // gaussLegendre,
+        gaussLegendre,
     } from '../utils';
     import { onMount, onDestroy } from 'svelte';
     // import { createEventDispatcher } from 'svelte';
@@ -186,15 +186,42 @@
             v0 = (u) => C.evaluate({ u });
             v1 = (u) => D.evaluate({ u });
 
+            const [xu, yu, zu] = [x, y, z].map((expr) =>
+                math.derivative(expr, 'u').compile()
+            );
+            const [xv, yv, zv] = [x, y, z].map((expr) =>
+                math.derivative(expr, 'v').compile()
+            );
+
             // const ru = new THREE.Vector3();
             // const rv = new THREE.Vector3();
 
-            // totalArea = gaussLegendre(
-            //     (x) => gaussLegendre((y) => x*y, v0(x), v1(x), 10),
-            //     u0,
-            //     u1,
-            //     10
-            // );
+            totalArea = gaussLegendre(
+                (u) =>
+                    gaussLegendre(
+                        (v) =>
+                            math.norm(
+                                math.cross(
+                                    [
+                                        xu.evaluate({ u, v }),
+                                        yu.evaluate({ u, v }),
+                                        zu.evaluate({ u, v }),
+                                    ],
+                                    [
+                                        xv.evaluate({ u, v }),
+                                        yv.evaluate({ u, v }),
+                                        zv.evaluate({ u, v }),
+                                    ]
+                                )
+                            ),
+                        v0(u),
+                        v1(u),
+                        10
+                    ),
+                u0,
+                u1,
+                10
+            );
 
             // // Match color to that of surface
             // plusMaterial.color.set(obj.color);
@@ -214,7 +241,7 @@
     $: setRuv(currentSurface);
 
     let approxArea = 0;
-    // let totalArea = 0;
+    let totalArea = 0;
 
     const updateGeo = (N, r, A, B, C, D, samp) => {
         geo?.dispose();
@@ -342,13 +369,15 @@
 
 <p>
     Adding each area gives <M>
-        {`\\sum \\Delta S = \\sum |\\mathbf r_u \\times \\mathbf r_v|\\,\\Delta u \\,\\Delta v \\approx ${approxArea}`}.
+        {`\\sum \\Delta S = \\sum |\\mathbf r_u \\times \\mathbf r_v|\\,\\Delta u \\,\\Delta v \\approx ${
+            Math.round(10000 * approxArea) / 10000
+        }`}.
     </M>
 </p>
 
 <p>
-    As the number of subdivisions heads to <M>\infty</M>, we get <M display>
-        {`\\text{SA} = \\int\\limits_\\Omega dS = \\int\\limits_D |\\mathbf r_u \\times \\mathbf r_v|\\,du\\,dv `}.
+    As the number of subdivisions heads to <M>\infty</M>, we get <M align>
+        {`\\text{SA} &= \\iint\\limits_\\Omega dS = \\iint\\limits_D |\\mathbf r_u \\times \\mathbf r_v|\\,du\\,dv \\\\ &\\approx ${totalArea}`}.
     </M>
 </p>
 
