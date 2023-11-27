@@ -2,16 +2,15 @@
     import { onDestroy } from 'svelte';
     import { create, all } from 'mathjs';
     import { norm2 } from '../utils';
+    import { demoObjects } from '../stores';
 
     import M from '../M.svelte';
 
     const config = {};
     const math = create(all, config);
 
-    export let objects;
-
     const backupObjects = [
-        ...objects.map((obj) => {
+        ...$demoObjects.map((obj) => {
             obj.selected = false;
             return obj;
         }),
@@ -20,7 +19,7 @@
     const vecId = crypto.randomUUID();
 
     onDestroy(() => {
-        objects = [...backupObjects];
+        $demoObjects = [...backupObjects];
     });
 
     const texStrings = {
@@ -133,7 +132,7 @@
         texStrings.a = A.toTex();
         texStrings.b = B.toTex();
 
-        objects = [
+        $demoObjects = [
             obj,
             {
                 uuid: vecId,
