@@ -32,7 +32,7 @@
     import Solid from './objects/Solid.svelte';
 
     import { evaluate_cmap } from './js-colormaps';
-    import { colorMap } from './stores';
+    import { colorMap, demoObjects } from './stores';
     import Story from './Story.svelte';
     import { tick } from 'svelte';
 
@@ -40,7 +40,7 @@
     export let currentControls;
     export let currentChapter;
     export let gridStep, gridMax;
-    export let objects, isHost;
+    export let isHost;
     export let onRenderObject, onDestroyObject;
     export let socket, pollResponses;
     export let animateIfNotAnimating;
@@ -73,7 +73,7 @@
     };
 
     const onPublishScene = function () {
-        publishScene(objects, selectedObjects, socket);
+        publishScene($demoObjects, selectedObjects, socket);
     };
 
     let nextHue = 0;
@@ -184,8 +184,8 @@
 
     $: if (kindToAdd) {
         const uuid = crypto.randomUUID();
-        objects = [
-            ...objects,
+        $demoObjects = [
+            ...$demoObjects,
             {
                 uuid,
                 kind: kindToAdd,
@@ -299,7 +299,6 @@
                                     <Session
                                         bind:roomId
                                         bind:socket
-                                        bind:objects
                                         bind:currentPoll
                                         bind:chatBuffer
                                         {pollResponses}
@@ -314,7 +313,6 @@
                                     active={currentMode === 'story'}
                                 >
                                     <Story
-                                        bind:objects
                                         {scene}
                                         render={requestFrameIfNotRequested}
                                         on:animate={animateIfNotAnimating}
@@ -358,7 +356,6 @@
                             bind:pollResponses
                             bind:isPollsOpen
                             bind:lockPoll
-                            bind:objects
                             bind:currentPoll
                             {socket}
                             {objectResponses}
@@ -444,7 +441,7 @@
 
                             <div class="objectBoxInner">
                                 <!-- Main Loop, if you will -->
-                                {#each objects as { uuid, kind, params, color, title, animation, ...etc } (uuid)}
+                                {#each $demoObjects as { uuid, kind, params, color, title, animation, ...etc } (uuid)}
                                     <div
                                         transition:slide={{
                                             delay: 0,
@@ -463,9 +460,10 @@
                                             {params}
                                             meta={etc}
                                             onClose={() => {
-                                                objects = objects.filter(
-                                                    (b) => b.uuid !== uuid
-                                                );
+                                                $demoObjects =
+                                                    $demoObjects.filter(
+                                                        (b) => b.uuid !== uuid
+                                                    );
                                                 selectedObjects =
                                                     selectedObjects.filter(
                                                         (objectId) =>
@@ -496,7 +494,7 @@
                                 <div>
                                     <button
                                         on:click={() => {
-                                            objects = [
+                                            $demoObjects = [
                                                 {
                                                     uuid: 34,
                                                     kind: 'curve',
@@ -544,7 +542,7 @@
                                     >
                                     <button
                                         on:click={() => {
-                                            objects = [
+                                            $demoObjects = [
                                                 {
                                                     uuid: 34,
                                                     kind: 'curve',
@@ -592,7 +590,7 @@
                                     >
                                     <button
                                         on:click={() => {
-                                            objects = [
+                                            $demoObjects = [
                                                 {
                                                     uuid: 'agraph3847',
                                                     kind: 'graph',
@@ -613,7 +611,7 @@
                                     >
                                     <button
                                         on:click={() => {
-                                            objects = [
+                                            $demoObjects = [
                                                 {
                                                     uuid: 'agraph3847',
                                                     kind: 'graph',
@@ -634,7 +632,7 @@
                                     >
                                     <button
                                         on:click={() => {
-                                            objects = [
+                                            $demoObjects = [
                                                 {
                                                     uuid: 'swirly1234',
                                                     kind: 'field',
@@ -652,7 +650,7 @@
                                     >
                                     <button
                                         on:click={() => {
-                                            objects = [
+                                            $demoObjects = [
                                                 {
                                                     uuid: 'swirly1234',
                                                     kind: 'field',

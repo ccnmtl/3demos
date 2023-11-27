@@ -4,7 +4,7 @@
 
     import { all, create } from 'mathjs';
     import M from '../M.svelte';
-    import { FluxBoxEdgesGeometry, FluxBoxGeometry } from '../utils';
+    import { FluxBoxEdgesGeometry, FluxBoxGeometry, checksum } from '../utils';
     import { onMount, onDestroy } from 'svelte';
     // import { createEventDispatcher } from 'svelte';
 
@@ -49,7 +49,7 @@
         }),
     ];
 
-    const exampleSurfaces = [
+    const standardExampleSurfaces = [
         {
             uuid: 'flux-story-example-001-',
             kind: 'surface',
@@ -84,6 +84,10 @@
             },
             color: '#CB44CB',
         },
+    ];
+
+    let exampleSurfaces = [
+        ...standardExampleSurfaces,
         ...backupObjects.filter(
             (obj) =>
                 obj.kind === 'surface' &&
@@ -294,6 +298,9 @@
     };
 
     $: updateTau(tau);
+
+    $: hashTag = checksum(JSON.stringify(currentField.params));
+    $: hashTag, console.log('hash-ing the field');
 </script>
 
 <div>

@@ -5,7 +5,6 @@
     import SurfaceArea from './stories/SurfaceArea.svelte';
     import FluxIntegral from './stories/FluxIntegral.svelte';
 
-    export let objects;
     export let scene;
     export let render;
 
@@ -29,13 +28,7 @@
 
 {#if currentStory}
     <div class="story-content-box">
-        <svelte:component
-            this={currentStory}
-            bind:objects
-            {scene}
-            {render}
-            on:animate
-        />
+        <svelte:component this={currentStory} {scene} {render} on:animate />
     </div>
 {:else}
     <p>
