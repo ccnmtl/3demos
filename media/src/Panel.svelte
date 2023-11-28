@@ -5,6 +5,7 @@
     import { onMount } from 'svelte';
     import { slide } from 'svelte/transition';
     import { quintOut } from 'svelte/easing';
+    // import { flip } from 'svelte/animate';
 
     import { TabContent, TabPane } from 'sveltestrap';
 
@@ -32,7 +33,7 @@
     import Solid from './objects/Solid.svelte';
 
     import { evaluate_cmap } from './js-colormaps';
-    import { colorMap } from './stores';
+    import { colorMap, demoObjects } from './stores';
     import Story from './Story.svelte';
     import { tick } from 'svelte';
 
@@ -40,7 +41,7 @@
     export let currentControls;
     export let currentChapter;
     export let gridStep, gridMax;
-    export let objects, isHost;
+    export let isHost;
     export let onRenderObject, onDestroyObject;
     export let socket, pollResponses;
     export let animateIfNotAnimating;
@@ -73,7 +74,7 @@
     };
 
     const onPublishScene = function () {
-        publishScene(objects, selectedObjects, socket);
+        publishScene($demoObjects, selectedObjects, socket);
     };
 
     let nextHue = 0;
@@ -122,11 +123,11 @@
             c: '-2',
             d: '2',
             z: `${Math.ceil(
-                4 * Math.random()
+                4 * Math.random(),
             ).toString()} / 4 * cos(${Math.ceil(
-                3 * Math.random()
+                3 * Math.random(),
             ).toString()}*x + ${Math.ceil(
-                2 * Math.random()
+                2 * Math.random(),
             ).toString()}*y)/(1 + x^2 + y^2)`,
             t0: '0',
             t1: '1',
@@ -184,8 +185,8 @@
 
     $: if (kindToAdd) {
         const uuid = crypto.randomUUID();
-        objects = [
-            ...objects,
+        $demoObjects = [
+            ...$demoObjects,
             {
                 uuid,
                 kind: kindToAdd,
@@ -218,7 +219,7 @@
         // https://github.com/bestguy/sveltestrap/issues/532
         const tabEl = querySelectorIncludesText(
             '.chapterBox .nav-tabs a',
-            'Session'
+            'Session',
         );
         tabEl.click();
     };
@@ -299,7 +300,6 @@
                                     <Session
                                         bind:roomId
                                         bind:socket
-                                        bind:objects
                                         bind:currentPoll
                                         bind:chatBuffer
                                         {pollResponses}
@@ -314,10 +314,10 @@
                                     active={currentMode === 'story'}
                                 >
                                     <Story
-                                        bind:objects
                                         {scene}
                                         render={requestFrameIfNotRequested}
                                         on:animate={animateIfNotAnimating}
+                                        bind:currentMode
                                     />
                                 </TabPane>
                                 <TabPane
@@ -358,7 +358,6 @@
                             bind:pollResponses
                             bind:isPollsOpen
                             bind:lockPoll
-                            bind:objects
                             bind:currentPoll
                             {socket}
                             {objectResponses}
@@ -444,11 +443,11 @@
 
                             <div class="objectBoxInner">
                                 <!-- Main Loop, if you will -->
-                                {#each objects as { uuid, kind, params, color, title, animation, ...etc } (uuid)}
+                                {#each $demoObjects as { uuid, kind, params, color, title, animation, ...etc } (uuid)}
                                     <div
                                         transition:slide={{
                                             delay: 0,
-                                            duration: 300,
+                                            duration: 200,
                                             easing: quintOut,
                                         }}
                                     >
@@ -463,13 +462,14 @@
                                             {params}
                                             meta={etc}
                                             onClose={() => {
-                                                objects = objects.filter(
-                                                    (b) => b.uuid !== uuid
-                                                );
+                                                $demoObjects =
+                                                    $demoObjects.filter(
+                                                        (b) => b.uuid !== uuid,
+                                                    );
                                                 selectedObjects =
                                                     selectedObjects.filter(
                                                         (objectId) =>
-                                                            objectId !== uuid
+                                                            objectId !== uuid,
                                                     );
                                             }}
                                             bind:color
@@ -481,7 +481,7 @@
                                             on:animate={animateIfNotAnimating}
                                             bind:selectedObjects
                                             selected={selectedObjects.includes(
-                                                uuid
+                                                uuid,
                                             )}
                                             onSelect={() => selectObject(uuid)}
                                             bind:selectedPoint
@@ -496,7 +496,7 @@
                                 <div>
                                     <button
                                         on:click={() => {
-                                            objects = [
+                                            $demoObjects = [
                                                 {
                                                     uuid: 34,
                                                     kind: 'curve',
@@ -544,7 +544,7 @@
                                     >
                                     <button
                                         on:click={() => {
-                                            objects = [
+                                            $demoObjects = [
                                                 {
                                                     uuid: 34,
                                                     kind: 'curve',
@@ -592,7 +592,7 @@
                                     >
                                     <button
                                         on:click={() => {
-                                            objects = [
+                                            $demoObjects = [
                                                 {
                                                     uuid: 'agraph3847',
                                                     kind: 'graph',
@@ -613,7 +613,7 @@
                                     >
                                     <button
                                         on:click={() => {
-                                            objects = [
+                                            $demoObjects = [
                                                 {
                                                     uuid: 'agraph3847',
                                                     kind: 'graph',
@@ -634,7 +634,7 @@
                                     >
                                     <button
                                         on:click={() => {
-                                            objects = [
+                                            $demoObjects = [
                                                 {
                                                     uuid: 'swirly1234',
                                                     kind: 'field',
@@ -652,7 +652,7 @@
                                     >
                                     <button
                                         on:click={() => {
-                                            objects = [
+                                            $demoObjects = [
                                                 {
                                                     uuid: 'swirly1234',
                                                     kind: 'field',
@@ -790,8 +790,17 @@
     }
 
     .accordion-header {
-        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
-            Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue',
+        font-family:
+            system-ui,
+            -apple-system,
+            BlinkMacSystemFont,
+            'Segoe UI',
+            Roboto,
+            Oxygen,
+            Ubuntu,
+            Cantarell,
+            'Open Sans',
+            'Helvetica Neue',
             sans-serif;
     }
 

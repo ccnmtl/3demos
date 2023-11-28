@@ -5,11 +5,12 @@
     import { all, create } from 'mathjs';
     import { ParametricGeometry, gaussLegendre } from '../utils';
     import { onDestroy } from 'svelte';
+    import { demoObjects } from '../stores';
     import M from '../M.svelte';
 
     const math = create(all, {});
 
-    export let objects;
+    // export let $demoObjects;
     export let scene;
     export let render;
     let tau = 0;
@@ -116,7 +117,7 @@
     const ceiling = new THREE.Mesh(undefined, wireMaterial);
     const segs = new THREE.Line(
         new THREE.BufferGeometry(),
-        new THREE.LineBasicMaterial({ color: 0x0000ff })
+        new THREE.LineBasicMaterial({ color: 0x0000ff }),
     );
     wall.add(backwall);
     wall.add(ceiling);
@@ -133,7 +134,7 @@
                 vec.set(x, y, funcData[funcChoice].func(x, y));
             },
             35,
-            35
+            35,
         );
     }
 
@@ -151,11 +152,11 @@
                 vec.set(
                     x * (1 + Math.min(0, sau)),
                     y * (1 - Math.max(0, sau)),
-                    u * funcData[funcChoice].func(x, y)
+                    u * funcData[funcChoice].func(x, y),
                 );
             },
             2,
-            35
+            35,
         );
         backwall.geometry = wall.geometry;
 
@@ -172,8 +173,8 @@
             new THREE.Vector3(
                 X * (1 + Math.min(0, sau)),
                 Y * (1 - Math.max(0, sau)),
-                Z
-            )
+                Z,
+            ),
         );
         // console.log(points);
         segs.geometry.setFromPoints(points);
@@ -188,23 +189,23 @@
             fn = (t) =>
                 funcData[funcChoice].func(
                     x.evaluate({ t }),
-                    y.evaluate({ t })
+                    y.evaluate({ t }),
                 ) *
                 Math.sqrt(
                     Math.pow(xp.evaluate({ t }), 2) +
-                        Math.pow(yp.evaluate({ t }), 2)
+                        Math.pow(yp.evaluate({ t }), 2),
                 );
         } else if (diffChoice === 'dx') {
             fn = (t) =>
                 funcData[funcChoice].func(
                     x.evaluate({ t }),
-                    y.evaluate({ t })
+                    y.evaluate({ t }),
                 ) * xp.evaluate({ t });
         } else if (diffChoice === 'dy') {
             fn = (t) =>
                 funcData[funcChoice].func(
                     x.evaluate({ t }),
-                    y.evaluate({ t })
+                    y.evaluate({ t }),
                 ) * yp.evaluate({ t });
         }
         integralValue = gaussLegendre(fn, a, T, 30);
@@ -257,7 +258,7 @@
         },
     };
 
-    const backupObjects = structuredClone(objects);
+    const backupObjects = structuredClone($demoObjects);
 
     let pathChoice = 'circle';
 
@@ -266,12 +267,12 @@
     let diffChoice = 'ds';
 
     onDestroy(() => {
-        objects = backupObjects;
+        $demoObjects = backupObjects;
         scene.remove(wall);
     });
 
-    $: objects = [
-        ...objects.filter((k) => k.uuid !== curveId),
+    $: $demoObjects = [
+        ...$demoObjects.filter((k) => k.uuid !== curveId),
         {
             uuid: curveId,
             kind: 'curve',
@@ -395,8 +396,8 @@
             diffChoice === 'ds'
                 ? "\\sqrt{x'(t)^2 + y'(t)^2}"
                 : diffChoice === 'dx'
-                ? "x'(t)"
-                : "y'(t)"
+                  ? "x'(t)"
+                  : "y'(t)"
         }\\,dt`}
     </M>
     <M display

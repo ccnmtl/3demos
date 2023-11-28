@@ -2,16 +2,15 @@
     import { onDestroy } from 'svelte';
     import { create, all } from 'mathjs';
     import { norm2 } from '../utils';
+    import { demoObjects } from '../stores';
 
     import M from '../M.svelte';
 
     const config = {};
     const math = create(all, config);
 
-    export let objects;
-
     const backupObjects = [
-        ...objects.map((obj) => {
+        ...$demoObjects.map((obj) => {
             obj.selected = false;
             return obj;
         }),
@@ -20,7 +19,7 @@
     const vecId = crypto.randomUUID();
 
     onDestroy(() => {
-        objects = [...backupObjects];
+        $demoObjects = [...backupObjects];
     });
 
     const texStrings = {
@@ -98,7 +97,7 @@
         nVects,
         plusOne = false,
         A = math.parse('0'),
-        B = math.parse('1')
+        B = math.parse('1'),
     ) => {
         return (node) => {
             if (node.isSymbolNode && node.name === 't') {
@@ -106,7 +105,7 @@
                 return math.parse(
                     `${A.toString()} + ${
                         plusOne ? '(n + 1)' : 'n'
-                    } * ((${B.toString()}) - (${A.toString()})) / ${nVects}`
+                    } * ((${B.toString()}) - (${A.toString()})) / ${nVects}`,
                 );
             } else {
                 return node;
@@ -120,7 +119,7 @@
         if (!obj) return;
         const params = obj.params;
         const [X, Y, Z, A, B] = ['x', 'y', 'z', 'a', 'b'].map((c) =>
-            math.parse(params[c])
+            math.parse(params[c]),
         );
         texStrings.r =
             '\\begin{bmatrix} ' +
@@ -133,7 +132,7 @@
         texStrings.a = A.toTex();
         texStrings.b = B.toTex();
 
-        objects = [
+        $demoObjects = [
             obj,
             {
                 uuid: vecId,
@@ -172,7 +171,7 @@
             tot += norm2(
                 X.evaluate({ t: t + dt }) - X.evaluate({ t }),
                 Y.evaluate({ t: t + dt }) - Y.evaluate({ t }),
-                Z.evaluate({ t: t + dt }) - Z.evaluate({ t })
+                Z.evaluate({ t: t + dt }) - Z.evaluate({ t }),
             );
         }
         lengthApproximation = tot;

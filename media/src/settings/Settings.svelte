@@ -15,6 +15,7 @@
         colorMap,
         densityColormap,
         viewScale,
+        demoObjects,
     } from '../stores';
     import WindowHeader from './WindowHeader.svelte';
     import { colorMapNames } from '../js-colormaps';
@@ -28,7 +29,6 @@
     export let animation = false;
     export let orthoCamera = false;
     export let encode;
-    export let objects;
     // export let socket;
     export let roomId;
 
@@ -124,8 +124,8 @@
                 upload = upload.map((item) => {
                     return { ...item, uuid: item.uuid || crypto.randomUUID() };
                 });
-                objects = [
-                    ...objects.filter((item) => {
+                $demoObjects = [
+                    ...$demoObjects.filter((item) => {
                         return !upload.map((ob) => ob.uuid).includes(item.uuid);
                     }),
                     ...upload,
@@ -143,7 +143,7 @@
     };
 
     const downloadScene = () => {
-        let json = JSON.stringify(objects);
+        let json = JSON.stringify($demoObjects);
         const blob = new Blob([json], { type: 'application/json' });
         let a = document.createElement('a');
         a.download = makeFilename();

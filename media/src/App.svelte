@@ -42,8 +42,8 @@
     let hoveredObject = null;
     let selectedPoint = null;
 
-    // The objects array is the declarative data that the scene is based on.
-    let objects = [];
+    // The demoObjects array store is the declarative data that the scene is based on.
+    import { demoObjects } from './stores.js';
 
     let gridMax = 1;
     let gridStep = 1 / 10;
@@ -81,10 +81,13 @@
         });
         for (const val of Object.values(objectHolder)) {
             // objects = makeObject(val.uuid, val.kind, val.params, objects);
-            objects = [...objects, { uuid: crypto.randomUUID(), ...val }];
-            if (debug) console.log(objects);
+            $demoObjects = [
+                ...$demoObjects,
+                { uuid: crypto.randomUUID(), ...val },
+            ];
+            if (debug) console.log($demoObjects);
         }
-        console.log('Initializing...', objects);
+        console.log('Initializing...', $demoObjects);
     }
 
     let canvas;
@@ -293,7 +296,7 @@
             stats.end();
         }
 
-        if (scaleAnimation || objects.some((b) => b.animation)) {
+        if (scaleAnimation || $demoObjects.some((b) => b.animation)) {
             myReq = requestAnimationFrame(animate);
             frameRequested = true;
             animating = true;
@@ -378,7 +381,7 @@
     let host = null;
 
     if (window.SCENE_STATE && window.SCENE_STATE.objects) {
-        objects = window.SCENE_STATE.objects;
+        $demoObjects = window.SCENE_STATE.objects;
     }
 
     if (window.SCENE_STATE && window.SCENE_STATE.poll) {
@@ -395,7 +398,7 @@
 
     export const blowUpObjects = () => {
         if (confirm('Remove all objects in the scene?')) {
-            objects = [];
+            $demoObjects = [];
             selectedObjects = [];
         }
     };
@@ -511,7 +514,7 @@
 
         // If any of the loaded objects are currently animating, start
         // animation.
-        if (objects.some((b) => b.animation)) {
+        if ($demoObjects.some((b) => b.animation)) {
             // Do initial render to set canvas size correctly.
             render();
             // Start animation
@@ -579,7 +582,7 @@
         }
         window.location.search = convertToURLParams(
             flattenedObjects,
-            objects
+            $demoObjects
         ).toString();
     };
 
@@ -652,7 +655,7 @@
                 activeUserCount = data.message.updateActiveUsers;
             }
         } else {
-            objects = handleSceneEvent(data, objects);
+            $demoObjects = handleSceneEvent(data, $demoObjects);
         }
     };
 
@@ -669,28 +672,30 @@
     }
 
     const keySelect = function (e, moveDown) {
-        if (!objects) {
+        if (!$demoObjects) {
             return;
         } else if (selectedObjects.length === 0) {
-            selectedObjects = [objects[moveDown ? objects.length - 1 : 0].uuid];
-        } else if (selectedObjects.length === objects.length) {
+            selectedObjects = [
+                $demoObjects[moveDown ? $demoObjects.length - 1 : 0].uuid,
+            ];
+        } else if (selectedObjects.length === $demoObjects.length) {
             return;
         } else {
-            const selectedIndex = objects
+            const selectedIndex = $demoObjects
                 .map((x) => x.uuid)
                 .indexOf(
                     selectedObjects[moveDown ? selectedObjects.length - 1 : 0]
                 );
             const newIdx = modFloor(
                 selectedIndex + (moveDown ? -1 : 1),
-                objects.length
+                $demoObjects.length
             );
             if (e.shiftKey) {
                 selectedObjects = moveDown
-                    ? selectedObjects.concat([objects[newIdx].uuid])
-                    : [objects[newIdx].uuid].concat(selectedObjects);
+                    ? selectedObjects.concat([$demoObjects[newIdx].uuid])
+                    : [$demoObjects[newIdx].uuid].concat(selectedObjects);
             } else {
-                selectedObjects = [objects[newIdx].uuid];
+                selectedObjects = [$demoObjects[newIdx].uuid];
             }
         }
         render();
@@ -757,7 +762,6 @@
             bind:this={panel}
             bind:debug
             bind:currentMode
-            bind:objects
             bind:currentChapter
             bind:gridStep
             bind:gridMax
@@ -798,7 +802,6 @@
                 {axesHolder}
                 {lineMaterial}
                 {axesMaterial}
-                bind:objects
                 bind:socket
                 encode={makeQueryStringObject}
                 render={requestFrameIfNotRequested}
