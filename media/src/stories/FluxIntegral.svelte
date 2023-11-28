@@ -4,7 +4,11 @@
 
     import { all, create } from 'mathjs';
     import M from '../M.svelte';
-    import { FluxBoxEdgesGeometry, FluxBoxGeometry } from '../utils';
+    import {
+        FluxBoxEdgesGeometry,
+        FluxBoxGeometry,
+        gaussLegendre,
+    } from '../utils';
     import { onMount, onDestroy } from 'svelte';
     // import { createEventDispatcher } from 'svelte';
 
@@ -183,8 +187,8 @@
         render();
     });
 
-    let r = (u, v) => [u, v, 1 / 2 - (u * u) / 4 - (v * v) / 2];
-    let F = (x, y) => new THREE.Vector3(0, 1 / 2, y);
+    let ruv = null;
+    let F = null;
 
     let geo;
     let geoDown;
@@ -192,6 +196,54 @@
     let edgesDown;
 
     let approxFlux = '';
+    let totalFlux = 0;
+
+    const computeFlux = (F, r) => {
+        const { x, y, z, a, b, c, d } = currentSurface.params;
+        const [A, B, C, D] = [a, b, c, d].map((w) => math.parse(w).compile());
+
+        console.log(x, y, z, a, b, c, d);
+
+        const u0 = A.evaluate();
+        const u1 = B.evaluate();
+        const v0 = (u) => C.evaluate({ u });
+        const v1 = (u) => D.evaluate({ u });
+
+        const [xu, yu, zu] = [x, y, z].map((expr) =>
+            math.derivative(expr, 'u').compile(),
+        );
+        const [xv, yv, zv] = [x, y, z].map((expr) =>
+            math.derivative(expr, 'v').compile(),
+        );
+
+        return gaussLegendre(
+            (u) =>
+                gaussLegendre(
+                    (v) =>
+                        math.dot(
+                            F(...r(u, v)).toArray(),
+                            math.cross(
+                                [
+                                    xu.evaluate({ u, v }),
+                                    yu.evaluate({ u, v }),
+                                    zu.evaluate({ u, v }),
+                                ],
+                                [
+                                    xv.evaluate({ u, v }),
+                                    yv.evaluate({ u, v }),
+                                    zv.evaluate({ u, v }),
+                                ],
+                            ),
+                        ),
+                    v0(u),
+                    v1(u),
+                    20,
+                ),
+            u0,
+            u1,
+            20,
+        );
+    };
 
     // console.log(geo);
 
@@ -241,6 +293,10 @@
                 ...$demoObjects.filter((o) => o.kind !== 'field'),
                 currentField,
             ];
+
+            if (ruv) {
+                totalFlux = computeFlux(F, ruv);
+            }
         } else {
             F = null;
         }
@@ -257,7 +313,7 @@
                 math.parse(w).compile(),
             );
 
-            r = (u, v) => [
+            ruv = (u, v) => [
                 X.evaluate({ u, v }),
                 Y.evaluate({ u, v }),
                 Z.evaluate({ u, v }),
@@ -271,8 +327,10 @@
                 ...$demoObjects.filter((o) => o.kind !== 'surface'),
                 obj,
             ];
+
+            if (F) totalFlux = computeFlux(F, ruv);
         } else {
-            r = null;
+            ruv = null;
         }
     };
 
@@ -324,7 +382,7 @@
         render();
     };
 
-    $: updateGeo(nBoxes, F, r, u0, u1, v0, v1, sampleParam);
+    $: updateGeo(nBoxes, F, ruv, u0, u1, v0, v1, sampleParam);
 
     const updateTau = (t) => {
         if (geo) {
@@ -486,8 +544,16 @@
     </div>
 
     <M display
-        >{`\\Phi = \\sum_{i = 1}^{${nBoxes}}\\sum_{j = 1}^{${nBoxes}} \\vec F\\cdot \\vec r_u\\times \\vec r_v \\,\\Delta u\\, \\Delta v = ${approxFlux}`}
+        >{`\\Phi = \\sum_{i = 1}^{${nBoxes}}\\sum_{j = 1}^{${nBoxes}} \\mathbf F\\cdot \\mathbf r_u\\times \\mathbf r_v \\,\\Delta u\\, \\Delta v = ${approxFlux}`}
     </M>
+
+    <p>
+        A (somewhat) better approximation is <M display
+            >{`\\Phi = \\iint\\limits_\\Omega \\mathbf F \\cdot d\\mathbf S \\approx ${
+                Math.round(1e8 * totalFlux) / 1e8
+            }`}</M
+        >
+    </p>
 
     <p>
         Imagine <M>
