@@ -5,6 +5,7 @@
     import { onMount } from 'svelte';
     import { slide } from 'svelte/transition';
     import { quintOut } from 'svelte/easing';
+    // import { flip } from 'svelte/animate';
 
     import { TabContent, TabPane } from 'sveltestrap';
 
@@ -122,11 +123,11 @@
             c: '-2',
             d: '2',
             z: `${Math.ceil(
-                4 * Math.random()
+                4 * Math.random(),
             ).toString()} / 4 * cos(${Math.ceil(
-                3 * Math.random()
+                3 * Math.random(),
             ).toString()}*x + ${Math.ceil(
-                2 * Math.random()
+                2 * Math.random(),
             ).toString()}*y)/(1 + x^2 + y^2)`,
             t0: '0',
             t1: '1',
@@ -218,7 +219,7 @@
         // https://github.com/bestguy/sveltestrap/issues/532
         const tabEl = querySelectorIncludesText(
             '.chapterBox .nav-tabs a',
-            'Session'
+            'Session',
         );
         tabEl.click();
     };
@@ -316,6 +317,7 @@
                                         {scene}
                                         render={requestFrameIfNotRequested}
                                         on:animate={animateIfNotAnimating}
+                                        bind:currentMode
                                     />
                                 </TabPane>
                                 <TabPane
@@ -445,7 +447,7 @@
                                     <div
                                         transition:slide={{
                                             delay: 0,
-                                            duration: 300,
+                                            duration: 200,
                                             easing: quintOut,
                                         }}
                                     >
@@ -462,12 +464,12 @@
                                             onClose={() => {
                                                 $demoObjects =
                                                     $demoObjects.filter(
-                                                        (b) => b.uuid !== uuid
+                                                        (b) => b.uuid !== uuid,
                                                     );
                                                 selectedObjects =
                                                     selectedObjects.filter(
                                                         (objectId) =>
-                                                            objectId !== uuid
+                                                            objectId !== uuid,
                                                     );
                                             }}
                                             bind:color
@@ -479,7 +481,7 @@
                                             on:animate={animateIfNotAnimating}
                                             bind:selectedObjects
                                             selected={selectedObjects.includes(
-                                                uuid
+                                                uuid,
                                             )}
                                             onSelect={() => selectObject(uuid)}
                                             bind:selectedPoint
@@ -788,8 +790,17 @@
     }
 
     .accordion-header {
-        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
-            Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue',
+        font-family:
+            system-ui,
+            -apple-system,
+            BlinkMacSystemFont,
+            'Segoe UI',
+            Roboto,
+            Oxygen,
+            Ubuntu,
+            Cantarell,
+            'Open Sans',
+            'Helvetica Neue',
             sans-serif;
     }
 

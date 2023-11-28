@@ -7,6 +7,7 @@
 
     export let scene;
     export let render;
+    export let currentMode;
 
     let currentStory = null;
 </script>
@@ -26,7 +27,7 @@
     </select>
 </div>
 
-{#if currentStory}
+{#if currentMode === 'story' && currentStory}
     <div class="story-content-box">
         <svelte:component this={currentStory} {scene} {render} on:animate />
     </div>
