@@ -97,7 +97,7 @@
         nVects,
         plusOne = false,
         A = math.parse('0'),
-        B = math.parse('1')
+        B = math.parse('1'),
     ) => {
         return (node) => {
             if (node.isSymbolNode && node.name === 't') {
@@ -105,7 +105,7 @@
                 return math.parse(
                     `${A.toString()} + ${
                         plusOne ? '(n + 1)' : 'n'
-                    } * ((${B.toString()}) - (${A.toString()})) / ${nVects}`
+                    } * ((${B.toString()}) - (${A.toString()})) / ${nVects}`,
                 );
             } else {
                 return node;
@@ -119,7 +119,7 @@
         if (!obj) return;
         const params = obj.params;
         const [X, Y, Z, A, B] = ['x', 'y', 'z', 'a', 'b'].map((c) =>
-            math.parse(params[c])
+            math.parse(params[c]),
         );
         texStrings.r =
             '\\begin{bmatrix} ' +
@@ -171,7 +171,7 @@
             tot += norm2(
                 X.evaluate({ t: t + dt }) - X.evaluate({ t }),
                 Y.evaluate({ t: t + dt }) - Y.evaluate({ t }),
-                Z.evaluate({ t: t + dt }) - Z.evaluate({ t })
+                Z.evaluate({ t: t + dt }) - Z.evaluate({ t }),
             );
         }
         lengthApproximation = tot;

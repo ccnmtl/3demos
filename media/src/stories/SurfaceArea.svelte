@@ -9,23 +9,21 @@
         gaussLegendre,
     } from '../utils';
     import { onMount, onDestroy } from 'svelte';
+    import { demoObjects } from '../stores';
     // import { createEventDispatcher } from 'svelte';
 
     // const dispatch = createEventDispatcher();
 
     export let scene;
     export let render;
-    // export let objects;
 
     const config = {};
     const math = create(all, config);
 
     let sampleParam = 0;
 
-    export let objects;
-
     const backupObjects = [
-        ...objects.map((obj) => {
+        ...$demoObjects.map((obj) => {
             obj.selected = false;
             return obj;
         }),
@@ -90,7 +88,7 @@
         ...backupObjects.filter(
             (obj) =>
                 obj.kind === 'surface' &&
-                obj.uuid.slice(0, 18) !== 'area-story-example'
+                obj.uuid.slice(0, 18) !== 'area-story-example',
         ),
     ];
 
@@ -101,7 +99,7 @@
     });
 
     let currentSurface =
-        objects.find((o) => o.kind === 'surface') || exampleSurfaces[0];
+        $demoObjects.find((o) => o.kind === 'surface') || exampleSurfaces[0];
 
     onMount(() => {
         // currentField =
@@ -119,7 +117,7 @@
             element.material?.dispose();
         }
         scene.remove(boxes);
-        objects = [...backupObjects];
+        $demoObjects = [...backupObjects];
         render();
     });
 
@@ -173,7 +171,7 @@
         if (obj) {
             const { x, y, z, a, b, c, d } = obj.params;
             const [X, Y, Z, A, B, C, D] = [x, y, z, a, b, c, d].map((w) =>
-                math.parse(w).compile()
+                math.parse(w).compile(),
             );
 
             r = (u, v) => [
@@ -187,10 +185,10 @@
             v1 = (u) => D.evaluate({ u });
 
             const [xu, yu, zu] = [x, y, z].map((expr) =>
-                math.derivative(expr, 'u').compile()
+                math.derivative(expr, 'u').compile(),
             );
             const [xv, yv, zv] = [x, y, z].map((expr) =>
-                math.derivative(expr, 'v').compile()
+                math.derivative(expr, 'v').compile(),
             );
 
             // const ru = new THREE.Vector3();
@@ -211,16 +209,16 @@
                                         xv.evaluate({ u, v }),
                                         yv.evaluate({ u, v }),
                                         zv.evaluate({ u, v }),
-                                    ]
-                                )
+                                    ],
+                                ),
                             ),
                         v0(u),
                         v1(u),
-                        10
+                        10,
                     ),
                 u0,
                 u1,
-                10
+                10,
             );
 
             // // Match color to that of surface
@@ -235,7 +233,10 @@
             v0 = () => -1;
             v1 = () => 1;
         }
-        objects = [...objects.filter((o) => o.kind !== 'surface'), obj];
+        $demoObjects = [
+            ...$demoObjects.filter((o) => o.kind !== 'surface'),
+            obj,
+        ];
     };
 
     $: setRuv(currentSurface);
@@ -300,14 +301,14 @@
                 on:click={() => {
                     exampleSurfaces = [
                         ...standardExamples,
-                        ...objects.filter(
+                        ...$demoObjects.filter(
                             (obj) =>
                                 obj.kind === 'surface' &&
-                                obj.uuid.slice(0, 18) !== 'area-story-example'
+                                obj.uuid.slice(0, 18) !== 'area-story-example',
                         ),
                     ];
                     currentSurface =
-                        objects.find((o) => o.kind === 'surface') ||
+                        $demoObjects.find((o) => o.kind === 'surface') ||
                         exampleSurfaces[0];
                     setRuv(currentSurface);
                 }}
