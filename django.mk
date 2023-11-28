@@ -23,8 +23,8 @@ MANAGE ?= ./manage.py
 REQUIREMENTS ?= requirements.txt
 SYS_PYTHON ?= python3
 PY_SENTINAL ?= $(VE)/sentinal
-WHEEL_VERSION ?= 0.40.0
-PIP_VERSION ?= 23.1.2
+WHEEL_VERSION ?= 0.41.3
+PIP_VERSION ?= 23.3.1
 MAX_COMPLEXITY ?= 10
 INTERFACE ?= localhost
 RUNSERVER_PORT ?= 8000
@@ -79,26 +79,4 @@ clean:
 	rm -rf node_modules
 	find . -name '*.pyc' -exec rm {} \;
 
-pull:
-	git pull
-	make check
-	make test
-	make migrate
-	make flake8
-
-rebase:
-	git pull --rebase
-	make check
-	make test
-	make migrate
-	make flake8
-
-# run this one the very first time you check
-# this out on a new machine to set up dev
-# database, etc. You probably *DON'T* want
-# to run it after that, though.
-install: jenkins
-	createdb $(APP)
-	make migrate
-
-.PHONY: jenkins test flake8 runserver migrate check shell clean pull rebase install
+.PHONY: jenkins test flake8 runserver migrate check shell clean
