@@ -4,13 +4,13 @@
 
     import { all, create } from 'mathjs';
     import M from '../M.svelte';
-    import { FluxBoxEdgesGeometry, FluxBoxGeometry, checksum } from '../utils';
+    import { FluxBoxEdgesGeometry, FluxBoxGeometry } from '../utils';
     import { onMount, onDestroy } from 'svelte';
     // import { createEventDispatcher } from 'svelte';
 
     // const dispatch = createEventDispatcher();
 
-    import { tickTock } from '../stores';
+    import { demoObjects, tickTock } from '../stores';
 
     export let scene;
     export let render;
@@ -40,27 +40,42 @@
 
     $: drawFirst(animation);
 
-    export let objects;
+    // export let $demoObjects;
 
-    const backupObjects = [
-        ...objects.map((obj) => {
-            obj.selected = false;
-            return obj;
-        }),
-    ];
+    const backupObjects = $demoObjects.map((obj) => {
+        obj.selected = false;
+        return obj;
+    });
 
-    const standardExampleSurfaces = [
+    const exampleSurfaces = [
         {
             uuid: 'flux-story-example-001-',
             kind: 'surface',
-            title: 'Cylinder',
+            title: 'Curved Wall',
             params: {
                 a: '0',
-                b: '2 pi',
+                b: 'pi',
                 c: '0',
                 d: '1',
-                x: 'cos(u)',
-                y: '2 * sin(u)',
+                x: 'cos(u) / 2',
+                y: 'sin(u) ',
+                z: 'v',
+                t0: '0',
+                t1: '1',
+            },
+            color: '#CB44CB',
+        },
+        {
+            uuid: 'flux-story-example-000-',
+            kind: 'surface',
+            title: 'Flat Square',
+            params: {
+                a: '0',
+                b: '1',
+                c: '0',
+                d: '1',
+                x: '(1-u) / sqrt(2)',
+                y: 'u / sqrt(2)',
                 z: 'v',
                 t0: '0',
                 t1: '1',
@@ -86,16 +101,19 @@
         },
     ];
 
-    let exampleSurfaces = [
-        ...standardExampleSurfaces,
-        ...backupObjects.filter(
-            (obj) =>
-                obj.kind === 'surface' &&
-                obj.uuid.slice(0, 18) !== 'flux-story-example'
-        ),
-    ];
-
     const exampleFields = [
+        {
+            uuid: 'flux-story-field-000-',
+            kind: 'field',
+            title: 'Constant',
+            params: {
+                p: '1/2',
+                q: '0',
+                r: '1/3',
+                nVec: 4,
+            },
+            color: '#128812',
+        },
         {
             uuid: 'flux-story-field-001-',
             kind: 'field',
@@ -132,7 +150,6 @@
             },
             color: '#1212CC',
         },
-        ...backupObjects.filter((obj) => obj.kind === 'field'),
     ];
 
     const whiteLineMaterial = new THREE.LineBasicMaterial({
@@ -142,27 +159,27 @@
     });
 
     let currentSurface =
-        objects.find((o) => o.kind === 'surface') || exampleSurfaces[0];
+        $demoObjects.find((o) => o.kind === 'surface') || exampleSurfaces[0];
     let currentField =
-        objects.find((o) => o.kind === 'field') || exampleFields[0];
+        $demoObjects.find((o) => o.kind === 'field') || exampleFields[0];
     currentField.flowTrails = false;
+
+    let unsub;
     onMount(() => {
+        unsub = demoObjects.subscribe((e) => {
+            if (!e.some((o) => o === currentSurface)) {
+                currentSurface = null;
+            }
+            if (!e.some((o) => o === currentField)) {
+                currentField = null;
+            }
+        });
         // currentField =
         //     objects.find((o) => o.kind === 'field')?.uuid ||
         //     'flux-story-field-001-';
         // currentSurface =
         //     objects.find((o) => o.kind === 'surface') || exampleSurfaces[0];
-        render();
-    });
 
-    onDestroy(() => {
-        for (let index = 0; index < boxes.children.length; index++) {
-            const element = boxes.children[index];
-            element.geometry?.dispose();
-            element.material?.dispose();
-        }
-        scene.remove(boxes);
-        objects = [...backupObjects];
         render();
     });
 
@@ -173,6 +190,8 @@
     let geoDown;
     let edgesUp;
     let edgesDown;
+
+    let approxFlux = '';
 
     // console.log(geo);
 
@@ -201,7 +220,7 @@
     scene.add(boxes);
 
     let tau = 1;
-    let nBoxes = 3;
+    let nBoxes = 1;
 
     const setF = (obj) => {
         // const obj = exampleFields.find((o) => o.uuid === uuid);
@@ -215,15 +234,15 @@
                 new THREE.Vector3(
                     P.evaluate({ x, y, z }),
                     Q.evaluate({ x, y, z }),
-                    R.evaluate({ x, y, z })
+                    R.evaluate({ x, y, z }),
                 );
             currentField.flowTrails = false;
-            objects = [
-                ...objects.filter((o) => o.kind !== 'field'),
+            $demoObjects = [
+                ...$demoObjects.filter((o) => o.kind !== 'field'),
                 currentField,
             ];
         } else {
-            F = () => new THREE.Vector3(0, 0, 0);
+            F = null;
         }
     };
 
@@ -235,7 +254,7 @@
         if (obj) {
             const { x, y, z, a, b, c, d } = obj.params;
             const [X, Y, Z, A, B, C, D] = [x, y, z, a, b, c, d].map((w) =>
-                math.parse(w).compile()
+                math.parse(w).compile(),
             );
 
             r = (u, v) => [
@@ -248,59 +267,92 @@
             v0 = (u) => C.evaluate({ u });
             v1 = (u) => D.evaluate({ u });
 
-            // // Match color to that of surface
-            // plusMaterial.color.set(obj.color);
-            // const hsl = {};
-            // plusMaterial.color.getHSL(hsl);
-            // minusMaterial.color.setHSL(hsl.h + 0.6, hsl.s, hsl.l);
+            $demoObjects = [
+                ...$demoObjects.filter((o) => o.kind !== 'surface'),
+                obj,
+            ];
         } else {
-            r = (u, v) => [u, v, (u * u) / 4 - (v * v) / 4];
-            u0 = -1;
-            u1 = 1;
-            v0 = () => -1;
-            v1 = () => 1;
+            r = null;
         }
-        objects = [...objects.filter((o) => o.kind !== 'surface'), obj];
     };
 
     $: setRuv(currentSurface);
 
     const updateGeo = (N, F, r, A, B, C, D, samp) => {
         geo?.dispose();
-        geo = new FluxBoxGeometry(F, r, A, B, C, D, N, false, tau, 'pos', samp);
-        boxes.children[0].geometry = geo;
         edgesUp?.dispose();
-        edgesUp = new FluxBoxEdgesGeometry(geo, false, tau);
-        boxes.children[1].geometry = edgesUp;
         geoDown?.dispose();
-        geoDown = new FluxBoxGeometry(F, r, A, B, C, D, N, false, tau, 'neg');
-        boxes.children[2].geometry = geoDown;
         edgesDown?.dispose();
-        edgesDown = new FluxBoxEdgesGeometry(geoDown, false, tau);
-        boxes.children[3].geometry = edgesDown;
-        // boxes.children[1].geometry = geo;
-        // boxes.children[1].geometry = geo;
+        if (r && F) {
+            geo = new FluxBoxGeometry(
+                F,
+                r,
+                A,
+                B,
+                C,
+                D,
+                N,
+                false,
+                tau,
+                'pos',
+                samp,
+            );
+            approxFlux = `${Math.round(1000 * geo.volume) / 1000}`;
+            boxes.children[0].geometry = geo;
+            edgesUp = new FluxBoxEdgesGeometry(geo, false, tau);
+            boxes.children[1].geometry = edgesUp;
+            geoDown = new FluxBoxGeometry(
+                F,
+                r,
+                A,
+                B,
+                C,
+                D,
+                N,
+                false,
+                tau,
+                'neg',
+            );
+            boxes.children[2].geometry = geoDown;
+            edgesDown = new FluxBoxEdgesGeometry(geoDown, false, tau);
+            boxes.children[3].geometry = edgesDown;
+            boxes.visible = true;
+        } else {
+            boxes.visible = false;
+        }
+
         render();
     };
 
     $: updateGeo(nBoxes, F, r, u0, u1, v0, v1, sampleParam);
 
     const updateTau = (t) => {
-        geo.changeT(t);
-        edgesUp?.dispose();
-        edgesUp = new FluxBoxEdgesGeometry(geo, false, t);
-        boxes.children[1].geometry = edgesUp;
-        geoDown.changeT(t);
-        edgesDown?.dispose();
-        edgesDown = new FluxBoxEdgesGeometry(geoDown, false, t);
-        boxes.children[3].geometry = edgesDown;
-        render();
+        if (geo) {
+            geo.changeT(t);
+            edgesUp?.dispose();
+            edgesUp = new FluxBoxEdgesGeometry(geo, false, t);
+            boxes.children[1].geometry = edgesUp;
+            geoDown.changeT(t);
+            edgesDown?.dispose();
+            edgesDown = new FluxBoxEdgesGeometry(geoDown, false, t);
+            boxes.children[3].geometry = edgesDown;
+            render();
+        }
     };
 
     $: updateTau(tau);
 
-    $: hashTag = checksum(JSON.stringify(currentField.params));
-    $: hashTag, console.log('hash-ing the field');
+    onDestroy(() => {
+        for (let index = 0; index < boxes.children.length; index++) {
+            const element = boxes.children[index];
+            element.geometry?.dispose();
+            element.material?.dispose();
+        }
+        scene.remove(boxes);
+        unsub();
+        $demoObjects = [...backupObjects];
+        render();
+    });
 </script>
 
 <div>
@@ -313,20 +365,6 @@
         </M> a vector field continuous on <M>{`\\Omega`}</M>.
     </p>
 
-    <p>
-        Then the <b>flux</b>
-        <M>{'\\Phi'}</M> of the vector field through the surface is given by
-
-        <M align>
-            {'\\Phi &= \\iint_\\Omega \\mathbf F\\cdot\\,d\\mathbf S \\\\ &= \\iint_\\Omega \\mathbf F\\cdot\\mathbf N\\,dS \\\\ &= \\iint_D \\mathbf F(\\mathbf r(u,v)) \\cdot \\mathbf r_u \\times \\mathbf r_v\\,dS.'}
-        </M>
-    </p>
-
-    <p>
-        We seek to visualize that integrand. Choose an example vector field and
-        parametric surface.
-    </p>
-
     <div class="row">
         <div class="col-auto">
             <M>{'\\mathbf F:'}</M>
@@ -335,6 +373,10 @@
                 class="demos-obj-select m-2 bg-primary border-primary
                 text-light"
             >
+                {#each $demoObjects.filter((o) => o.kind === 'field' && o.uuid.slice(0, 10) !== 'flux-story') as obj}
+                    <option value={obj}>{obj.title}</option>
+                {/each}
+                <option disabled>──────────</option>
                 {#each exampleFields as obj}
                     <option value={obj}>{obj.title}</option>
                 {/each}
@@ -346,6 +388,10 @@
                 class="demos-obj-select m-2 bg-primary text-light"
                 bind:value={currentSurface}
             >
+                {#each $demoObjects.filter((o) => o.kind === 'surface' && o.uuid.slice(0, 10) !== 'flux-story') as obj}
+                    <option value={obj}>{obj.title}</option>
+                {/each}
+                <option disabled>──────────</option>
                 {#each exampleSurfaces as obj}
                     <option value={obj}>{obj.title}</option>
                 {/each}
@@ -365,6 +411,23 @@
     </div>
 
     <p>
+        Then the <b>flux</b>
+        <M>{'\\Phi'}</M> of the vector field through the surface is given by
+
+        <M align>
+            {'\\Phi &= \\iint_\\Omega \\mathbf F\\cdot\\,d\\mathbf S = \\iint_\\Omega \\mathbf F\\cdot\\mathbf N\\,dS \\\\ &= \\iint_D \\mathbf F(\\mathbf r(u,v)) \\cdot \\mathbf r_u \\times \\mathbf r_v\\,dS.'}
+        </M>
+    </p>
+
+    <p>
+        That integrand is a <em>triple product</em> which can be visualized as
+        the volume of a parallelopiped with two tangent vectors to the surface
+        and the vector field itself being the third edge. To see this, we chop
+        the domain <M>D</M> into <M>n \times n</M> rectongles and draw the parallelopipeds
+        to approximate the flux.
+    </p>
+
+    <!-- <p>
         Recall that a triple product <M
             >{'\\mathbf a\\cdot \\mathbf b \\times \\mathbf c'}</M
         > measures the (signed) volume of a parallelopiped with edges defined by
@@ -376,7 +439,7 @@
         </M> and <M>{'\\mathbf r_v \\Delta v'}</M> and sample the vector field <M
             >{'\\mathbf F'}</M
         > as the third edge. Adjust <M>n</M> and the sample point below.
-    </p>
+    </p> -->
 
     <div class="row my-3">
         <div class="col-auto">
@@ -385,7 +448,7 @@
                 ><input
                     type="range"
                     min="1"
-                    max="20"
+                    max="50"
                     step="1"
                     bind:value={nBoxes}
                 /></span
@@ -403,12 +466,31 @@
                 <span class="slider round" />
             </label>
         </div>
+        <div class="col-auto">
+            center
+            <label class="switch box box-3">
+                <input
+                    type="checkbox"
+                    checked={false}
+                    on:change={(e) => {
+                        if (e.target.checked) {
+                            sampleParam = 0.5;
+                        } else {
+                            sampleParam = 0;
+                        }
+                    }}
+                />
+                <span class="slider round" />
+            </label>
+        </div>
     </div>
 
+    <M display
+        >{`\\Phi = \\sum_{i = 1}^{${nBoxes}}\\sum_{j = 1}^{${nBoxes}} \\vec F\\cdot \\vec r_u\\times \\vec r_v \\,\\Delta u\\, \\Delta v = ${approxFlux}`}
+    </M>
+
     <p>
-        At this point, we are not looking at time-dependent vector fields. That
-        is, they don't move. Nonetheless, a good way to understand these
-        structures (and to justify the term "flux") is to imagine <M>
+        Imagine <M>
             {'\\mathbf F'}</M
         > as the velocity field of some fluid. The we can interpret <M>
             {'\\Phi'}
@@ -416,7 +498,7 @@
         of its orientation. By scaling the vector field in time, we can "see" this
         volume flowing through the surface. <strong>Warning</strong> the
         quantity <M>{'\\Phi'}</M> is computed as a static computation. This is meant
-        only to help see where positive/negtaive contributions come from.
+        only to help see where positive/negative contributions come from.
     </p>
 
     <div class="row my-3">
@@ -449,23 +531,6 @@
                     tau = 0;
                 }}
             />
-        </div>
-        <div class="col-auto">
-            center
-            <label class="switch box box-3">
-                <input
-                    type="checkbox"
-                    checked={false}
-                    on:change={(e) => {
-                        if (e.target.checked) {
-                            sampleParam = 0.5;
-                        } else {
-                            sampleParam = 0;
-                        }
-                    }}
-                />
-                <span class="slider round" />
-            </label>
         </div>
     </div>
 </div>

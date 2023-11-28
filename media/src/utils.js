@@ -2400,6 +2400,9 @@ class FluxBoxGeometry extends THREE.BufferGeometry {
     constructor(F, r, a, b, c, d, N = 10, shards = false, t = 1, sided = 'pos', s = 0.5) {
         super();
 
+        // track the (signed volume to approximate the net flux)
+        this.volume = 0;
+
         t = shards ? 0 : t;
         const dt = 1e-4; // for computing diffs
         const dt2 = dt / 2;
@@ -2433,17 +2436,21 @@ class FluxBoxGeometry extends THREE.BufferGeometry {
                 // separate top and bottom for z-fighting on zeros of F.
                 // const tol = 1e-3;
 
+                // adjust for sample point
+                x -= (du * ru.x + dv * rv.x) * s;
+                y -= (du * ru.y + dv * rv.y) * s;
+                z -= (du * ru.z + dv * rv.z) * s;
+
                 const f = new THREE.Vector3(...F(x, y, z));
 
-                normal.copy(ru.clone().cross(rv).normalize());
+                normal.copy(ru.clone().cross(rv));
+                this.volume += f.dot(normal) * du * dv;
+                normal.normalize();
+
                 if (sided === 'both' || (sided === 'pos' && normal.dot(f) >= 0) || (sided === 'neg' && normal.dot(f) < 0)) {
 
                     this.lastF.push(f.x, f.y, f.z);
 
-                    // adjust for sample point
-                    x -= (du * ru.x + dv * rv.x) * s;
-                    y -= (du * ru.y + dv * rv.y) * s;
-                    z -= (du * ru.z + dv * rv.z) * s;
 
                     // top
 
@@ -2592,7 +2599,6 @@ class FluxBoxEdgesGeometry extends THREE.BufferGeometry {
             const D = points.slice(pointIndex * 108 + 24, pointIndex * 108 + 27);
 
             const [fx, fy, fz] = Fs.slice((pointIndex) * 3, (pointIndex + 1) * 3);
-
 
             // 12 edges
             vertices.push(...A, ...B);
