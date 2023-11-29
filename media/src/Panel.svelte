@@ -244,7 +244,9 @@
     });
 
     const onKeyDown = (e) => {
-        if (e.key === 'h') {
+        if (e.target.matches('input')) {
+            return;
+        } else if (e.key === 'h') {
             showPanel = !showPanel;
         }
     };
