@@ -1,9 +1,22 @@
 <script>
-    import { createEventDispatcher } from 'svelte';
+    import { createEventDispatcher, onMount } from 'svelte';
     import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
     import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
-    import { drawAxes, drawGrid, labelAxes, freeChildren } from '../utils';
-    import { vMin, vMax, colorMap, densityColormap } from '../stores';
+    import {
+        drawAxes,
+        drawGrid,
+        labelAxes,
+        freeChildren,
+        scaleExp,
+    } from '../utils';
+    import {
+        vMin,
+        vMax,
+        colorMap,
+        densityColormap,
+        viewScale,
+        demoObjects,
+    } from '../stores';
     import WindowHeader from './WindowHeader.svelte';
     import { colorMapNames } from '../js-colormaps';
     import { offclick } from './offclick';
@@ -13,11 +26,10 @@
     export let isMobileView;
     export let scene, camera, render, controls;
     export let gridMax, gridStep;
-    export let axesHolder, axesText, gridMeshes, lineMaterial, axesMaterial;
+    export let axesHolder, gridMeshes, lineMaterial, axesMaterial, axesText;
     export let animation = false;
     export let orthoCamera = false;
     export let encode;
-    export let objects;
     // export let socket;
     export let roomId;
 
@@ -51,16 +63,12 @@
 
     let scaleState = gridMax;
     let oldGridMax = gridMax;
-    let scale = 0;
 
-    $: scala =
-        Math.round(
-            100 *
-                Math.pow(10, Math.floor(scale)) *
-                Math.floor(
-                    Math.pow(10, scale) / Math.pow(10, Math.floor(scale))
-                )
-        ) / 100;
+    // These duplicate their non-Temp counterpart but are only for display which updates on moving input bar, though value only updates on change event.
+    let scaleTemp = 0;
+    $: scalaTemp = scaleExp(scaleTemp);
+
+    let scala;
 
     const rescale = function () {
         if (scala !== gridMax) {
@@ -117,8 +125,8 @@
                 upload = upload.map((item) => {
                     return { ...item, uuid: item.uuid || crypto.randomUUID() };
                 });
-                objects = [
-                    ...objects.filter((item) => {
+                $demoObjects = [
+                    ...$demoObjects.filter((item) => {
                         return !upload.map((ob) => ob.uuid).includes(item.uuid);
                     }),
                     ...upload,
@@ -136,7 +144,7 @@
     };
 
     const downloadScene = () => {
-        let json = JSON.stringify(objects);
+        let json = JSON.stringify($demoObjects);
         const blob = new Blob([json], { type: 'application/json' });
         let a = document.createElement('a');
         a.download = makeFilename();
@@ -144,6 +152,17 @@
         a.click();
         a.remove();
     };
+
+    onMount(() => {
+        const unsubscribe = viewScale.subscribe((value) => {
+            scala = scaleExp(value);
+            console.log('scale updated', scala);
+            rescale();
+        });
+        console.log('setting mounted');
+        scaleTemp = $viewScale;
+        return unsubscribe;
+    });
 </script>
 
 {#if showSettings}
@@ -176,10 +195,12 @@
                         min="-2"
                         max="3"
                         step=".02"
-                        bind:value={scale}
-                        on:change={rescale}
+                        bind:value={scaleTemp}
+                        on:change={(e) => {
+                            $viewScale = e.target.value;
+                        }}
                     />
-                    <span class="output text-end">{scala}</span>
+                    <span class="output text-end">{scalaTemp}</span>
                 </span>
             </div>
         </div>

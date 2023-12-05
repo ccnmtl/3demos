@@ -2,9 +2,10 @@
     /**
      * Main 3Demos control panel, to the left of the scene.
      */
-    import { onMount, onDestroy } from 'svelte';
+    import { onMount } from 'svelte';
     import { slide } from 'svelte/transition';
     import { quintOut } from 'svelte/easing';
+    // import { flip } from 'svelte/animate';
 
     import { TabContent, TabPane } from 'sveltestrap';
 
@@ -15,7 +16,8 @@
     import {
         // makeHSLColor,
         querySelectorIncludesText,
-        tripleToHex, joinUrl
+        tripleToHex,
+        joinUrl,
     } from './utils';
     import { publishScene } from './sceneUtils';
 
@@ -31,7 +33,7 @@
     import Solid from './objects/Solid.svelte';
 
     import { evaluate_cmap } from './js-colormaps';
-    import { colorMap } from './stores';
+    import { colorMap, demoObjects } from './stores';
     import Story from './Story.svelte';
     import { tick } from 'svelte';
 
@@ -40,9 +42,8 @@
     export let debug, currentMode;
     export let currentControls;
     export let currentChapter;
-    export let gridMeshes;
     export let gridStep, gridMax;
-    export let objects, isHost;
+    export let isHost;
     export let onRenderObject, onDestroyObject;
     export let socket, pollResponses;
     export let animateIfNotAnimating;
@@ -61,12 +62,7 @@
     export let lockPoll;
     export let objectResponses;
 
-    const PANEL_DELAY = 200;
-    let showPanel = true;
-    let panelWidth = 370;
-    let panelOffset = 0;
-    let panelTransition = '';
-    let panelTransitionProperty = '';
+    export let showPanel = true;
 
     const kindToComponent = {
         point: Point,
@@ -80,7 +76,7 @@
     };
 
     const onPublishScene = function () {
-        publishScene(objects, selectedObjects, socket);
+        publishScene($demoObjects, selectedObjects, socket);
     };
 
     let nextHue = 0;
@@ -129,11 +125,11 @@
             c: '-2',
             d: '2',
             z: `${Math.ceil(
-                4 * Math.random()
+                4 * Math.random(),
             ).toString()} / 4 * cos(${Math.ceil(
-                3 * Math.random()
+                3 * Math.random(),
             ).toString()}*x + ${Math.ceil(
-                2 * Math.random()
+                2 * Math.random(),
             ).toString()}*y)/(1 + x^2 + y^2)`,
             t0: '0',
             t1: '1',
@@ -179,9 +175,9 @@
         },
         field: () => {
             const comps = ['1', '-1', 'x', 'y', 'z', '-x', '-y', '-z'];
-            const p = comps[Math.ceil(comps.length * Math.random())];
-            const q = comps[Math.ceil(comps.length * Math.random())];
-            const r = comps[Math.ceil(comps.length * Math.random())];
+            const p = comps[Math.floor(comps.length * Math.random())];
+            const q = comps[Math.floor(comps.length * Math.random())];
+            const r = comps[Math.floor(comps.length * Math.random())];
 
             return { p, q, r, nVec: '6' };
         },
@@ -193,8 +189,8 @@
 
     $: if (kindToAdd) {
         const uuid = crypto.randomUUID();
-        objects = [
-            ...objects,
+        $demoObjects = [
+            ...$demoObjects,
             {
                 uuid,
                 kind: kindToAdd,
@@ -212,21 +208,6 @@
         kindToAdd = null;
     }
 
-    const onTogglePanel = function () {
-        panelTransition = `all ${PANEL_DELAY}ms ease`;
-        panelTransitionProperty = 'transform';
-
-        showPanel = !showPanel;
-
-        // De-activate transition easing by default, so user can still
-        // manually resize the panel without weird transition
-        // interference.
-        setTimeout(() => {
-            panelTransition = '';
-            panelTransitionProperty = '';
-        }, PANEL_DELAY);
-    };
-
     /**
      * Show the "Info" accordion item.
      */
@@ -242,80 +223,44 @@
         // https://github.com/bestguy/sveltestrap/issues/532
         const tabEl = querySelectorIncludesText(
             '.chapterBox .nav-tabs a',
-            'Session'
+            'Session',
         );
         tabEl.click();
     };
 
-    const resizeObserver = new ResizeObserver((entries) => {
-        for (let entry of entries) {
-            if (entry && entry.contentRect && entry.contentRect.width) {
-                panelWidth = entry.contentRect.width;
-            }
-        }
-    });
-
     onMount(() => {
         const urlParams = new URLSearchParams(location.search);
         if (urlParams.keys()) {
-            const objectHolder = {};
+            // const objectHolder = {};
             urlParams.forEach((val, key) => {
                 // This is bad and stupid, and hopefully it will be done better.
                 // make a viewStatus object, maybe?
                 if (key === 'currentChapter') {
                     currentChapter = val;
-                }
-                if (key === 'grid') {
-                    gridMeshes.visible = val === 'true';
-                }
-                if (key === 'debug') {
+                } else if (key === 'showPanel') {
+                    showPanel = !(val === 'false');
+                } else if (key === 'debug') {
                     debug = val === 'true';
                     console.log('debuggery: ', debug);
                 }
-                if (key.slice(0, 3) === 'obj') {
-                    const keyParts = key.split('_');
-                    const obj = objectHolder[keyParts[0]] || { params: {} };
-                    if (keyParts[1] === 'params') {
-                        obj.params[keyParts[2]] = val;
-                    } else {
-                        obj[keyParts[1]] = val;
-                    }
-                    objectHolder[keyParts[0]] = obj;
-                }
             });
-
-            for (const val of Object.values(objectHolder)) {
-                // objects = makeObject(val.uuid, val.kind, val.params, objects);
-                objects = [...objects, { uuid: crypto.randomUUID(), ...val }];
-                if (debug) console.log(objects);
-            }
         }
-
-        const panelEl = document.querySelector('.demos-panel');
-        resizeObserver.observe(panelEl);
-    });
-
-    onDestroy(() => {
-        const panelEl = document.querySelector('.demos-panel');
-        resizeObserver.unobserve(panelEl);
     });
 
     const onKeyDown = (e) => {
-        if (e.key === 'h') {
-            onTogglePanel();
+        if (e.target.matches('input')) {
+            return;
+        } else if (e.key === 'h') {
+            showPanel = !showPanel;
         }
     };
     window.addEventListener('keydown', onKeyDown, false);
-
-    $: panelOffset = showPanel ? 0 : -100;
 </script>
 
+<aside class="panel-wrapper" class:collapsed={!showPanel}>
 <div
     class="demos-panel"
     class:mobile={isMobileView}
-    style:transition={panelTransition}
-    style:transition-property={panelTransitionProperty}
-    style:transform={`translateX(${panelOffset}%)`}
 >
     <div id="panelAccordion" class:accordion={!isMobileView}>
         
@@ -361,7 +306,6 @@
                 </li>
             </ul>
         {/if}
-
         <div class="demos-panel-box" class:accordion-item={!isMobileView}>
             {#if !isMobileView}
                 <h2 class="accordion-header">
@@ -408,7 +352,6 @@
                                 <Session
                                     bind:roomId
                                     bind:socket
-                                    bind:objects
                                     bind:currentPoll
                                     bind:chatBuffer
                                     {pollResponses}
@@ -423,10 +366,10 @@
                                 active={currentMode === 'story'}
                             >
                                 <Story
-                                    bind:objects
                                     {scene}
                                     render={requestFrameIfNotRequested}
                                     on:animate={animateIfNotAnimating}
+                                    bind:currentMode
                                 />
                             </TabPane>
                             <TabPane
@@ -475,7 +418,6 @@
                         bind:pollResponses
                         bind:isPollsOpen
                         bind:lockPoll
-                        bind:objects
                         bind:currentPoll
                         {socket}
                         {objectResponses}
@@ -549,275 +491,286 @@
                                     Clear Objects
                                     <i class="fa fa-trash" />
                                 </button>
+                                {#if currentMode === 'session' && isHost}
+                                    <button
+                                        class="btn btn-sm btn-primary"
+                                        on:click={onPublishScene}
+                                    >
+                                        Publish Scene
+                                        <i class="bi bi-broadcast-pin" />
+                                    </button>
+                                {/if}
                             </div>
-                            {#if currentMode === 'session' && isHost}
-                                <button
-                                    class="btn btn-sm btn-primary mb-2"
-                                    on:click={onPublishScene}
-                                >
-                                    Publish Scene
-                                    <i class="bi bi-broadcast-pin" />
-                                </button>
+
+                            <div class="objectBoxInner">
+                                <!-- Main Loop, if you will -->
+                                {#each $demoObjects as { uuid, kind, params, color, title, animation, ...etc } (uuid)}
+                                    <div
+                                        transition:slide={{
+                                            delay: 0,
+                                            duration: 200,
+                                            easing: quintOut,
+                                        }}
+                                    >
+                                        <svelte:component
+                                            this={kindToComponent[kind]}
+                                            {scene}
+                                            {onRenderObject}
+                                            {onDestroyObject}
+                                            camera={currentCamera}
+                                            controls={currentControls}
+                                            render={requestFrameIfNotRequested}
+                                            {params}
+                                            meta={etc}
+                                            onClose={() => {
+                                                $demoObjects =
+                                                    $demoObjects.filter(
+                                                        (b) => b.uuid !== uuid,
+                                                    );
+                                                selectedObjects =
+                                                    selectedObjects.filter(
+                                                        (objectId) =>
+                                                            objectId !== uuid,
+                                                    );
+                                            }}
+                                            bind:color
+                                            bind:title
+                                            bind:animation
+                                            {uuid}
+                                            {gridStep}
+                                            {gridMax}
+                                            on:animate={animateIfNotAnimating}
+                                            bind:selectedObjects
+                                            selected={selectedObjects.includes(
+                                                uuid,
+                                            )}
+                                            onSelect={() => selectObject(uuid)}
+                                            bind:selectedPoint
+                                        />
+                                    </div>
+                                {/each}
+                            </div>
+
+                            <!-- debug buttons -->
+
+                            {#if debug}
+                                <div>
+                                    <button
+                                        on:click={() => {
+                                            $demoObjects = [
+                                                {
+                                                    uuid: 34,
+                                                    kind: 'curve',
+                                                    params: {
+                                                        a: '0',
+                                                        b: '2*pi',
+                                                        x: 'cos(t)',
+                                                        y: 'sin(t)',
+                                                        z: '0',
+                                                    },
+                                                    color: '#aa33ff',
+                                                    animation: true,
+                                                },
+                                                {
+                                                    uuid: '34point22',
+                                                    kind: 'point',
+                                                    params: {
+                                                        a: 'cos(2 t)',
+                                                        b: 'sin(2 t)',
+                                                        c: 'cos(2 t) + sin(2 t)',
+                                                        t0: '0',
+                                                        t1: '2 pi',
+                                                    },
+                                                    color: '#FF0000',
+                                                    animation: false,
+                                                },
+                                                {
+                                                    uuid: 345,
+                                                    kind: 'vector',
+                                                    params: {
+                                                        a: 'cos(t)',
+                                                        b: 'sin(t)',
+                                                        c: '1',
+                                                        x: 'cos(t)',
+                                                        y: 'sin(t)',
+                                                        z: '0',
+                                                        t0: '0',
+                                                        t1: '2*pi',
+                                                    },
+                                                    color: '#ff33ff',
+                                                    animation: false,
+                                                },
+                                            ];
+                                        }}>curve anim</button
+                                    >
+                                    <button
+                                        on:click={() => {
+                                            $demoObjects = [
+                                                {
+                                                    uuid: 34,
+                                                    kind: 'curve',
+                                                    params: {
+                                                        a: '0',
+                                                        b: '2*pi',
+                                                        x: 'cos(t)',
+                                                        y: 'sin(t)',
+                                                        z: '0',
+                                                    },
+                                                    color: '#aa33ff',
+                                                    animation: false,
+                                                },
+                                                {
+                                                    uuid: '34point22',
+                                                    kind: 'point',
+                                                    params: {
+                                                        a: 'cos(2 t)',
+                                                        b: 'sin(2 t)',
+                                                        c: 'cos(2 t) + sin(2 t)',
+                                                        t0: '0',
+                                                        t1: '2*pi',
+                                                    },
+                                                    color: '#FF0000',
+                                                    animation: true,
+                                                },
+                                                {
+                                                    uuid: 345,
+                                                    kind: 'vector',
+                                                    params: {
+                                                        a: 'cos(t)',
+                                                        b: 'sin(t)',
+                                                        c: '1',
+                                                        x: 'cos(t)',
+                                                        y: 'sin(t)',
+                                                        z: '0',
+                                                        t0: '0',
+                                                        t1: '2*pi',
+                                                    },
+                                                    color: '#ff33ff',
+                                                    animation: true,
+                                                },
+                                            ];
+                                        }}>point/vec anim</button
+                                    >
+                                    <button
+                                        on:click={() => {
+                                            $demoObjects = [
+                                                {
+                                                    uuid: 'agraph3847',
+                                                    kind: 'graph',
+                                                    params: {
+                                                        a: '-1',
+                                                        b: '1',
+                                                        c: '-1',
+                                                        d: '1',
+                                                        z: 'x^2 - 3*cos(t) * x * y + y^2',
+                                                        t0: '0',
+                                                        t1: '2*pi',
+                                                    },
+                                                    color: '#ff33ff',
+                                                    animation: true,
+                                                },
+                                            ];
+                                        }}>anim func</button
+                                    >
+                                    <button
+                                        on:click={() => {
+                                            $demoObjects = [
+                                                {
+                                                    uuid: 'agraph3847',
+                                                    kind: 'graph',
+                                                    params: {
+                                                        a: '-1',
+                                                        b: '1',
+                                                        c: '-1',
+                                                        d: '1',
+                                                        z: 'x^2 - 3*cos(t) * x * y + y^2',
+                                                        t0: '0',
+                                                        t1: '2*pi',
+                                                    },
+                                                    color: '#ff33ff',
+                                                    animation: false,
+                                                },
+                                            ];
+                                        }}>unanim func</button
+                                    >
+                                    <button
+                                        on:click={() => {
+                                            $demoObjects = [
+                                                {
+                                                    uuid: 'swirly1234',
+                                                    kind: 'field',
+                                                    params: {
+                                                        p: 'x/2',
+                                                        q: '-z',
+                                                        r: 'y',
+                                                        nVec: '5',
+                                                    },
+                                                    color: '#ff33ff',
+                                                    animation: true,
+                                                },
+                                            ];
+                                        }}>anim field</button
+                                    >
+                                    <button
+                                        on:click={() => {
+                                            $demoObjects = [
+                                                {
+                                                    uuid: 'swirly1234',
+                                                    kind: 'field',
+                                                    params: {
+                                                        p: 'x/2',
+                                                        q: '-z',
+                                                        r: 'y',
+                                                        nVec: '5',
+                                                    },
+                                                    color: '#ff33ff',
+                                                    animation: false,
+                                                },
+                                            ];
+                                        }}>unanim field</button
+                                    >
+                                </div>
                             {/if}
                         </div>
-
-                        <div class="objectBoxInner">
-                            <!-- Main Loop, if you will -->
-                            {#each objects as { uuid, kind, params, color, title, animation, ...etc } (uuid)}
-                                <div
-                                    transition:slide={{
-                                        delay: 0,
-                                        duration: 300,
-                                        easing: quintOut,
-                                    }}
-                                >
-                                    <svelte:component
-                                        this={kindToComponent[kind]}
-                                        {scene}
-                                        {onRenderObject}
-                                        {onDestroyObject}
-                                        camera={currentCamera}
-                                        controls={currentControls}
-                                        render={requestFrameIfNotRequested}
-                                        {params}
-                                        meta={etc}
-                                        onClose={() => {
-                                            objects = objects.filter(
-                                                (b) => b.uuid !== uuid
-                                            );
-                                            selectedObjects =
-                                                selectedObjects.filter(
-                                                    (objectId) =>
-                                                        objectId !== uuid
-                                                );
-                                        }}
-                                        bind:color
-                                        bind:title
-                                        bind:animation
-                                        {uuid}
-                                        {gridStep}
-                                        {gridMax}
-                                        on:animate={animateIfNotAnimating}
-                                        bind:selectedObjects
-                                        selected={selectedObjects.includes(
-                                            uuid
-                                        )}
-                                        onSelect={() => selectObject(uuid)}
-                                        bind:selectedPoint
-                                    />
-                                </div>
-                            {/each}
-                        </div>
-
-                        <!-- debug buttons -->
-
-                        {#if debug}
-                            <div>
-                                <button
-                                    on:click={() => {
-                                        objects = [
-                                            {
-                                                uuid: 34,
-                                                kind: 'curve',
-                                                params: {
-                                                    a: '0',
-                                                    b: '2*pi',
-                                                    x: 'cos(t)',
-                                                    y: 'sin(t)',
-                                                    z: '0',
-                                                },
-                                                color: '#aa33ff',
-                                                animation: true,
-                                            },
-                                            {
-                                                uuid: '34point22',
-                                                kind: 'point',
-                                                params: {
-                                                    a: 'cos(2 t)',
-                                                    b: 'sin(2 t)',
-                                                    c: 'cos(2 t) + sin(2 t)',
-                                                    t0: '0',
-                                                    t1: '2 pi',
-                                                },
-                                                color: '#FF0000',
-                                                animation: false,
-                                            },
-                                            {
-                                                uuid: 345,
-                                                kind: 'vector',
-                                                params: {
-                                                    a: 'cos(t)',
-                                                    b: 'sin(t)',
-                                                    c: '1',
-                                                    x: 'cos(t)',
-                                                    y: 'sin(t)',
-                                                    z: '0',
-                                                    t0: '0',
-                                                    t1: '2*pi',
-                                                },
-                                                color: '#ff33ff',
-                                                animation: false,
-                                            },
-                                        ];
-                                    }}>curve anim</button
-                                >
-                                <button
-                                    on:click={() => {
-                                        objects = [
-                                            {
-                                                uuid: 34,
-                                                kind: 'curve',
-                                                params: {
-                                                    a: '0',
-                                                    b: '2*pi',
-                                                    x: 'cos(t)',
-                                                    y: 'sin(t)',
-                                                    z: '0',
-                                                },
-                                                color: '#aa33ff',
-                                                animation: false,
-                                            },
-                                            {
-                                                uuid: '34point22',
-                                                kind: 'point',
-                                                params: {
-                                                    a: 'cos(2 t)',
-                                                    b: 'sin(2 t)',
-                                                    c: 'cos(2 t) + sin(2 t)',
-                                                    t0: '0',
-                                                    t1: '2*pi',
-                                                },
-                                                color: '#FF0000',
-                                                animation: true,
-                                            },
-                                            {
-                                                uuid: 345,
-                                                kind: 'vector',
-                                                params: {
-                                                    a: 'cos(t)',
-                                                    b: 'sin(t)',
-                                                    c: '1',
-                                                    x: 'cos(t)',
-                                                    y: 'sin(t)',
-                                                    z: '0',
-                                                    t0: '0',
-                                                    t1: '2*pi',
-                                                },
-                                                color: '#ff33ff',
-                                                animation: true,
-                                            },
-                                        ];
-                                    }}>point/vec anim</button
-                                >
-                                <button
-                                    on:click={() => {
-                                        objects = [
-                                            {
-                                                uuid: 'agraph3847',
-                                                kind: 'graph',
-                                                params: {
-                                                    a: '-1',
-                                                    b: '1',
-                                                    c: '-1',
-                                                    d: '1',
-                                                    z: 'x^2 - 3*cos(t) * x * y + y^2',
-                                                    t0: '0',
-                                                    t1: '2*pi',
-                                                },
-                                                color: '#ff33ff',
-                                                animation: true,
-                                            },
-                                        ];
-                                    }}>anim func</button
-                                >
-                                <button
-                                    on:click={() => {
-                                        objects = [
-                                            {
-                                                uuid: 'agraph3847',
-                                                kind: 'graph',
-                                                params: {
-                                                    a: '-1',
-                                                    b: '1',
-                                                    c: '-1',
-                                                    d: '1',
-                                                    z: 'x^2 - 3*cos(t) * x * y + y^2',
-                                                    t0: '0',
-                                                    t1: '2*pi',
-                                                },
-                                                color: '#ff33ff',
-                                                animation: false,
-                                            },
-                                        ];
-                                    }}>unanim func</button
-                                >
-                                <button
-                                    on:click={() => {
-                                        objects = [
-                                            {
-                                                uuid: 'swirly1234',
-                                                kind: 'field',
-                                                params: {
-                                                    p: 'x/2',
-                                                    q: '-z',
-                                                    r: 'y',
-                                                    nVec: '5',
-                                                },
-                                                color: '#ff33ff',
-                                                animation: true,
-                                            },
-                                        ];
-                                    }}>anim field</button
-                                >
-                                <button
-                                    on:click={() => {
-                                        objects = [
-                                            {
-                                                uuid: 'swirly1234',
-                                                kind: 'field',
-                                                params: {
-                                                    p: 'x/2',
-                                                    q: '-z',
-                                                    r: 'y',
-                                                    nVec: '5',
-                                                },
-                                                color: '#ff33ff',
-                                                animation: false,
-                                            },
-                                        ];
-                                    }}>unanim field</button
-                                >
-                            </div>
-                        {/if}
                     </div>
+                    <!-- end .objectBoxOuter -->
                 </div>
-                <!-- end .objectBoxOuter -->
             </div>
         </div>
+        <!-- end .accordion -->
     </div>
-    <!-- end .accordion -->
-</div>
+    <button
+        class="panel-hider"
+        on:click={() => (showPanel = !showPanel)}
+        title={showPanel ? 'Hide panel' : 'Show panel'}
+    >
+        {#if showPanel}
+            <i class="bi bi-arrow-bar-left" />
+        {:else}
+            <i class="bi bi-arrow-bar-right" />
+        {/if}
+    </button>
+</aside>
+
 <!-- end .demos-panel -->
 
-{#if !isMobileView}
-    <div
-        class="panel-button panel-hider bg-info bg-opacity-25 border border-info border-start-0 rounded-end-circle"
-        title={showPanel ? 'Hide panel' : 'Show panel'}
-        on:click={onTogglePanel}
-        on:keypress={onTogglePanel}
-        style:transition={panelTransition}
-        style:transition-property={panelTransitionProperty}
-        style:transform={`translateX(${showPanel ? 0 : -panelWidth}px)`}
-    >
-        <div class="align-middle text-center">
-            {#if showPanel}
-                <i class="bi bi-arrow-bar-left" />
-            {:else}
-                <i class="bi bi-arrow-bar-right" />
-            {/if}
-        </div>
+<!-- 
+<div
+    class="panel-button panel-hider bg-info bg-opacity-25 border border-info border-start-0 rounded-end-circle"
+    title={showPanel ? 'Hide panel' : 'Show panel'}
+    on:click={() => (showPanel = !showPanel)}
+    on:keypress={() => (showPanel = !showPanel)}
+    class:collapsed={!showPanel}
+    style="--collapsed-width: translateX(-{panelWidth}px);"
+>
+    <div class="align-middle text-center">
+        {#if showPanel}
+            <i class="bi bi-arrow-bar-left" />
+        {:else}
+            <i class="bi bi-arrow-bar-right" />
+        {/if}
     </div>
-{/if}
+</div> -->
 
 <style>
     :global(#panelAccordion .collapse-info .nav-link:not(.active)) {
@@ -833,14 +786,20 @@
         height: 38px;
     }
 
-    .demos-panel {
+    .panel-wrapper {
+        position: relative;
+        margin: 0;
+        width: fit-content;
+        height: fit-content;
+        transition: transform 100ms ease-in-out;
         z-index: 1;
+    }
 
+    .demos-panel {
         min-width: 300px;
         /* default width */
         width: 370px;
-        max-width: 60%;
-
+        max-width: 60vw;
         height: fit-content;
         max-height: 100%;
 
@@ -860,7 +819,7 @@
         overflow-y: hidden;
     }
 
-    .panel-button {
+    /* .panel-button {
         cursor: pointer;
         position: relative;
 
@@ -868,19 +827,19 @@
         height: 38px;
 
         z-index: 2;
+    } */
+
+    .panel-wrapper.collapsed {
+        transform: translateX(-100%);
     }
 
-    .panel-button:hover {
-        background-color: rgba(255, 255, 150, 0.6) !important;
-    }
-
-    .panel-button > div {
-        position: relative;
-        top: 6px;
-    }
-
-    .panel-button.panel-hider {
-        top: 40px;
+    .panel-hider {
+        --width: 25px;
+        width: var(--width);
+        position: absolute;
+        right: calc(-1 * var(--width));
+        top: 46px;
+        border-radius: 0 5px 5px 0;
     }
 
     .chapterBox,
@@ -922,8 +881,17 @@
     }
 
     .accordion-header {
-        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
-            Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue',
+        font-family:
+            system-ui,
+            -apple-system,
+            BlinkMacSystemFont,
+            'Segoe UI',
+            Roboto,
+            Oxygen,
+            Ubuntu,
+            Cantarell,
+            'Open Sans',
+            'Helvetica Neue',
             sans-serif;
     }
 

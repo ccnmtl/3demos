@@ -11,6 +11,7 @@
         class="btn playpausebtn"
         on:click={() => {
             dispatch(animation ? 'pause' : 'animate');
+            if (!animation) dispatch('play');
             animation = !animation;
         }}
     >

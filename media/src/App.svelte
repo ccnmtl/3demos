@@ -19,6 +19,7 @@
         joinUrl,
         labelAxes,
         modFloor,
+        scaleExp,
     } from './utils';
     import {
         // removeObject,
@@ -29,24 +30,73 @@
     import { handlePollEvent } from './polls/utils';
 
     //import stores
-    import { tickTock } from './stores.js';
+    import { tickTock, viewScale } from './stores.js';
 
     let isMobileView = false;
 
     let debug = false;
     let stats;
     let panel = null;
+    let showPanel = true;
 
     let scaleAnimation = false;
     let scaleUpdate;
     let selectedObjects = [];
     let hoveredObject = null;
     let selectedPoint = null;
-    let lockPoll = false;
+
+    // The demoObjects array store is the declarative data that the scene is based on.
+    import { demoObjects } from './stores.js';
+
+    let gridMax = 1;
+    let gridStep = 1 / 10;
+
+    let currentChapter = 'How To';
+    let currentMode = 'how-to';
+
+    const urlParams = new URLSearchParams(location.search);
+    if (urlParams.keys()) {
+        const objectHolder = {};
+        urlParams.forEach((val, key) => {
+            // This is bad and stupid, and hopefully it will be done better.
+            // make a viewStatus object, maybe?
+
+            if (key === 'grid') {
+                gridMeshes.visible = val === 'true';
+            } else if (key === 'scale') {
+                $viewScale = parseFloat(val);
+                gridMax = scaleExp($viewScale);
+                gridStep = gridMax / 10;
+            } else if (key === 'debug') {
+                debug = val === 'true';
+                console.log('debuggery: ', debug);
+            } else if (key.slice(0, 3) === 'obj') {
+                console.log('got a obj');
+                const keyParts = key.split('_');
+                const obj = objectHolder[keyParts[0]] || { params: {} };
+                if (keyParts[1] === 'params') {
+                    obj.params[keyParts[2]] = val;
+                } else {
+                    obj[keyParts[1]] = val;
+                }
+                objectHolder[keyParts[0]] = obj;
+            }
+        });
+        for (const val of Object.values(objectHolder)) {
+            // objects = makeObject(val.uuid, val.kind, val.params, objects);
+            $demoObjects = [
+                ...$demoObjects,
+                { uuid: crypto.randomUUID(), ...val },
+            ];
+            if (debug) console.log($demoObjects);
+        }
+        console.log('Initializing...', $demoObjects);
+    }
 
     let canvas;
     let isPollsOpen = false;
 
+    let lockPoll = false;
     let showPollResults = false;
 
     const selectObject = (uuid) => {
@@ -114,8 +164,6 @@
         }
     }
 
-    let gridMax = 1,
-        gridStep = 1 / 5;
     const pi = Math.PI;
 
     // Make z the default up
@@ -173,7 +221,7 @@
     });
 
     // Make xy grid lines (off by default).
-    let gridMeshes = drawGrid({ lineMaterial });
+    let gridMeshes = drawGrid({ gridMax, gridStep, lineMaterial });
     gridMeshes.renderDepth = -1;
     gridMeshes.visible = false;
     scene.add(gridMeshes);
@@ -195,6 +243,8 @@
     let [axesText] = labelAxes(
         {
             scene,
+            gridMax,
+            gridStep,
             render: requestFrameIfNotRequested,
         },
         fontLoader,
@@ -203,7 +253,7 @@
 
     // from https://threejs.org/manual/#en/responsive
     const resizeRendererToDisplaySize = function (renderer) {
-        const canvas = renderer.domElement;
+        // const canvas = renderer.domElement;
         const width = canvas.clientWidth;
         const height = canvas.clientHeight;
         const needResize = canvas.width !== width || canvas.height !== height;
@@ -249,7 +299,7 @@
             stats.end();
         }
 
-        if (scaleAnimation || objects.some((b) => b.animation)) {
+        if (scaleAnimation || $demoObjects.some((b) => b.animation)) {
             myReq = requestAnimationFrame(animate);
             frameRequested = true;
             animating = true;
@@ -270,7 +320,7 @@
         }
 
         if (resizeRendererToDisplaySize(renderer)) {
-            const canvas = renderer.domElement;
+            // const canvas = renderer.domElement;
             if (orthoCamera) {
                 currentCamera.top = canvas.clientHeight / 2;
                 currentCamera.bottom = canvas.clientHeight / -2;
@@ -322,9 +372,6 @@
         return renderer;
     };
 
-    // The objects array is the declarative data that the scene is based on.
-    export let objects = [];
-
     // sceneObjects is the array of three.js objects present in the
     // scene. It's derived from the objects array, as a result of how
     // the data gets rendered by our svelte components
@@ -337,7 +384,7 @@
     let host = null;
 
     if (window.SCENE_STATE && window.SCENE_STATE.objects) {
-        objects = window.SCENE_STATE.objects;
+        $demoObjects = window.SCENE_STATE.objects;
     }
 
     if (window.SCENE_STATE && window.SCENE_STATE.poll) {
@@ -354,7 +401,7 @@
 
     export const blowUpObjects = () => {
         if (confirm('Remove all objects in the scene?')) {
-            objects = [];
+            $demoObjects = [];
             selectedObjects = [];
         }
     };
@@ -473,7 +520,7 @@
 
         // If any of the loaded objects are currently animating, start
         // animation.
-        if (objects.some((b) => b.animation)) {
+        if ($demoObjects.some((b) => b.animation)) {
             // Do initial render to set canvas size correctly.
             render();
             // Start animation
@@ -535,14 +582,11 @@
             canvas.toBlob((blob) => {
                 saveBlob(
                     blob,
-                    `screencapture-${canvas.width}x${canvas.height}.png`
+                    `3Demos-screencapture-${canvas.width}x${canvas.height}.png`
                 );
             });
         });
     });
-
-    let currentChapter = 'How To';
-    let currentMode = 'how-to';
 
     let pollResponses = {};
 
@@ -560,13 +604,15 @@
     const makeQueryStringObject = function () {
         const flattenedObjects = {
             currentChapter,
+            scale: $viewScale,
+            showPanel,
         };
         if (gridMeshes.visible) {
             flattenedObjects['grid'] = true;
         }
         window.location.search = convertToURLParams(
             flattenedObjects,
-            objects
+            $demoObjects
         ).toString();
     };
 
@@ -639,7 +685,7 @@
                 activeUserCount = data.message.updateActiveUsers;
             }
         } else {
-            objects = handleSceneEvent(data, objects);
+            $demoObjects = handleSceneEvent(data, $demoObjects);
         }
     };
 
@@ -656,28 +702,30 @@
     }
 
     const keySelect = function (e, moveDown) {
-        if (!objects) {
+        if (!$demoObjects) {
             return;
         } else if (selectedObjects.length === 0) {
-            selectedObjects = [objects[moveDown ? objects.length - 1 : 0].uuid];
-        } else if (selectedObjects.length === objects.length) {
+            selectedObjects = [
+                $demoObjects[moveDown ? $demoObjects.length - 1 : 0].uuid,
+            ];
+        } else if (selectedObjects.length === $demoObjects.length) {
             return;
         } else {
-            const selectedIndex = objects
+            const selectedIndex = $demoObjects
                 .map((x) => x.uuid)
                 .indexOf(
                     selectedObjects[moveDown ? selectedObjects.length - 1 : 0]
                 );
             const newIdx = modFloor(
                 selectedIndex + (moveDown ? -1 : 1),
-                objects.length
+                $demoObjects.length
             );
             if (e.shiftKey) {
                 selectedObjects = moveDown
-                    ? selectedObjects.concat([objects[newIdx].uuid])
-                    : [objects[newIdx].uuid].concat(selectedObjects);
+                    ? selectedObjects.concat([$demoObjects[newIdx].uuid])
+                    : [$demoObjects[newIdx].uuid].concat(selectedObjects);
             } else {
-                selectedObjects = [objects[newIdx].uuid];
+                selectedObjects = [$demoObjects[newIdx].uuid];
             }
         }
         render();
@@ -757,9 +805,7 @@
             bind:this={panel}
             bind:debug
             bind:currentMode
-            bind:objects
             bind:currentChapter
-            bind:gridMeshes
             bind:gridStep
             bind:gridMax
             bind:chatBuffer
@@ -769,6 +815,7 @@
             bind:selectedPoint
             bind:isPollsOpen
             {isMobileView}
+            bind:showPanel
             {isHost}
             {blowUpObjects}
             {selectObject}
@@ -800,7 +847,6 @@
                 {axesHolder}
                 {lineMaterial}
                 {axesMaterial}
-                bind:objects
                 bind:socket
                 encode={makeQueryStringObject}
                 render={requestFrameIfNotRequested}

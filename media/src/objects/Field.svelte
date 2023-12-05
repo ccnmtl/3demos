@@ -134,8 +134,8 @@
 
     const trails = new THREE.LineSegments(trailGeometry, trailMaterial);
 
-    const vfScale = gridStep * 5;
-    const arrowArgs = {
+    $: vfScale = gridStep * 5;
+    $: arrowArgs = {
         radiusTop: vfScale / 60,
         radiusBottom: vfScale / 150,
         heightTop: vfScale / 16,
@@ -181,7 +181,7 @@
                         fieldMaterial,
                         1.2 * lim
                     );
-                    arrow.scale.set(gridMax, gridMax, gridMax);
+                    // arrow.scale.set(gridMax, gridMax, gridMax);
                     arrow.position.set(
                         (((i + 1 / 2) * 2) / N - 1) * lim +
                             0.01 * Math.random(),
