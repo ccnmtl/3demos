@@ -781,7 +781,7 @@
                 title={showPanel ? 'Hide panel' : 'Show panel'}
             >
                 {#if showPanel}
-                    <i class="bi bi-arrow-bar-bottom" />
+                    <i class="bi bi-arrow-bar-left" />
                 {:else}
                     <i class="bi bi-arrow-bar-right" />
                 {/if}
