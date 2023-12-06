@@ -126,13 +126,18 @@
         color: 0xffffff,
         linewidth: 2,
     });
-
+    
+    // Tangents
+    let showTangents = false;
+    let choosingPoint = false;
     const pointMaterial = new THREE.MeshLambertMaterial({ color: 0xffff33 });
     const point = new THREE.Mesh(
         new THREE.SphereGeometry(gridStep / 8, 16, 16),
         pointMaterial
     );
     point.position.set(1, 1, 1);
+    $: point.visible = showTangents;
+    
     const arrowParams = {
         radiusTop: gridStep / 10,
         radiusBottom: gridStep / 20,
@@ -187,7 +192,6 @@
     planeShard.visible = false;
     point.add(planeShard);
 
-    point.visible = false;
     scene.add(point);
 
     // Compile main function
@@ -531,7 +535,7 @@
             }
         }
 
-        if (point.visible) {
+        if (showTangents) {
             const x = point.position.x;
             const y = point.position.y;
             point.position.z = func(x, y, t);
@@ -840,6 +844,7 @@
         scene.remove(point);
         window.removeEventListener('keydown', onKeyDown);
         window.removeEventListener('keyup', onKeyUp);
+        window.removeEventListener('click', onMouseClick);
         render();
     });
 
@@ -847,7 +852,7 @@
 
     let mouseVector = new THREE.Vector2();
 
-    const onMouseMove = function (e) {
+    const placePointAtMouse = function (e) {
         // normalized mouse coordinates
         mouseVector.x = 2 * (e.clientX / window.innerWidth) - 1;
         mouseVector.y = 1 - 2 * (e.clientY / window.innerHeight);
@@ -871,6 +876,11 @@
         }
     };
 
+    const onMouseClick = function (e) {
+        placePointAtMouse(e);
+        choosingPoint = false;
+    };
+
     const activateLevelElevator = function () {
         cancelAnimationFrame(levelReq);
         data.levelDelta *= -1;
@@ -890,8 +900,8 @@
         if (selected) {
             switch (e.key) {
                 case 'Shift':
-                    window.addEventListener('mousemove', onMouseMove, false);
-                    point.visible = true;
+                    showTangents = true;
+                    window.addEventListener('mousemove', placePointAtMouse, false);
                     break;
                 case '0':
                     activateLevelElevator();
@@ -910,7 +920,7 @@
                     break;
                 case 't':
                     if (uuid === selectedObjects[selectedObjects.length - 1]) {
-                        point.visible = !point.visible;
+                        showTangents = !showTangents;
                         render();
                     }
                     break;
@@ -957,12 +967,13 @@
         }
 
         if (e.key === 'Shift') {
-            window.removeEventListener('mousemove', onMouseMove);
+            window.removeEventListener('mousemove', placePointAtMouse);
         }
     };
 
     window.addEventListener('keydown', onKeyDown, true);
     window.addEventListener('keyup', onKeyUp, true);
+    window.addEventListener('click', onMouseClick);
 </script>
 
 <div class="boxItem" class:selected bind:this={boxItemElement} on:keydown>
@@ -1144,16 +1155,24 @@
             {/if}
 
             <span class="box-1"> Tangents </span>
-            <label class="switch box box-2">
+            <label class="switch box box-3">
                 <input
                     type="checkbox"
                     name="frameVisible"
                     id="frameVisible"
-                    bind:checked={point.visible}
+                    bind:checked={showTangents}
                     on:change={render}
                 />
                 <span class="slider round" />
             </label>
+            {#if showTangents}
+                {#if choosingPoint}
+                    <button class="box box-2 btn btn-secondary" on:click={(e) => { e.stopImmediatePropagation(); choosingPoint = false; }}>Cancel</button>
+                {:else}
+                    <button class="box box-2 btn btn-primary" on:click={(e) => { e.stopImmediatePropagation(); choosingPoint = true; }}>Select point</button>
+                {/if}
+            {/if}
+            <span class="box-1"> Color </span>
             <span class="box box-2">
                 <input
                     type="color"

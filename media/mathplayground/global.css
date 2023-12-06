@@ -63,6 +63,11 @@ body,
     padding: 0.5rem;
 }
 
+button.box-2 {
+    padding: 0.1rem 0;
+    width: 85%;
+}
+
 .item-header button {
     background-color: transparent;
     color:white;
