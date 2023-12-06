@@ -36,6 +36,7 @@
     import { colorMap, demoObjects } from './stores';
     import Story from './Story.svelte';
     import { tick } from 'svelte';
+    import { add } from 'mathjs';
 
     export let isMobileView;
 
@@ -187,14 +188,19 @@
 
     let selectedMainTabIndex = 0; // Only used in mobile view where tabs are used instead of accordion
 
-    $: if (kindToAdd) {
-        const uuid = crypto.randomUUID();
+    function randomID() {
+        return Math.random().toString(36).substring(2, 9);
+    }
+
+    function addNewObject(kind) {
+        const uuid = randomID(); // crypto.randomUUID(); caused issues on mobile devices
+
         $demoObjects = [
             ...$demoObjects,
             {
                 uuid,
-                kind: kindToAdd,
-                params: defaultParams[kindToAdd](),
+                kind: kind,
+                params: defaultParams[kind](),
                 color: nextColorUp(),
             },
         ];
@@ -257,8 +263,8 @@
     window.addEventListener('keydown', onKeyDown, false);
 </script>
 
-<aside class="panel-wrapper" class:collapsed={!showPanel}>
-    <div class="demos-panel" class:mobile={isMobileView}>
+<aside class="panel-wrapper" class:mobile={isMobileView} class:collapsed={!showPanel}>
+    <div class="demos-panel">
         <div id="panelAccordion" class:accordion={!isMobileView}>
             <!-- 3Demos logo on Panel only in desktop view -->
             {#if !isMobileView}
@@ -299,6 +305,24 @@
                                 selectedMainTabIndex = 2;
                             }}>Objects</button
                         >
+                    </li>
+
+                    <!-- Spacer -->
+                    <div style="flex-grow: 1;"></div> 
+
+                    <!-- Mobile "hide panel" button -->
+                    <li>
+                        <button
+                            class="nav-link"
+                            on:click={() => (showPanel = !showPanel)}
+                            title='{showPanel ? 'Hide panel' : 'Show panel'}'
+                        >
+                            {#if showPanel}
+                                <i class="bi bi-arrow-bar-down" />
+                            {:else}
+                                <i class="bi bi-arrow-bar-up" />
+                            {/if}
+                        </button>
                     </li>
                 </ul>
             {/if}
@@ -465,6 +489,10 @@
                                 <div class="btn-group mb-2">
                                     <select
                                         bind:value={kindToAdd}
+                                        on:change={(e) => {
+                                            if (e.target.value)
+                                                addNewObject(e.target.value); 
+                                        }}
                                         class="demos-obj-select form-select bg-primary border-primary text-light"
                                     >
                                         <option value={null}>
@@ -746,17 +774,19 @@
             </div>
             <!-- end .accordion -->
         </div>
-        <button
-            class="panel-hider"
-            on:click={() => (showPanel = !showPanel)}
-            title={showPanel ? 'Hide panel' : 'Show panel'}
-        >
-            {#if showPanel}
-                <i class="bi bi-arrow-bar-left" />
-            {:else}
-                <i class="bi bi-arrow-bar-right" />
-            {/if}
-        </button>
+        {#if !isMobileView}
+            <button
+                class="panel-hider"
+                on:click={() => (showPanel = !showPanel)}
+                title={showPanel ? 'Hide panel' : 'Show panel'}
+            >
+                {#if showPanel}
+                    <i class="bi bi-arrow-bar-bottom" />
+                {:else}
+                    <i class="bi bi-arrow-bar-right" />
+                {/if}
+            </button>
+        {/if}
     </div>
 </aside>
 
@@ -819,12 +849,16 @@
         resize: horizontal;
     }
 
-    .demos-panel.mobile {
+    .mobile .demos-panel {
         position: fixed;
         bottom: 0;
         max-width: 100%;
         width: 100%;
         overflow-y: hidden;
+    }
+
+    .mobile.collapsed .demos-panel-box {
+        display: none;
     }
 
     /* .panel-button {
@@ -837,7 +871,7 @@
         z-index: 2;
     } */
 
-    .panel-wrapper.collapsed {
+    .panel-wrapper:not(.mobile).collapsed {
         transform: translateX(-100%);
     }
 
@@ -881,6 +915,10 @@
         gap: 0.25em;
         max-height: 60vh;
         overflow-y: auto;
+    }
+
+    .mobile .objectBoxInner {
+        overflow-y: visible; /* we don't want the objectboxinner div to be scrollable on mobile as its parent is scrollable */
     }
 
     .object-box-title {

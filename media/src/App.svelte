@@ -538,25 +538,32 @@
         renderer.domElement.addEventListener('dblclick', onDblClick);
 
         // Handle double click on touch devices
-        let tapInterval = null;
+        let lastTouchTime = null;
+        let lastTouchX = null;
+        let lastTouchY = null;
         renderer.domElement.addEventListener('touchstart', (e) => {
-            if (tapInterval) {
-                clearTimeout(tapInterval);
-                tapInterval = null;
+            const nowMS = Date.now();
+            const touchX = e.changedTouches[0].clientX;
+            const touchY = e.changedTouches[0].clientY;
+
+            // Check if the user already tapped once in the last 300 ms
+            // We also check the distance so two-finger-dragging doesn't trigger this
+            if (lastTouchTime != null && nowMS - lastTouchTime < 300 && (touchX - lastTouchX) ** 2 + (touchY - lastTouchY) ** 2 < 100) {
+                lastTouchTime = null; // So we don't trigger this again if the user taps again immediately
                 const event = {
                     // We can't just pass e.preventDefault as is because that throws Illegal invocation
                     preventDefault: () => {
                         e.preventDefault();
                     },
                     shiftKey: false,
-                    offsetX: e.touches[0].clientX,
-                    offsetY: e.touches[0].clientY,
+                    offsetX: touchX,
+                    offsetY: touchY,
                 }
                 onDblClick(event);
             } else {
-                tapInterval = setTimeout(() => {
-                    tapInterval = null;
-                }, 300);
+                lastTouchTime = nowMS;
+                lastTouchX = touchX;
+                lastTouchY = touchY;
             }
         });
 
