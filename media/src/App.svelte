@@ -50,6 +50,7 @@
 
     let currentChapter = 'How To';
     let currentMode = 'how-to';
+    let gridSetting = false;
 
     const urlParams = new URLSearchParams(location.search);
     if (urlParams.keys()) {
@@ -59,7 +60,7 @@
             // make a viewStatus object, maybe?
 
             if (key === 'grid') {
-                gridMeshes.visible = val === 'true';
+                gridSetting = val === 'true';
             } else if (key === 'scale') {
                 $viewScale = parseFloat(val);
                 gridMax = scaleExp($viewScale);
@@ -118,7 +119,7 @@
         75,
         window.innerWidth / window.innerHeight,
         0.001,
-        1000
+        1000,
     );
     const raycaster = new THREE.Raycaster();
     const pointerCoords = new THREE.Vector2();
@@ -129,7 +130,7 @@
         (window.innerHeight / window.innerWidth) * 2,
         (-window.innerHeight / window.innerWidth) * 2,
         0,
-        100 * 2
+        100 * 2,
     );
 
     let controls, controls2;
@@ -194,13 +195,13 @@
             light.position.set(
                 20 *
                     Math.cos(
-                        (i * 2 * pi) / candles + (Math.pow(-1, j) * 1) / 2
+                        (i * 2 * pi) / candles + (Math.pow(-1, j) * 1) / 2,
                     ),
                 20 *
                     Math.sin(
-                        (i * 2 * pi) / candles + (Math.pow(-1, j) * 1) / 2
+                        (i * 2 * pi) / candles + (Math.pow(-1, j) * 1) / 2,
                     ),
-                Math.pow(-1, j) * 10
+                Math.pow(-1, j) * 10,
             );
             chandelier.add(light);
         }
@@ -220,7 +221,7 @@
     // Make xy grid lines (off by default).
     let gridMeshes = drawGrid({ gridMax, gridStep, lineMaterial });
     gridMeshes.renderDepth = -1;
-    gridMeshes.visible = false;
+    gridMeshes.visible = gridSetting;
     scene.add(gridMeshes);
 
     // Axes
@@ -245,7 +246,7 @@
             render: requestFrameIfNotRequested,
         },
         fontLoader,
-        TextGeometry
+        TextGeometry,
     );
 
     // from https://threejs.org/manual/#en/responsive
@@ -481,11 +482,11 @@
             sceneObjects,
             pointerCoords,
             currentCamera,
-            raycaster
+            raycaster,
         );
         let nearestVisible = intersects.find(
             (intersect) =>
-                intersect.object.visible && intersect.object.parent.visible
+                intersect.object.visible && intersect.object.parent.visible,
         );
         if (nearestVisible) {
             let obj = nearestVisible.object;
@@ -552,7 +553,7 @@
             canvas.toBlob((blob) => {
                 saveBlob(
                     blob,
-                    `3Demos-screencapture-${canvas.width}x${canvas.height}.png`
+                    `3Demos-screencapture-${canvas.width}x${canvas.height}.png`,
                 );
             });
         });
@@ -582,7 +583,7 @@
         }
         window.location.search = convertToURLParams(
             flattenedObjects,
-            $demoObjects
+            $demoObjects,
         ).toString();
     };
 
@@ -637,7 +638,7 @@
             if (results && results.objects !== null) {
                 objectResponses.clear();
                 objectResponses.children = objectLoader.parse(
-                    results.objects
+                    results.objects,
                 ).children;
                 render();
             }
@@ -684,11 +685,11 @@
             const selectedIndex = $demoObjects
                 .map((x) => x.uuid)
                 .indexOf(
-                    selectedObjects[moveDown ? selectedObjects.length - 1 : 0]
+                    selectedObjects[moveDown ? selectedObjects.length - 1 : 0],
                 );
             const newIdx = modFloor(
                 selectedIndex + (moveDown ? -1 : 1),
-                $demoObjects.length
+                $demoObjects.length,
             );
             if (e.shiftKey) {
                 selectedObjects = moveDown
