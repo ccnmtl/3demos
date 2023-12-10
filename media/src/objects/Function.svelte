@@ -877,8 +877,10 @@
     };
 
     const onMouseClick = function (e) {
-        placePointAtMouse(e);
-        choosingPoint = false;
+        if (choosingPoint) {
+            placePointAtMouse(e);
+            choosingPoint = false;
+        }
     };
 
     const activateLevelElevator = function () {
