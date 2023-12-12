@@ -236,6 +236,7 @@
         scene.remove(tanFrame);
         window.removeEventListener('keydown', onKeyDown, false);
         window.removeEventListener('keyup', onKeyUp, false);
+        window.removeEventListener('click', onMouseClick);
         render();
     });
 
@@ -254,6 +255,7 @@
         tanFrame.add(arrows[key]);
     }
 
+    let choosingPoint = false;
     const pointMaterial = new THREE.MeshLambertMaterial({ color: 0xffff33 });
     const point = new THREE.Mesh(
         new THREE.SphereGeometry(0.2 / 8, 16, 16),
@@ -355,7 +357,7 @@
 
     let mouseVector = new THREE.Vector2();
 
-    const onMouseMove = function (e) {
+    const placePointAtMouse = function (e) {
         // normalized mouse coordinates
         mouseVector.x = 2 * (e.clientX / window.innerWidth) - 1;
         mouseVector.y = 1 - 2 * (e.clientY / window.innerHeight);
@@ -379,6 +381,13 @@
         }
     };
 
+    const onMouseClick = function (e) {
+        if (choosingPoint) {
+            placePointAtMouse(e);
+            choosingPoint = false;
+        }
+    };
+
     const toggleHide = function () {
         mesh.visible = !mesh.visible;
         render();
@@ -397,7 +406,7 @@
                     }
                     break;
                 case 'Shift':
-                    window.addEventListener('mousemove', onMouseMove, false);
+                    window.addEventListener('mousemove', placePointAtMouse, false);
                     tanFrame.visible = true;
                     break;
                 case 'c':
@@ -439,12 +448,13 @@
 
     const onKeyUp = (e) => {
         if (e.key === 'Shift') {
-            window.removeEventListener('mousemove', onMouseMove);
+            window.removeEventListener('mousemove', placePointAtMouse);
         }
     };
 
     window.addEventListener('keydown', onKeyDown, false);
     window.addEventListener('keyup', onKeyUp, false);
+    window.addEventListener('click', onMouseClick);
 </script>
 
 <div class="boxItem" class:selected bind:this={boxItemElement} on:keydown>
@@ -540,7 +550,8 @@
                     params.f = newVal;
                 }}
             />
-
+            
+            <span class="box-1">Color</span>
             <span class="box box-2">
                 <input
                     type="color"
@@ -563,6 +574,13 @@
                 />
                 <span class="slider round" />
             </label>
+            {#if tanFrame.visible}
+                {#if choosingPoint}
+                    <button class="box box-2 btn btn-secondary" on:click={(e) => { e.stopImmediatePropagation(); choosingPoint = false; }}>Cancel</button>
+                {:else}
+                    <button class="box box-2 btn btn-primary" on:click={(e) => { e.stopImmediatePropagation(); choosingPoint = true; }}>Select point</button>
+                {/if}
+            {/if}
         </div>
     </div>
 </div>

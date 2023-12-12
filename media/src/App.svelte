@@ -16,6 +16,7 @@
         convertToURLParams,
         drawAxes,
         drawGrid,
+        joinUrl,
         labelAxes,
         modFloor,
         scaleExp,
@@ -30,6 +31,8 @@
 
     //import stores
     import { tickTock, viewScale } from './stores.js';
+
+    let isMobileView = false;
 
     let debug = false;
     let stats;
@@ -404,8 +407,11 @@
         }
     };
 
+    isMobileView = window.innerWidth < 768;
     window.addEventListener('resize', () => {
         requestFrameIfNotRequested();
+
+        isMobileView = window.innerWidth < 768;
     });
 
     /**
@@ -531,6 +537,37 @@
         //     document.body.style.cursor = 'auto';
         // });
         renderer.domElement.addEventListener('dblclick', onDblClick);
+
+        // Handle double click on touch devices
+        let lastTouchTime = null;
+        let lastTouchX = null;
+        let lastTouchY = null;
+        renderer.domElement.addEventListener('touchstart', (e) => {
+            const nowMS = Date.now();
+            const touchX = e.changedTouches[0].clientX;
+            const touchY = e.changedTouches[0].clientY;
+
+            // Check if the user already tapped once in the last 300 ms
+            // We also check the distance so two-finger-dragging doesn't trigger this
+            if (lastTouchTime != null && nowMS - lastTouchTime < 300 && (touchX - lastTouchX) ** 2 + (touchY - lastTouchY) ** 2 < 100) {
+                lastTouchTime = null; // So we don't trigger this again if the user taps again immediately
+                const event = {
+                    // We can't just pass e.preventDefault as is because that throws Illegal invocation
+                    preventDefault: () => {
+                        e.preventDefault();
+                    },
+                    shiftKey: false,
+                    offsetX: touchX,
+                    offsetY: touchY,
+                }
+                onDblClick(event);
+            } else {
+                lastTouchTime = nowMS;
+                lastTouchX = touchX;
+                lastTouchY = touchY;
+            }
+        });
+
         objectResponses = new THREE.Group();
         scene.add(objectResponses);
 
@@ -707,6 +744,9 @@
             return;
         }
         switch (e.key) {
+            case 'm':
+                isMobileView = !isMobileView;
+                break;
             case 'Escape':
                 selectedObjects = [];
                 render();
@@ -759,6 +799,16 @@
 
 <main>
     <div class="d-flex demos-mainview">
+        <!-- In the mobile view, the logo is not part of the panel -->
+        {#if isMobileView}
+            <a href="/" title="Home" class="demos-logo">
+                <img
+                    alt="3Demos logo"
+                    src={joinUrl(window.STATIC_PREFIX, './3demos-logo.svg')}
+                />
+            </a>
+        {/if}
+
         <Panel
             bind:this={panel}
             bind:debug
@@ -772,6 +822,7 @@
             bind:selectedObjects
             bind:selectedPoint
             bind:isPollsOpen
+            {isMobileView}
             bind:showPanel
             {isHost}
             {blowUpObjects}
@@ -791,8 +842,9 @@
 
         <canvas class="flex-grow-1" tabIndex="0" id="c" bind:this={canvas} />
 
-        <div class="settings-panel-box">
+        <div class="settings-panel-box" class:mobile={isMobileView}>
             <Settings
+                {isMobileView}
                 {scene}
                 {camera}
                 controls={currentControls}
@@ -876,8 +928,22 @@
 
     .settings-panel-box {
         position: fixed;
-        bottom: 0;
         right: 0;
         z-index: 2;
+    }
+
+    .settings-panel-box:not(.mobile) {
+        bottom: 0;
+    }
+
+    .demos-logo {
+        position: absolute;
+        top: 5px;
+        left: 5px;
+        z-index: 1;
+    }
+    
+    .demos-logo img {
+        height: 38px;
     }
 </style>

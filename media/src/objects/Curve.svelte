@@ -66,6 +66,47 @@
     $: hashTag = checksum(JSON.stringify(params));
     $: hashTag, updateCurve();
 
+    // Find approximate t for a given point on the curve.
+    const findT = (vec) => {
+        const { a, b } = params;
+        const [A, B] = [a, b].map((x) => math.parse(x).evaluate());
+
+        let closestT = undefined;
+        let closestDist = Infinity;
+        
+        // Find an approximate t with linear search first
+        for (let tau = 0; tau <= 1; tau += 0.01) {
+            const t = A + (B - A) * tau;
+            const dist = xyz(t).distanceTo(vec);
+            if (dist < closestDist) {
+                closestDist = dist;
+                closestT = t;
+            }
+        }
+
+        // Now refine with binary search
+        const eps = 0.0001;
+        let t = closestT;
+        let dist = closestDist;
+        let step = 0.005 * (B - A); // The 0.005 here is chosen to be half of the 0.01 above.
+        while (step > eps) {
+            const t1 = t - step;
+            const t2 = t + step;
+            const dist1 = xyz(t1).distanceTo(vec);
+            const dist2 = xyz(t2).distanceTo(vec);
+            if (dist1 < dist2) {
+                t = t1;
+                dist = dist1;
+            } else {
+                t = t2;
+                dist = dist2;
+            }
+            step /= 2;
+        }
+
+        return t;
+    };
+
     // Check midpoint of parameter space and see if all is ok.
     const chickenParms = (val, { a, b }) => {
         let valuation;
@@ -198,6 +239,7 @@
         }
     };
 
+    let choosingPoint = false;
     const frame = new THREE.Object3D();
     frame.visible = false;
     scene.add(frame);
@@ -388,6 +430,7 @@
 
         window.removeEventListener('keydown', onKeyDown);
         window.removeEventListener('keyup', onKeyUp);
+        window.removeEventListener('click', onMouseClick);
         render();
     });
 
@@ -407,22 +450,29 @@
 
     let mouseVector = new THREE.Vector2();
 
-    const onMouseMove = function (e) {
+    const placePointAtMouse = function (e) {
         // normalized mouse coordinates
         mouseVector.x = 2 * (e.clientX / window.innerWidth) - 1;
         mouseVector.y = 1 - 2 * (e.clientY / window.innerHeight);
 
         raycaster.setFromCamera(mouseVector, camera);
 
-        const intersects = raycaster.intersectObjects(tube, true);
-
+        const intersects = raycaster.intersectObjects([tube], true);
+    
         if (intersects.length > 0) {
             const intersect = intersects[0];
-            point.position.x = intersect.point.x;
-            point.position.y = intersect.point.y;
-            point.position.z = intersect.point.z;
+            const T = findT(intersect.point);
+            tau = (T - math.parse(params.a).evaluate()) / (math.parse(params.b).evaluate() - math.parse(params.a).evaluate()); // Update the UI
+            updateFrame({ T });
             frame.visible = true;
             render();
+        }
+    };
+
+    const onMouseClick = function (e) {
+        if (choosingPoint) {
+            placePointAtMouse(e);
+            choosingPoint = false;
         }
     };
 
@@ -449,7 +499,7 @@
                     }
                     break;
                 case 'Shift':
-                    window.addEventListener('mousemove', onMouseMove, false);
+                    window.addEventListener('mousemove', placePointAtMouse, false);
                     break;
                 case 'c':
                     if (selectedObjects[selectedObjects.length - 1] === uuid) {
@@ -488,12 +538,13 @@
         }
 
         if (e.key === 'Shift') {
-            window.removeEventListener('mousemove', onMouseMove);
+            window.removeEventListener('mousemove', placePointAtMouse);
         }
     };
 
     window.addEventListener('keydown', onKeyDown, false);
     window.addEventListener('keyup', onKeyUp, false);
+    window.addEventListener('click', onMouseClick);
 </script>
 
 <div class="boxItem" class:selected bind:this={boxItemElement} on:keydown>
@@ -603,7 +654,13 @@
                 />
                 <span class="slider round" />
             </label>
-
+            {#if frame.visible}
+                {#if choosingPoint}
+                    <button class="box box-2 btn btn-secondary" on:click={(e) => { e.stopImmediatePropagation(); choosingPoint = false; }}>Cancel</button>
+                {:else}
+                    <button class="box box-2 btn btn-primary" on:click={(e) => { e.stopImmediatePropagation(); choosingPoint = true; }}>Select point</button>
+                {/if}
+            {/if}
             <span class="box-1">Reparamterize by <M>s</M></span>
             <label class="switch box box-2">
                 <input
