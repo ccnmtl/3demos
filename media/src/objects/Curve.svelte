@@ -87,7 +87,7 @@
         // Now refine with binary search
         const eps = 0.0001;
         let t = closestT;
-        let dist = closestDist;
+        // let dist = closestDist;
         let step = 0.005 * (B - A); // The 0.005 here is chosen to be half of the 0.01 above.
         while (step > eps) {
             const t1 = t - step;
@@ -96,10 +96,10 @@
             const dist2 = xyz(t2).distanceTo(vec);
             if (dist1 < dist2) {
                 t = t1;
-                dist = dist1;
+                // dist = dist1;
             } else {
                 t = t2;
-                dist = dist2;
+                // dist = dist2;
             }
             step /= 2;
         }
