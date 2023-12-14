@@ -36,7 +36,7 @@
     import { colorMap, demoObjects } from './stores';
     import Story from './Story.svelte';
     import { tick } from 'svelte';
-    import { add } from 'mathjs';
+    // import { add } from 'mathjs';
 
     export let isMobileView;
 
@@ -188,11 +188,11 @@
 
     let selectedMainTabIndex = 0; // Only used in mobile view where tabs are used instead of accordion
 
-    function randomID() {
+    const randomID = function() {
         return Math.random().toString(36).substring(2, 9);
     }
 
-    function addNewObject(kind) {
+    const addNewObject = function(kind) {
         const uuid = randomID(); // crypto.randomUUID(); caused issues on mobile devices
 
         $demoObjects = [
