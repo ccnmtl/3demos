@@ -95,16 +95,16 @@
      */
     const defaultParams = {
         point: () => ({
-            a: `${Math.random()}`.slice(0, 5),
-            b: `${Math.random()}`.slice(0, 5),
-            c: `${Math.random()}`.slice(0, 5),
+            a: `${Math.round(10 * (2 * Math.random() - 1)) / 10}`,
+            b: `${Math.round(10 * (2 * Math.random() - 1)) / 10}`,
+            c: `${Math.round(10 * (2 * Math.random() - 1)) / 10}`,
             t0: '0',
             t1: '1',
         }),
         vector: () => ({
-            a: `${2 * Math.random() - 1}`.slice(0, 5),
-            b: `${2 * Math.random() - 1}`.slice(0, 5),
-            c: `${2 * Math.random() - 1}`.slice(0, 5),
+            a: `${Math.round(10 * (2 * Math.random() - 1)) / 10}`,
+            b: `${Math.round(10 * (2 * Math.random() - 1)) / 10}`,
+            c: `${Math.round(10 * (2 * Math.random() - 1)) / 10}`,
             x: '0',
             y: '0',
             z: '0',
@@ -188,11 +188,11 @@
 
     let selectedMainTabIndex = 0; // Only used in mobile view where tabs are used instead of accordion
 
-    const randomID = function() {
+    const randomID = function () {
         return Math.random().toString(36).substring(2, 9);
-    }
+    };
 
-    const addNewObject = function(kind) {
+    const addNewObject = function (kind) {
         const uuid = randomID(); // crypto.randomUUID(); caused issues on mobile devices
 
         $demoObjects = [
@@ -212,7 +212,7 @@
             selectObject(uuid);
         }, 350); // why 350? I don't know. Autoscroll has some race condition I don't get.
         kindToAdd = null;
-    }
+    };
 
     /**
      * Show the "Info" accordion item.
@@ -263,7 +263,11 @@
     window.addEventListener('keydown', onKeyDown, false);
 </script>
 
-<aside class="panel-wrapper" class:mobile={isMobileView} class:collapsed={!showPanel}>
+<aside
+    class="panel-wrapper"
+    class:mobile={isMobileView}
+    class:collapsed={!showPanel}
+>
     <div class="demos-panel">
         <div id="panelAccordion" class:accordion={!isMobileView}>
             <!-- 3Demos logo on Panel only in desktop view -->
@@ -308,14 +312,14 @@
                     </li>
 
                     <!-- Spacer -->
-                    <div style="flex-grow: 1;"></div> 
+                    <div style="flex-grow: 1;"></div>
 
                     <!-- Mobile "hide panel" button -->
                     <li>
                         <button
                             class="nav-link"
                             on:click={() => (showPanel = !showPanel)}
-                            title='{showPanel ? 'Hide panel' : 'Show panel'}'
+                            title={showPanel ? 'Hide panel' : 'Show panel'}
                         >
                             {#if showPanel}
                                 <i class="bi bi-arrow-bar-down" />
@@ -491,7 +495,7 @@
                                         bind:value={kindToAdd}
                                         on:change={(e) => {
                                             if (e.target.value)
-                                                addNewObject(e.target.value); 
+                                                addNewObject(e.target.value);
                                         }}
                                         class="demos-obj-select form-select bg-primary border-primary text-light"
                                     >
