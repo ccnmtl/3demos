@@ -78,7 +78,8 @@
                 if (keyParts[1] === 'params') {
                     obj.params[keyParts[2]] = val;
                 } else {
-                    obj[keyParts[1]] = val;
+                    obj[keyParts[1]] =
+                        val === 'false' ? false : val === 'true' ? true : val;
                 }
                 objectHolder[keyParts[0]] = obj;
             }
@@ -549,7 +550,11 @@
 
             // Check if the user already tapped once in the last 300 ms
             // We also check the distance so two-finger-dragging doesn't trigger this
-            if (lastTouchTime != null && nowMS - lastTouchTime < 300 && (touchX - lastTouchX) ** 2 + (touchY - lastTouchY) ** 2 < 100) {
+            if (
+                lastTouchTime != null &&
+                nowMS - lastTouchTime < 300 &&
+                (touchX - lastTouchX) ** 2 + (touchY - lastTouchY) ** 2 < 100
+            ) {
                 lastTouchTime = null; // So we don't trigger this again if the user taps again immediately
                 const event = {
                     // We can't just pass e.preventDefault as is because that throws Illegal invocation
@@ -559,7 +564,7 @@
                     shiftKey: false,
                     offsetX: touchX,
                     offsetY: touchY,
-                }
+                };
                 onDblClick(event);
             } else {
                 lastTouchTime = nowMS;
@@ -942,7 +947,7 @@
         left: 5px;
         z-index: 1;
     }
-    
+
     .demos-logo img {
         height: 38px;
     }

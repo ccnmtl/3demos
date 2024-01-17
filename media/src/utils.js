@@ -39,6 +39,9 @@ const convertToURLParams = function (params, objects) {
         const prefix = `obj${index}_`;
         params[prefix + "kind"] = object.kind;
         params[prefix + "color"] = object.color;
+        if (object.animation) {
+            params[prefix + "animation"] = object.animation;
+        }
         if (object.params) {
             for (const [key, value] of Object.entries(object.params)) {
                 params[prefix + "params_" + key] = value;
