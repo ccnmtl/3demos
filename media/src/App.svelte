@@ -295,6 +295,11 @@
             scaleUpdate(dt);
         }
 
+        for (let index = 0; index < axesText.length; index++) {
+            const element = axesText[index];
+            element.lookAt(currentCamera.position);
+        }
+
         currentControls?.update();
         renderer.render(scene, currentCamera);
         if (debug) {
