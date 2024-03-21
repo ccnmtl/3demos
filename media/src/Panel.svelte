@@ -235,7 +235,7 @@
     };
 
     onMount(() => {
-        const urlParams = new URLSearchParams(location.search);
+        const urlParams = new URLSearchParams(atob(location.search.slice(1)));
         if (urlParams.keys()) {
             // const objectHolder = {};
             urlParams.forEach((val, key) => {
