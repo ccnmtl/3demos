@@ -55,8 +55,7 @@
     let currentMode = 'how-to';
     let gridSetting = false;
 
-    // Decode the URL parameters and set the initial state of the scene.
-    const urlParams = new URLSearchParams(atob(location.search.slice(1)));
+    const urlParams = new URLSearchParams(location.search);
     if (urlParams.keys()) {
         const objectHolder = {};
         urlParams.forEach((val, key) => {
@@ -629,10 +628,10 @@
         if (gridMeshes.visible) {
             flattenedObjects['grid'] = true;
         }
-        window.location.search = btoa(convertToURLParams(
+        window.location.search = convertToURLParams(
             flattenedObjects,
             $demoObjects,
-        ).toString());
+        ).toString();
     };
 
     const handleSocketMessage = function (e) {
