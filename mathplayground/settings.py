@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
 from pathlib import Path
+from ctlsettings.shared import get_ec2_instance_ip
 
 project = 'mathplayground'
 
@@ -28,12 +29,18 @@ SECRET_KEY = 'django-insecure-lg(8*egrro1rtyr#9&-5nrqs^' + \
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+# (replacing the existing ALLOWED_HOSTS in settings.py)
 ALLOWED_HOSTS = [
     '.ctl.columbia.edu',
+    '.stage.ctl.columbia.edu',
     '.ccnmtl.columbia.edu',
     'localhost',
+    '127.0.0.1',
 ]
 
+public_ip = get_ec2_instance_ip()
+if public_ip:
+    ALLOWED_HOSTS += [public_ip]
 
 # Application definition
 
