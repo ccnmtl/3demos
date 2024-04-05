@@ -64,3 +64,5 @@ webdriver-manager==4.0.0
 wrapt==1.16.0
 wsproto==1.2.0
 zope.interface==6.2
+
+ctlsettings==0.3.1
