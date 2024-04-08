@@ -58,7 +58,7 @@ trio==0.25.0
 trio-websocket==0.11.1
 Twisted==24.3.0
 txaio==23.1.1
-typing_extensions==4.10.0
+typing_extensions==4.11.0
 urllib3==2.2.1
 webdriver-manager==4.0.0
 wrapt==1.16.0
