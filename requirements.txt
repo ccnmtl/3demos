@@ -63,6 +63,6 @@ urllib3==2.2.1
 webdriver-manager==4.0.0
 wrapt==1.16.0
 wsproto==1.2.0
-zope.interface==6.2
+zope.interface==6.3
 
 ctlsettings==0.3.1
