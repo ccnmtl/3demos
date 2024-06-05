@@ -1,5 +1,5 @@
 <script>
-    import { TabContent, TabPane } from 'sveltestrap';
+    import { TabContent, TabPane } from '@sveltestrap/sveltestrap';
     import PollResponses from './PollResponses.svelte';
     import PollForm from './PollForm.svelte';
     import { Poll, setIdCounter } from './Poll.js';
@@ -99,7 +99,7 @@
         // https://github.com/bestguy/sveltestrap/issues/485
         const responsesEl = querySelectorIncludesText(
             '.polls-modal .nav-tabs a',
-            'Responses'
+            'Responses',
         );
         responsesEl.click();
     };

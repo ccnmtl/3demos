@@ -7,7 +7,7 @@
     import { quintOut } from 'svelte/easing';
     // import { flip } from 'svelte/animate';
 
-    import { TabContent, TabPane } from 'sveltestrap';
+    import { TabContent, TabPane } from '@sveltestrap/sveltestrap';
 
     import HowTo from './docs/HowTo.svelte';
     import About from './docs/About.svelte';
@@ -542,7 +542,7 @@
                                     <!-- Main Loop, if you will -->
                                     {#each $demoObjects as { uuid, kind, params, color, title, animation, ...etc } (uuid)}
                                         <div
-                                            transition:slide={{
+                                            transition:slide|global={{
                                                 delay: 0,
                                                 duration: 200,
                                                 easing: quintOut,
