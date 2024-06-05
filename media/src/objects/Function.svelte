@@ -1104,7 +1104,7 @@
             </label>
 
             {#if isDynamic}
-                <!-- <div class="dynamic-container" transition:slide> -->
+                <!-- <div class="dynamic-container" transition:slide|global> -->
                 {#each ['t0', 't1'] as name}
                     {#if name === 't1'}
                         <span class="box box-3"
