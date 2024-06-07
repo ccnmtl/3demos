@@ -18,6 +18,7 @@
         querySelectorIncludesText,
         tripleToHex,
         joinUrl,
+        processSearchEncoding,
     } from './utils';
     import { publishScene } from './sceneUtils';
 
@@ -235,7 +236,9 @@
     };
 
     onMount(() => {
-        const urlParams = new URLSearchParams(location.search);
+        const urlParams = new URLSearchParams(
+            processSearchEncoding(location.search),
+        );
         if (urlParams.keys()) {
             // const objectHolder = {};
             urlParams.forEach((val, key) => {

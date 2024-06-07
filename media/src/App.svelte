@@ -20,6 +20,7 @@
         labelAxes,
         modFloor,
         scaleExp,
+        processSearchEncoding,
     } from './utils';
     import {
         // removeObject,
@@ -55,7 +56,9 @@
     let currentMode = 'how-to';
     let gridSetting = false;
 
-    const urlParams = new URLSearchParams(location.search);
+    const urlParams = new URLSearchParams(
+        processSearchEncoding(location.search),
+    );
     if (urlParams.keys()) {
         const objectHolder = {};
         urlParams.forEach((val, key) => {
@@ -72,7 +75,7 @@
                 debug = val === 'true';
                 console.log('debuggery: ', debug);
             } else if (key.slice(0, 3) === 'obj') {
-                console.log('got a obj');
+                // console.log('got an obj');
                 const keyParts = key.split('_');
                 const obj = objectHolder[keyParts[0]] || { params: {} };
                 if (keyParts[1] === 'params') {
@@ -628,10 +631,9 @@
         if (gridMeshes.visible) {
             flattenedObjects['grid'] = true;
         }
-        window.location.search = convertToURLParams(
-            flattenedObjects,
-            $demoObjects,
-        ).toString();
+        window.location.search = btoa(
+            convertToURLParams(flattenedObjects, $demoObjects).toString(),
+        );
     };
 
     const handleSocketMessage = function (e) {
