@@ -124,7 +124,7 @@
         shininess: 70,
         side: THREE.DoubleSide,
         vertexColors: true,
-        transparent: true,
+        transparent: false,
     });
 
     const colorMeBadd = (mesh, f) => {
@@ -146,7 +146,7 @@
             return blueUpRedDown(
                 (2 * (value - $vMin)) / ($vMax - $vMin) - 1,
                 0.8,
-                $densityColormap
+                $densityColormap,
             );
         });
     };
@@ -186,7 +186,7 @@
         shininess: 80,
         side: THREE.DoubleSide,
         vertexColors: false,
-        transparent: true,
+        transparent: false,
         opacity: 0.7,
     });
 
@@ -226,7 +226,7 @@
 
     const borders = new THREE.LineSegments(
         new THREE.BufferGeometry(),
-        whiteLineMaterial
+        whiteLineMaterial,
     );
 
     solidGroup.add(box);
@@ -307,7 +307,7 @@
                     E,
                     F,
                     nX * 2,
-                    nX / 2
+                    nX / 2,
                 );
                 break;
             case 'spher':
@@ -454,7 +454,7 @@
                                 .evaluate(
                                     params.coords === 'rect'
                                         ? { x: (A + B) / 2 }
-                                        : { theta: (A + B) / 2 }
+                                        : { theta: (A + B) / 2 },
                                 );
                         } catch (e) {
                             console.error(e);
