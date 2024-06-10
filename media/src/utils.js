@@ -53,6 +53,22 @@ const convertToURLParams = function (params, objects) {
 };
 
 /**
+ * Try to (base64) unencode search string and pass it along untouched otherwise. 
+ * 
+ * @param {string} search - input likely from window.location.search
+ * @returns {string} URLSearchParameter-type string
+ */
+function processSearchEncoding(search) {
+    console.log(`Search string is ${search.length} char long.`);
+    try {
+        return atob(search.slice(1)); // take off '?'
+    } catch (e) {
+        console.log("(possibly) old URL encoding\n", e);
+        return search;
+    }
+}
+
+/**
  * Given a room/session id, return its path.
  */
 const getRoomUrl = function (id) {
@@ -1229,7 +1245,7 @@ function labelAxes({
             const textGeometryArguments = {
                 font: font,
                 size: (gridStep * 2) / 3,
-                height: 0,
+                depth: 0,
                 curveSegments: 12,
                 bevelEnabled: false,
             };
@@ -2800,6 +2816,7 @@ export {
     joinUrl,
     getRoomUrl,
     convertToURLParams,
+    processSearchEncoding,
     ArrowBufferGeometry,
     ParametricCurve,
     drawGrid,
