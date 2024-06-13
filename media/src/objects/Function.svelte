@@ -4,6 +4,7 @@
 
 <script>
     import { onMount, onDestroy, createEventDispatcher } from 'svelte';
+    import { slide } from 'svelte/transition';
     import * as THREE from 'three';
     import { create, all } from 'mathjs';
 
@@ -17,6 +18,11 @@
 
     const config = {};
     const math = create(all, config);
+
+    const transParams = {
+        duration: 200,
+        axis: 'y',
+    };
 
     const dispatch = createEventDispatcher();
 
@@ -70,7 +76,7 @@
                     x: (A + B) / 2,
                     y: (C + D) / 2,
                     t: (t0 + t1) / 2,
-                })
+                }),
             );
         } catch (e) {
             console.error('Parse error in expression', val, e);
@@ -120,24 +126,24 @@
         side: THREE.FrontSide,
         vertexColors: true,
         transparent: false,
-        opacity: 0.5,
+        opacity: 0.8,
     });
     const boxEdgeMaterial = new THREE.LineBasicMaterial({
         color: 0xffffff,
         linewidth: 2,
     });
-    
+
     // Tangents
     let showTangents = false;
     let choosingPoint = false;
     const pointMaterial = new THREE.MeshLambertMaterial({ color: 0xffff33 });
     const point = new THREE.Mesh(
         new THREE.SphereGeometry(gridStep / 8, 16, 16),
-        pointMaterial
+        pointMaterial,
     );
     point.position.set(1, 1, 1);
     $: point.visible = showTangents;
-    
+
     const arrowParams = {
         radiusTop: gridStep / 10,
         radiusBottom: gridStep / 20,
@@ -149,28 +155,28 @@
                 ...arrowParams,
                 height: 1,
             }),
-            new THREE.MeshBasicMaterial({})
+            new THREE.MeshBasicMaterial({}),
         ),
         v: new THREE.Mesh(
             new ArrowBufferGeometry({
                 ...arrowParams,
                 height: 1,
             }),
-            new THREE.MeshBasicMaterial({})
+            new THREE.MeshBasicMaterial({}),
         ),
         n: new THREE.Mesh(
             new ArrowBufferGeometry({
                 ...arrowParams,
                 height: 1,
             }),
-            new THREE.MeshBasicMaterial({})
+            new THREE.MeshBasicMaterial({}),
         ),
         grad: new THREE.Mesh(
             new ArrowBufferGeometry({
                 ...arrowParams,
                 height: 1,
             }),
-            new THREE.MeshBasicMaterial({})
+            new THREE.MeshBasicMaterial({}),
         ),
     };
     const ruColors = { u: 0x992525, v: 0x252599, grad: 0x259925, n: 0xb6b6b6 };
@@ -211,7 +217,7 @@
 
         const dx = 0.001;
         const [A, B] = [params.t0, params.t1].map((x) =>
-            math.parse(x).evaluate()
+            math.parse(x).evaluate(),
         );
         const t = A + tau * (B - A);
 
@@ -262,7 +268,7 @@
                 vec.add(new THREE.Vector3(0, 0, 0.0001));
             },
             2,
-            2
+            2,
         );
 
         planeShard.geometry = tangentPlaneGeometry;
@@ -282,13 +288,15 @@
         linewidth: 4,
     });
 
+    let materialOpacity = 0.8;
+
     const plusMaterial = new THREE.MeshPhongMaterial({
         color: color,
         shininess: 80,
         side: THREE.FrontSide,
         vertexColors: false,
         transparent: true,
-        opacity: 0.5,
+        opacity: materialOpacity,
         depthTest: true,
     });
     const minusMaterial = new THREE.MeshPhongMaterial({
@@ -297,7 +305,7 @@
         side: THREE.BackSide,
         vertexColors: false,
         transparent: true,
-        opacity: 0.5,
+        opacity: materialOpacity,
     });
 
     // Set other side a complementary color.
@@ -338,7 +346,7 @@
                 vec.set(U, V, func(U, V, time));
             },
             data.nX,
-            data.nX
+            data.nX,
         );
         const meshGeometry = meshLines(params, data.rNum, data.cNum, data.nX);
         if (!meshGeometry) {
@@ -370,7 +378,7 @@
             surfaceMesh.add(frontMesh);
             surfaceMesh.add(backMesh);
             surfaceMesh.add(
-                new THREE.LineSegments(meshGeometry, whiteLineMaterial)
+                new THREE.LineSegments(meshGeometry, whiteLineMaterial),
             );
             scene.add(surfaceMesh);
         }
@@ -439,7 +447,7 @@
                 (x) => (C.evaluate({ x: x }) - v) * (v - D.evaluate({ x: x })),
                 A,
                 B,
-                nX
+                nX,
             );
             // args['y'] = v;
             let nextZero = zs.shift();
@@ -453,14 +461,14 @@
                             new THREE.Vector3(
                                 nextZero,
                                 v,
-                                func(nextZero, v, time)
-                            )
+                                func(nextZero, v, time),
+                            ),
                         );
                         nextZero = zs.shift();
                     } else {
                         // args.x = u + dx;
                         points.push(
-                            new THREE.Vector3(u + dx, v, func(u + dx, v, time))
+                            new THREE.Vector3(u + dx, v, func(u + dx, v, time)),
                         );
                     }
                 } else {
@@ -470,13 +478,13 @@
                             new THREE.Vector3(
                                 nextZero,
                                 v,
-                                func(nextZero, v, time)
-                            )
+                                func(nextZero, v, time),
+                            ),
                         );
                         nextZero = zs.shift();
                         // args.x = u + dx;
                         points.push(
-                            new THREE.Vector3(u + dx, v, func(u + dx, v, time))
+                            new THREE.Vector3(u + dx, v, func(u + dx, v, time)),
                         );
                     }
                 }
@@ -549,7 +557,7 @@
 
     const curveBall = new THREE.LineSegments(
         new THREE.BufferGeometry(),
-        redLineMaterial
+        redLineMaterial,
     );
     scene.add(curveBall);
 
@@ -685,17 +693,17 @@
         for (let i = 0; i <= data.nL; i++) {
             C = Math.min(
                 C,
-                math.evaluate(c, { x: A + ((B - A) * i) / data.nL })
+                math.evaluate(c, { x: A + ((B - A) * i) / data.nL }),
             );
             D = Math.max(
                 D,
-                math.evaluate(d, { x: A + ((B - A) * i) / data.nL })
+                math.evaluate(d, { x: A + ((B - A) * i) / data.nL }),
             );
             for (let j = 0; j <= data.nL; j++) {
                 const Z = func(
                     A + ((B - A) * i) / data.nL,
                     C + ((D - C) * j) / data.nL,
-                    t
+                    t,
                 );
                 zMin = Math.min(zMin, Z);
                 zMax = Math.max(zMax, Z);
@@ -732,18 +740,18 @@
                         color: new THREE.Color().setHSL(
                             (lev - zMin) / (zMax - zMin),
                             0.5,
-                            0.5
+                            0.5,
                         ),
                         linewidth: 3,
                         transparent: false,
-                    })
+                    }),
                 );
 
                 levelMesh.level = lev;
                 levelMesh.position.set(
                     0,
                     0,
-                    shiftInterpolation(data.shiftLevel, lev)
+                    shiftInterpolation(data.shiftLevel, lev),
                 );
 
                 levelHolder.add(levelMesh);
@@ -754,7 +762,7 @@
         curveBall.position.set(
             0,
             0,
-            shiftInterpolation(data.shiftLevel, curveBall.level)
+            shiftInterpolation(data.shiftLevel, curveBall.level),
         );
     };
 
@@ -777,7 +785,7 @@
     scene.add(boxMesh);
     const boxMeshEdges = new THREE.LineSegments(
         new THREE.BufferGeometry(),
-        boxEdgeMaterial
+        boxEdgeMaterial,
     );
     boxMesh.add(boxMeshEdges);
 
@@ -808,7 +816,7 @@
             data.N,
             data.N,
             data.s,
-            data.t
+            data.t,
         );
         boxMeshEdges.geometry = new THREE.EdgesGeometry(boxMesh.geometry);
     };
@@ -861,7 +869,7 @@
 
         const intersects = raycaster.intersectObjects(
             [surfaceMesh.children[0], surfaceMesh.children[1]],
-            true
+            true,
         );
 
         if (intersects.length > 0) {
@@ -903,7 +911,11 @@
             switch (e.key) {
                 case 'Shift':
                     showTangents = true;
-                    window.addEventListener('mousemove', placePointAtMouse, false);
+                    window.addEventListener(
+                        'mousemove',
+                        placePointAtMouse,
+                        false,
+                    );
                     break;
                 case '0':
                     activateLevelElevator();
@@ -912,7 +924,7 @@
                     controls.target.set(
                         point.position.x,
                         point.position.y,
-                        point.position.z
+                        point.position.z,
                     );
                     render();
                     break;
@@ -978,6 +990,7 @@
     window.addEventListener('click', onMouseClick);
 </script>
 
+<!-- svelte-ignore a11y-no-static-element-interactions -->
 <div class="boxItem" class:selected bind:this={boxItemElement} on:keydown>
     <ObjHeader
         bind:minimize
@@ -1169,9 +1182,21 @@
             </label>
             {#if showTangents}
                 {#if choosingPoint}
-                    <button class="box box-2 btn btn-secondary" on:click={(e) => { e.stopImmediatePropagation(); choosingPoint = false; }}>Cancel</button>
+                    <button
+                        class="box box-2 btn btn-secondary"
+                        on:click={(e) => {
+                            e.stopImmediatePropagation();
+                            choosingPoint = false;
+                        }}>Cancel</button
+                    >
                 {:else}
-                    <button class="box box-2 btn btn-primary" on:click={(e) => { e.stopImmediatePropagation(); choosingPoint = true; }}>Select point</button>
+                    <button
+                        class="box box-2 btn btn-primary"
+                        on:click={(e) => {
+                            e.stopImmediatePropagation();
+                            choosingPoint = true;
+                        }}>Select point</button
+                    >
                 {/if}
             {/if}
             <span class="box-1"> Color </span>
@@ -1184,6 +1209,20 @@
                     style="width:85%; padding: 1px 1px;"
                 />
             </span>
+            <span class="box-1"> Opacity </span>
+            <input
+                type="range"
+                bind:value={materialOpacity}
+                min="0"
+                max="1"
+                step="0.05"
+                on:input={() => {
+                    plusMaterial.opacity = materialOpacity;
+                    minusMaterial.opacity = materialOpacity;
+                    render();
+                }}
+                class="box box-2"
+            />
             <span class="box-1"> Integrate </span>
             <label class="switch box box-2">
                 <input
@@ -1200,42 +1239,48 @@
                 />
                 <span class="slider round" />
             </label>
-            <span class="box-1">
-                <M size="sm">N</M>
-            </span>
-            <input
-                type="range"
-                bind:value={data.N}
-                min="1"
-                max="81"
-                step="1"
-                on:input={() => {
-                    updateBoxes();
-                    render();
-                }}
-                class="box box-2"
-            />
-            <span class="box-1"> Sample </span>
-            <input
-                type="range"
-                bind:value={data.samp}
-                min="0"
-                max="4"
-                step="1"
-                on:input={() => {
-                    const pt = [
-                        [0, 0],
-                        [1, 0],
-                        [1 / 2, 1 / 2],
-                        [0, 1],
-                        [1, 1],
-                    ];
-                    [data.s, data.t] = pt[data.samp];
-                    updateBoxes();
-                    render();
-                }}
-                class="box box-2"
-            />
+            {#if boxMesh.visible}
+                <span class="box-1" transition:slide={transParams}>
+                    <M size="sm">N</M>
+                </span>
+                <input
+                    transition:slide={transParams}
+                    type="range"
+                    bind:value={data.N}
+                    min="1"
+                    max="81"
+                    step="1"
+                    on:input={() => {
+                        updateBoxes();
+                        render();
+                    }}
+                    class="box box-2"
+                />
+                <span class="box-1" transition:slide={transParams}>
+                    Sample
+                </span>
+                <input
+                    transition:slide={transParams}
+                    type="range"
+                    bind:value={data.samp}
+                    min="0"
+                    max="4"
+                    step="1"
+                    on:input={() => {
+                        const pt = [
+                            [0, 0],
+                            [1, 0],
+                            [1 / 2, 1 / 2],
+                            [0, 1],
+                            [1, 1],
+                        ];
+                        [data.s, data.t] = pt[data.samp];
+                        updateBoxes();
+                        render();
+                    }}
+                    class="box box-2"
+                />
+            {/if}
         </div>
     </div>
 </div>
