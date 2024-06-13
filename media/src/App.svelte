@@ -198,7 +198,7 @@
     const candles = 3;
     for (let i = 0; i < candles; i++) {
         for (let j = 0; j < 2; j++) {
-            const light = new THREE.PointLight(0xffffff, 0.5, 1000);
+            const light = new THREE.PointLight(0xffffff, 800);
             light.position.set(
                 20 *
                     Math.cos(
