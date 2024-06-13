@@ -1,17 +1,17 @@
 <script>
-    import { onMount } from 'svelte';
+    import {onMount} from 'svelte';
 
     import * as THREE from 'three';
-    import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-    import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
-    import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
+    import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
+    import {FontLoader} from 'three/examples/jsm/loaders/FontLoader.js';
+    import {TextGeometry} from 'three/examples/jsm/geometries/TextGeometry.js';
 
     // import components
     import Panel from './Panel.svelte';
     import Settings from './settings/Settings.svelte';
     import Stats from 'stats.js';
 
-    import { getRoomId, makeSocket } from './rooms';
+    import {getRoomId, makeSocket} from './rooms';
     import {
         convertToURLParams,
         drawAxes,
@@ -28,10 +28,10 @@
         handleSceneEvent,
         findPointerIntersects,
     } from './sceneUtils';
-    import { handlePollEvent } from './polls/utils';
+    import {handlePollEvent} from './polls/utils';
 
     //import stores
-    import { tickTock, viewScale } from './stores.js';
+    import {tickTock, viewScale} from './stores.js';
 
     let isMobileView = false;
 
@@ -47,7 +47,7 @@
     let selectedPoint = null;
 
     // The demoObjects array store is the declarative data that the scene is based on.
-    import { demoObjects } from './stores.js';
+    import {demoObjects} from './stores.js';
 
     let gridMax = 1;
     let gridStep = 1 / 10;
@@ -77,7 +77,7 @@
             } else if (key.slice(0, 3) === 'obj') {
                 // console.log('got an obj');
                 const keyParts = key.split('_');
-                const obj = objectHolder[keyParts[0]] || { params: {} };
+                const obj = objectHolder[keyParts[0]] || {params: {}};
                 if (keyParts[1] === 'params') {
                     obj.params[keyParts[2]] = val;
                 } else {
@@ -91,7 +91,7 @@
             // objects = makeObject(val.uuid, val.kind, val.params, objects);
             $demoObjects = [
                 ...$demoObjects,
-                { uuid: crypto.randomUUID(), ...val },
+                {uuid: crypto.randomUUID(), ...val},
             ];
             if (debug) console.log($demoObjects);
         }
@@ -191,23 +191,23 @@
     // scene.background = new THREE.Color(0x88ff88);
 
     // soft white light
-    scene.add(new THREE.AmbientLight(0xa0a0a0));
+    scene.add(new THREE.AmbientLight(0xa0a0a0), 50);
 
     //something to make shiny things shine - a chandelier
     const chandelier = new THREE.Object3D();
     const candles = 3;
     for (let i = 0; i < candles; i++) {
         for (let j = 0; j < 2; j++) {
-            const light = new THREE.PointLight(0xffffff, 0.5, 1000);
+            const light = new THREE.PointLight(0xffffff, 600, 1000);
             light.position.set(
                 20 *
-                    Math.cos(
-                        (i * 2 * pi) / candles + (Math.pow(-1, j) * 1) / 2,
-                    ),
+                Math.cos(
+                    (i * 2 * pi) / candles + (Math.pow(-1, j) * 1) / 2,
+                ),
                 20 *
-                    Math.sin(
-                        (i * 2 * pi) / candles + (Math.pow(-1, j) * 1) / 2,
-                    ),
+                Math.sin(
+                    (i * 2 * pi) / candles + (Math.pow(-1, j) * 1) / 2,
+                ),
                 Math.pow(-1, j) * 10,
             );
             chandelier.add(light);
@@ -226,14 +226,14 @@
     });
 
     // Make xy grid lines (off by default).
-    let gridMeshes = drawGrid({ gridMax, gridStep, lineMaterial });
+    let gridMeshes = drawGrid({gridMax, gridStep, lineMaterial});
     gridMeshes.renderDepth = -1;
     gridMeshes.visible = gridSetting;
     scene.add(gridMeshes);
 
     // Axes
-    const axesMaterial = new THREE.MeshLambertMaterial({ color: 0x320032 });
-    let axesHolder = drawAxes({ gridMax, gridStep, axesMaterial });
+    const axesMaterial = new THREE.MeshLambertMaterial({color: 0x320032});
+    let axesHolder = drawAxes({gridMax, gridStep, axesMaterial});
     scene.add(axesHolder);
 
     const requestFrameIfNotRequested = function () {
@@ -852,7 +852,7 @@
             {objectResponses}
         />
 
-        <canvas class="flex-grow-1" tabIndex="0" id="c" bind:this={canvas} />
+        <canvas class="flex-grow-1" tabIndex="0" id="c" bind:this={canvas}/>
 
         <div class="settings-panel-box" class:mobile={isMobileView}>
             <Settings
@@ -883,12 +883,12 @@
                 class="active-users-count"
                 title={activeUserCount + ' users in session'}
             >
-                <i class="bi bi-person-fill" />
+                <i class="bi bi-person-fill"/>
                 {activeUserCount}
             </div>
 
             <a class="leave-room" href="/" title="Exit Room">
-                <i class="fa fa-sign-out" />
+                <i class="fa fa-sign-out"/>
             </a>
         {/if}
     </div>
@@ -898,7 +898,7 @@
             class="scene-overlay active-users-count"
             title={activeUserCount + ' users in session'}
         >
-            <i class="bi bi-person-fill" />
+            <i class="bi bi-person-fill"/>
             {activeUserCount}
         </div>
     {/if}
