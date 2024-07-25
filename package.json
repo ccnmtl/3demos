@@ -31,6 +31,6 @@
     "reconnecting-websocket": "^4.4.0",
     "sirv-cli": "^2.0.2",
     "stats.js": "^0.17.0",
-    "three": "^0.166.0"
+    "three": "^0.167.0"
   }
 }
