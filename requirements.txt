@@ -27,7 +27,7 @@ flake8==7.1.0
 h11==0.14.0
 hyperlink==21.0.0
 idna==3.7
-incremental==22.10.0
+incremental==24.7.0
 jmespath==1.0.1
 mccabe==0.7.0
 msgpack==1.0.4
