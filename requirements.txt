@@ -2,7 +2,7 @@ asgiref==3.8.1
 async-generator==1.10
 async-timeout==4.0.3
 attrs==24.2.0
-autobahn==23.1.2
+autobahn==24.4.2
 Automat==24.8.1
 backports.zoneinfo;python_version<"3.9"
 boto3>=1.20.0,<1.36.0
