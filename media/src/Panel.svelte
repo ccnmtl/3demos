@@ -34,7 +34,7 @@
     import Solid from './objects/Solid.svelte';
 
     import { evaluate_cmap } from './js-colormaps';
-    import { colorMap, demoObjects } from './stores';
+    import { colorMap, demoObjects, kbdShortcuts } from './stores';
     import Story from './Story.svelte';
     import { tick } from 'svelte';
     // import { add } from 'mathjs';
@@ -257,12 +257,13 @@
     });
 
     const onKeyDown = (e) => {
-        if (e.target.matches('input')) {
+        if (e.target.matches('input, textarea')) {
             return;
         } else if (e.key === 'h') {
             showPanel = !showPanel;
         }
     };
+    $kbdShortcuts['h'] = 'Hide/show panel';
     window.addEventListener('keydown', onKeyDown, false);
 </script>
 

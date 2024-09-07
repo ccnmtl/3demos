@@ -31,7 +31,7 @@
     import { handlePollEvent } from './polls/utils';
 
     //import stores
-    import { tickTock, viewScale } from './stores.js';
+    import { kbdShortcuts, tickTock, viewScale } from './stores.js';
 
     let isMobileView = false;
 
@@ -191,7 +191,8 @@
     // scene.background = new THREE.Color(0x88ff88);
 
     // soft white light
-    scene.add(new THREE.AmbientLight(0xa0a0a0), 50);
+    scene.add(new THREE.AmbientLight(0xa0a0a0, 10));
+    // changes color from color selector
 
     //something to make shiny things shine - a chandelier
     const chandelier = new THREE.Object3D();
@@ -752,7 +753,7 @@
     };
 
     const keyDown = (e) => {
-        if (e.target.matches('input')) {
+        if (e.target.matches('input, textarea')) {
             return;
         }
         switch (e.key) {
@@ -806,13 +807,22 @@
                 break;
         }
     };
+    $kbdShortcuts = {
+        '?': 'Show this message',
+        m: 'Toggle mobile view',
+        Esc: 'Undo something',
+        '[': 'Select previous object',
+        ']': 'Select next object',
+        '{': 'Select previous object (inclusive)',
+        '}': 'Select next object (inclusive)',
+    };
     window.addEventListener('keydown', keyDown, false);
 </script>
 
 <main>
     <div class="d-flex demos-mainview">
         <!-- In the mobile view, the logo is not part of the panel -->
-        {#if isMobileView}
+        {#if isMobileView && showPanel}
             <a href="/" title="Home" class="demos-logo">
                 <img
                     alt="3Demos logo"
