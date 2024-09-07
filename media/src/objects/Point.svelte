@@ -111,7 +111,7 @@
             const point = points.children[index - N0];
 
             point.position.set(
-                ...[A, B, C].map((s) => s.evaluate({ t, n: index }))
+                ...[A, B, C].map((s) => s.evaluate({ t, n: index })),
             );
         }
 
@@ -166,7 +166,7 @@
     };
 
     const onKeyDown = (e) => {
-        if (e.target.matches('input')) {
+        if (e.target.matches('input, textarea')) {
             return;
         }
 

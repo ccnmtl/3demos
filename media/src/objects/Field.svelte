@@ -103,14 +103,14 @@
             new THREE.Color().setHSL(
                 (hsl.h + t * 0.618033988749895) % 1,
                 hsl.s,
-                hsl.l
+                hsl.l,
             );
 
         if (flowTrails && !animation && trails.geometry.attributes.color) {
             setTrailColors(
                 trails.geometry.attributes.color.array,
                 trailLength * nCubed * 6,
-                MAX_TRAIL_LENGTH
+                MAX_TRAIL_LENGTH,
             );
             trails.geometry.attributes.color.needsUpdate = true;
         }
@@ -145,7 +145,7 @@
     const setTrailColors = function (
         colorArray,
         start,
-        total = MAX_TRAIL_LENGTH
+        total = MAX_TRAIL_LENGTH,
     ) {
         let index = 0,
             i = 0;
@@ -179,7 +179,7 @@
                             height: gridStep / gridMax,
                         }),
                         fieldMaterial,
-                        1.2 * lim
+                        1.2 * lim,
                     );
                     // arrow.scale.set(gridMax, gridMax, gridMax);
                     arrow.position.set(
@@ -187,7 +187,8 @@
                             0.01 * Math.random(),
                         (((j + 1 / 2) * 2) / N - 1) * lim +
                             0.01 * Math.random(),
-                        (((k + 1 / 2) * 2) / N - 1) * lim + 0.01 * Math.random()
+                        (((k + 1 / 2) * 2) / N - 1) * lim +
+                            0.01 * Math.random(),
                     );
                     arrow.initiate(fieldF);
                     // const posr = new THREE.Vector3();
@@ -196,7 +197,7 @@
                         arrow.position.x,
                         arrow.position.y,
                         arrow.position.z,
-                        vec
+                        vec,
                     );
                     const len = vec.length();
                     maxLength = Math.max(maxLength, len);
@@ -212,14 +213,14 @@
         const trailPoints = new Float32Array(MAX_TRAIL_LENGTH * 2 * 3 * nCubed);
         trails.geometry.setAttribute(
             'position',
-            new THREE.Float32BufferAttribute(trailPoints, 3)
+            new THREE.Float32BufferAttribute(trailPoints, 3),
         );
 
         const trailColors = new Float32Array(MAX_TRAIL_LENGTH * 2 * 3 * nCubed);
         setTrailColors(trailColors, 0);
         trails.geometry.setAttribute(
             'color',
-            new THREE.Float32BufferAttribute(trailColors, 3)
+            new THREE.Float32BufferAttribute(trailColors, 3),
         );
 
         trails.geometry.setDrawRange(0, trailLength);
@@ -238,7 +239,7 @@
             setTrailColors(
                 trails.geometry.attributes.color.array,
                 trailLength * nCubed * 6,
-                MAX_TRAIL_LENGTH
+                MAX_TRAIL_LENGTH,
             );
             trails.geometry.attributes.color.needsUpdate = true;
             trailLength++;
@@ -271,9 +272,9 @@
                             new THREE.Vector3(
                                 Math.random() * 0.01,
                                 Math.random() * 0.01,
-                                Math.random() * 0.01
-                            )
-                        )
+                                Math.random() * 0.01,
+                            ),
+                        ),
                 );
             } else {
                 arrow.position.copy(pos1);
@@ -283,7 +284,7 @@
                 arrow.position.x,
                 arrow.position.y,
                 arrow.position.z,
-                vec
+                vec,
             ).length();
             height = ((height / maxLength) * vfScale) / 2;
 
@@ -355,7 +356,7 @@
         scene.remove(trails);
         trails.geometry.setAttribute(
             'position',
-            new THREE.Float32BufferAttribute([], 3)
+            new THREE.Float32BufferAttribute([], 3),
         );
 
         freeTrails();
@@ -390,7 +391,7 @@
     };
 
     const onKeyDown = (e) => {
-        if (e.target.matches('input')) {
+        if (e.target.matches('input, textarea')) {
             return;
         }
         if (selected) {
@@ -463,7 +464,7 @@
                     maxLength = initFlowArrows(
                         flowArrows,
                         gridMax,
-                        params.nVec
+                        params.nVec,
                     );
                     updateFlowArrows(flowArrows, fieldF, 0);
                     freeTrails();

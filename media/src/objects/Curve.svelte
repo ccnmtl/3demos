@@ -11,9 +11,9 @@
     } from 'svelte';
     import Nametag from './Nametag.svelte';
     import * as THREE from 'three';
-    import {create, all} from 'mathjs';
+    import { create, all } from 'mathjs';
 
-    import {dependsOn} from './Vector.svelte';
+    import { dependsOn } from './Vector.svelte';
     import M from '../M.svelte';
     import ObjHeader from './ObjHeader.svelte';
     import {
@@ -21,10 +21,10 @@
         ParametricCurve,
         checksum,
     } from '../utils.js';
-    import {flashDance} from '../sceneUtils';
+    import { flashDance } from '../sceneUtils';
     import InputChecker from '../form-components/InputChecker.svelte';
 
-    import {tickTock} from '../stores';
+    import { tickTock } from '../stores';
     import PlayButtons from '../form-components/PlayButtons.svelte';
 
     const config = {};
@@ -34,12 +34,9 @@
 
     export let title;
     export let uuid;
-    export let onRenderObject = function () {
-    };
-    export let onDestroyObject = function () {
-    };
-    export let onSelect = function () {
-    };
+    export let onRenderObject = function () {};
+    export let onDestroyObject = function () {};
+    export let onSelect = function () {};
 
     // export let paramString;
 
@@ -58,13 +55,15 @@
 
     $: {
         const [x, y, z] = [params.x, params.y, params.z].map((f) =>
-            math.parse(f).compile()
+            math.parse(f).compile(),
         );
-        xyz = (t) => // evaluate with t and a (the constant parameter)
+        xyz = (
+            t, // evaluate with t and a (the constant parameter)
+        ) =>
             new THREE.Vector3(
-                x.evaluate({t, a: aVal}),
-                y.evaluate({t, a: aVal}),
-                z.evaluate({t, a: aVal})
+                x.evaluate({ t, a: aVal }),
+                y.evaluate({ t, a: aVal }),
+                z.evaluate({ t, a: aVal }),
             );
     }
 
@@ -77,7 +76,7 @@
 
     // Find approximate t for a given point on the curve.
     const findT = (vec) => {
-        const {a, b} = params;
+        const { a, b } = params;
         const [A, B] = [a, b].map((x) => math.parse(x).evaluate());
 
         let closestT = undefined;
@@ -118,16 +117,10 @@
 
     // Check midpoint of parameter space and see if all is ok.
     // Also check if constant's bounds are ok.
-    const chickenParms = (val, {a, b, a0, a1}) => {
+    const chickenParms = (val, { a, b, a0, a1 }) => {
         let valuation;
         try {
-            const [A, B, A0, A1, V] = math.parse([
-                a,
-                b,
-                a0,
-                a1,
-                val,
-            ]);
+            const [A, B, A0, A1, V] = math.parse([a, b, a0, a1, val]);
             const t = (A.evaluate() + B.evaluate()) / 2;
             valuation = V.evaluate({
                 t,
@@ -150,10 +143,8 @@
     export let tau = 0;
     export let alpha = 0;
     export let scene;
-    export let render = () => {
-    };
-    export let onClose = () => {
-    };
+    export let render = () => {};
+    export let onClose = () => {};
     export let controls;
     export let camera;
     export let gridStep;
@@ -163,7 +154,7 @@
     let last;
 
     const update = (dt = 0) => {
-        const {a, b} = params;
+        const { a, b } = params;
         const A = math.parse(a).evaluate();
         const B = math.parse(b).evaluate();
 
@@ -173,7 +164,6 @@
         displayAVal = (
             Math.round(100 * (a0 + alpha * (a1 - a0))) / 100
         ).toString();
-
 
         if (TNB) {
             tau += dt / arrows.v.speed / (B - A);
@@ -192,7 +182,7 @@
         //     updateCurve()
         // }
 
-        updateFrame({T});
+        updateFrame({ T });
     };
 
     let TNB = false;
@@ -235,13 +225,14 @@
     circleTube.visible = false;
 
     const updateCurve = function () {
-        const {a0, a1} = params;
+        const { a0, a1 } = params;
 
         aVal = a0
-            ? math.evaluate(a0) + alpha * (math.evaluate(a1) - math.evaluate(a0))
+            ? math.evaluate(a0) +
+              alpha * (math.evaluate(a1) - math.evaluate(a0))
             : 0;
 
-        const {a, b} = params;
+        const { a, b } = params;
         const A = math.parse(a).evaluate();
         const B = math.parse(b).evaluate();
 
@@ -255,7 +246,7 @@
             1000,
             gridStep / 20,
             8,
-            false
+            false,
         );
         if (tube) {
             tube.geometry.dispose();
@@ -272,7 +263,7 @@
     };
 
     const stringifyT = function (tau) {
-        const {a, b} = params;
+        const { a, b } = params;
         try {
             const [A, B] = [a, b].map((x) => math.parse(x).evaluate());
 
@@ -300,7 +291,7 @@
         radiusBottom: gridStep / 16,
         heightTop: gridStep / 7,
     };
-    const ruColors = {r: 0x992525, v: 0x252599, a: 0xb6b6b6, n: 0x121212};
+    const ruColors = { r: 0x992525, v: 0x252599, a: 0xb6b6b6, n: 0x121212 };
     for (let key of Object.keys(arrows)) {
         arrows[key].material = new THREE.MeshBasicMaterial({
             color: ruColors[key],
@@ -308,15 +299,15 @@
         frame.add(arrows[key]);
     }
 
-    const pointMaterial = new THREE.MeshLambertMaterial({color: 0xffff33});
+    const pointMaterial = new THREE.MeshLambertMaterial({ color: 0xffff33 });
     const point = new THREE.Mesh(
         new THREE.SphereGeometry(gridStep / 8, 16, 16),
-        pointMaterial
+        pointMaterial,
     );
 
     frame.add(point);
 
-    const updateFrame = function ({T = 0, dt = 0.01} = {}) {
+    const updateFrame = function ({ T = 0, dt = 0.01 } = {}) {
         // const { a, b } = params;
         // const [A, B] = [a, b].map((x) => math.parse(x).evaluate());
 
@@ -360,7 +351,7 @@
                         return vec;
                     },
                     0,
-                    2 * Math.PI
+                    2 * Math.PI,
                 );
             } else {
                 V.normalize();
@@ -371,7 +362,7 @@
                         return vec;
                     },
                     -gridStep * 30,
-                    gridStep * 30
+                    gridStep * 30,
                 );
             }
             const geometry = new THREE.TubeGeometry(
@@ -379,7 +370,7 @@
                 1000,
                 gridStep / 20,
                 8,
-                false
+                false,
             );
 
             circleTube.geometry?.dispose();
@@ -494,7 +485,7 @@
      */
     const flash = () => {
         flashDance(tube, render);
-        boxItemElement?.scrollIntoView({behavior: 'smooth'});
+        boxItemElement?.scrollIntoView({ behavior: 'smooth' });
     };
 
     $: if (selected && selectedObjects.length > 0) flash();
@@ -515,8 +506,11 @@
         if (intersects.length > 0) {
             const intersect = intersects[0];
             const T = findT(intersect.point);
-            tau = (T - math.parse(params.a).evaluate()) / (math.parse(params.b).evaluate() - math.parse(params.a).evaluate()); // Update the UI
-            updateFrame({T});
+            tau =
+                (T - math.parse(params.a).evaluate()) /
+                (math.parse(params.b).evaluate() -
+                    math.parse(params.a).evaluate()); // Update the UI
+            updateFrame({ T });
             frame.visible = true;
             render();
         }
@@ -541,7 +535,7 @@
     };
 
     const onKeyDown = (e) => {
-        if (e.target.matches('input')) {
+        if (e.target.matches('input, textarea')) {
             return;
         }
         if (selected) {
@@ -552,14 +546,18 @@
                     }
                     break;
                 case 'Shift':
-                    window.addEventListener('mousemove', placePointAtMouse, false);
+                    window.addEventListener(
+                        'mousemove',
+                        placePointAtMouse,
+                        false,
+                    );
                     break;
                 case 'c':
                     if (selectedObjects[selectedObjects.length - 1] === uuid) {
                         controls.target.set(
                             point.position.x,
                             point.position.y,
-                            point.position.z
+                            point.position.z,
                         );
                     }
                     render();
@@ -586,7 +584,7 @@
     };
 
     const onKeyUp = (e) => {
-        if (e.target.matches('input')) {
+        if (e.target.matches('input, textarea')) {
             return;
         }
 
@@ -610,7 +608,7 @@
         {onSelect}
         objHidden={!tube.visible}
     >
-        <Nametag bind:title/>
+        <Nametag bind:title />
     </ObjHeader>
     <div hidden={minimize}>
         <div class="threedemos-container container">
@@ -670,7 +668,7 @@
             />
 
             <span class="box-1">
-                <span class="t-box"> <M size="sm"> t = </M> {texString1}</span>
+                <span class="t-box"> <M size="sm">t =</M> {texString1}</span>
             </span>
             <input
                 type="range"
@@ -700,7 +698,7 @@
                 {#each ['a0', 'a1'] as name}
                     {#if name === 'a1'}
                         <span class="box box-3"
-                        ><M size="sm">{'\\leq a \\leq '}</M></span
+                            ><M size="sm">{'\\leq a \\leq '}</M></span
                         >
                     {/if}
                     <InputChecker
@@ -718,7 +716,9 @@
                 {/each}
 
                 <span class="box-1">
-                    <span class="t-box"> <M size="sm"> a = </M> {displayAVal}</span>
+                    <span class="t-box">
+                        <M size="sm">a =</M> {displayAVal}</span
+                    >
                 </span>
                 <input
                     type="range"
@@ -733,9 +733,9 @@
                         const aVal = a0 + alpha * (a1 - a0);
                         displayAVal = (Math.round(100 * aVal) / 100).toString();
 
-                    updateCurve();
+                        updateCurve();
 
-                    render();
+                        render();
                     }}
                     class="box box-2"
                 />
@@ -758,16 +758,26 @@
                     bind:checked={frame.visible}
                     on:change={render}
                 />
-                <span class="slider round"/>
+                <span class="slider round" />
             </label>
             {#if frame.visible}
                 {#if choosingPoint}
-                    <button class="box box-2 btn btn-secondary"
-                            on:click={(e) => { e.stopImmediatePropagation(); choosingPoint = false; }}>Cancel
+                    <button
+                        class="box box-2 btn btn-secondary"
+                        on:click={(e) => {
+                            e.stopImmediatePropagation();
+                            choosingPoint = false;
+                        }}
+                        >Cancel
                     </button>
                 {:else}
-                    <button class="box box-2 btn btn-primary"
-                            on:click={(e) => { e.stopImmediatePropagation(); choosingPoint = true; }}>Select point
+                    <button
+                        class="box box-2 btn btn-primary"
+                        on:click={(e) => {
+                            e.stopImmediatePropagation();
+                            choosingPoint = true;
+                        }}
+                        >Select point
                     </button>
                 {/if}
             {/if}
@@ -781,7 +791,7 @@
                     bind:checked={TNB}
                     on:change={updateFrame}
                 />
-                <span class="slider round"/>
+                <span class="slider round" />
             </label>
 
             <span class="box-1">Osculating Circle</span>
@@ -793,7 +803,7 @@
                     bind:checked={osculatingCircle}
                     on:change={updateFrame}
                 />
-                <span class="slider round"/>
+                <span class="slider round" />
             </label>
             <span class="box-1">Color</span>
             <span class="box box-2">

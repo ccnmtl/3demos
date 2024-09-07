@@ -93,7 +93,7 @@
             ...arrowArgs,
             height: 1,
         }),
-        arrowMaterial
+        arrowMaterial,
     );
     arrows.add(arrow);
 
@@ -124,8 +124,8 @@
                         ...arrowArgs,
                         height: 1,
                     }),
-                    arrowMaterial
-                )
+                    arrowMaterial,
+                ),
             );
         }
         while (arrows.children.length > N1 - N0 + 1) {
@@ -200,7 +200,7 @@
     };
 
     const onKeyDown = (e) => {
-        if (e.target.matches('input')) {
+        if (e.target.matches('input, textarea')) {
             return;
         }
         if (selected) {

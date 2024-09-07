@@ -61,7 +61,7 @@
     };
 
     const onKeyDown = (e) => {
-        if (e.target.matches('input')) {
+        if (e.target.matches('input, textarea')) {
             return;
         }
         if (selected) {

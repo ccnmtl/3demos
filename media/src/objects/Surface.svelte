@@ -94,7 +94,7 @@
             return blueUpRedDown(
                 (2 * (value - $vMin)) / ($vMax - $vMin) - 1,
                 0.8,
-                $densityColormap
+                $densityColormap,
             );
         });
     };
@@ -128,13 +128,13 @@
     // and thus have been cleared
     $: {
         const [x, y, z] = [params.x, params.y, params.z].map((f) =>
-            math.parse(f).compile()
+            math.parse(f).compile(),
         );
         xyz = (u, v, vec, t = 0) =>
             vec.set(
                 x.evaluate({ u, v, t }),
                 y.evaluate({ u, v, t }),
-                z.evaluate({ u, v, t })
+                z.evaluate({ u, v, t }),
             );
     }
     $: {
@@ -253,7 +253,7 @@
                 xyz(U, V, vec, time);
             },
             nX || 30,
-            nX || 30
+            nX || 30,
         );
         const meshGeometry = meshLines(params, rNum, cNum, nX);
 
@@ -277,7 +277,7 @@
             surfaceMesh.add(frontMesh);
             surfaceMesh.add(backMesh);
             surfaceMesh.add(
-                new THREE.LineSegments(meshGeometry, whiteLineMaterial)
+                new THREE.LineSegments(meshGeometry, whiteLineMaterial),
             );
             scene.add(surfaceMesh);
         }
@@ -315,8 +315,8 @@
                 new THREE.Vector3(
                     x.evaluate(params),
                     y.evaluate(params),
-                    z.evaluate(params)
-                )
+                    z.evaluate(params),
+                ),
             );
             for (let v = C + dy; v < D; v += dy) {
                 params.v = v;
@@ -325,16 +325,16 @@
                     new THREE.Vector3(
                         x.evaluate(params),
                         y.evaluate(params),
-                        z.evaluate(params)
-                    )
+                        z.evaluate(params),
+                    ),
                 );
                 uvs.push(params.u, params.v);
                 points.push(
                     new THREE.Vector3(
                         x.evaluate(params),
                         y.evaluate(params),
-                        z.evaluate(params)
-                    )
+                        z.evaluate(params),
+                    ),
                 );
             }
             params.v = D;
@@ -343,8 +343,8 @@
                 new THREE.Vector3(
                     x.evaluate(params),
                     y.evaluate(params),
-                    z.evaluate(params)
-                )
+                    z.evaluate(params),
+                ),
             );
         }
 
@@ -362,7 +362,7 @@
                 (x) => (c.evaluate({ u: x }) - v) * (v - d.evaluate({ u: x })),
                 A,
                 B,
-                nX
+                nX,
             );
             params.v = v;
             let nextZero = zs.shift();
@@ -374,8 +374,8 @@
                         new THREE.Vector3(
                             x.evaluate(params),
                             y.evaluate(params),
-                            z.evaluate(params)
-                        )
+                            z.evaluate(params),
+                        ),
                     );
                     if (nextZero < u + dx) {
                         params.u = nextZero;
@@ -384,8 +384,8 @@
                             new THREE.Vector3(
                                 x.evaluate(params),
                                 y.evaluate(params),
-                                z.evaluate(params)
-                            )
+                                z.evaluate(params),
+                            ),
                         );
                         nextZero = zs.shift();
                     } else {
@@ -395,8 +395,8 @@
                             new THREE.Vector3(
                                 x.evaluate(params),
                                 y.evaluate(params),
-                                z.evaluate(params)
-                            )
+                                z.evaluate(params),
+                            ),
                         );
                     }
                 } else {
@@ -407,8 +407,8 @@
                             new THREE.Vector3(
                                 x.evaluate(params),
                                 y.evaluate(params),
-                                z.evaluate(params)
-                            )
+                                z.evaluate(params),
+                            ),
                         );
                         nextZero = zs.shift();
                         params.u = u + dx;
@@ -417,8 +417,8 @@
                             new THREE.Vector3(
                                 x.evaluate(params),
                                 y.evaluate(params),
-                                z.evaluate(params)
-                            )
+                                z.evaluate(params),
+                            ),
                         );
                     }
                 }
@@ -474,7 +474,7 @@
                 const rgb = blueUpRedDown(
                     (2 * (densityFunc(x, y, z) - vMin)) / (vMax - vMin) - 1,
                     0.8,
-                    $densityColormap
+                    $densityColormap,
                 );
                 colors[cindex++] = rgb.r;
                 colors[cindex++] = rgb.g;
@@ -617,7 +617,7 @@
     const pointMaterial = new THREE.MeshLambertMaterial({ color: 0xffff33 });
     const point = new THREE.Mesh(
         new THREE.SphereGeometry(0.2 / 8, 16, 16),
-        pointMaterial
+        pointMaterial,
     );
 
     tanFrame.add(point);
@@ -631,7 +631,7 @@
     });
     const planeShard = new THREE.Mesh(
         new THREE.BufferGeometry(),
-        shardMaterial
+        shardMaterial,
     );
     tanFrame.add(planeShard);
 
@@ -736,7 +736,7 @@
                         .add(rv.clone().multiplyScalar(v));
                 },
                 2,
-                2
+                2,
             );
 
             planeShard.geometry = tangentPlaneGeometry;
@@ -756,7 +756,7 @@
 
         const intersects = raycaster.intersectObjects(
             [surfaceMesh.children[0], surfaceMesh.children[1]],
-            true
+            true,
         );
 
         if (intersects.length > 0) {
@@ -781,7 +781,7 @@
     };
 
     const keyDown = (e) => {
-        if (e.target.matches('input')) {
+        if (e.target.matches('input, textarea')) {
             return;
         } else if (selected) {
             switch (e.key) {
@@ -796,7 +796,7 @@
                     controls.target.set(
                         point.position.x,
                         point.position.y,
-                        point.position.z
+                        point.position.z,
                     );
                     render();
                     break;
@@ -832,7 +832,7 @@
     };
 
     const onKeyUp = (e) => {
-        if (e.target.matches('input')) {
+        if (e.target.matches('input, textarea')) {
             return;
         }
 
