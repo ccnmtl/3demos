@@ -180,6 +180,7 @@
                     break;
                 case 'r':
                     tau = 0;
+                    if (!animation) update();
                     break;
             }
         }

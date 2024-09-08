@@ -478,7 +478,7 @@
         render();
     });
 
-    $: texString1 = `${stringifyT(tau)}`;
+    $: texString1 = stringifyT(tau);
 
     /**
      * Close on mesh so reactive statement doesn't react when individual parameters change.
@@ -534,6 +534,7 @@
         render();
     };
 
+    // register shortcuts in settings/Kbd.svelte
     const onKeyDown = (e) => {
         if (e.target.matches('input, textarea')) {
             return;
@@ -569,6 +570,11 @@
                 case 'p':
                     animation = !animation;
                     break;
+                case 'r':
+                    tau = 0;
+                    animation = false;
+                    update();
+                    break;
                 case 's':
                     TNB = !TNB;
                     render();
@@ -598,6 +604,7 @@
     window.addEventListener('click', onMouseClick);
 </script>
 
+<!-- svelte-ignore a11y-no-static-element-interactions -->
 <div class="boxItem" class:selected bind:this={boxItemElement} on:keydown>
     <ObjHeader
         bind:minimize
@@ -691,6 +698,8 @@
                 on:pause={() => (last = null)}
                 on:rew={() => {
                     tau = 0;
+                    animation = false;
+                    update();
                 }}
             />
 

@@ -527,7 +527,7 @@
         }
     };
 
-    const update = function (dt) {
+    const update = function (dt = 0) {
         const t0 = math.parse(params.t0).evaluate();
         const t1 = math.parse(params.t1).evaluate();
 
@@ -535,13 +535,11 @@
             Math.round(100 * (t0 + tau * (t1 - t0))) / 100
         ).toString();
 
-        if (animation) {
-            tau += dt / (t1 - t0);
-            tau %= 1;
-            const t = t0 + tau * (t1 - t0);
+        tau += dt / (t1 - t0);
+        tau %= 1;
+        const t = t0 + tau * (t1 - t0);
 
-            evolveSurface(t);
-        }
+        evolveSurface(t);
 
         render();
     };
@@ -827,6 +825,12 @@
                 case 'p':
                     animation = !animation;
                     break;
+                case 'r':
+                    tau = 0;
+                    update();
+                    animation = false;
+                    render();
+                    break;
             }
         }
     };
@@ -845,6 +849,7 @@
     window.addEventListener('keyup', onKeyUp, false);
 </script>
 
+<!-- svelte-ignore a11y-no-static-element-interactions -->
 <div class="boxItem" class:selected on:keydown bind:this={boxItemElement}>
     <ObjHeader
         bind:minimize
@@ -983,6 +988,7 @@
                     on:pause={() => (last = null)}
                     on:rew={() => {
                         tau = 0;
+                        update();
                     }}
                 />
             {/if}

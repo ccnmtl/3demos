@@ -485,7 +485,7 @@
     }
 
     .settings-box {
-        max-width: 20rem;
+        max-width: 30rem;
         position: relative;
         color: white;
         border: 1px solid black;

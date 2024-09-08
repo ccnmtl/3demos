@@ -946,8 +946,16 @@
                     arrows.n.visible = !arrows.n.visible;
                     render();
                     break;
+                case 'r':
+                    if (selected) {
+                        tau = 0;
+                        update(0);
+                        animation = false;
+                        render();
+                    }
+                    break;
                 case 'i':
-                    if (uuid === selectedObjects[selectedObjects.length - 1]) {
+                    if (selected) {
                         tau = 0;
                         update(0);
                         animation = false;
