@@ -422,6 +422,7 @@
     window.addEventListener('keydown', onKeyDown, false);
 </script>
 
+<!-- svelte-ignore a11y-no-static-element-interactions -->
 <div class="boxItem" class:selected bind:this={boxItemElement} on:keydown>
     <ObjHeader
         bind:minimize

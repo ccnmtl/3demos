@@ -8,13 +8,12 @@
 
     const defaultShortcuts = {
         '?': 'Show this message',
+        BkSp: 'Show/hide selected',
         h: 'Show/hide panel',
         m: 'Toggle mobile view',
         Esc: 'Deselect all',
-        '[': 'Select previous object',
-        ']': 'Select next object',
-        '{': 'Select previous object (inclusive)',
-        '}': 'Select next object (inclusive)',
+        '[/]': 'Select previous/next object',
+        '{/}': 'Group  previous/next object',
     };
 
     const kbdShortcuts = [
@@ -22,7 +21,6 @@
             kind: 'curve',
             name: 'Space Curve',
             shortcuts: {
-                BkSp: 'Show/hide',
                 Shift: 'Select point with mouse',
                 c: 'Center camera on selected point',
                 o: 'Show/hide osculating circle',
@@ -36,7 +34,6 @@
             kind: 'graph',
             name: 'Function Graph',
             shortcuts: {
-                BkSp: 'Show/hide',
                 Shift: 'Select point with mouse',
                 c: 'Center camera on selected point',
                 i: 'Show/hide Riemann sum boxes',
@@ -55,7 +52,6 @@
             kind: 'level',
             name: 'Level Surface',
             shortcuts: {
-                BkSp: 'Show/hide',
                 Shift: 'Select point with mouse',
                 c: 'Center camera on selected point',
                 n: 'Show/hide normal vector',
@@ -67,7 +63,6 @@
             kind: 'solid',
             name: 'Solid Region',
             shortcuts: {
-                BkSp: 'Show/hide',
                 d: 'Toggle coloring by density',
             },
         },
@@ -75,7 +70,6 @@
             kind: 'point',
             name: 'Point',
             shortcuts: {
-                BkSp: 'Show/hide',
                 p: 'Play/pause animation',
                 r: 'Reset animation',
             },
@@ -84,7 +78,6 @@
             kind: 'vector',
             name: 'Vector',
             shortcuts: {
-                BkSp: 'Show/hide',
                 p: 'Play/pause animation',
                 r: 'Reset animation',
             },
@@ -93,7 +86,6 @@
             kind: 'field',
             name: 'Vector Field',
             shortcuts: {
-                BkSp: 'Show/hide',
                 p: 'Play/pause flow animation',
                 r: 'Reset animation',
                 t: 'Show/hide flow trails',
@@ -103,7 +95,6 @@
             kind: 'surface',
             name: 'Parametric Surface',
             shortcuts: {
-                BkSp: 'Show/hide',
                 Shift: 'Select point with mouse',
                 c: 'Center camera on selected point',
                 n: 'Show/hide normal vector',
@@ -129,7 +120,11 @@
 
     {#each Object.entries(defaultShortcuts) as [k, v]}
         <div class="kbdContainer">
-            <div class="keyEntry"><kbd>{k}</kbd></div>
+            <div class="keyEntry">
+                {#each k.split('/') as key}
+                    <kbd>{key}</kbd>
+                {/each}
+            </div>
             <div class="keyUse">{v}</div>
         </div>
     {/each}
