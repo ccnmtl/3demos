@@ -45,7 +45,7 @@
                 t: 'Show/hide tangent frame',
                 y: 'Show/hide tangent plane',
                 '0': 'Toggle level curves between plane and graph',
-                '< >': 'Decrease/increase precision in Riemann sum',
+                '</>': 'Decrease/increase precision in Riemann sum',
             },
         },
         {
@@ -134,7 +134,11 @@
 
         {#each Object.entries(shortcuts) as [k, v]}
             <div class="kbdContainer">
-                <div class="keyEntry"><kbd>{k}</kbd></div>
+                <div class="keyEntry">
+                    {#each k.split('/') as key}
+                        <kbd>{key}</kbd>
+                    {/each}
+                </div>
                 <div class="keyUse">{v}</div>
             </div>
         {/each}
