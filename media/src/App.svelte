@@ -191,7 +191,8 @@
     // scene.background = new THREE.Color(0x88ff88);
 
     // soft white light
-    scene.add(new THREE.AmbientLight(0xa0a0a0), 50);
+    scene.add(new THREE.AmbientLight(0xa0a0a0, 1));
+    // changes color from color selector
 
     //something to make shiny things shine - a chandelier
     const chandelier = new THREE.Object3D();
@@ -752,7 +753,7 @@
     };
 
     const keyDown = (e) => {
-        if (e.target.matches('input')) {
+        if (e.target.matches('input, textarea')) {
             return;
         }
         switch (e.key) {
@@ -812,7 +813,7 @@
 <main>
     <div class="d-flex demos-mainview">
         <!-- In the mobile view, the logo is not part of the panel -->
-        {#if isMobileView}
+        {#if isMobileView && showPanel}
             <a href="/" title="Home" class="demos-logo">
                 <img
                     alt="3Demos logo"

@@ -20,6 +20,7 @@
     import WindowHeader from './WindowHeader.svelte';
     import { colorMapNames } from '../js-colormaps';
     import { offclick } from './offclick';
+    import Kbd from './Kbd.svelte';
 
     const dispatch = createEventDispatcher();
 
@@ -44,7 +45,7 @@
             newLineMaterial.opacity = s;
             lineMaterial.opacity = 1 - s;
             camera.position.multiplyScalar(
-                ((gridMax - oldGridMax) * dt + scaleState) / scaleState
+                ((gridMax - oldGridMax) * dt + scaleState) / scaleState,
             );
 
             scaleState = (gridMax - oldGridMax) * dt + scaleState;
@@ -97,7 +98,7 @@
                     axesText,
                 },
                 fontLoader,
-                TextGeometry
+                TextGeometry,
             );
 
             if (gridMax !== oldGridMax) {
@@ -109,6 +110,7 @@
 
     let showSettings = false;
     let showUpload = false;
+    let showKbd = false;
 
     const uploadScene = (e) => {
         const reader = new FileReader();
@@ -162,6 +164,18 @@
         console.log('setting mounted');
         scaleTemp = $viewScale;
         return unsubscribe;
+    });
+    window.addEventListener('keydown', (e) => {
+        if (e.target.matches('input, textarea')) {
+            return;
+        }
+        switch (e.key) {
+            case '?':
+                showKbd = !showKbd;
+                showUpload = false;
+                showSettings = false;
+                break;
+        }
     });
 </script>
 
@@ -351,6 +365,28 @@
         </form>
     </div>
 {/if}
+{#if showKbd}
+    <div
+        class="settings-box"
+        class:grid={showUpload}
+        use:offclick
+        on:offclick={(e) => {
+            showKbd = false;
+            console.log('offclickd', e);
+        }}
+        id="shortcut-box"
+    >
+        <WindowHeader
+            title="Shortcuts"
+            onClick={() => {
+                showKbd = false;
+                document.getElementById('keyboard').focus();
+            }}
+        />
+
+        <Kbd></Kbd>
+    </div>
+{/if}
 
 <div class="settings-buttons" class:mobile={isMobileView}>
     <button
@@ -358,7 +394,8 @@
         id="settings"
         title="Settings"
         on:click={() => {
-            // showUpload = false;
+            showUpload = false;
+            showKbd = false;
             showSettings = !showSettings;
         }}
     >
@@ -374,6 +411,7 @@
         on:click={() => {
             showSettings = false;
             showUpload = !showUpload;
+            showKbd = false;
         }}
     >
         <i class="fa fa-upload" />
@@ -399,6 +437,19 @@
     </button>
     <button class="button" id="screenshot" title="Take screenshot">
         <i class="fa fa-camera" />
+    </button>
+    <button
+        class="button"
+        title="Keyboard Shortcuts"
+        id="keyboard"
+        on:click={(e) => {
+            showSettings = false;
+            showUpload = false;
+            showKbd = !showKbd;
+            console.log('clickety', e);
+        }}
+    >
+        <i class="fa fa-keyboard" />
     </button>
     {#if roomId}
         <a href="/" class="button" title="Exit room">
@@ -434,7 +485,7 @@
     }
 
     .settings-box {
-        max-width: 20rem;
+        max-width: 30rem;
         position: relative;
         color: white;
         border: 1px solid black;

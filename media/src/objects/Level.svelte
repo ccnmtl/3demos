@@ -143,7 +143,7 @@
                     x: (a + b) / 2,
                     y: (c + d) / 2,
                     z: (e + f) / 2,
-                })
+                }),
             );
         } catch (e) {
             console.error('Parse error in expression', val, e);
@@ -160,11 +160,11 @@
         const { normals, vertices, xpts, ypts, zpts } = data;
         geometry.setAttribute(
             'position',
-            new THREE.Float32BufferAttribute(vertices, 3)
+            new THREE.Float32BufferAttribute(vertices, 3),
         );
         geometry.setAttribute(
             'normal',
-            new THREE.Float32BufferAttribute(normals, 3)
+            new THREE.Float32BufferAttribute(normals, 3),
         );
 
         mesh.visible = true;
@@ -172,12 +172,12 @@
         {
             xTraceGeometry.setAttribute(
                 'position',
-                new THREE.Float32BufferAttribute(xpts, 3)
+                new THREE.Float32BufferAttribute(xpts, 3),
             );
 
             const trace = new THREE.LineSegments(
                 xTraceGeometry,
-                whiteLineMaterial
+                whiteLineMaterial,
             );
 
             trace.rotation.y = Math.PI / 2;
@@ -188,12 +188,12 @@
         {
             yTraceGeometry.setAttribute(
                 'position',
-                new THREE.Float32BufferAttribute(ypts, 3)
+                new THREE.Float32BufferAttribute(ypts, 3),
             );
 
             const trace = new THREE.LineSegments(
                 yTraceGeometry,
-                whiteLineMaterial
+                whiteLineMaterial,
             );
 
             trace.rotation.x = -Math.PI / 2;
@@ -204,12 +204,12 @@
         {
             zTraceGeometry.setAttribute(
                 'position',
-                new THREE.Float32BufferAttribute(zpts, 3)
+                new THREE.Float32BufferAttribute(zpts, 3),
             );
 
             const trace = new THREE.LineSegments(
                 zTraceGeometry,
-                whiteLineMaterial
+                whiteLineMaterial,
             );
 
             mesh.add(trace);
@@ -259,7 +259,7 @@
     const pointMaterial = new THREE.MeshLambertMaterial({ color: 0xffff33 });
     const point = new THREE.Mesh(
         new THREE.SphereGeometry(0.2 / 8, 16, 16),
-        pointMaterial
+        pointMaterial,
     );
 
     tanFrame.add(point);
@@ -273,7 +273,7 @@
     });
     const planeShard = new THREE.Mesh(
         new THREE.BufferGeometry(),
-        shardMaterial
+        shardMaterial,
     );
     tanFrame.add(planeShard);
 
@@ -366,7 +366,7 @@
 
         const intersects = raycaster.intersectObjects(
             [mesh.children[0], mesh.children[1]],
-            true
+            true,
         );
 
         if (intersects.length > 0) {
@@ -394,7 +394,7 @@
     };
 
     const onKeyDown = (e) => {
-        if (e.target.matches('input')) {
+        if (e.target.matches('input, textarea')) {
             return;
         }
 
@@ -406,14 +406,18 @@
                     }
                     break;
                 case 'Shift':
-                    window.addEventListener('mousemove', placePointAtMouse, false);
+                    window.addEventListener(
+                        'mousemove',
+                        placePointAtMouse,
+                        false,
+                    );
                     tanFrame.visible = true;
                     break;
                 case 'c':
                     controls.target.set(
                         point.position.x,
                         point.position.y,
-                        point.position.z
+                        point.position.z,
                     );
                     render();
                     break;
@@ -550,7 +554,7 @@
                     params.f = newVal;
                 }}
             />
-            
+
             <span class="box-1">Color</span>
             <span class="box box-2">
                 <input
@@ -576,9 +580,21 @@
             </label>
             {#if tanFrame.visible}
                 {#if choosingPoint}
-                    <button class="box box-2 btn btn-secondary" on:click={(e) => { e.stopImmediatePropagation(); choosingPoint = false; }}>Cancel</button>
+                    <button
+                        class="box box-2 btn btn-secondary"
+                        on:click={(e) => {
+                            e.stopImmediatePropagation();
+                            choosingPoint = false;
+                        }}>Cancel</button
+                    >
                 {:else}
-                    <button class="box box-2 btn btn-primary" on:click={(e) => { e.stopImmediatePropagation(); choosingPoint = true; }}>Select point</button>
+                    <button
+                        class="box box-2 btn btn-primary"
+                        on:click={(e) => {
+                            e.stopImmediatePropagation();
+                            choosingPoint = true;
+                        }}>Select point</button
+                    >
                 {/if}
             {/if}
         </div>

@@ -111,7 +111,7 @@
             const point = points.children[index - N0];
 
             point.position.set(
-                ...[A, B, C].map((s) => s.evaluate({ t, n: index }))
+                ...[A, B, C].map((s) => s.evaluate({ t, n: index })),
             );
         }
 
@@ -166,7 +166,7 @@
     };
 
     const onKeyDown = (e) => {
-        if (e.target.matches('input')) {
+        if (e.target.matches('input, textarea')) {
             return;
         }
 
@@ -180,6 +180,7 @@
                     break;
                 case 'r':
                     tau = 0;
+                    if (!animation) update();
                     break;
             }
         }
@@ -254,6 +255,7 @@
     }
 </script>
 
+<!-- svelte-ignore a11y-no-static-element-interactions -->
 <div
     class="boxItem"
     class:selected
