@@ -23,7 +23,7 @@ jobs:
         run: npm test
   django:
     name: Django tests
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     services:
       redis:
         image: redis
@@ -36,7 +36,7 @@ jobs:
           - 6379:6379
     strategy:
       matrix:
-        python-version: ["3.8", "3.12"]
+        python-version: ["3.12"]
         node-version: [20.x]
     steps:
       - uses: actions/checkout@v4
