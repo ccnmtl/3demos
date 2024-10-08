@@ -53,7 +53,22 @@
 
             gtag('config', '{{GA_CODE}}', { 'anonymize_ip': true });
             </script>
-        {% endif %}        
+        {% endif %}
+
+        <script
+            src="https://js.sentry-cdn.com/74a9da74ddf825cdec060378c6062797.min.js"
+            crossorigin="anonymous"></script>
+        <script>
+            window.sentryOnLoad = function() {
+                Sentry.init({
+                    {% if STAGING_ENV %}
+                    environment: 'staging'
+                    {% else %}
+                    environment: 'production'
+                    {% endif %}
+                });
+            };
+        </script>
     </head>
     <body>
     </body>
