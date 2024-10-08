@@ -1,4 +1,6 @@
+from django.conf import settings
 from mathplayground.settings import *  # noqa: F403,F401
+from ctlsettings.staging import init_sentry
 
 project = 'mathplayground'
 s3prefix = 'ctl'
@@ -48,3 +50,6 @@ try:
     from mathplayground.local_settings import *  # noqa: F403,F401
 except ImportError:
     pass
+
+if hasattr(settings, 'SENTRY_DSN'):
+    init_sentry(SENTRY_DSN)  # noqa F405
