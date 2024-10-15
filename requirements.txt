@@ -16,7 +16,7 @@ constantly==23.10.4
 coverage==7.6.0
 cryptography==43.0.0
 sentry-sdk[django]==2.16.0
-ctlsettings==0.4.1
+ctlsettings==0.4.2
 daphne==4.1.2
 Deprecated==1.2.13
 Django==4.2.15
