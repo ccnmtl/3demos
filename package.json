@@ -23,7 +23,7 @@
     "rollup": "^4.2.0",
     "rollup-plugin-css-only": "^4.3.0",
     "rollup-plugin-svelte": "^7.1.5",
-    "svelte": "^4.0.0"
+    "svelte": "^5.0.5"
   },
   "dependencies": {
     "@sveltestrap/sveltestrap": "^6.2.7",
