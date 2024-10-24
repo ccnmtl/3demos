@@ -22,11 +22,11 @@
         $demoObjects = [...backupObjects];
     });
 
-    const texStrings = {
+    const texStrings = $state({
         r: '\\langle x(t), y(t), z(t) \\rangle',
         a: 'a',
         b: 'b',
-    };
+    });
 
     // eslint-disable no-useless-escape
 
@@ -44,7 +44,7 @@
     // eslint-enable
 
     let hidden = false;
-    let lengthApproximation = 0;
+    let lengthApproximation = $state(0);
 
     const exampleCurves = [
         {
@@ -89,8 +89,8 @@
         ...backupObjects.filter((obj) => obj.kind === 'curve'),
     ];
 
-    let exTitle = null;
-    let nVects = 3;
+    let exTitle = $state(null);
+    let nVects = $state(3);
     // let firstVectorObject = null;
 
     const toN = (
@@ -194,7 +194,7 @@
             name="choose-curve"
             id="choose-curve"
             bind:value={exTitle}
-            on:change={() => {
+            onchange={() => {
                 addCurve(exTitle);
             }}
         >
@@ -218,7 +218,7 @@
                 value={nVects}
                 max="40"
                 step="1"
-                on:input={(e) => {
+                oninput={(e) => {
                     nVects = math.evaluate(e.target.value);
                     addCurve(exTitle);
                 }}

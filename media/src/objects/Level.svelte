@@ -1,8 +1,11 @@
-<script context="module">
+<script module>
     let titleIndex = 0;
 </script>
 
 <script>
+    import { run, createBubbler } from 'svelte/legacy';
+
+    const bubble = createBubbler();
     import { onDestroy, onMount } from 'svelte';
     import * as THREE from 'three';
     import { create, all } from 'mathjs';
@@ -21,38 +24,13 @@
     import { marchingCubes, ArrowBufferGeometry, checksum } from '../utils.js';
     import { flashDance } from '../sceneUtils';
 
-    export let uuid;
-    export let onRenderObject = function () {};
-    export let onDestroyObject = function () {};
-    export let onSelect = function () {};
 
-    export let params = {
-        g: 'x^2 - y^2 + z^2',
-        k: '1',
-        a: '-2',
-        b: '2',
-        c: '-2',
-        d: '2',
-        e: '-2',
-        f: '2',
-    };
 
-    export let scene;
-    export let render = () => {};
-    export let onClose = () => {};
-    export let selected;
-    export let selectedObjects;
-    export let selectedPoint;
-    export let title;
 
-    export let camera,
-        controls,
-        // animation = false,
-        gridStep;
     // showLevelCurves = false;
 
-    let minimize = false;
-    let loading = false;
+    let minimize = $state(false);
+    let loading = $state(false);
 
     const geometry = new THREE.BufferGeometry();
     const xTraceGeometry = new THREE.BufferGeometry();
@@ -76,21 +54,9 @@
         opacity: 0.7,
     });
 
-    // $: col = new THREE.Color(color);
-    $: {
-        plusMaterial.color.set(color);
-        const hsl = {};
-        plusMaterial.color.getHSL(hsl);
-        hsl.h = (hsl.h + 0.618033988749895) % 1;
-        minusMaterial.color.setHSL(hsl.h, hsl.s, hsl.l);
-        render();
-    }
 
-    $: if (selectedObjects[selectedObjects.length - 1] === uuid) {
-        selectedPoint = point;
-    }
 
-    let boxItemElement;
+    let boxItemElement = $state();
     /**
      * Close over mesh so reactive statement doesn't react when individual parameters change.
      */
@@ -98,14 +64,13 @@
         mesh.children.map((mesh) => flashDance(mesh, render));
         boxItemElement?.scrollIntoView({ behavior: 'smooth' });
     };
-    $: if (selected && selectedObjects.length > 0) flash();
 
     const whiteLineMaterial = new THREE.LineBasicMaterial({
         color: 0xffffff,
         linewidth: 2,
     });
 
-    const mesh = new THREE.Object3D();
+    const mesh = $state(new THREE.Object3D());
 
     const plusMesh = new THREE.Mesh(geometry, plusMaterial);
     const minusMesh = new THREE.Mesh(geometry, minusMaterial);
@@ -151,10 +116,55 @@
         }
         return valuation;
     };
-    export let color = '#3232ff';
+    /**
+     * @typedef {Object} Props
+     * @property {any} uuid
+     * @property {any} [onRenderObject]
+     * @property {any} [onDestroyObject]
+     * @property {any} [onSelect]
+     * @property {any} [params]
+     * @property {any} scene
+     * @property {any} [render]
+     * @property {any} [onClose]
+     * @property {any} selected
+     * @property {any} selectedObjects
+     * @property {any} selectedPoint
+     * @property {any} title
+     * @property {any} camera
+     * @property {any} controls
+     * @property {any} gridStep
+     * @property {string} [color]
+     */
 
-    $: hashTag = checksum(JSON.stringify(params));
-    $: hashTag, updateLevel();
+    /** @type {Props} */
+    let {
+        uuid,
+        onRenderObject = function () {},
+        onDestroyObject = function () {},
+        onSelect = function () {},
+        params = $bindable({
+        g: 'x^2 - y^2 + z^2',
+        k: '1',
+        a: '-2',
+        b: '2',
+        c: '-2',
+        d: '2',
+        e: '-2',
+        f: '2',
+    }),
+        scene,
+        render = () => {},
+        onClose = () => {},
+        selected,
+        selectedObjects = $bindable(),
+        selectedPoint = $bindable(),
+        title = $bindable(),
+        camera,
+        controls,
+        gridStep,
+        color = $bindable('#3232ff')
+    } = $props();
+
 
     const levelWorkerSuccessHandler = (data) => {
         const { normals, vertices, xpts, ypts, zpts } = data;
@@ -241,7 +251,7 @@
     });
 
     // Select a point
-    const tanFrame = new THREE.Object3D();
+    const tanFrame = $state(new THREE.Object3D());
     const arrows = {
         u: new THREE.Mesh(),
         v: new THREE.Mesh(),
@@ -255,12 +265,12 @@
         tanFrame.add(arrows[key]);
     }
 
-    let choosingPoint = false;
+    let choosingPoint = $state(false);
     const pointMaterial = new THREE.MeshLambertMaterial({ color: 0xffff33 });
-    const point = new THREE.Mesh(
+    const point = $state(new THREE.Mesh(
         new THREE.SphereGeometry(0.2 / 8, 16, 16),
         pointMaterial,
-    );
+    ));
 
     tanFrame.add(point);
 
@@ -459,9 +469,30 @@
     window.addEventListener('keydown', onKeyDown, false);
     window.addEventListener('keyup', onKeyUp, false);
     window.addEventListener('click', onMouseClick);
+    // $: col = new THREE.Color(color);
+    run(() => {
+        plusMaterial.color.set(color);
+        const hsl = {};
+        plusMaterial.color.getHSL(hsl);
+        hsl.h = (hsl.h + 0.618033988749895) % 1;
+        minusMaterial.color.setHSL(hsl.h, hsl.s, hsl.l);
+        render();
+    });
+    run(() => {
+        if (selectedObjects[selectedObjects.length - 1] === uuid) {
+            selectedPoint = point;
+        }
+    });
+    run(() => {
+        if (selected && selectedObjects.length > 0) flash();
+    });
+    let hashTag = $derived(checksum(JSON.stringify(params)));
+    run(() => {
+        hashTag, updateLevel();
+    });
 </script>
 
-<div class="boxItem" class:selected bind:this={boxItemElement} on:keydown>
+<div class="boxItem" class:selected bind:this={boxItemElement} onkeydown={bubble('keydown')}>
     <ObjHeader
         bind:minimize
         bind:selectedObjects
@@ -473,7 +504,7 @@
     >
         <Nametag bind:title />
         <span hidden={!loading}>
-            <i class="fa fa-spinner fa-pulse fa-fw" />
+            <i class="fa fa-spinner fa-pulse fa-fw"></i>
             <span class="sr-only">Loading...</span>
         </span>
     </ObjHeader>
@@ -574,15 +605,15 @@
                     name="frameVisible"
                     id="frameVisible"
                     bind:checked={tanFrame.visible}
-                    on:change={render}
+                    onchange={render}
                 />
-                <span class="slider round" />
+                <span class="slider round"></span>
             </label>
             {#if tanFrame.visible}
                 {#if choosingPoint}
                     <button
                         class="box box-2 btn btn-secondary"
-                        on:click={(e) => {
+                        onclick={(e) => {
                             e.stopImmediatePropagation();
                             choosingPoint = false;
                         }}>Cancel</button
@@ -590,7 +621,7 @@
                 {:else}
                     <button
                         class="box box-2 btn btn-primary"
-                        on:click={(e) => {
+                        onclick={(e) => {
                             e.stopImmediatePropagation();
                             choosingPoint = true;
                         }}>Select point</button

@@ -1,25 +1,29 @@
 <script>
+    import { preventDefault } from 'svelte/legacy';
+
     import Poll from '../polls/Poll.svelte';
     import PollResponses from '../polls/PollResponses.svelte';
     import Chatroom from './Chatroom.svelte';
     import { getRoomUrl } from '../utils.js';
     import { demoObjects } from '../stores';
 
-    export let roomId;
-    export let socket;
-    export let isHost;
-    export let currentPoll;
-    export let chatBuffer;
-    export let selectedPoint;
-    export let selectedObjects;
-    export let pollResponses;
+    let {
+        roomId,
+        socket = $bindable(),
+        isHost,
+        currentPoll = $bindable(),
+        chatBuffer,
+        selectedPoint,
+        selectedObjects,
+        pollResponses
+    } = $props();
 
-    let role = 'student';
+    let role = $state('student');
     if (isHost) {
         role = 'host';
     }
 
-    let joinRoomId = '';
+    let joinRoomId = $state('');
 
     const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
@@ -56,7 +60,7 @@
     </p>
 {:else}
     <form
-        on:submit|preventDefault={() => onJoinRoom(joinRoomId)}
+        onsubmit={preventDefault(() => onJoinRoom(joinRoomId))}
         class="mt-2 row row-cols-lg-auto align-items-center"
     >
         <div class="col-12">

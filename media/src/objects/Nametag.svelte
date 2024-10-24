@@ -1,9 +1,11 @@
 <script>
-    export let title;
+    import { preventDefault } from 'svelte/legacy';
 
-    let edit = false;
-    let backupTitle;
-    let editBar;
+    let { title = $bindable() } = $props();
+
+    let edit = $state(false);
+    let backupTitle = $state();
+    let editBar = $state();
 
     const init = (el) => {
         el.focus();
@@ -18,7 +20,7 @@
         bind:this={editBar}
         bind:value={title}
         use:init
-        on:keydown={(e) => {
+        onkeydown={(e) => {
             if (e.key === 'Escape') {
                 console.log(e.key);
                 title = backupTitle;
@@ -30,13 +32,13 @@
                 }
             }
         }}
-        on:blur={() => {
+        onblur={() => {
             edit = false;
         }}
-        on:change={() => {
+        onchange={() => {
             edit = false;
         }}
-        on:click={(e) => e.stopPropagation()}
+        onclick={(e) => e.stopPropagation()}
     />
 {:else}
     <strong
@@ -44,12 +46,12 @@
             {title}&nbsp;
             <a
                 href={'#'}
-                on:click|preventDefault={(e) => {
+                onclick={preventDefault((e) => {
                     edit = true;
                     e.stopPropagation();
-                }}
+                })}
             >
-                <i class="bi bi-pencil-square" /></a
+                <i class="bi bi-pencil-square"></i></a
             ></span
         >
     </strong>

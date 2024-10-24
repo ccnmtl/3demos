@@ -1,15 +1,19 @@
 <script>
+    import { run } from 'svelte/legacy';
+
     import { forceNumber } from '../utils';
     import { demoObjects } from '../stores';
 
-    export let currentPoll;
-    export let socket;
-    export let isHost;
-    export let selectedPoint;
-    export let selectedObjects;
+    let {
+        currentPoll,
+        socket,
+        isHost,
+        selectedPoint,
+        selectedObjects
+    } = $props();
 
-    let submitted = false;
-    let response = null;
+    let submitted = $state(false);
+    let response = $state(null);
 
     const handleOnSubmit = function (e) {
         e.preventDefault();
@@ -60,7 +64,9 @@
 
     // Un-submit the form when the instructor broadcasts a new
     // poll.
-    $: unsubmitPoll(currentPoll);
+    run(() => {
+        unsubmitPoll(currentPoll);
+    });
 </script>
 
 {#if currentPoll && !isHost}
@@ -79,11 +85,11 @@
                     {/if}
                 </p>
 
-                <button class="btn btn-secondary" on:click={unsubmitPoll}>
+                <button class="btn btn-secondary" onclick={unsubmitPoll}>
                     Edit response
                 </button>
             {:else}
-                <form on:submit={handleOnSubmit}>
+                <form onsubmit={handleOnSubmit}>
                     <div class="mb-3">
                         {currentPoll.prompt}
                     </div>

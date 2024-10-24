@@ -1,8 +1,11 @@
-<script context="module">
+<script module>
     let titleIndex = 0;
 </script>
 
 <script>
+    import { run, createBubbler } from 'svelte/legacy';
+
+    const bubble = createBubbler();
     import { onMount, onDestroy, createEventDispatcher } from 'svelte';
     import * as THREE from 'three';
     import { create, all } from 'mathjs';
@@ -23,38 +26,59 @@
 
     const dispatch = createEventDispatcher();
 
-    export let uuid;
-    export let onRenderObject = function () {};
-    export let onDestroyObject = function () {};
-    export let onSelect = function () {};
 
-    export let params = {
+
+
+
+
+    /**
+     * @typedef {Object} Props
+     * @property {any} uuid
+     * @property {any} [onRenderObject]
+     * @property {any} [onDestroyObject]
+     * @property {any} [onSelect]
+     * @property {any} [params]
+     * @property {any} scene
+     * @property {any} [render]
+     * @property {boolean} [animation]
+     * @property {any} [onClose]
+     * @property {any} gridMax
+     * @property {any} gridStep
+     * @property {any} selectedObjects
+     * @property {any} selected
+     * @property {string} [color]
+     * @property {any} title
+     * @property {any} meta
+     */
+
+    /** @type {Props} */
+    let {
+        uuid,
+        onRenderObject = function () {},
+        onDestroyObject = function () {},
+        onSelect = function () {},
+        params = $bindable({
         p: 'y',
         q: 'z',
         r: '-x',
         nVec: 6,
-    };
+    }),
+        scene,
+        render = () => {},
+        animation = $bindable(false),
+        onClose = () => {},
+        gridMax,
+        gridStep,
+        selectedObjects = $bindable(),
+        selected,
+        color = $bindable('#373765'),
+        title = $bindable(),
+        meta
+    } = $props();
 
-    $: hashTag = checksum(JSON.stringify(params));
-    $: hashTag, updateField();
-
-    $: nCubed = Math.pow(params.nVec, 3);
-
-    export let scene;
-    export let render = () => {};
-    export let animation = false;
-    export let onClose = () => {};
-    export let gridMax, gridStep;
-    export let selectedObjects;
-    export let selected;
-    export let color = '#373765';
-    export let title;
-
-    export let meta;
-
-    let flowTrails = meta.flowTrails === true;
+    let flowTrails = $state(meta.flowTrails === true);
     // console.log(meta, flowTrails);
-    let minimize = false;
+    let minimize = $state(false);
 
     /**
      *  "Check parameters"
@@ -75,7 +99,7 @@
         return valuation;
     };
 
-    const flowArrows = new THREE.Object3D();
+    const flowArrows = $state(new THREE.Object3D());
     const fieldMaterial = new THREE.MeshLambertMaterial({
         color,
         transparent: false,
@@ -87,37 +111,9 @@
     });
 
     const compColor = new THREE.Color();
-    let interpretColor;
-    // Keep color fresh
-    $: {
-        // if (selectedObjects.length === 0 || selected) {
-        //     fieldMaterial.opacity = 1.0;
-        // } else {
-        //     fieldMaterial.opacity = 0.3;
-        // }
-        fieldMaterial.color.set(color);
-        const hsl = {};
-        fieldMaterial.color.getHSL(hsl);
-        compColor.setHSL((hsl.h + 0.618033988749895) % 1, hsl.s, hsl.l);
-        interpretColor = (t) =>
-            new THREE.Color().setHSL(
-                (hsl.h + t * 0.618033988749895) % 1,
-                hsl.s,
-                hsl.l,
-            );
+    let interpretColor = $state();
 
-        if (flowTrails && !animation && trails.geometry.attributes.color) {
-            setTrailColors(
-                trails.geometry.attributes.color.array,
-                trailLength * nCubed * 6,
-                MAX_TRAIL_LENGTH,
-            );
-            trails.geometry.attributes.color.needsUpdate = true;
-        }
-        render();
-    }
-
-    let boxItemElement;
+    let boxItemElement = $state();
     /**
      * Close on mesh so reactive statement doesn't react when individual parameters change.
      */
@@ -125,22 +121,14 @@
         flashDance(flowArrows.children[0], render);
         boxItemElement?.scrollIntoView({ behavior: 'smooth' });
     };
-    $: if (selected && selectedObjects.length > 0) flash();
 
     const trailGeometry = new THREE.BufferGeometry();
 
     const MAX_TRAIL_LENGTH = 250;
-    let trailLength = 0;
+    let trailLength = $state(0);
 
-    const trails = new THREE.LineSegments(trailGeometry, trailMaterial);
+    const trails = $state(new THREE.LineSegments(trailGeometry, trailMaterial));
 
-    $: vfScale = gridStep * 5;
-    $: arrowArgs = {
-        radiusTop: vfScale / 60,
-        radiusBottom: vfScale / 150,
-        heightTop: vfScale / 16,
-        heightIncludesHead: true,
-    };
 
     const setTrailColors = function (
         colorArray,
@@ -317,7 +305,7 @@
         render();
     };
 
-    let fieldF;
+    let fieldF = $state();
 
     const updateField = function () {
         const { p, q, r } = params;
@@ -332,7 +320,7 @@
         };
     };
 
-    let maxLength = 2;
+    let maxLength = $state(2);
     flowArrows.name = uuid;
     onRenderObject(flowArrows);
     scene.add(flowArrows);
@@ -368,22 +356,9 @@
     const update = (dt) => updateFlowArrows(flowArrows, fieldF, dt);
 
     // animation loop
-    let last = null;
+    let last = $state(null);
 
-    $: if (animation) {
-        const currentTime = $tickTock;
-        last = last || currentTime;
-        if (!trails.geometry.attributes.position) {
-            maxLength = initFlowArrows(flowArrows, gridMax, params.nVec);
-        }
-        update(currentTime - last);
-        last = currentTime;
-    }
 
-    // Move to afterUpdate?
-    $: if (animation) {
-        dispatch('animate');
-    }
 
     const toggleHide = function () {
         flowArrows.visible = !flowArrows.visible;
@@ -420,10 +395,70 @@
     };
 
     window.addEventListener('keydown', onKeyDown, false);
+    let hashTag = $derived(checksum(JSON.stringify(params)));
+    run(() => {
+        hashTag, updateField();
+    });
+    let nCubed = $derived(Math.pow(params.nVec, 3));
+    // Keep color fresh
+    run(() => {
+        // if (selectedObjects.length === 0 || selected) {
+        //     fieldMaterial.opacity = 1.0;
+        // } else {
+        //     fieldMaterial.opacity = 0.3;
+        // }
+        fieldMaterial.color.set(color);
+        const hsl = {};
+        fieldMaterial.color.getHSL(hsl);
+        compColor.setHSL((hsl.h + 0.618033988749895) % 1, hsl.s, hsl.l);
+        interpretColor = (t) =>
+            new THREE.Color().setHSL(
+                (hsl.h + t * 0.618033988749895) % 1,
+                hsl.s,
+                hsl.l,
+            );
+
+        if (flowTrails && !animation && trails.geometry.attributes.color) {
+            setTrailColors(
+                trails.geometry.attributes.color.array,
+                trailLength * nCubed * 6,
+                MAX_TRAIL_LENGTH,
+            );
+            trails.geometry.attributes.color.needsUpdate = true;
+        }
+        render();
+    });
+    run(() => {
+        if (selected && selectedObjects.length > 0) flash();
+    });
+    let vfScale = $derived(gridStep * 5);
+    let arrowArgs = $derived({
+        radiusTop: vfScale / 60,
+        radiusBottom: vfScale / 150,
+        heightTop: vfScale / 16,
+        heightIncludesHead: true,
+    });
+    run(() => {
+        if (animation) {
+            const currentTime = $tickTock;
+            last = last || currentTime;
+            if (!trails.geometry.attributes.position) {
+                maxLength = initFlowArrows(flowArrows, gridMax, params.nVec);
+            }
+            update(currentTime - last);
+            last = currentTime;
+        }
+    });
+    // Move to afterUpdate?
+    run(() => {
+        if (animation) {
+            dispatch('animate');
+        }
+    });
 </script>
 
-<!-- svelte-ignore a11y-no-static-element-interactions -->
-<div class="boxItem" class:selected bind:this={boxItemElement} on:keydown>
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<div class="boxItem" class:selected bind:this={boxItemElement} onkeydown={bubble('keydown')}>
     <ObjHeader
         bind:minimize
         bind:selectedObjects
@@ -460,7 +495,7 @@
                 max="10"
                 step="1"
                 class="box box-2"
-                on:input={() => {
+                oninput={() => {
                     freeChildren(flowArrows);
                     maxLength = initFlowArrows(
                         flowArrows,
@@ -479,9 +514,9 @@
                     name="trailsVisible"
                     id="trailsVisible"
                     bind:checked={flowTrails}
-                    on:change={freeTrails}
+                    onchange={freeTrails}
                 />
-                <span class="slider round" />
+                <span class="slider round"></span>
             </label>
 
             <PlayButtons

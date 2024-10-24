@@ -1,9 +1,7 @@
 <script>
-    export let socket;
-    export let role;
-    export let chatBuffer;
+    let { socket, role, chatBuffer = $bindable() } = $props();
 
-    let currentMsg = '';
+    let currentMsg = $state('');
 
     /**
      * Send a chat message over WebSocket.
@@ -57,7 +55,7 @@
 {/if}
 
 {#if role === 'student'}
-    <form on:submit={onSubmitChat}>
+    <form onsubmit={onSubmitChat}>
         <div class="input-group mt-1">
             <input type="text"
                    class="form-control form-control-sm"

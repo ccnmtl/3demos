@@ -6,15 +6,17 @@
     import { broadcastPoll, loadPolls } from './utils';
     import { querySelectorIncludesText } from '../utils';
 
-    export let socket;
-    export let pollResponses;
-    export let objectResponses;
-    export let isPollsOpen;
-    export let render;
-    export let currentPoll;
-    export let lockPoll;
+    let {
+        socket,
+        pollResponses = $bindable(),
+        objectResponses,
+        isPollsOpen = $bindable(),
+        render,
+        currentPoll = $bindable(),
+        lockPoll = $bindable()
+    } = $props();
 
-    let polls = loadPolls();
+    let polls = $state(loadPolls());
     // Init empty polls to some basic examples
     if (polls && polls.length === 0) {
         polls = [
@@ -36,11 +38,11 @@
     const maxId = Math.max(...polls.map((p) => p.id));
     setIdCounter(maxId);
 
-    let currentPollType = null;
-    let activeTab = 'polls';
+    let currentPollType = $state(null);
+    let activeTab = $state('polls');
 
-    let isEditing = false;
-    let editingPoll = null;
+    let isEditing = $state(false);
+    let editingPoll = $state(null);
 
     const onClickEdit = function (e, p) {
         isEditing = true;
@@ -144,18 +146,18 @@
                                         type="button"
                                         class="btn btn-secondary btn-sm"
                                         title={`Edit poll ${poll.id}`}
-                                        on:click={(e) => onClickEdit(e, poll)}
+                                        onclick={(e) => onClickEdit(e, poll)}
                                     >
-                                        <i class="bi bi-pencil" /> Edit
+                                        <i class="bi bi-pencil"></i> Edit
                                     </button>
                                     <button
                                         type="button"
                                         class="btn btn-primary btn-sm"
                                         title={`Broadcast poll ${poll.id}`}
-                                        on:click={(e) =>
+                                        onclick={(e) =>
                                             onClickBroadcast(e, poll)}
                                     >
-                                        <i class="bi bi-broadcast-pin" /> Broadcast
+                                        <i class="bi bi-broadcast-pin"></i> Broadcast
                                     </button>
                                 </td>
                             </tr>
@@ -166,7 +168,7 @@
                     type="button"
                     title="Make new poll"
                     class="btn btn-primary btn-sm"
-                    on:click={(e) => onClickMakePoll(e)}
+                    onclick={(e) => onClickMakePoll(e)}
                 >
                     Make new poll
                 </button>

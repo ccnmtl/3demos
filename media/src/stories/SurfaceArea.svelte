@@ -1,4 +1,6 @@
 <script>
+    import { run } from 'svelte/legacy';
+
     import * as THREE from 'three';
 
     import { all, create } from 'mathjs';
@@ -12,15 +14,21 @@
     import { demoObjects } from '../stores';
     // import { createEventDispatcher } from 'svelte';
 
-    // const dispatch = createEventDispatcher();
+    
 
-    export let scene;
-    export let render;
+    /**
+     * @typedef {Object} Props
+     * @property {any} scene - const dispatch = createEventDispatcher();
+     * @property {any} render
+     */
+
+    /** @type {Props} */
+    let { scene, render } = $props();
 
     const config = {};
     const math = create(all, config);
 
-    let sampleParam = 0;
+    let sampleParam = $state(0);
 
     const backupObjects = [
         ...$demoObjects.map((obj) => {
@@ -83,14 +91,14 @@
         },
     ];
 
-    let exampleSurfaces = [
+    let exampleSurfaces = $state([
         ...standardExamples,
         ...backupObjects.filter(
             (obj) =>
                 obj.kind === 'surface' &&
                 obj.uuid.slice(0, 18) !== 'area-story-example',
         ),
-    ];
+    ]);
 
     const whiteLineMaterial = new THREE.LineBasicMaterial({
         color: 0xffffff,
@@ -99,7 +107,7 @@
     });
 
     let currentSurface =
-        $demoObjects.find((o) => o.kind === 'surface') || exampleSurfaces[0];
+        $state($demoObjects.find((o) => o.kind === 'surface') || exampleSurfaces[0]);
 
     onMount(() => {
         // currentField =
@@ -121,7 +129,7 @@
         render();
     });
 
-    let r = (u, v) => [u, v, 1 / 2 - (u * u) / 4 - (v * v) / 2];
+    let r = $state((u, v) => [u, v, 1 / 2 - (u * u) / 4 - (v * v) / 2]);
 
     let geo;
     // let geoDown;
@@ -153,7 +161,7 @@
     //     opacity: 0.6,
     // });
 
-    const boxes = new THREE.Object3D();
+    const boxes = $state(new THREE.Object3D());
     boxes.add(new THREE.Mesh(undefined, plusMaterial)); // pos boxes
     boxes.add(new THREE.LineSegments(undefined, whiteLineMaterial)); // pos edges
     // boxes.add(new THREE.Mesh(undefined, minusMaterial)); // neg boxes
@@ -162,9 +170,9 @@
     scene.add(boxes);
 
     // let tau = 1;
-    let nBoxes = 3;
+    let nBoxes = $state(3);
 
-    let u0, u1, v0, v1;
+    let u0 = $state(), u1 = $state(), v0 = $state(), v1 = $state();
     const setRuv = (obj) => {
         // const dt = 1e-4;
         // const obj = exampleSurfaces.find((o) => o.uuid === uuid);
@@ -239,10 +247,12 @@
         ];
     };
 
-    $: setRuv(currentSurface);
+    run(() => {
+        setRuv(currentSurface);
+    });
 
-    let approxArea = 0;
-    let totalArea = 0;
+    let approxArea = $state(0);
+    let totalArea = $state(0);
 
     const updateGeo = (N, r, A, B, C, D, samp) => {
         geo?.dispose();
@@ -257,7 +267,9 @@
         render();
     };
 
-    $: updateGeo(nBoxes, r, u0, u1, v0, v1, sampleParam);
+    run(() => {
+        updateGeo(nBoxes, r, u0, u1, v0, v1, sampleParam);
+    });
 </script>
 
 <div>
@@ -298,7 +310,7 @@
         <div class="col-auto">
             <button
                 class=" bg-primary text-light"
-                on:click={() => {
+                onclick={() => {
                     exampleSurfaces = [
                         ...standardExamples,
                         ...$demoObjects.filter(
@@ -313,7 +325,7 @@
                     setRuv(currentSurface);
                 }}
             >
-                <i class="bi bi-arrow-clockwise" />
+                <i class="bi bi-arrow-clockwise"></i>
             </button>
         </div>
     </div>
@@ -342,9 +354,9 @@
                 <input
                     type="checkbox"
                     bind:checked={boxes.visible}
-                    on:change={render}
+                    onchange={render}
                 />
-                <span class="slider round" />
+                <span class="slider round"></span>
             </label>
         </div>
 
@@ -354,7 +366,7 @@
                 <input
                     type="checkbox"
                     checked={false}
-                    on:change={(e) => {
+                    onchange={(e) => {
                         if (e.target.checked) {
                             sampleParam = 0.5;
                         } else {
@@ -362,7 +374,7 @@
                         }
                     }}
                 />
-                <span class="slider round" />
+                <span class="slider round"></span>
             </label>
         </div>
     </div>

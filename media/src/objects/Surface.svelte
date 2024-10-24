@@ -1,8 +1,11 @@
-<script context="module">
+<script module>
     let titleIndex = 0;
 </script>
 
 <script>
+    import { run, createBubbler } from 'svelte/legacy';
+
+    const bubble = createBubbler();
     import { onMount, onDestroy, createEventDispatcher } from 'svelte';
     import * as THREE from 'three';
     import { create, all } from 'mathjs';
@@ -34,39 +37,21 @@
     import InputChecker from '../form-components/InputChecker.svelte';
     import ColorBar from '../settings/ColorBar.svelte';
 
-    export let uuid;
-    export let onRenderObject = function () {};
-    export let onDestroyObject = function () {};
-    export let onSelect = function () {};
 
-    export let params = {
-        a: '-2',
-        b: '2',
-        c: '-2',
-        d: '1 + sin(pi*u)/2',
-        x: 'u',
-        y: 'v',
-        z: '1 - sin(u^2 - v^2)/2',
-        t0: '0',
-        t1: '1',
-    };
-    export let color = '#3232ff';
-    export let title;
 
-    export let animation = false;
 
     let rNum = 10;
     let cNum = 10;
-    let nX = 60;
+    let nX = $state(60);
 
-    let tau = 0;
-    let last = null;
-    let texString1 = '';
+    let tau = $state(0);
+    let last = $state(null);
+    let texString1 = $state('');
 
-    let chooseDensity = false;
-    let densityString = '1';
-    let compiledDensity;
-    let densityFunc;
+    let chooseDensity = $state(false);
+    let densityString = $state('1');
+    let compiledDensity = $state();
+    let densityFunc = $state();
 
     const colorMaterial = new THREE.MeshPhongMaterial({
         color: 0xffffff,
@@ -99,60 +84,12 @@
         });
     };
 
-    $: ($vMin, $vMax),
-        chooseDensity && colorMeBadd(surfaceMesh.children[0], densityFunc);
 
-    $: if (chooseDensity && $densityColormap) {
-        densityString = densityString || '1';
-        compiledDensity = math.parse(densityString).compile();
-        densityFunc = (x, y, z) => compiledDensity.evaluate({ x, y, z });
 
-        if (densityFunc) {
-            surfaceMesh.children[1].visible = false;
-            colorMeBadd(surfaceMesh.children[0], densityFunc);
-            surfaceMesh.children[0].material = colorMaterial;
-        }
-        render();
-    } else {
-        if (surfaceMesh) {
-            surfaceMesh.children[1].visible = true;
-            surfaceMesh.children[0].material = plusMaterial;
-            render();
-        }
-    }
+    let xyz = $state();
+    let abcd = $state();
 
-    let xyz;
-    let abcd;
 
-    // compile (in the math.js sense) each expression once they change
-    // and thus have been cleared
-    $: {
-        const [x, y, z] = [params.x, params.y, params.z].map((f) =>
-            math.parse(f).compile(),
-        );
-        xyz = (u, v, vec, t = 0) =>
-            vec.set(
-                x.evaluate({ u, v, t }),
-                y.evaluate({ u, v, t }),
-                z.evaluate({ u, v, t }),
-            );
-    }
-    $: {
-        const [a, b] = [params.a, params.b].map((f) => math.evaluate(f));
-        const [c, d] = [params.c, params.d].map((f) => math.parse(f).compile());
-
-        // take uv on unit square to actual uv coords for parametricgeom
-        abcd = (u, v) => [
-            a + u * (b - a),
-            c.evaluate({ u: a + u * (b - a) }) * (1 - v) +
-                d.evaluate({ u: a + u * (b - a) }) * v,
-        ];
-    }
-
-    $: isDynamic = dependsOn(params, 't');
-    // Only run the update if the params have changed.
-    $: hashTag = checksum(JSON.stringify(params));
-    $: hashTag, updateSurface();
 
     // Check midpoint of parameter space and see if all is ok.
     const chickenParms = (val, { a, b, c, d, t0, t1 }) => {
@@ -186,17 +123,59 @@
         }
     };
 
-    export let scene;
-    export let controls;
-    export let camera;
-    export let gridStep;
-    export let render = () => {};
-    export let onClose = () => {};
-    export let selected;
-    export let selectedObjects;
-    export let selectedPoint;
+    /**
+     * @typedef {Object} Props
+     * @property {any} uuid
+     * @property {any} [onRenderObject]
+     * @property {any} [onDestroyObject]
+     * @property {any} [onSelect]
+     * @property {any} [params]
+     * @property {string} [color]
+     * @property {any} title
+     * @property {boolean} [animation]
+     * @property {any} scene
+     * @property {any} controls
+     * @property {any} camera
+     * @property {any} gridStep
+     * @property {any} [render]
+     * @property {any} [onClose]
+     * @property {any} selected
+     * @property {any} selectedObjects
+     * @property {any} selectedPoint
+     */
 
-    let minimize = false;
+    /** @type {Props} */
+    let {
+        uuid,
+        onRenderObject = function () {},
+        onDestroyObject = function () {},
+        onSelect = function () {},
+        params = $bindable({
+        a: '-2',
+        b: '2',
+        c: '-2',
+        d: '1 + sin(pi*u)/2',
+        x: 'u',
+        y: 'v',
+        z: '1 - sin(u^2 - v^2)/2',
+        t0: '0',
+        t1: '1',
+    }),
+        color = $bindable('#3232ff'),
+        title = $bindable(),
+        animation = $bindable(false),
+        scene,
+        controls,
+        camera,
+        gridStep,
+        render = () => {},
+        onClose = () => {},
+        selected,
+        selectedObjects = $bindable(),
+        selectedPoint = $bindable()
+    } = $props();
+
+    let minimize = $state(false);
 
     const whiteLineMaterial = new THREE.LineBasicMaterial({
         color: 0xffffff,
@@ -223,23 +202,14 @@
         opacity: 0.7,
     });
 
-    let boxItemElement;
+    let boxItemElement = $state();
 
-    // Keep color fresh
-    $: {
-        plusMaterial.color.set(color);
-        const hsl = {};
-        plusMaterial.color.getHSL(hsl);
-        hsl.h = (hsl.h + 0.618033988749895) % 1;
-        minusMaterial.color.setHSL(hsl.h, hsl.s, hsl.l);
-        render();
-    }
 
     let cMin, dMax; // make these globals as useful for tangents.
 
     const tol = 1e-12; //tolerance for comparisons
 
-    let surfaceMesh;
+    let surfaceMesh = $state();
 
     const updateSurface = function () {
         const { t0, t1 } = params;
@@ -544,21 +514,7 @@
         render();
     };
 
-    // Reacts once when `animation` changes
-    // Useful it the objects file is updated with new flag
-    $: if (animation) {
-        dispatch('animate');
-    }
 
-    // Reacts when `animation` or the ticktock store change
-    $: if (animation) {
-        const currentTime = $tickTock;
-        last = last || currentTime;
-        update(currentTime - last);
-        last = currentTime;
-    } else {
-        last = null;
-    }
 
     // onMount(updateSurface);
     onMount(() => {
@@ -584,9 +540,6 @@
         render();
     });
 
-    $: if (selectedObjects[selectedObjects.length - 1] === uuid) {
-        selectedPoint = point;
-    }
 
     /**
      * Close on mesh so reactive statement doesn't react when individual parameters change.
@@ -595,10 +548,9 @@
         surfaceMesh.children.map((mesh) => flashDance(mesh, render));
         boxItemElement?.scrollIntoView({ behavior: 'smooth' });
     };
-    $: if (selected && selectedObjects.length > 0) flash();
 
     // Select a point
-    const tanFrame = new THREE.Object3D();
+    const tanFrame = $state(new THREE.Object3D());
     const arrows = {
         u: new THREE.Mesh(),
         v: new THREE.Mesh(),
@@ -613,10 +565,10 @@
     }
 
     const pointMaterial = new THREE.MeshLambertMaterial({ color: 0xffff33 });
-    const point = new THREE.Mesh(
+    const point = $state(new THREE.Mesh(
         new THREE.SphereGeometry(0.2 / 8, 16, 16),
         pointMaterial,
-    );
+    ));
 
     tanFrame.add(point);
 
@@ -847,10 +799,99 @@
 
     window.addEventListener('keydown', keyDown, false);
     window.addEventListener('keyup', onKeyUp, false);
+    run(() => {
+        if (chooseDensity && $densityColormap) {
+            densityString = densityString || '1';
+            compiledDensity = math.parse(densityString).compile();
+            densityFunc = (x, y, z) => compiledDensity.evaluate({ x, y, z });
+
+            if (densityFunc) {
+                surfaceMesh.children[1].visible = false;
+                colorMeBadd(surfaceMesh.children[0], densityFunc);
+                surfaceMesh.children[0].material = colorMaterial;
+            }
+            render();
+        } else {
+            if (surfaceMesh) {
+                surfaceMesh.children[1].visible = true;
+                surfaceMesh.children[0].material = plusMaterial;
+                render();
+            }
+        }
+    });
+    run(() => {
+        ($vMin, $vMax),
+            chooseDensity && colorMeBadd(surfaceMesh.children[0], densityFunc);
+    });
+    // compile (in the math.js sense) each expression once they change
+    // and thus have been cleared
+    run(() => {
+        const [x, y, z] = [params.x, params.y, params.z].map((f) =>
+            math.parse(f).compile(),
+        );
+        xyz = (u, v, vec, t = 0) =>
+            vec.set(
+                x.evaluate({ u, v, t }),
+                y.evaluate({ u, v, t }),
+                z.evaluate({ u, v, t }),
+            );
+    });
+    run(() => {
+        const [a, b] = [params.a, params.b].map((f) => math.evaluate(f));
+        const [c, d] = [params.c, params.d].map((f) => math.parse(f).compile());
+
+        // take uv on unit square to actual uv coords for parametricgeom
+        abcd = (u, v) => [
+            a + u * (b - a),
+            c.evaluate({ u: a + u * (b - a) }) * (1 - v) +
+                d.evaluate({ u: a + u * (b - a) }) * v,
+        ];
+    });
+    let isDynamic = $derived(dependsOn(params, 't'));
+    // Only run the update if the params have changed.
+    let hashTag = $derived(checksum(JSON.stringify(params)));
+    run(() => {
+        hashTag, updateSurface();
+    });
+    // Keep color fresh
+    run(() => {
+        plusMaterial.color.set(color);
+        const hsl = {};
+        plusMaterial.color.getHSL(hsl);
+        hsl.h = (hsl.h + 0.618033988749895) % 1;
+        minusMaterial.color.setHSL(hsl.h, hsl.s, hsl.l);
+        render();
+    });
+    // Reacts once when `animation` changes
+    // Useful it the objects file is updated with new flag
+    run(() => {
+        if (animation) {
+            dispatch('animate');
+        }
+    });
+    // Reacts when `animation` or the ticktock store change
+    run(() => {
+        if (animation) {
+            const currentTime = $tickTock;
+            last = last || currentTime;
+            update(currentTime - last);
+            last = currentTime;
+        } else {
+            last = null;
+        }
+    });
+    run(() => {
+        if (selectedObjects[selectedObjects.length - 1] === uuid) {
+            selectedPoint = point;
+        }
+    });
+    run(() => {
+        if (selected && selectedObjects.length > 0) flash();
+    });
 </script>
 
-<!-- svelte-ignore a11y-no-static-element-interactions -->
-<div class="boxItem" class:selected on:keydown bind:this={boxItemElement}>
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<div class="boxItem" class:selected onkeydown={bubble('keydown')} bind:this={boxItemElement}>
     <ObjHeader
         bind:minimize
         bind:selectedObjects
@@ -959,7 +1000,7 @@
                     min="0"
                     max="1"
                     step="0.001"
-                    on:input={() => {
+                    oninput={() => {
                         const t0 = math.evaluate(params.t0);
                         const t1 = math.evaluate(params.t1);
                         const t = t0 + tau * (t1 - t0);
@@ -977,9 +1018,9 @@
                             name="tangentsToggle"
                             id="tangentsToggle"
                             bind:checked={tanFrame.visible}
-                            on:change={render}
+                            onchange={render}
                         />
-                        <span class="slider round" />
+                        <span class="slider round"></span>
                     </label>
                 </span>
                 <PlayButtons
@@ -1010,7 +1051,7 @@
                     id="chooseDensity"
                     bind:checked={chooseDensity}
                 />
-                <span class="slider round" />
+                <span class="slider round"></span>
             </label>
 
             {#if chooseDensity}

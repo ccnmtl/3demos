@@ -2,33 +2,39 @@
     import { createEventDispatcher } from 'svelte';
 
     const dispatch = createEventDispatcher();
-    export let className = 'play-buttons box-2';
-    export let animation = false;
+    /**
+     * @typedef {Object} Props
+     * @property {string} [className]
+     * @property {boolean} [animation]
+     */
+
+    /** @type {Props} */
+    let { className = 'play-buttons box-2', animation = $bindable(false) } = $props();
 </script>
 
 <div class={className}>
     <button
         class="btn playpausebtn"
-        on:click={() => {
+        onclick={() => {
             dispatch(animation ? 'pause' : 'animate');
             if (!animation) dispatch('play');
             animation = !animation;
         }}
     >
         {#if !animation}
-            <i class="fa fa-play" />
+            <i class="fa fa-play"></i>
         {:else}
-            <i class="fa fa-pause" />
+            <i class="fa fa-pause"></i>
         {/if}
     </button>
     <button
         class="btn rewbtn"
-        on:click={() => {
+        onclick={() => {
             dispatch('rew');
             // animation = false;
         }}
     >
-        <i class="fa fa-fast-backward" />
+        <i class="fa fa-fast-backward"></i>
     </button>
 </div>
 

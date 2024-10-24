@@ -1,4 +1,6 @@
 <script>
+    import { run } from 'svelte/legacy';
+
     import { onMount } from 'svelte';
 
     import * as THREE from 'three';
@@ -33,27 +35,27 @@
     //import stores
     import { tickTock, viewScale } from './stores.js';
 
-    let isMobileView = false;
+    let isMobileView = $state(false);
 
-    let debug = false;
+    let debug = $state(false);
     let stats;
-    let panel = null;
-    let showPanel = true;
+    let panel = $state(null);
+    let showPanel = $state(true);
 
-    let scaleAnimation = false;
-    let scaleUpdate;
-    let selectedObjects = [];
+    let scaleAnimation = $state(false);
+    let scaleUpdate = $state();
+    let selectedObjects = $state([]);
     let hoveredObject = null;
-    let selectedPoint = null;
+    let selectedPoint = $state(null);
 
     // The demoObjects array store is the declarative data that the scene is based on.
     import { demoObjects } from './stores.js';
 
-    let gridMax = 1;
-    let gridStep = 1 / 10;
+    let gridMax = $state(1);
+    let gridStep = $state(1 / 10);
 
-    let currentChapter = 'How To';
-    let currentMode = 'how-to';
+    let currentChapter = $state('How To');
+    let currentMode = $state('how-to');
     let gridSetting = false;
 
     const urlParams = new URLSearchParams(
@@ -98,10 +100,10 @@
         console.log('Initializing...', $demoObjects);
     }
 
-    let canvas;
-    let isPollsOpen = false;
+    let canvas = $state();
+    let isPollsOpen = $state(false);
 
-    let lockPoll = false;
+    let lockPoll = $state(false);
     let showPollResults = false;
 
     const selectObject = (uuid) => {
@@ -121,53 +123,31 @@
 
     const objectLoader = new THREE.ObjectLoader();
 
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(
+    const scene = $state(new THREE.Scene());
+    const camera = $state(new THREE.PerspectiveCamera(
         75,
         window.innerWidth / window.innerHeight,
         0.001,
         1000,
-    );
+    ));
     const raycaster = new THREE.Raycaster();
     const pointerCoords = new THREE.Vector2();
 
-    const camera2 = new THREE.OrthographicCamera(
+    const camera2 = $state(new THREE.OrthographicCamera(
         -2,
         2,
         (window.innerHeight / window.innerWidth) * 2,
         (-window.innerHeight / window.innerWidth) * 2,
         0,
         100 * 2,
-    );
+    ));
 
-    let controls, controls2;
+    let controls = $state(), controls2 = $state();
     let renderer;
 
-    let orthoCamera = false;
+    let orthoCamera = $state(false);
 
-    $: currentCamera = orthoCamera ? camera2 : camera;
-    $: currentControls = orthoCamera ? controls2 : controls;
 
-    // Try a sane transfer between cameras instead of turning listeners for the two controls on and off.
-    $: if (orthoCamera) {
-        controls2?.target.copy(controls.target);
-        controls2?.addEventListener('change', requestFrameIfNotRequested);
-
-        controls?.removeEventListener('change', requestFrameIfNotRequested);
-        camera2?.position.copy(camera.position);
-        if (controls) {
-            controls.enableDamping = false;
-        }
-    } else {
-        controls?.target.copy(controls2.target);
-        controls?.addEventListener('change', requestFrameIfNotRequested);
-
-        controls2?.removeEventListener('change', requestFrameIfNotRequested);
-        camera?.position.copy(camera2.position);
-        if (controls) {
-            controls.enableDamping = true;
-        }
-    }
 
     const pi = Math.PI;
 
@@ -227,7 +207,7 @@
     });
 
     // Make xy grid lines (off by default).
-    let gridMeshes = drawGrid({ gridMax, gridStep, lineMaterial });
+    let gridMeshes = $state(drawGrid({ gridMax, gridStep, lineMaterial }));
     gridMeshes.renderDepth = -1;
     gridMeshes.visible = gridSetting;
     scene.add(gridMeshes);
@@ -388,9 +368,15 @@
     // the data gets rendered by our svelte components
     let sceneObjects = [];
 
-    export let currentPoll = null;
-    export let isHost = false;
-    let activeUserCount = 0;
+    /**
+     * @typedef {Object} Props
+     * @property {any} [currentPoll]
+     * @property {boolean} [isHost]
+     */
+
+    /** @type {Props} */
+    let { currentPoll = $bindable(null), isHost = $bindable(false) } = $props();
+    let activeUserCount = $state(0);
 
     let host = null;
 
@@ -610,10 +596,10 @@
         });
     });
 
-    let pollResponses = {};
+    let pollResponses = $state({});
 
     // The chat buffer: an array of objects.
-    let chatBuffer = [];
+    let chatBuffer = $state([]);
     const chatLineCount = 5;
     const pointGeometry = new THREE.SphereGeometry(0.2 / 8, 16, 16);
     const pollMaterial = new THREE.MeshLambertMaterial({
@@ -621,7 +607,7 @@
         transparent: true,
         opacity: 0.5,
     });
-    let objectResponses;
+    let objectResponses = $state();
 
     const makeQueryStringObject = function () {
         const flattenedObjects = {
@@ -710,10 +696,10 @@
         }
     };
 
-    let socket = null;
+    let socket = $state(null);
     const router = {};
     const room = location.pathname.match(/\/rooms\/\d+\//);
-    let roomId = null;
+    let roomId = $state(null);
 
     if (room) {
         currentMode = 'session';
@@ -808,6 +794,30 @@
         }
     };
     window.addEventListener('keydown', keyDown, false);
+    let currentCamera = $derived(orthoCamera ? camera2 : camera);
+    let currentControls = $derived(orthoCamera ? controls2 : controls);
+    // Try a sane transfer between cameras instead of turning listeners for the two controls on and off.
+    run(() => {
+        if (orthoCamera) {
+            controls2?.target.copy(controls.target);
+            controls2?.addEventListener('change', requestFrameIfNotRequested);
+
+            controls?.removeEventListener('change', requestFrameIfNotRequested);
+            camera2?.position.copy(camera.position);
+            if (controls) {
+                controls.enableDamping = false;
+            }
+        } else {
+            controls?.target.copy(controls2.target);
+            controls?.addEventListener('change', requestFrameIfNotRequested);
+
+            controls2?.removeEventListener('change', requestFrameIfNotRequested);
+            camera?.position.copy(camera2.position);
+            if (controls) {
+                controls.enableDamping = true;
+            }
+        }
+    });
 </script>
 
 <main>
@@ -853,7 +863,7 @@
             {objectResponses}
         />
 
-        <canvas class="flex-grow-1" tabIndex="0" id="c" bind:this={canvas} />
+        <canvas class="flex-grow-1" tabIndex="0" id="c" bind:this={canvas}></canvas>
 
         <div class="settings-panel-box" class:mobile={isMobileView}>
             <Settings
@@ -884,12 +894,12 @@
                 class="active-users-count"
                 title={activeUserCount + ' users in session'}
             >
-                <i class="bi bi-person-fill" />
+                <i class="bi bi-person-fill"></i>
                 {activeUserCount}
             </div>
 
             <a class="leave-room" href="/" title="Exit Room">
-                <i class="fa fa-sign-out" />
+                <i class="fa fa-sign-out"></i>
             </a>
         {/if}
     </div>
@@ -899,7 +909,7 @@
             class="scene-overlay active-users-count"
             title={activeUserCount + ' users in session'}
         >
-            <i class="bi bi-person-fill" />
+            <i class="bi bi-person-fill"></i>
             {activeUserCount}
         </div>
     {/if}

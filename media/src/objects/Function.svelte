@@ -1,8 +1,11 @@
-<script context="module">
+<script module>
     let titleIndex = 0;
 </script>
 
 <script>
+    import { run, createBubbler } from 'svelte/legacy';
+
+    const bubble = createBubbler();
     import { onMount, onDestroy, createEventDispatcher } from 'svelte';
     import { slide } from 'svelte/transition';
     import * as THREE from 'three';
@@ -37,18 +40,7 @@
     } from '../utils.js';
     import { flashDance } from '../sceneUtils';
 
-    export let uuid;
-    export let onRenderObject = function () {};
-    export let onDestroyObject = function () {};
-    export let onSelect = function () {};
 
-    export let params = {
-        a: '-2',
-        b: '2',
-        c: '-2',
-        d: '1 + sin(pi*x)/4',
-        z: 'exp(-(1 - (x^2 + y^2))^2)',
-    };
 
     /**
      *  "Check parameters"
@@ -84,13 +76,12 @@
         }
         return valuation;
     };
-    export let color = '#3232ff';
 
-    let texString1 = '';
-    let last = null;
+    let texString1 = $state('');
+    let last = $state(null);
 
     // Better called "meta-parameters" these are internal values that can stay in the component.
-    let data = {
+    let data = $state({
         rNum: 10,
         cNum: 10,
         nX: 50,
@@ -101,24 +92,61 @@
         samp: 0,
         levelDelta: -1,
         shiftLevel: 0.0,
-    };
-    let tau = 0;
-    // let animateLevels = false;
+    });
+    let tau = $state(0);
+    
 
-    export let camera;
-    export let controls;
-    export let gridStep;
-    export let showLevelCurves = false;
-    export let scene;
-    export let render = () => {};
-    export let onClose = () => {};
-    export let animation = false;
-    export let selected;
-    export let selectedObjects;
-    export let selectedPoint;
-    export let title;
+    /**
+     * @typedef {Object} Props
+     * @property {any} uuid
+     * @property {any} [onRenderObject]
+     * @property {any} [onDestroyObject]
+     * @property {any} [onSelect]
+     * @property {any} [params]
+     * @property {string} [color]
+     * @property {any} camera - let animateLevels = false;
+     * @property {any} controls
+     * @property {any} gridStep
+     * @property {boolean} [showLevelCurves]
+     * @property {any} scene
+     * @property {any} [render]
+     * @property {any} [onClose]
+     * @property {boolean} [animation]
+     * @property {any} selected
+     * @property {any} selectedObjects
+     * @property {any} selectedPoint
+     * @property {any} title
+     */
 
-    let minimize = false;
+    /** @type {Props} */
+    let {
+        uuid,
+        onRenderObject = function () {},
+        onDestroyObject = function () {},
+        onSelect = function () {},
+        params = $bindable({
+        a: '-2',
+        b: '2',
+        c: '-2',
+        d: '1 + sin(pi*x)/4',
+        z: 'exp(-(1 - (x^2 + y^2))^2)',
+    }),
+        color = $bindable('#3232ff'),
+        camera,
+        controls,
+        gridStep,
+        showLevelCurves = $bindable(false),
+        scene,
+        render = () => {},
+        onClose = () => {},
+        animation = $bindable(false),
+        selected,
+        selectedObjects = $bindable(),
+        selectedPoint = $bindable(),
+        title = $bindable()
+    } = $props();
+
+    let minimize = $state(false);
 
     const colorMaterial = new THREE.MeshPhongMaterial({
         color: 0xffffff,
@@ -134,15 +162,17 @@
     });
 
     // Tangents
-    let showTangents = false;
-    let choosingPoint = false;
+    let showTangents = $state(false);
+    let choosingPoint = $state(false);
     const pointMaterial = new THREE.MeshLambertMaterial({ color: 0xffff33 });
-    const point = new THREE.Mesh(
+    const point = $state(new THREE.Mesh(
         new THREE.SphereGeometry(gridStep / 8, 16, 16),
         pointMaterial,
-    );
+    ));
     point.position.set(1, 1, 1);
-    $: point.visible = showTangents;
+    run(() => {
+        point.visible = showTangents;
+    });
 
     const arrowParams = {
         radiusTop: gridStep / 10,
@@ -201,12 +231,12 @@
     scene.add(point);
 
     // Compile main function
-    let func;
+    let func = $state();
 
-    $: {
+    run(() => {
         const z = math.parse(params.z).compile();
         func = (x, y, t) => z.evaluate({ x, y, t });
-    }
+    });
 
     const tangentVectors = function () {
         // const arrowParams = {
@@ -288,9 +318,9 @@
         linewidth: 4,
     });
 
-    let materialOpacity = 0.8;
+    let materialOpacity = $state(0.8);
 
-    const plusMaterial = new THREE.MeshPhongMaterial({
+    const plusMaterial = $state(new THREE.MeshPhongMaterial({
         color: color,
         shininess: 80,
         side: THREE.FrontSide,
@@ -298,15 +328,15 @@
         transparent: true,
         opacity: materialOpacity,
         depthTest: true,
-    });
-    const minusMaterial = new THREE.MeshPhongMaterial({
+    }));
+    const minusMaterial = $state(new THREE.MeshPhongMaterial({
         color: 0xff3232,
         shininess: 80,
         side: THREE.BackSide,
         vertexColors: false,
         transparent: true,
         opacity: materialOpacity,
-    });
+    }));
 
     // Set other side a complementary color.
     // {
@@ -322,7 +352,7 @@
     let cMin, dMax; // make these globals as useful for tangents.
     const tol = 1e-12; //tolerance for comparisons
 
-    let surfaceMesh = new THREE.Object3D();
+    let surfaceMesh = $state(new THREE.Object3D());
 
     const updateSurface = function () {
         const { a, b, c, d, t0, t1 } = params;
@@ -552,7 +582,7 @@
         }
     };
 
-    const levelHolder = new THREE.Object3D();
+    const levelHolder = $state(new THREE.Object3D());
     scene.add(levelHolder);
 
     const curveBall = new THREE.LineSegments(
@@ -572,25 +602,29 @@
     /**
      * Reactivity, REE-ac-tivity
      */
-    $: isDynamic = dependsOn(params, 't');
-    $: hashTag = checksum(JSON.stringify(params));
-    $: hashTag, updateSurface();
+    let isDynamic = $derived(dependsOn(params, 't'));
+    let hashTag = $derived(checksum(JSON.stringify(params)));
+    run(() => {
+        hashTag, updateSurface();
+    });
 
     // Keep color fresh
-    $: {
+    run(() => {
         plusMaterial.color.set(color);
         const hsl = {};
         plusMaterial.color.getHSL(hsl);
         hsl.h = (hsl.h + 0.618033988749895) % 1;
         minusMaterial.color.setHSL(hsl.h, hsl.s, hsl.l);
         render();
-    }
+    });
 
-    $: if (selectedObjects[selectedObjects.length - 1] === uuid) {
-        selectedPoint = point;
-    }
+    run(() => {
+        if (selectedObjects[selectedObjects.length - 1] === uuid) {
+            selectedPoint = point;
+        }
+    });
 
-    let boxItemElement;
+    let boxItemElement = $state();
     /**
      * Close on mesh so reactive statement doesn't react when individual parameters change.
      */
@@ -598,7 +632,9 @@
         surfaceMesh.children.map((mesh) => flashDance(mesh, render));
         boxItemElement?.scrollIntoView({ behavior: 'smooth' });
     };
-    $: if (selected && selectedObjects.length > 0) flash();
+    run(() => {
+        if (selected && selectedObjects.length > 0) flash();
+    });
 
     const update = function (dt) {
         const t0 = math.parse(params.t0).evaluate();
@@ -621,19 +657,23 @@
 
     // Reacts once when `animation` changes
     // Useful it the objects file is updated with new flag
-    $: if (animation) {
-        dispatch('animate');
-    }
+    run(() => {
+        if (animation) {
+            dispatch('animate');
+        }
+    });
 
     // Reacts when `animation` or the ticktock store change
-    $: if (animation) {
-        const currentTime = $tickTock;
-        last = last || currentTime;
-        update(currentTime - last);
-        last = currentTime;
-    } else {
-        last = null;
-    }
+    run(() => {
+        if (animation) {
+            const currentTime = $tickTock;
+            last = last || currentTime;
+            update(currentTime - last);
+            last = currentTime;
+        } else {
+            last = null;
+        }
+    });
 
     let lastLevelTime = null;
     let levelReq;
@@ -766,7 +806,7 @@
         );
     };
 
-    $: {
+    run(() => {
         if (showLevelCurves) {
             updateLevels();
             levelHolder.visible = true;
@@ -774,12 +814,12 @@
             levelHolder.visible = false;
         }
         render();
-    }
+    });
 
     // For drawing Riemann sums
     //  - Construct boxes overdomain of function with height given
     // by the function value at that location
-    const boxMesh = new THREE.Mesh();
+    const boxMesh = $state(new THREE.Mesh());
     boxMesh.material = colorMaterial;
     boxMesh.visible = false;
     scene.add(boxMesh);
@@ -998,8 +1038,8 @@
     window.addEventListener('click', onMouseClick);
 </script>
 
-<!-- svelte-ignore a11y-no-static-element-interactions -->
-<div class="boxItem" class:selected bind:this={boxItemElement} on:keydown>
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<div class="boxItem" class:selected bind:this={boxItemElement} onkeydown={bubble('keydown')}>
     <ObjHeader
         bind:minimize
         bind:selectedObjects
@@ -1086,7 +1126,7 @@
                 min="10"
                 max="60"
                 step="5"
-                on:input={updateSurface}
+                oninput={updateSurface}
                 class="box box-2"
             />
             <span class="box-1"> Levels </span>
@@ -1097,18 +1137,18 @@
                     id="showLevels"
                     bind:checked={showLevelCurves}
                 />
-                <span class="slider round" />
+                <span class="slider round"></span>
             </label>
             <span class="box-4">
                 <button
                     class="btn box-4"
-                    on:click={activateLevelElevator}
+                    onclick={activateLevelElevator}
                     class:hidden={!showLevelCurves}
                 >
                     {#if data.levelDelta === 1}
-                        Up <i class="fa fa-caret-up" />
+                        Up <i class="fa fa-caret-up"></i>
                     {:else}
-                        Down <i class="fa fa-caret-down" />
+                        Down <i class="fa fa-caret-down"></i>
                     {/if}
                 </button>
             </span>
@@ -1119,9 +1159,9 @@
                     name="graphVisible"
                     id="graphVisible"
                     bind:checked={surfaceMesh.visible}
-                    on:change={render}
+                    onchange={render}
                 />
-                <span class="slider round" />
+                <span class="slider round"></span>
             </label>
 
             {#if isDynamic}
@@ -1155,7 +1195,7 @@
                     min="0"
                     max="1"
                     step="0.001"
-                    on:input={() => {
+                    oninput={() => {
                         const t0 = math.evaluate(params.t0);
                         const t1 = math.evaluate(params.t1);
                         const t = t0 + tau * (t1 - t0);
@@ -1184,15 +1224,15 @@
                     name="frameVisible"
                     id="frameVisible"
                     bind:checked={showTangents}
-                    on:change={render}
+                    onchange={render}
                 />
-                <span class="slider round" />
+                <span class="slider round"></span>
             </label>
             {#if showTangents}
                 {#if choosingPoint}
                     <button
                         class="box box-2 btn btn-secondary"
-                        on:click={(e) => {
+                        onclick={(e) => {
                             e.stopImmediatePropagation();
                             choosingPoint = false;
                         }}>Cancel</button
@@ -1200,7 +1240,7 @@
                 {:else}
                     <button
                         class="box box-2 btn btn-primary"
-                        on:click={(e) => {
+                        onclick={(e) => {
                             e.stopImmediatePropagation();
                             choosingPoint = true;
                         }}>Select point</button
@@ -1224,7 +1264,7 @@
                 min="0"
                 max="1"
                 step="0.05"
-                on:input={() => {
+                oninput={() => {
                     plusMaterial.opacity = materialOpacity;
                     minusMaterial.opacity = materialOpacity;
                     render();
@@ -1238,14 +1278,14 @@
                     name="doIntegral"
                     id="doIntegral"
                     bind:checked={boxMesh.visible}
-                    on:change={() => {
+                    onchange={() => {
                         if (boxMesh.visible) {
                             updateBoxes();
                         }
                         render();
                     }}
                 />
-                <span class="slider round" />
+                <span class="slider round"></span>
             </label>
             {#if boxMesh.visible}
                 <span class="box-1" transition:slide={transParams}>
@@ -1258,7 +1298,7 @@
                     min="1"
                     max="81"
                     step="1"
-                    on:input={() => {
+                    oninput={() => {
                         updateBoxes();
                         render();
                     }}
@@ -1274,7 +1314,7 @@
                     min="0"
                     max="4"
                     step="1"
-                    on:input={() => {
+                    oninput={() => {
                         const pt = [
                             [0, 0],
                             [1, 0],

@@ -1,4 +1,4 @@
-<script context="module">
+<script module>
     import { create, all } from 'mathjs';
     const config = {};
     const math = create(all, config);
@@ -22,6 +22,9 @@
 </script>
 
 <script>
+    import { run, createBubbler } from 'svelte/legacy';
+
+    const bubble = createBubbler();
     import { onMount, onDestroy, createEventDispatcher } from 'svelte';
     import * as THREE from 'three';
     import { tickTock } from '../stores';
@@ -34,12 +37,41 @@
     import { flashDance } from '../sceneUtils';
     import InputChecker from '../form-components/InputChecker.svelte';
 
-    export let uuid;
-    export let onRenderObject = function () {};
-    export let onDestroyObject = function () {};
-    export let onSelect = function () {};
 
-    export let params = {
+
+    let tau = $state(0);
+    let last = $state();
+    let texString1 = $state('');
+
+    // display controls in objects panel
+    
+
+    /**
+     * @typedef {Object} Props
+     * @property {any} uuid
+     * @property {any} [onRenderObject]
+     * @property {any} [onDestroyObject]
+     * @property {any} [onSelect]
+     * @property {any} [params]
+     * @property {string} [color]
+     * @property {boolean} [show] - considered for Chapters that add many objects that need not be user-configurable.
+     * @property {any} scene
+     * @property {any} [render]
+     * @property {any} [onClose]
+     * @property {any} gridStep
+     * @property {boolean} [animation]
+     * @property {any} selected
+     * @property {any} selectedObjects
+     * @property {any} title
+     */
+
+    /** @type {Props} */
+    let {
+        uuid,
+        onRenderObject = function () {},
+        onDestroyObject = function () {},
+        onSelect = function () {},
+        params = $bindable({
         a: '-1',
         b: '1',
         c: '2',
@@ -48,27 +80,20 @@
         z: '0',
         n0: 0,
         n1: 1,
-    };
+    }),
+        color = $bindable('#FF0000'),
+        show = true,
+        scene,
+        render = () => {},
+        onClose = () => {},
+        gridStep,
+        animation = $bindable(false),
+        selected,
+        selectedObjects = $bindable(),
+        title = $bindable()
+    } = $props();
 
-    export let color = '#FF0000';
-    let tau = 0;
-    let last;
-    let texString1 = '';
-
-    // display controls in objects panel
-    // considered for Chapters that add many objects that need not be user-configurable.
-    export let show = true;
-
-    export let scene;
-    export let render = () => {};
-    export let onClose = () => {};
-    export let gridStep;
-    export let animation = false;
-    export let selected;
-    export let selectedObjects;
-    export let title;
-
-    let minimize = false;
+    let minimize = $state(false);
 
     const dispatch = createEventDispatcher();
 
@@ -88,13 +113,13 @@
     };
     const arrows = new THREE.Object3D();
 
-    const arrow = new THREE.Mesh(
+    const arrow = $state(new THREE.Mesh(
         new ArrowBufferGeometry({
             ...arrowArgs,
             height: 1,
         }),
         arrowMaterial,
-    );
+    ));
     arrows.add(arrow);
 
     scene.add(arrows);
@@ -154,18 +179,20 @@
     };
 
     // call updateVector() when params change
-    $: isDynamic = dependsOn(params, 't');
-    $: isDiscrete = dependsOn(params, 'n');
-    $: hashTag = checksum(JSON.stringify(params));
-    $: hashTag, updateVector();
+    let isDynamic = $derived(dependsOn(params, 't'));
+    let isDiscrete = $derived(dependsOn(params, 'n'));
+    let hashTag = $derived(checksum(JSON.stringify(params)));
+    run(() => {
+        hashTag, updateVector();
+    });
 
     // recolor on demand
-    $: {
+    run(() => {
         arrowMaterial.color.set(color);
         render();
-    }
+    });
 
-    let boxItemElement;
+    let boxItemElement = $state();
     /**
      * Close on mesh so reactive statement doesn't react when individual parameters change.
      */
@@ -173,7 +200,9 @@
         flashDance(arrow, render);
         boxItemElement?.scrollIntoView({ behavior: 'smooth' });
     };
-    $: if (selected && selectedObjects.length > 0) flash();
+    run(() => {
+        if (selected && selectedObjects.length > 0) flash();
+    });
 
     onMount(() => {
         titleIndex++;
@@ -279,18 +308,22 @@
     };
 
     // Start animating if animation changes (e.g. animating scene published)
-    $: if (animation) {
-        dispatch('animate');
-    }
-    $: if (animation) {
-        dispatch('animate');
-        const currentTime = $tickTock;
-        last = last || currentTime;
-        update(currentTime - last);
-        last = currentTime;
-    } else {
-        // last = null;
-    }
+    run(() => {
+        if (animation) {
+            dispatch('animate');
+        }
+    });
+    run(() => {
+        if (animation) {
+            dispatch('animate');
+            const currentTime = $tickTock;
+            last = last || currentTime;
+            update(currentTime - last);
+            last = currentTime;
+        } else {
+            // last = null;
+        }
+    });
 </script>
 
 <div
@@ -298,7 +331,7 @@
     class:selected
     bind:this={boxItemElement}
     hidden={!show}
-    on:keydown
+    onkeydown={bubble('keydown')}
 >
     <ObjHeader
         bind:minimize
@@ -362,7 +395,7 @@
                     min="0"
                     max="1"
                     step="0.001"
-                    on:input={() => update()}
+                    oninput={() => update()}
                     class="box box-2"
                 />
 

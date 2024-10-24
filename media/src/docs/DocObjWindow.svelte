@@ -12,15 +12,15 @@ will be visible in the <Badge>Objects</Badge> window. The header will contain a 
 swatch corresponding to the color of that object, the object type, and three buttons.
 <ul>
     <li>
-        <Badge><i class="fa fa-eye" /> / <i class="fa fa-eye-slash" /></Badge>
+        <Badge><i class="fa fa-eye"></i> / <i class="fa fa-eye-slash"></i></Badge>
         hides/reveals the object.
     </li>
     <li>
-        <Badge><i class="fa fa-window-minimize" /></Badge>
+        <Badge><i class="fa fa-window-minimize"></i></Badge>
         collapses/expands the object card.
     </li>
     <li>
-        <Badge><i class="fa fa-window-close" /></Badge>
+        <Badge><i class="fa fa-window-close"></i></Badge>
         destroys the object.
     </li>
 </ul>

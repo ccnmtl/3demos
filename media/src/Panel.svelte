@@ -37,34 +37,73 @@
     import { colorMap, demoObjects } from './stores';
     import Story from './Story.svelte';
     import { tick } from 'svelte';
-    // import { add } from 'mathjs';
+    
 
-    export let isMobileView;
 
-    export let debug, currentMode;
-    export let currentControls;
-    export let currentChapter;
-    export let gridStep, gridMax;
-    export let isHost;
-    export let onRenderObject, onDestroyObject;
-    export let socket, pollResponses;
-    export let animateIfNotAnimating;
-    export let roomId, currentPoll;
 
-    export let currentCamera;
-    export let scene;
-    export let requestFrameIfNotRequested;
 
-    export let blowUpObjects = function () {};
-    export let selectObject = function () {};
-    export let selectedObjects;
-    export let selectedPoint;
-    export let chatBuffer;
-    export let isPollsOpen;
-    export let lockPoll;
-    export let objectResponses;
 
-    export let showPanel = true;
+    /**
+     * @typedef {Object} Props
+     * @property {any} isMobileView - import { add } from 'mathjs';
+     * @property {any} debug
+     * @property {any} currentMode
+     * @property {any} currentControls
+     * @property {any} currentChapter
+     * @property {any} gridStep
+     * @property {any} gridMax
+     * @property {any} isHost
+     * @property {any} onRenderObject
+     * @property {any} onDestroyObject
+     * @property {any} socket
+     * @property {any} pollResponses
+     * @property {any} animateIfNotAnimating
+     * @property {any} roomId
+     * @property {any} currentPoll
+     * @property {any} currentCamera
+     * @property {any} scene
+     * @property {any} requestFrameIfNotRequested
+     * @property {any} [blowUpObjects]
+     * @property {any} [selectObject]
+     * @property {any} selectedObjects
+     * @property {any} selectedPoint
+     * @property {any} chatBuffer
+     * @property {any} isPollsOpen
+     * @property {any} lockPoll
+     * @property {any} objectResponses
+     * @property {boolean} [showPanel]
+     */
+
+    /** @type {Props} */
+    let {
+        isMobileView,
+        debug = $bindable(),
+        currentMode = $bindable(),
+        currentControls,
+        currentChapter = $bindable(),
+        gridStep,
+        gridMax,
+        isHost,
+        onRenderObject,
+        onDestroyObject,
+        socket = $bindable(),
+        pollResponses = $bindable(),
+        animateIfNotAnimating,
+        roomId = $bindable(),
+        currentPoll = $bindable(),
+        currentCamera,
+        scene,
+        requestFrameIfNotRequested,
+        blowUpObjects = function () {},
+        selectObject = function () {},
+        selectedObjects = $bindable(),
+        selectedPoint = $bindable(),
+        chatBuffer = $bindable(),
+        isPollsOpen = $bindable(),
+        lockPoll = $bindable(),
+        objectResponses,
+        showPanel = $bindable(true)
+    } = $props();
 
     const kindToComponent = {
         point: Point,
@@ -185,9 +224,9 @@
         },
     };
 
-    let kindToAdd = null;
+    let kindToAdd = $state(null);
 
-    let selectedMainTabIndex = 0; // Only used in mobile view where tabs are used instead of accordion
+    let selectedMainTabIndex = $state(0); // Only used in mobile view where tabs are used instead of accordion
 
     const randomID = function () {
         return Math.random().toString(36).substring(2, 9);
@@ -291,7 +330,7 @@
                             class="nav-link"
                             class:active={selectedMainTabIndex == 0}
                             aria-current="page"
-                            on:click={() => {
+                            onclick={() => {
                                 selectedMainTabIndex = 0;
                             }}>Info</button
                         >
@@ -308,7 +347,7 @@
                         <button
                             class="nav-link"
                             class:active={selectedMainTabIndex == 2}
-                            on:click={() => {
+                            onclick={() => {
                                 selectedMainTabIndex = 2;
                             }}>Objects</button
                         >
@@ -321,13 +360,13 @@
                     <li>
                         <button
                             class="nav-link"
-                            on:click={() => (showPanel = !showPanel)}
+                            onclick={() => (showPanel = !showPanel)}
                             title={showPanel ? 'Hide panel' : 'Show panel'}
                         >
                             {#if showPanel}
-                                <i class="bi bi-arrow-bar-down" />
+                                <i class="bi bi-arrow-bar-down"></i>
                             {:else}
-                                <i class="bi bi-arrow-bar-up" />
+                                <i class="bi bi-arrow-bar-up"></i>
                             {/if}
                         </button>
                     </li>
@@ -344,7 +383,7 @@
                             data-bs-target="#collapseOne"
                             aria-expanded="false"
                             aria-controls="collapseOne"
-                            on:click={() => {
+                            onclick={() => {
                                 selectedMainTabIndex = 0;
                             }}
                         >
@@ -429,7 +468,7 @@
                                 data-bs-target="#collapseTwo"
                                 aria-expanded="false"
                                 aria-controls="collapseTwo"
-                                on:click={() => {
+                                onclick={() => {
                                     selectedMainTabIndex = 1;
                                 }}
                             >
@@ -468,7 +507,7 @@
                             data-bs-target="#collapseThree"
                             aria-expanded="false"
                             aria-controls="collapseThree"
-                            on:click={() => {
+                            onclick={() => {
                                 selectedMainTabIndex = 2;
                             }}
                         >
@@ -496,7 +535,7 @@
                                 <div class="btn-group mb-2">
                                     <select
                                         bind:value={kindToAdd}
-                                        on:change={(e) => {
+                                        onchange={(e) => {
                                             if (e.target.value)
                                                 addNewObject(e.target.value);
                                         }}
@@ -525,18 +564,18 @@
 
                                     <button
                                         class="btn btn-sm btn-danger"
-                                        on:click={blowUpObjects}
+                                        onclick={blowUpObjects}
                                     >
                                         Clear Objects
-                                        <i class="fa fa-trash" />
+                                        <i class="fa fa-trash"></i>
                                     </button>
                                     {#if currentMode === 'session' && isHost}
                                         <button
                                             class="btn btn-sm btn-primary"
-                                            on:click={onPublishScene}
+                                            onclick={onPublishScene}
                                         >
                                             Publish Scene
-                                            <i class="bi bi-broadcast-pin" />
+                                            <i class="bi bi-broadcast-pin"></i>
                                         </button>
                                     {/if}
                                 </div>
@@ -544,6 +583,7 @@
                                 <div class="objectBoxInner">
                                     <!-- Main Loop, if you will -->
                                     {#each $demoObjects as { uuid, kind, params, color, title, animation, ...etc } (uuid)}
+                                        {@const SvelteComponent = kindToComponent[kind]}
                                         <div
                                             transition:slide|global={{
                                                 delay: 0,
@@ -551,8 +591,7 @@
                                                 easing: quintOut,
                                             }}
                                         >
-                                            <svelte:component
-                                                this={kindToComponent[kind]}
+                                            <SvelteComponent
                                                 {scene}
                                                 {onRenderObject}
                                                 {onDestroyObject}
@@ -598,7 +637,7 @@
                                 {#if debug}
                                     <div>
                                         <button
-                                            on:click={() => {
+                                            onclick={() => {
                                                 $demoObjects = [
                                                     {
                                                         uuid: 34,
@@ -646,7 +685,7 @@
                                             }}>curve anim</button
                                         >
                                         <button
-                                            on:click={() => {
+                                            onclick={() => {
                                                 $demoObjects = [
                                                     {
                                                         uuid: 34,
@@ -694,7 +733,7 @@
                                             }}>point/vec anim</button
                                         >
                                         <button
-                                            on:click={() => {
+                                            onclick={() => {
                                                 $demoObjects = [
                                                     {
                                                         uuid: 'agraph3847',
@@ -715,7 +754,7 @@
                                             }}>anim func</button
                                         >
                                         <button
-                                            on:click={() => {
+                                            onclick={() => {
                                                 $demoObjects = [
                                                     {
                                                         uuid: 'agraph3847',
@@ -736,7 +775,7 @@
                                             }}>unanim func</button
                                         >
                                         <button
-                                            on:click={() => {
+                                            onclick={() => {
                                                 $demoObjects = [
                                                     {
                                                         uuid: 'swirly1234',
@@ -754,7 +793,7 @@
                                             }}>anim field</button
                                         >
                                         <button
-                                            on:click={() => {
+                                            onclick={() => {
                                                 $demoObjects = [
                                                     {
                                                         uuid: 'swirly1234',
@@ -784,13 +823,13 @@
         {#if !isMobileView}
             <button
                 class="panel-hider"
-                on:click={() => (showPanel = !showPanel)}
+                onclick={() => (showPanel = !showPanel)}
                 title={showPanel ? 'Hide panel' : 'Show panel'}
             >
                 {#if showPanel}
-                    <i class="bi bi-arrow-bar-left" />
+                    <i class="bi bi-arrow-bar-left"></i>
                 {:else}
-                    <i class="bi bi-arrow-bar-right" />
+                    <i class="bi bi-arrow-bar-right"></i>
                 {/if}
             </button>
         {/if}

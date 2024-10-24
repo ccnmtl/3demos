@@ -6,7 +6,7 @@
     Polling is only available in a <em>Session</em> and can only be initiated by
     the
     <em>Host</em>. There are several default polls available which can be
-    quickly modified using the <Badge><i class="bi bi-pencil" /> Edit</Badge> found
+    quickly modified using the <Badge><i class="bi bi-pencil"></i> Edit</Badge> found
     under the
     <em>Actions</em> column of the <em>Polls</em> table.
 </p>

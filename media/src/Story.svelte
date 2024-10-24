@@ -5,11 +5,9 @@
     import SurfaceArea from './stories/SurfaceArea.svelte';
     import FluxIntegral from './stories/FluxIntegral.svelte';
 
-    export let scene;
-    export let render;
-    export let currentMode;
+    let { scene, render, currentMode } = $props();
 
-    let currentStory = null;
+    let currentStory = $state(null);
 </script>
 
 <div class="btn-group mb-2">
@@ -28,8 +26,9 @@
 </div>
 
 {#if currentMode === 'story' && currentStory}
+    {@const SvelteComponent = currentStory}
     <div class="story-content-box">
-        <svelte:component this={currentStory} {scene} {render} on:animate />
+        <SvelteComponent {scene} {render} on:animate />
     </div>
 {:else}
     <p>

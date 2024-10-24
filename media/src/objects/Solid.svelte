@@ -1,8 +1,11 @@
-<script context="module">
+<script module>
     let titleIndex = 0;
 </script>
 
 <script>
+    import { run, createBubbler } from 'svelte/legacy';
+
+    const bubble = createBubbler();
     import { onMount, onDestroy } from 'svelte';
     import * as THREE from 'three';
     import { create, all } from 'mathjs';
@@ -31,12 +34,8 @@
     import InputChecker from '../form-components/InputChecker.svelte';
     import ColorBar from '../settings/ColorBar.svelte';
     import Nametag from './Nametag.svelte';
-    // import ObjectParamInput from '../form-components/ObjectParamInput.svelte';
+    
 
-    export let uuid;
-    export let onRenderObject = function () {};
-    export let onDestroyObject = function () {};
-    export let onSelect = function () {};
 
     onMount(() => {
         titleIndex++;
@@ -80,7 +79,35 @@
 
     window.addEventListener('keydown', onKeyDown, false);
 
-    export let params = {
+
+    // export let controls;
+    // export let camera;
+    
+
+    let minimize = $state(false);
+    /**
+     * @typedef {Object} Props
+     * @property {any} uuid - import ObjectParamInput from '../form-components/ObjectParamInput.svelte';
+     * @property {any} [onRenderObject]
+     * @property {any} [onDestroyObject]
+     * @property {any} [onSelect]
+     * @property {any} [params]
+     * @property {any} scene
+     * @property {any} [render] - export let gridStep;
+     * @property {any} [onClose]
+     * @property {any} selected
+     * @property {any} selectedObjects
+     * @property {string} [color]
+     * @property {any} title
+     */
+
+    /** @type {Props} */
+    let {
+        uuid,
+        onRenderObject = function () {},
+        onDestroyObject = function () {},
+        onSelect = function () {},
+        params = $bindable({
         coords: 'rect',
         a: '0',
         b: '1',
@@ -90,32 +117,27 @@
         f: '(x + y) / 2',
         t0: '0',
         t1: '1',
-    };
-
-    export let scene;
-    // export let controls;
-    // export let camera;
-    // export let gridStep;
-    export let render = () => {};
-    export let onClose = () => {};
-    export let selected;
-    export let selectedObjects;
-
-    let minimize = false;
-    export let color = '#5432ff';
-    export let title;
+    }),
+        scene,
+        render = () => {},
+        onClose = () => {},
+        selected,
+        selectedObjects = $bindable(),
+        color = $bindable('#5432ff'),
+        title = $bindable()
+    } = $props();
     // export let animation = false;
 
-    let nX = 60;
+    let nX = $state(60);
 
     // let tau = 0;
     // let last = null;
     // let texString1 = '';
 
-    let chooseDensity = false;
-    let densityString = '1';
-    let compiledDensity;
-    let densityFunc;
+    let chooseDensity = $state(false);
+    let densityString = $state('1');
+    let compiledDensity = $state();
+    let densityFunc = $state();
 
     // export let myId;
 
@@ -151,24 +173,7 @@
         });
     };
 
-    $: ($vMin, $vMax), chooseDensity && colorMeBadd(box, densityFunc);
 
-    $: if (chooseDensity && $densityColormap) {
-        densityString = densityString || '1';
-        compiledDensity = math.parse(densityString).compile();
-        densityFunc = (x, y, z) => compiledDensity.evaluate({ x, y, z });
-
-        if (densityFunc) {
-            colorMeBadd(box, densityFunc);
-            box.material = colorMaterial;
-        }
-        render();
-    } else {
-        if (box) {
-            box.material = material;
-            render();
-        }
-    }
 
     // const geometry = new RectangularSolidGeometry(
     //     -Math.sqrt(2),
@@ -190,19 +195,8 @@
         opacity: 0.7,
     });
 
-    $: {
-        // if (selectedObjects.length === 0 || selected) {
-        //     material.opacity = 1.0;
-        //     colorMaterial.opacity = 1.0;
-        // } else {
-        //     material.opacity = 0.5;
-        //     colorMaterial.opacity = 0.5;
-        // }
-        material.color.set(color);
-        render();
-    }
 
-    let boxItemElement;
+    let boxItemElement = $state();
     /**
      * Close on mesh so reactive statement doesn't react when individual parameters change.
      */
@@ -211,7 +205,6 @@
         boxItemElement?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         // console.log("I am scroll into view, I can't think of nothin' else.");
     };
-    $: if (selected && selectedObjects.length > 0) flash();
 
     const whiteLineMaterial = new THREE.LineBasicMaterial({
         color: 0xffffff,
@@ -219,8 +212,8 @@
         side: THREE.BackSide,
     });
 
-    const box = new THREE.Mesh(new THREE.BufferGeometry(), material);
-    const solidGroup = new THREE.Group();
+    const box = $state(new THREE.Mesh(new THREE.BufferGeometry(), material));
+    const solidGroup = $state(new THREE.Group());
 
     box.name = uuid;
 
@@ -268,12 +261,6 @@
             .toString();
     };
 
-    $: if (params.coords) {
-        params.c = renameCoords(params.c, params.coords);
-        params.d = renameCoords(params.d, params.coords);
-        params.e = renameCoords(params.e, params.coords);
-        params.f = renameCoords(params.f, params.coords);
-    }
 
     // "compiled" versions of bounds
     let A, B, C, D, E, F;
@@ -374,14 +361,59 @@
         }
     };
 
-    // Only run the update if the params have changed.
-    $: hashTag = checksum(JSON.stringify(params));
-    $: hashTag, updateRegion() && render();
 
     render();
+    run(() => {
+        if (chooseDensity && $densityColormap) {
+            densityString = densityString || '1';
+            compiledDensity = math.parse(densityString).compile();
+            densityFunc = (x, y, z) => compiledDensity.evaluate({ x, y, z });
+
+            if (densityFunc) {
+                colorMeBadd(box, densityFunc);
+                box.material = colorMaterial;
+            }
+            render();
+        } else {
+            if (box) {
+                box.material = material;
+                render();
+            }
+        }
+    });
+    run(() => {
+        ($vMin, $vMax), chooseDensity && colorMeBadd(box, densityFunc);
+    });
+    run(() => {
+        // if (selectedObjects.length === 0 || selected) {
+        //     material.opacity = 1.0;
+        //     colorMaterial.opacity = 1.0;
+        // } else {
+        //     material.opacity = 0.5;
+        //     colorMaterial.opacity = 0.5;
+        // }
+        material.color.set(color);
+        render();
+    });
+    run(() => {
+        if (selected && selectedObjects.length > 0) flash();
+    });
+    run(() => {
+        if (params.coords) {
+            params.c = renameCoords(params.c, params.coords);
+            params.d = renameCoords(params.d, params.coords);
+            params.e = renameCoords(params.e, params.coords);
+            params.f = renameCoords(params.f, params.coords);
+        }
+    });
+    // Only run the update if the params have changed.
+    let hashTag = $derived(checksum(JSON.stringify(params)));
+    run(() => {
+        hashTag, updateRegion() && render();
+    });
 </script>
 
-<div class="boxItem" class:selected bind:this={boxItemElement} on:keydown>
+<div class="boxItem" class:selected bind:this={boxItemElement} onkeydown={bubble('keydown')}>
     <ObjHeader
         bind:minimize
         bind:selectedObjects
@@ -513,7 +545,7 @@
                     id="chooseDensity"
                     bind:checked={chooseDensity}
                 />
-                <span class="slider round" />
+                <span class="slider round"></span>
             </label>
 
             {#if chooseDensity}

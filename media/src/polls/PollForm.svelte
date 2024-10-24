@@ -1,12 +1,14 @@
 <script>
     import {stringifyPoll} from './utils.js';
 
-    export let poll;
-    export let onClickCancel;
-    export let onSubmit;
-    export let onDeletePoll;
+    let {
+        poll,
+        onClickCancel,
+        onSubmit,
+        onDeletePoll
+    } = $props();
 
-    let isInvalid = false;
+    let isInvalid = $state(false);
 
     const onClickDelete = function(e, pollId) {
         if (window.confirm(`Remove poll ${pollId}?`)) {
@@ -40,7 +42,7 @@
 </script>
 
 Poll Form
-<form on:submit={onValidateSubmit}>
+<form onsubmit={onValidateSubmit}>
     {#if isInvalid}
         <div class="alert alert-danger" role="alert">
             Error: invalid JSON
@@ -53,7 +55,7 @@ Poll Form
         rows="8">{stringifyPoll(poll)}</textarea>
 
     <button
-        on:click={onClickCancel}
+        onclick={onClickCancel}
         class="btn btn-sm btn-secondary mt-1">
         Cancel
     </button>
@@ -64,7 +66,7 @@ Poll Form
     </button>
 
     <button
-        on:click={(e) => onClickDelete(e, poll.id)}
+        onclick={(e) => onClickDelete(e, poll.id)}
         type="button"
         title="Delete poll"
         class="btn btn-sm btn-danger mt-1 pull-right">

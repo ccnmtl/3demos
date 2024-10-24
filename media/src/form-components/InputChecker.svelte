@@ -7,15 +7,28 @@
 
     const dispatch = createEventDispatcher();
 
-    export let name;
-    export let type = 'text';
-    export let value = '';
-    export let className = 'form-control form-control-sm box box-2';
-    export let params = {};
-    let inputElement;
-    export let checker = (val) => {
+    let inputElement = $state();
+    /**
+     * @typedef {Object} Props
+     * @property {any} name
+     * @property {string} [type]
+     * @property {string} [value]
+     * @property {string} [className]
+     * @property {any} [params]
+     * @property {any} [checker]
+     */
+
+    /** @type {Props} */
+    let {
+        name,
+        type = 'text',
+        value = '',
+        className = 'form-control form-control-sm box box-2',
+        params = {},
+        checker = (val) => {
         return Number.isFinite(val);
-    };
+    }
+    } = $props();
 </script>
 
 <input
@@ -24,7 +37,7 @@
     {value}
     bind:this={inputElement}
     class={className}
-    on:change={(e) => {
+    onchange={(e) => {
         const val = e.target.value;
         if (checker(val, params)) {
             inputElement.classList.remove('is-invalid');

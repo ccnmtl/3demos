@@ -1,6 +1,12 @@
 <script>
-    export let title = '';
-    export let onClick = function () {};
+    /**
+     * @typedef {Object} Props
+     * @property {string} [title]
+     * @property {any} [onClick]
+     */
+
+    /** @type {Props} */
+    let { title = '', onClick = function () {} } = $props();
 </script>
 
 <div class="row">
@@ -12,9 +18,9 @@
             type="button"
             title="Close"
             class="btn btn-sm btn-light"
-            on:click={onClick}
+            onclick={onClick}
         >
-            <i class="bi bi-x-lg" />
+            <i class="bi bi-x-lg"></i>
         </button>
     </div>
 </div>

@@ -1,4 +1,6 @@
 <script>
+    import { run } from 'svelte/legacy';
+
     import { onMount } from 'svelte';
 
     import * as d3 from 'd3';
@@ -8,20 +10,35 @@
     import { showPollResults, hidePollResults } from './utils';
     import { demoObjects } from '../stores';
 
-    export let socket;
-    export let pollResponses;
-    export let currentPoll;
-    export let currentPollType;
-    export let objectResponses;
-    export let lockPoll;
 
-    export let render = function () {};
-    export let role = 'student';
+    /**
+     * @typedef {Object} Props
+     * @property {any} socket
+     * @property {any} pollResponses
+     * @property {any} currentPoll
+     * @property {any} currentPollType
+     * @property {any} objectResponses
+     * @property {any} lockPoll
+     * @property {any} [render]
+     * @property {string} [role]
+     */
 
-    let d3container;
+    /** @type {Props} */
+    let {
+        socket,
+        pollResponses,
+        currentPoll,
+        currentPollType,
+        objectResponses,
+        lockPoll = $bindable(),
+        render = function () {},
+        role = 'student'
+    } = $props();
+
+    let d3container = $state();
     let chart;
-    let activeResponse;
-    let hidden = true;
+    let activeResponse = $state();
+    let hidden = $state(true);
 
     /**
      * Process an array of responses into something that d3 can
@@ -137,7 +154,9 @@
         refreshResults(pollResponses, currentPollType);
     });
 
-    $: refreshResults(pollResponses, currentPollType);
+    run(() => {
+        refreshResults(pollResponses, currentPollType);
+    });
 </script>
 
 <div class="row justify-content-between m-2 align-items-center">
@@ -155,23 +174,23 @@
                     class="form-check-input"
                     type="checkbox"
                     role="switch"
-                    on:change={onTogglePollResults}
+                    onchange={onTogglePollResults}
                     id="flexSwitchCheckDefault"
                 />
                 <label class="form-check-label" for="flexSwitchCheckDefault">
-                    <i class="bi bi-broadcast-pin" /> Show results
+                    <i class="bi bi-broadcast-pin"></i> Show results
                 </label>
             </div>
             <button
                 type="button"
                 class="btn btn-warning btn-sm"
                 title={lockPoll ? 'Unrestrict Updates' : 'Restrict Updates'}
-                on:click={() => (lockPoll = !lockPoll)}
+                onclick={() => (lockPoll = !lockPoll)}
             >
                 {#if lockPoll}
-                    <i class="bi bi-unlock" /> Unrestrict Updates
+                    <i class="bi bi-unlock"></i> Unrestrict Updates
                 {:else}
-                    <i class="bi bi-lock" />Restrict Updates
+                    <i class="bi bi-lock"></i>Restrict Updates
                 {/if}
             </button>
         </div>
@@ -179,11 +198,11 @@
 
     {#if objectResponses && objectResponses.children.length > 0}
         <button
-            on:click={clearPoints}
+            onclick={clearPoints}
             class="btn btn-danger col-auto"
             title="Clear points"
         >
-            <i class="fa fa-trash" />
+            <i class="fa fa-trash"></i>
         </button>
     {/if}
 </div>
@@ -197,7 +216,7 @@
                 <button
                     class={'btn response-item p-0' +
                         (user == activeResponse ? ' text-white' : '')}
-                    on:click={() => {
+                    onclick={() => {
                         activeResponse = user;
                         loadResponse(response);
                     }}
@@ -211,7 +230,7 @@
         {/each}
     </ul>
 {/if}
-<div bind:this={d3container} {hidden} />
+<div bind:this={d3container} {hidden}></div>
 
 {#if currentPoll && currentPoll.prompt}
     <p class="ms-1">

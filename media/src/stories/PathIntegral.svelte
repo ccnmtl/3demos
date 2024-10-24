@@ -1,4 +1,6 @@
 <script>
+    import { run } from 'svelte/legacy';
+
     import PlayButtons from '../form-components/PlayButtons.svelte';
     import * as THREE from 'three';
 
@@ -10,19 +12,25 @@
 
     const math = create(all, {});
 
-    // export let $demoObjects;
-    export let scene;
-    export let render;
-    let tau = 0;
-    let sau = 0;
-    let integralValue = 0;
-    let animateIntegral = false;
+    
+    /**
+     * @typedef {Object} Props
+     * @property {any} scene - export let $demoObjects;
+     * @property {any} render
+     */
+
+    /** @type {Props} */
+    let { scene, render } = $props();
+    let tau = $state(0);
+    let sau = $state(0);
+    let integralValue = $state(0);
+    let animateIntegral = $state(false);
 
     // tags for animation (I for Integral animation; others for diffChoice animation)
     let raf;
-    let rafI;
+    let rafI = $state();
     let last;
-    let lastI;
+    let lastI = $state();
 
     const toDx = (time) => {
         cancelAnimationFrame(raf);
@@ -108,13 +116,10 @@
         opacity: 0.4,
     });
 
-    $: T =
-        math.parse(curveData[pathChoice].r.b).evaluate() * tau +
-        (1 - tau) * math.parse(curveData[pathChoice].r.a).evaluate();
 
-    const wall = new THREE.Mesh(undefined, minusMaterial);
-    const backwall = new THREE.Mesh(undefined, plusMaterial);
-    const ceiling = new THREE.Mesh(undefined, wireMaterial);
+    const wall = $state(new THREE.Mesh(undefined, minusMaterial));
+    const backwall = $state(new THREE.Mesh(undefined, plusMaterial));
+    const ceiling = $state(new THREE.Mesh(undefined, wireMaterial));
     const segs = new THREE.Line(
         new THREE.BufferGeometry(),
         new THREE.LineBasicMaterial({ color: 0x0000ff }),
@@ -125,7 +130,72 @@
     // console.log(segs.geometry);
     scene.add(wall);
 
-    $: {
+
+
+    const curveId = crypto.randomUUID();
+
+    const curveData = {
+        circle: {
+            r: {
+                x: 'cos(t)',
+                y: 'sin(t)',
+                a: '0',
+                b: '2 pi',
+            },
+            tex: '\\cos t, \\sin t',
+        },
+        parabola: {
+            r: {
+                x: 't',
+                y: 't^2',
+                a: '-1',
+                b: '2',
+            },
+            tex: 't, t^2',
+        },
+        other: {
+            r: {
+                x: '(1 + t/32)*cos(pi*t / 2)',
+                y: 't/4 - sin(t)/2',
+                a: '0',
+                b: '8',
+            },
+            tex: '(1 + t/32)\\cos( \\frac{\\pi}{2} t), t/4 - \\sin(t)/2',
+        },
+    };
+
+    const funcData = {
+        periodic: {
+            func: (x, y) => 1 + Math.sin((x + y) * 2) / 3,
+            tex: '1 + \\sin(2(x+y))/3',
+        },
+        quadratic: {
+            func: (x, y) => (x * x) / 2 + (y * y) / 2,
+            tex: 'x^2/2 + y^2/2',
+        },
+        linear: {
+            func: (x, y) => x / 10 + y / 7 + 1,
+            tex: 'x/10 + y/7 + 1',
+        },
+    };
+
+    const backupObjects = structuredClone($demoObjects);
+
+    let pathChoice = $state('circle');
+
+    let funcChoice = $state('linear');
+
+    let diffChoice = $state('ds');
+
+    onDestroy(() => {
+        $demoObjects = backupObjects;
+        scene.remove(wall);
+    });
+
+    let T =
+        $derived(math.parse(curveData[pathChoice].r.b).evaluate() * tau +
+        (1 - tau) * math.parse(curveData[pathChoice].r.a).evaluate());
+    run(() => {
         ceiling.geometry?.dispose();
         ceiling.geometry = new ParametricGeometry(
             (u, v, vec) => {
@@ -136,9 +206,8 @@
             35,
             35,
         );
-    }
-
-    $: {
+    });
+    run(() => {
         wall.geometry.dispose();
         const a = math.parse(curveData[pathChoice].r.a).evaluate();
         wall.geometry = new ParametricGeometry(
@@ -209,83 +278,24 @@
                 ) * yp.evaluate({ t });
         }
         integralValue = gaussLegendre(fn, a, T, 30);
-    }
-
-    const curveId = crypto.randomUUID();
-
-    const curveData = {
-        circle: {
-            r: {
-                x: 'cos(t)',
-                y: 'sin(t)',
-                a: '0',
-                b: '2 pi',
-            },
-            tex: '\\cos t, \\sin t',
-        },
-        parabola: {
-            r: {
-                x: 't',
-                y: 't^2',
-                a: '-1',
-                b: '2',
-            },
-            tex: 't, t^2',
-        },
-        other: {
-            r: {
-                x: '(1 + t/32)*cos(pi*t / 2)',
-                y: 't/4 - sin(t)/2',
-                a: '0',
-                b: '8',
-            },
-            tex: '(1 + t/32)\\cos( \\frac{\\pi}{2} t), t/4 - \\sin(t)/2',
-        },
-    };
-
-    const funcData = {
-        periodic: {
-            func: (x, y) => 1 + Math.sin((x + y) * 2) / 3,
-            tex: '1 + \\sin(2(x+y))/3',
-        },
-        quadratic: {
-            func: (x, y) => (x * x) / 2 + (y * y) / 2,
-            tex: 'x^2/2 + y^2/2',
-        },
-        linear: {
-            func: (x, y) => x / 10 + y / 7 + 1,
-            tex: 'x/10 + y/7 + 1',
-        },
-    };
-
-    const backupObjects = structuredClone($demoObjects);
-
-    let pathChoice = 'circle';
-
-    let funcChoice = 'linear';
-
-    let diffChoice = 'ds';
-
-    onDestroy(() => {
-        $demoObjects = backupObjects;
-        scene.remove(wall);
     });
-
-    $: $demoObjects = [
-        ...$demoObjects.filter((k) => k.uuid !== curveId),
-        {
-            uuid: curveId,
-            kind: 'curve',
-            params: {
-                x: curveData[pathChoice].r.x,
-                y: curveData[pathChoice].r.y,
-                z: '0',
-                a: curveData[pathChoice].r.a,
-                b: curveData[pathChoice].r.b,
+    run(() => {
+        $demoObjects = [
+            ...$demoObjects.filter((k) => k.uuid !== curveId),
+            {
+                uuid: curveId,
+                kind: 'curve',
+                params: {
+                    x: curveData[pathChoice].r.x,
+                    y: curveData[pathChoice].r.y,
+                    z: '0',
+                    a: curveData[pathChoice].r.a,
+                    b: curveData[pathChoice].r.b,
+                },
+                color: '#AA1243',
             },
-            color: '#AA1243',
-        },
-    ];
+        ];
+    });
 </script>
 
 <div>
@@ -299,17 +309,17 @@
         <button
             class="btn-choice"
             class:active={pathChoice === 'circle'}
-            on:click={() => (pathChoice = 'circle')}>circle</button
+            onclick={() => (pathChoice = 'circle')}>circle</button
         >
         <button
             class="btn-choice"
             class:active={pathChoice === 'parabola'}
-            on:click={() => (pathChoice = 'parabola')}>parabola</button
+            onclick={() => (pathChoice = 'parabola')}>parabola</button
         >
         <button
             class="btn-choice"
             class:active={pathChoice === 'other'}
-            on:click={() => (pathChoice = 'other')}>other</button
+            onclick={() => (pathChoice = 'other')}>other</button
         >
     </div>
     <M display>
@@ -327,26 +337,26 @@
             <input
                 type="checkbox"
                 bind:checked={ceiling.visible}
-                on:change={render}
+                onchange={render}
             />
-            <span class="slider round" />
+            <span class="slider round"></span>
         </label>
     </p>
     <div id="func-selection" class="selectables">
         <button
             class="btn-choice"
             class:active={funcChoice === 'linear'}
-            on:click={() => (funcChoice = 'linear')}>linear</button
+            onclick={() => (funcChoice = 'linear')}>linear</button
         >
         <button
             class="btn-choice"
             class:active={funcChoice === 'quadratic'}
-            on:click={() => (funcChoice = 'quadratic')}>quadratic</button
+            onclick={() => (funcChoice = 'quadratic')}>quadratic</button
         >
         <button
             class="btn-choice"
             class:active={funcChoice === 'periodic'}
-            on:click={() => (funcChoice = 'periodic')}>periodic</button
+            onclick={() => (funcChoice = 'periodic')}>periodic</button
         >
     </div>
 
@@ -360,7 +370,7 @@
         <button
             class="btn-choice"
             class:active={diffChoice === 'ds'}
-            on:click={() => {
+            onclick={() => {
                 diffChoice = 'ds';
                 requestAnimationFrame(toDs);
             }}><M>ds</M></button
@@ -368,7 +378,7 @@
         <button
             class="btn-choice"
             class:active={diffChoice === 'dx'}
-            on:click={() => {
+            onclick={() => {
                 diffChoice = 'dx';
                 requestAnimationFrame(toDx);
             }}><M>dx</M></button
@@ -376,7 +386,7 @@
         <button
             class="btn-choice"
             class:active={diffChoice === 'dy'}
-            on:click={() => {
+            onclick={() => {
                 diffChoice = 'dy';
                 requestAnimationFrame(toDy);
             }}><M>dy</M></button

@@ -1,4 +1,6 @@
 <script>
+    import { run } from 'svelte/legacy';
+
     import PlayButtons from '../form-components/PlayButtons.svelte';
     import * as THREE from 'three';
 
@@ -16,16 +18,15 @@
 
     import { demoObjects, tickTock } from '../stores';
 
-    export let scene;
-    export let render;
+    let { scene, render } = $props();
     // export let objects;
 
     const config = {};
     const math = create(all, config);
 
-    let animation = false;
-    let last = null;
-    let sampleParam = 0;
+    let animation = $state(false);
+    let last = $state(null);
+    let sampleParam = $state(0);
 
     const drawNext = (currentTime) => {
         // const currentTime = $tickTock;
@@ -36,13 +37,17 @@
         last = currentTime;
     };
 
-    $: if (animation) drawNext($tickTock);
+    run(() => {
+        if (animation) drawNext($tickTock);
+    });
 
     const drawFirst = (anim) => {
         currentField.animation = anim;
     };
 
-    $: drawFirst(animation);
+    run(() => {
+        drawFirst(animation);
+    });
 
     // export let $demoObjects;
 
@@ -163,9 +168,9 @@
     });
 
     let currentSurface =
-        $demoObjects.find((o) => o.kind === 'surface') || exampleSurfaces[0];
+        $state($demoObjects.find((o) => o.kind === 'surface') || exampleSurfaces[0]);
     let currentField =
-        $demoObjects.find((o) => o.kind === 'field') || exampleFields[0];
+        $state($demoObjects.find((o) => o.kind === 'field') || exampleFields[0]);
     currentField.flowTrails = false;
 
     let unsub;
@@ -187,16 +192,16 @@
         render();
     });
 
-    let ruv = null;
-    let F = null;
+    let ruv = $state(null);
+    let F = $state(null);
 
     let geo;
     let geoDown;
     let edgesUp;
     let edgesDown;
 
-    let approxFlux = '';
-    let totalFlux = 0;
+    let approxFlux = $state('');
+    let totalFlux = $state(0);
 
     const computeFlux = (F, r) => {
         const { x, y, z, a, b, c, d } = currentSurface.params;
@@ -263,7 +268,7 @@
         opacity: 0.6,
     });
 
-    const boxes = new THREE.Object3D();
+    const boxes = $state(new THREE.Object3D());
     boxes.add(new THREE.Mesh(undefined, plusMaterial)); // pos boxes
     boxes.add(new THREE.LineSegments(undefined, whiteLineMaterial)); // pos edges
     boxes.add(new THREE.Mesh(undefined, minusMaterial)); // neg boxes
@@ -271,8 +276,8 @@
 
     scene.add(boxes);
 
-    let tau = 1;
-    let nBoxes = 1;
+    let tau = $state(1);
+    let nBoxes = $state(1);
 
     const setF = (obj) => {
         // const obj = exampleFields.find((o) => o.uuid === uuid);
@@ -302,9 +307,11 @@
         }
     };
 
-    $: setF(currentField);
+    run(() => {
+        setF(currentField);
+    });
 
-    let u0, u1, v0, v1;
+    let u0 = $state(), u1 = $state(), v0 = $state(), v1 = $state();
     const setRuv = (obj) => {
         // const obj = exampleSurfaces.find((o) => o.uuid === uuid);
         if (obj) {
@@ -334,7 +341,9 @@
         }
     };
 
-    $: setRuv(currentSurface);
+    run(() => {
+        setRuv(currentSurface);
+    });
 
     const updateGeo = (N, F, r, A, B, C, D, samp) => {
         geo?.dispose();
@@ -382,7 +391,9 @@
         render();
     };
 
-    $: updateGeo(nBoxes, F, ruv, u0, u1, v0, v1, sampleParam);
+    run(() => {
+        updateGeo(nBoxes, F, ruv, u0, u1, v0, v1, sampleParam);
+    });
 
     const updateTau = (t) => {
         if (geo) {
@@ -398,7 +409,9 @@
         }
     };
 
-    $: updateTau(tau);
+    run(() => {
+        updateTau(tau);
+    });
 
     onDestroy(() => {
         for (let index = 0; index < boxes.children.length; index++) {
@@ -458,12 +471,12 @@
         <div class="col-auto">
             <button
                 class=" bg-primary text-light"
-                on:click={() => {
+                onclick={() => {
                     setF(currentField);
                     setRuv(currentSurface);
                 }}
             >
-                <i class="bi bi-arrow-clockwise" />
+                <i class="bi bi-arrow-clockwise"></i>
             </button>
         </div>
     </div>
@@ -519,9 +532,9 @@
                 <input
                     type="checkbox"
                     bind:checked={boxes.visible}
-                    on:change={render}
+                    onchange={render}
                 />
-                <span class="slider round" />
+                <span class="slider round"></span>
             </label>
         </div>
         <div class="col-auto">
@@ -530,7 +543,7 @@
                 <input
                     type="checkbox"
                     checked={false}
-                    on:change={(e) => {
+                    onchange={(e) => {
                         if (e.target.checked) {
                             sampleParam = 0.5;
                         } else {
@@ -538,7 +551,7 @@
                         }
                     }}
                 />
-                <span class="slider round" />
+                <span class="slider round"></span>
             </label>
         </div>
     </div>

@@ -8,7 +8,7 @@
     import Intro from './Intro.svelte';
     import DocQuickNav from './DocQuickNav.svelte';
 
-    let currentOption = Intro;
+    let currentOption = $state(Intro);
 
     const options = [
         { title: 'Intro', comp: Intro },
@@ -20,6 +20,8 @@
         { title: 'Object Window', comp: DocObjWindow },
         { title: 'Polling', comp: DocPolling },
     ];
+
+    const SvelteComponent = $derived(currentOption);
 </script>
 
 <article>
@@ -36,5 +38,5 @@
         </select>
     </div>
 
-    <svelte:component this={currentOption} />
+    <SvelteComponent />
 </article>
