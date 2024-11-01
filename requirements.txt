@@ -1,6 +1,6 @@
 asgiref==3.8.1
 async-generator==1.10
-async-timeout==4.0.3
+async-timeout==5.0.0
 attrs==24.2.0
 autobahn==24.4.2
 Automat==24.8.1
