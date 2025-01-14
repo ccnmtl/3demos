@@ -15,7 +15,7 @@ charset-normalizer==3.4.0
 constantly==23.10.4
 coverage==7.6.0
 cryptography==44.0.0
-sentry-sdk[django]==2.19.0
+sentry-sdk[django]==2.20.0
 ctlsettings==0.4.3
 daphne==4.1.2
 Deprecated==1.2.13
