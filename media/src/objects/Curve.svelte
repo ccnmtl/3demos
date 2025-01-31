@@ -1,14 +1,9 @@
-<script context="module">
+<script module>
     let titleIndex = 0;
 </script>
 
 <script>
-    import {
-        onMount,
-        onDestroy,
-        createEventDispatcher,
-        beforeUpdate,
-    } from 'svelte';
+    import { onMount, onDestroy } from 'svelte';
     import Nametag from './Nametag.svelte';
     import * as THREE from 'three';
     import { create, all } from 'mathjs';
@@ -30,49 +25,48 @@
     const config = {};
     const math = create(all, config);
 
-    const dispatch = createEventDispatcher();
-
-    export let title;
-    export let uuid;
-    export let onRenderObject = function () {};
-    export let onDestroyObject = function () {};
-    export let onSelect = function () {};
+    let {
+        title,
+        uuid,
+        onRenderObject,
+        onDestroyObject,
+        onSelect,
+        animate,
+        params,
+        color = '#FFDD33',
+        tau = 0,
+        alpha = 0,
+        scene,
+        render = () => {},
+        onClose = () => {},
+        controls,
+        camera,
+        gridStep,
+        animation = false,
+        selectedObjects,
+        selected,
+    } = $props();
 
     // export let paramString;
 
-    export let params = {
-        a: '-1',
-        b: '1',
-        x: 't',
-        y: 't^2',
-        z: 't^3',
-        a0: '0',
-        a1: '1',
-    };
-
-    let xyz;
-    let boxItemElement;
-
-    $: {
-        const [x, y, z] = [params.x, params.y, params.z].map((f) =>
-            math.parse(f).compile(),
-        );
-        xyz = (
+    let xyz = $derived(
+        (
             t, // evaluate with t and a (the constant parameter)
         ) =>
             new THREE.Vector3(
-                x.evaluate({ t, a: aVal }),
-                y.evaluate({ t, a: aVal }),
-                z.evaluate({ t, a: aVal }),
-            );
-    }
+                math.parse(params.x).compile().evaluate({ t, a: aVal }),
+                math.parse(params.y).compile().evaluate({ t, a: aVal }),
+                math.parse(params.z).compile().evaluate({ t, a: aVal }),
+            ),
+    );
+    let boxItemElement = $state();
 
     let aVal = 0;
-    let displayAVal = '0';
+    let displayAVal = $state('0');
 
     // Only run the update if the params have changed.
-    $: hashTag = checksum(JSON.stringify(params));
-    $: hashTag, updateCurve();
+    // $: hashTag = checksum(JSON.stringify(params));
+    // $: hashTag, updateCurve();
 
     // Find approximate t for a given point on the curve.
     const findT = (vec) => {
@@ -139,18 +133,7 @@
     };
 
     // Meta-parameters
-    export let color = '#FFDD33';
-    export let tau = 0;
-    export let alpha = 0;
-    export let scene;
-    export let render = () => {};
-    export let onClose = () => {};
-    export let controls;
-    export let camera;
-    export let gridStep;
-    export let animation = false;
-    export let selectedObjects;
-    export let selected;
+
     let last;
 
     const update = (dt = 0) => {
@@ -185,9 +168,9 @@
         updateFrame({ T });
     };
 
-    let TNB = false;
-    let osculatingCircle = false;
-    let minimize = false;
+    let TNB = $state(false);
+    let osculatingCircle = $state(false);
+    let minimize = $state(false);
     // let stopButton, rewButton;
 
     const curveMaterial = new THREE.MeshPhongMaterial({
@@ -199,16 +182,17 @@
         opacity: 0.5,
     });
 
-    beforeUpdate(() => {
+    $effect.pre(() => {
         // This fixes an artificial case where color was dropped as a prop when the params were re-assigned.
         // Would like to drop it.
         color = color ? color : '#FFA3BB';
     });
+
     // Keep updated
-    $: {
+    $effect(() => {
         curveMaterial.color.set(color);
         render();
-    }
+    });
 
     const grayMaterial = new THREE.MeshPhongMaterial({
         color: new THREE.Color(0.39, 0.34, 0.35),
@@ -218,7 +202,7 @@
         transparent: false,
     });
 
-    let tube;
+    let tube = $state(new THREE.Mesh());
     let circleTube = new THREE.Mesh(new THREE.BufferGeometry(), grayMaterial);
 
     scene.add(circleTube);
@@ -262,6 +246,8 @@
         updateFrame();
     };
 
+    $effect(updateCurve);
+
     const stringifyT = function (tau) {
         const { a, b } = params;
         try {
@@ -276,7 +262,7 @@
         }
     };
 
-    let choosingPoint = false;
+    let choosingPoint = $state(false);
     const frame = new THREE.Object3D();
     frame.visible = false;
     scene.add(frame);
@@ -421,23 +407,27 @@
     };
 
     // Runs the update if math expression "params" has a dependence on 'a'
-    $: isDynamic = dependsOn(params, 'a');
+    let isDynamic = $derived(dependsOn(params, 'a'));
 
     // Start animating if animation changes (e.g. animating scene published)
     // Two ifs because one reacts only to animation changing and the other
     // to the $tickTock.
-    $: if (animation) {
-        frame.visible = true;
-        dispatch('animate');
-    }
-    $: if (animation) {
-        const currentTime = $tickTock;
-        last = last || currentTime;
-        update(currentTime - last);
-        last = currentTime;
-    } else {
-        last = null;
-    }
+    $effect(() => {
+        if (animation) {
+            frame.visible = true;
+            animate();
+        }
+    });
+    $effect(() => {
+        if (animation) {
+            const currentTime = $tickTock;
+            last = last || currentTime;
+            update(currentTime - last);
+            last = currentTime;
+        } else {
+            last = null;
+        }
+    });
 
     onMount(() => {
         params.a0 = params.a0 || '0';
@@ -447,7 +437,7 @@
 
         if (animation) {
             frame.visible = true;
-            dispatch('animate');
+            animate();
         }
         titleIndex++;
         title = title || `Space Curve ${titleIndex}`;
@@ -478,7 +468,7 @@
         render();
     });
 
-    $: texString1 = stringifyT(tau);
+    let texString1 = $derived(stringifyT(tau));
 
     /**
      * Close on mesh so reactive statement doesn't react when individual parameters change.
@@ -488,7 +478,9 @@
         boxItemElement?.scrollIntoView({ behavior: 'smooth' });
     };
 
-    $: if (selected && selectedObjects.length > 0) flash();
+    $effect(() => {
+        if (selected && selectedObjects.length > 0) flash();
+    });
 
     const raycaster = new THREE.Raycaster();
 
@@ -604,8 +596,7 @@
     window.addEventListener('click', onMouseClick);
 </script>
 
-<!-- svelte-ignore a11y-no-static-element-interactions -->
-<div class="boxItem" class:selected bind:this={boxItemElement} on:keydown>
+<div class="boxItem" class:selected bind:this={boxItemElement}>
     <ObjHeader
         bind:minimize
         bind:selectedObjects
@@ -683,7 +674,7 @@
                 min="0"
                 max="1"
                 step="0.001"
-                on:input={() => {
+                oninput={() => {
                     const { a, b } = params;
                     const A = math.parse(a).evaluate();
                     const B = math.parse(b).evaluate();
@@ -735,7 +726,7 @@
                     min="0"
                     max="1"
                     step="0.001"
-                    on:input={() => {
+                    oninput={() => {
                         const a0 = math.evaluate(params.a0);
                         const a1 = math.evaluate(params.a1);
 
@@ -765,15 +756,15 @@
                     name="frameVisible"
                     id="frameVisible"
                     bind:checked={frame.visible}
-                    on:change={render}
+                    onchange={render}
                 />
-                <span class="slider round" />
+                <span class="slider round"></span>
             </label>
             {#if frame.visible}
                 {#if choosingPoint}
                     <button
                         class="box box-2 btn btn-secondary"
-                        on:click={(e) => {
+                        onclick={(e) => {
                             e.stopImmediatePropagation();
                             choosingPoint = false;
                         }}
@@ -782,7 +773,7 @@
                 {:else}
                     <button
                         class="box box-2 btn btn-primary"
-                        on:click={(e) => {
+                        onclick={(e) => {
                             e.stopImmediatePropagation();
                             choosingPoint = true;
                         }}
@@ -798,9 +789,9 @@
                     name="reparamByArcLength"
                     id="reparamByArcLength"
                     bind:checked={TNB}
-                    on:change={updateFrame}
+                    onchange={updateFrame}
                 />
-                <span class="slider round" />
+                <span class="slider round"></span>
             </label>
 
             <span class="box-1">Osculating Circle</span>
@@ -810,9 +801,9 @@
                     name="osculatingCircle"
                     id="osculatingCircle"
                     bind:checked={osculatingCircle}
-                    on:change={updateFrame}
+                    onchange={updateFrame}
                 />
-                <span class="slider round" />
+                <span class="slider round"></span>
             </label>
             <span class="box-1">Color</span>
             <span class="box box-2">

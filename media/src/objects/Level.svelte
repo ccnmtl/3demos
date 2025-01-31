@@ -473,7 +473,7 @@
     >
         <Nametag bind:title />
         <span hidden={!loading}>
-            <i class="fa fa-spinner fa-pulse fa-fw" />
+            <i class="fa fa-spinner fa-pulse fa-fw"></i>
             <span class="sr-only">Loading...</span>
         </span>
     </ObjHeader>
@@ -576,7 +576,7 @@
                     bind:checked={tanFrame.visible}
                     on:change={render}
                 />
-                <span class="slider round" />
+                <span class="slider round"></span>
             </label>
             {#if tanFrame.visible}
                 {#if choosingPoint}

@@ -1,9 +1,7 @@
 <script>
-    import { afterUpdate } from 'svelte';
+    import { onMount, tick } from 'svelte';
 
-    export let align = false;
-    export let display = false;
-    export let size = 'sm';
+    let { align, display, size, children } = $props();
 
     let span, span2;
     /* global MathJax */
@@ -21,18 +19,19 @@
     };
 
     const render = async () => {
+        // console.log('M render', children());
         span2.innerHTML = formatMJ(span.innerText, display, size);
         await MathJax.typesetPromise([span2]);
     };
 
-    afterUpdate(render);
+    onMount(render);
 </script>
 
 <span bind:this={span} class="input">
-    <slot />
+    {@render children()}
 </span>
 
-<span bind:this={span2} class="output" />
+<span bind:this={span2} class="output"></span>
 
 <style>
     .input {
