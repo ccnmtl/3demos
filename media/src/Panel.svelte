@@ -33,6 +33,9 @@
     import Point from './objects/Point.svelte';
     import Solid from './objects/Solid.svelte';
 
+    // Can hold the component type
+    let SceneObjectKind;
+
     import { evaluate_cmap } from './js-colormaps';
     import { colorMap, demoObjects } from './stores';
     import Story from './Story.svelte';
@@ -203,6 +206,7 @@
                 kind: kind,
                 params: defaultParams[kind](),
                 color: nextColorUp(),
+                animation: false,
             },
         ];
 
@@ -325,9 +329,9 @@
                             title={showPanel ? 'Hide panel' : 'Show panel'}
                         >
                             {#if showPanel}
-                                <i class="bi bi-arrow-bar-down" />
+                                <i class="bi bi-arrow-bar-down"></i>
                             {:else}
-                                <i class="bi bi-arrow-bar-up" />
+                                <i class="bi bi-arrow-bar-up"></i>
                             {/if}
                         </button>
                     </li>
@@ -528,7 +532,7 @@
                                         on:click={blowUpObjects}
                                     >
                                         Clear Objects
-                                        <i class="fa fa-trash" />
+                                        <i class="fa fa-trash"></i>
                                     </button>
                                     {#if currentMode === 'session' && isHost}
                                         <button
@@ -536,7 +540,7 @@
                                             on:click={onPublishScene}
                                         >
                                             Publish Scene
-                                            <i class="bi bi-broadcast-pin" />
+                                            <i class="bi bi-broadcast-pin"></i>
                                         </button>
                                     {/if}
                                 </div>
@@ -581,6 +585,7 @@
                                                 {gridStep}
                                                 {gridMax}
                                                 on:animate={animateIfNotAnimating}
+                                                animate={animateIfNotAnimating}
                                                 bind:selectedObjects
                                                 selected={selectedObjects.includes(
                                                     uuid,
@@ -788,9 +793,9 @@
                 title={showPanel ? 'Hide panel' : 'Show panel'}
             >
                 {#if showPanel}
-                    <i class="bi bi-arrow-bar-left" />
+                    <i class="bi bi-arrow-bar-left"></i>
                 {:else}
-                    <i class="bi bi-arrow-bar-right" />
+                    <i class="bi bi-arrow-bar-right"></i>
                 {/if}
             </button>
         {/if}

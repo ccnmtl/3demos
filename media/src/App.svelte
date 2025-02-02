@@ -853,7 +853,8 @@
             {objectResponses}
         />
 
-        <canvas class="flex-grow-1" tabIndex="0" id="c" bind:this={canvas} />
+        <canvas class="flex-grow-1" tabIndex="0" id="c" bind:this={canvas}
+        ></canvas>
 
         <div class="settings-panel-box" class:mobile={isMobileView}>
             <Settings
@@ -884,12 +885,17 @@
                 class="active-users-count"
                 title={activeUserCount + ' users in session'}
             >
-                <i class="bi bi-person-fill" />
+                <i class="bi bi-person-fill"></i>
                 {activeUserCount}
             </div>
 
-            <a class="leave-room" href="/" title="Exit Room">
-                <i class="fa fa-sign-out" />
+            <a
+                class="leave-room"
+                href="/"
+                title="Exit Room"
+                aria-label="Room signout"
+            >
+                <i class="fa fa-sign-out"></i>
             </a>
         {/if}
     </div>
@@ -899,7 +905,7 @@
             class="scene-overlay active-users-count"
             title={activeUserCount + ' users in session'}
         >
-            <i class="bi bi-person-fill" />
+            <i class="bi bi-person-fill"></i>
             {activeUserCount}
         </div>
     {/if}

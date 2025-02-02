@@ -31,7 +31,8 @@
         onRenderObject,
         onDestroyObject,
         onSelect,
-        animate,
+        animate = () => {},
+        animation = $bindable(false),
         params,
         color = '#FFDD33',
         tau = 0,
@@ -42,23 +43,21 @@
         controls,
         camera,
         gridStep,
-        animation = false,
         selectedObjects,
         selected,
     } = $props();
 
-    // export let paramString;
+    // let animation = $state(false);
 
-    let xyz = $derived(
-        (
-            t, // evaluate with t and a (the constant parameter)
-        ) =>
-            new THREE.Vector3(
-                math.parse(params.x).compile().evaluate({ t, a: aVal }),
-                math.parse(params.y).compile().evaluate({ t, a: aVal }),
-                math.parse(params.z).compile().evaluate({ t, a: aVal }),
-            ),
-    );
+    let xyz = (
+        t, // evaluate with t and a (the constant parameter)
+    ) =>
+        new THREE.Vector3(
+            math.parse(params.x).compile().evaluate({ t, a: aVal }),
+            math.parse(params.y).compile().evaluate({ t, a: aVal }),
+            math.parse(params.z).compile().evaluate({ t, a: aVal }),
+        );
+
     let boxItemElement = $state();
 
     let aVal = 0;
@@ -202,7 +201,12 @@
         transparent: false,
     });
 
-    let tube = $state(new THREE.Mesh());
+    let tube = new THREE.Mesh(new THREE.BufferGeometry(), curveMaterial);
+    scene.add(tube);
+
+    tube.name = uuid;
+    onRenderObject(tube);
+
     let circleTube = new THREE.Mesh(new THREE.BufferGeometry(), grayMaterial);
 
     scene.add(circleTube);
@@ -224,29 +228,33 @@
         //     startAnimation(false);
         // }
 
-        let path = new ParametricCurve(1, xyz, A, B);
-        let geometry = new THREE.TubeGeometry(
+        const path = new ParametricCurve(1, xyz, A, B);
+        const geometry = new THREE.TubeGeometry(
             path,
             1000,
             gridStep / 20,
             8,
             false,
         );
-        if (tube) {
-            tube.geometry.dispose();
-            tube.geometry = geometry;
-        } else {
-            tube = new THREE.Mesh(geometry, curveMaterial);
-            scene.add(tube);
+        tube.geometry.dispose();
+        tube.geometry = geometry;
+        // if (tube) {
+        // } else {
+        //     tube = new THREE.Mesh(geometry, curveMaterial);
+        //     scene.add(tube);
 
-            tube.name = uuid;
-            onRenderObject(tube);
-        }
+        //     tube.name = uuid;
+        //     onRenderObject(tube);
+        // }
 
         updateFrame();
     };
 
-    $effect(updateCurve);
+    $effect(() => {
+        // console.log('effex in effect', xyz(1).z);
+        console.log('effex in effect no xyz');
+        updateCurve();
+    });
 
     const stringifyT = function (tau) {
         const { a, b } = params;
@@ -263,7 +271,7 @@
     };
 
     let choosingPoint = $state(false);
-    const frame = new THREE.Object3D();
+    const frame = $state(new THREE.Object3D());
     frame.visible = false;
     scene.add(frame);
     const arrows = {
@@ -408,6 +416,12 @@
 
     // Runs the update if math expression "params" has a dependence on 'a'
     let isDynamic = $derived(dependsOn(params, 'a'));
+    $inspect(isDynamic);
+
+    let X = $derived(math.parse(params.x).compile());
+    $inspect(X);
+    let A = $derived(math.parse(params.a).compile());
+    $inspect(A);
 
     // Start animating if animation changes (e.g. animating scene published)
     // Two ifs because one reacts only to animation changing and the other
@@ -617,9 +631,9 @@
                     checker={chickenParms}
                     {name}
                     {params}
-                    on:cleared={(e) => {
-                        params[name] = e.detail;
-                        // updateSurface();
+                    cleared={(val) => {
+                        params[name] = val;
+                        updateCurve();
                     }}
                 />
             {/each}
@@ -639,8 +653,9 @@
                 }}
                 name="a"
                 {params}
-                on:cleared={(e) => {
-                    params.a = e.detail;
+                cleared={(val) => {
+                    params.a = val;
+                    updateCurve();
                 }}
             />
             <span class="box box-3"><M size="sm">\leq t \leq</M></span>
@@ -660,8 +675,9 @@
                 }}
                 name="b"
                 {params}
-                on:cleared={(e) => {
-                    params.b = e.detail;
+                cleared={(val) => {
+                    params.b = val;
+                    updateCurve();
                 }}
             />
 
@@ -685,9 +701,9 @@
             />
             <PlayButtons
                 bind:animation
-                on:animate
-                on:pause={() => (last = null)}
-                on:rew={() => {
+                {animate}
+                pause={() => (last = null)}
+                rew={() => {
                     tau = 0;
                     animation = false;
                     update();
@@ -709,8 +725,9 @@
                             Number.isFinite(math.parse(val).evaluate())}
                         value={params[name]}
                         {name}
-                        on:cleared={(e) => {
-                            params[name] = e.detail;
+                        cleared={(val) => {
+                            params[name] = val;
+                            updateCurve();
                         }}
                     />
                 {/each}
@@ -750,16 +767,27 @@
             {/if}
 
             <span class="box-1">Frame</span>
-            <label class="switch box box-2">
-                <input
-                    type="checkbox"
-                    name="frameVisible"
-                    id="frameVisible"
-                    bind:checked={frame.visible}
-                    onchange={render}
-                />
-                <span class="slider round"></span>
-            </label>
+            <span class="box box-2" id="frameSwitches">
+                <label class="switch" for="frameVisible">
+                    <input
+                        type="checkbox"
+                        name="frameVisible"
+                        id="frameVisible"
+                        checked={frame.visible}
+                        onchange={(val) => {
+                            frame.visible = !frame.visible;
+                            render();
+                        }}
+                    />
+                    <span class="slider round"></span>
+                </label>
+                {#if TNB}
+                    <label for="framPos"
+                        >pos
+                        <input type="checkbox" name="framePos" /></label
+                    >
+                {/if}
+            </span>
             {#if frame.visible}
                 {#if choosingPoint}
                     <button

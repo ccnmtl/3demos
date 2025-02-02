@@ -1,21 +1,24 @@
 <script>
+    import { curveLinearClosed } from 'd3';
+
     /**
      * A svelte component for parameter inputs.
      * Input value is checked on change against the parameters. If validated (via a user-supplied checker), dispatch a cleared function, else alert the user with error message.
      */
-    import { createEventDispatcher } from 'svelte';
 
-    const dispatch = createEventDispatcher();
+    let {
+        name,
+        type = 'text',
+        value = '',
+        className = 'form-control form-control-sm box box-2',
+        params,
+        checker = (val) => {
+            return Number.isFinite(val);
+        },
+        cleared = () => {},
+    } = $props();
 
-    export let name;
-    export let type = 'text';
-    export let value = '';
-    export let className = 'form-control form-control-sm box box-2';
-    export let params = {};
-    let inputElement;
-    export let checker = (val) => {
-        return Number.isFinite(val);
-    };
+    let inputElement = $state();
 </script>
 
 <input
@@ -24,11 +27,11 @@
     {value}
     bind:this={inputElement}
     class={className}
-    on:change={(e) => {
+    onchange={(e) => {
         const val = e.target.value;
         if (checker(val, params)) {
             inputElement.classList.remove('is-invalid');
-            dispatch('cleared', val);
+            cleared(val);
         } else {
             inputElement.classList.add('is-invalid');
         }
