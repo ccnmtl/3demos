@@ -327,9 +327,9 @@
 
                 <PlayButtons
                     bind:animation
-                    on:animate
-                    on:pause={() => (last = null)}
-                    on:rew={() => {
+                    {animate}
+                    pause={() => (last = null)}
+                    rew={() => {
                         tau = 0;
                         update();
                     }}

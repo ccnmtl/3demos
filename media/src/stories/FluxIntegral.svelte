@@ -584,16 +584,16 @@
         <div class="col-auto">
             <PlayButtons
                 bind:animation
-                on:animate
-                on:play={() => {
+                {animate}
+                play={() => {
                     console.log("playin'");
                     boxes.visible = true;
                     currentField.animation = true;
                 }}
-                on:pause={() => {
+                pause={() => {
                     last = null;
                 }}
-                on:rew={() => {
+                rew={() => {
                     tau = 0;
                 }}
             />

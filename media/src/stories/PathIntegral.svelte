@@ -417,12 +417,12 @@
 
     <PlayButtons
         bind:animation={animateIntegral}
-        on:play={() => (rafI = requestAnimationFrame(toI))}
-        on:pause={() => {
+        play={() => (rafI = requestAnimationFrame(toI))}
+        pause={() => {
             cancelAnimationFrame(rafI);
             lastI = null;
         }}
-        on:rew={() => {
+        rew={() => {
             cancelAnimationFrame(rafI);
             lastI = null;
             tau = 0;

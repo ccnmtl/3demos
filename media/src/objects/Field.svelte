@@ -486,10 +486,10 @@
 
             <PlayButtons
                 bind:animation
-                on:animate
-                on:play={() => (flowArrows.visible = true)}
-                on:pause={() => (last = null)}
-                on:rew={rewindArrows}
+                {animate}
+                play={() => (flowArrows.visible = true)}
+                pause={() => (last = null)}
+                rew={rewindArrows}
             />
 
             <span class="box box-2">
