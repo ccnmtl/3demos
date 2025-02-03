@@ -2811,6 +2811,21 @@ const scaleExp = (scale) => Math.round(
     )
 ) / 100;
 
+/**
+ * Filters arr in place, leaving all elements where func(x) is truthy.
+ * @param {function} func 
+ * @param {array} arr 
+ */
+const filterBang = (func, arr) => {
+    let j = 0;
+    for (let i = 0; i < arr.length; i++) {
+        if (func(arr[i])) {
+            arr[j++] = arr[i];
+        }
+    }
+    arr.length = j;
+};
+
 export {
     norm2,
     joinUrl,
@@ -2847,4 +2862,5 @@ export {
     modFloor,
     tripleToHex,
     scaleExp,
+    filterBang,
 };

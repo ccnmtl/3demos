@@ -3,7 +3,7 @@
     import PollResponses from '../polls/PollResponses.svelte';
     import Chatroom from './Chatroom.svelte';
     import { getRoomUrl } from '../utils.js';
-    import { demoObjects } from '../stores';
+    import { demoObjects } from '../states.svelte';
 
     export let roomId;
     export let socket;
@@ -86,7 +86,7 @@
         <input
             type="hidden"
             name="objects"
-            value={JSON.stringify($demoObjects)}
+            value={JSON.stringify(demoObjects)}
         />
 
         <button type="submit" class="btn btn-sm btn-primary">

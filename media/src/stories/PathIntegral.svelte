@@ -3,14 +3,13 @@
     import * as THREE from 'three';
 
     import { all, create } from 'mathjs';
-    import { ParametricGeometry, gaussLegendre } from '../utils';
+    import { ParametricGeometry, filterBang, gaussLegendre } from '../utils';
     import { onDestroy } from 'svelte';
-    import { demoObjects } from '../stores';
+    import { demoObjects } from '../states.svelte';
     import M from '../M.svelte';
 
     const math = create(all, {});
 
-    // export let $demoObjects;
     export let scene;
     export let render;
     let tau = 0;
@@ -258,7 +257,7 @@
         },
     };
 
-    const backupObjects = structuredClone($demoObjects);
+    const backupObjects = structuredClone(demoObjects);
 
     let pathChoice = 'circle';
 
@@ -267,13 +266,14 @@
     let diffChoice = 'ds';
 
     onDestroy(() => {
-        $demoObjects = backupObjects;
+        demoObjects.length = 0;
+        demoObjects.push(...backupObjects);
         scene.remove(wall);
     });
 
-    $: $demoObjects = [
-        ...$demoObjects.filter((k) => k.uuid !== curveId),
-        {
+    $: {
+        filterBang((k) => k.uuid !== curveId, demoObjects);
+        demoObjects.push({
             uuid: curveId,
             kind: 'curve',
             params: {
@@ -284,8 +284,8 @@
                 b: curveData[pathChoice].r.b,
             },
             color: '#AA1243',
-        },
-    ];
+        });
+    }
 </script>
 
 <div>

@@ -47,7 +47,8 @@
     let selectedPoint = null;
 
     // The demoObjects array store is the declarative data that the scene is based on.
-    import { demoObjects } from './stores.js';
+    // import { demoObjects } from './stores.js';
+    import { demoObjects } from './states.svelte';
 
     let gridMax = 1;
     let gridStep = 1 / 10;
@@ -88,14 +89,11 @@
             }
         });
         for (const val of Object.values(objectHolder)) {
-            // objects = makeObject(val.uuid, val.kind, val.params, objects);
-            $demoObjects = [
-                ...$demoObjects,
-                { uuid: crypto.randomUUID(), ...val },
-            ];
-            if (debug) console.log($demoObjects);
+            demoObjects.push({ uuid: crypto.randomUUID(), ...val });
+
+            if (debug) console.log(demoObjects);
         }
-        console.log('Initializing...', $demoObjects);
+        console.log('Initializing...', demoObjects);
     }
 
     let canvas;
@@ -310,7 +308,7 @@
             stats.end();
         }
 
-        if (scaleAnimation || $demoObjects.some((b) => b.animation)) {
+        if (scaleAnimation || demoObjects.some((b) => b.animation)) {
             myReq = requestAnimationFrame(animate);
             frameRequested = true;
             animating = true;
@@ -395,7 +393,11 @@
     let host = null;
 
     if (window.SCENE_STATE && window.SCENE_STATE.objects) {
-        $demoObjects = window.SCENE_STATE.objects;
+        demoObjects.splice(
+            0,
+            demoObjects.length,
+            ...window.SCENE_STATE.objects,
+        );
     }
 
     if (window.SCENE_STATE && window.SCENE_STATE.poll) {
@@ -412,7 +414,7 @@
 
     export const blowUpObjects = () => {
         if (confirm('Remove all objects in the scene?')) {
-            $demoObjects = [];
+            demoObjects.length = 0;
             selectedObjects = [];
         }
     };
@@ -531,7 +533,7 @@
 
         // If any of the loaded objects are currently animating, start
         // animation.
-        if ($demoObjects.some((b) => b.animation)) {
+        if (demoObjects.some((b) => b.animation)) {
             // Do initial render to set canvas size correctly.
             render();
             // Start animation
@@ -633,7 +635,7 @@
             flattenedObjects['grid'] = true;
         }
         window.location.search = btoa(
-            convertToURLParams(flattenedObjects, $demoObjects).toString(),
+            convertToURLParams(flattenedObjects, demoObjects).toString(),
         );
     };
 
@@ -706,7 +708,7 @@
                 activeUserCount = data.message.updateActiveUsers;
             }
         } else {
-            $demoObjects = handleSceneEvent(data, $demoObjects);
+            handleSceneEvent(data, demoObjects);
         }
     };
 
@@ -723,30 +725,30 @@
     }
 
     const keySelect = function (e, moveDown) {
-        if (!$demoObjects) {
+        if (!demoObjects) {
             return;
         } else if (selectedObjects.length === 0) {
             selectedObjects = [
-                $demoObjects[moveDown ? $demoObjects.length - 1 : 0].uuid,
+                demoObjects[moveDown ? demoObjects.length - 1 : 0].uuid,
             ];
-        } else if (selectedObjects.length === $demoObjects.length) {
+        } else if (selectedObjects.length === demoObjects.length) {
             return;
         } else {
-            const selectedIndex = $demoObjects
+            const selectedIndex = demoObjects
                 .map((x) => x.uuid)
                 .indexOf(
                     selectedObjects[moveDown ? selectedObjects.length - 1 : 0],
                 );
             const newIdx = modFloor(
                 selectedIndex + (moveDown ? -1 : 1),
-                $demoObjects.length,
+                demoObjects.length,
             );
             if (e.shiftKey) {
                 selectedObjects = moveDown
-                    ? selectedObjects.concat([$demoObjects[newIdx].uuid])
-                    : [$demoObjects[newIdx].uuid].concat(selectedObjects);
+                    ? selectedObjects.concat([demoObjects[newIdx].uuid])
+                    : [demoObjects[newIdx].uuid].concat(selectedObjects);
             } else {
-                selectedObjects = [$demoObjects[newIdx].uuid];
+                selectedObjects = [demoObjects[newIdx].uuid];
             }
         }
         render();

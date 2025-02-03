@@ -1,6 +1,6 @@
 <script>
     import { derived } from 'svelte/store';
-    import { demoObjects } from '../stores';
+    import { demoObjects } from '../states.svelte';
     import { randomInt } from 'mathjs';
 
     //shortcut registry
@@ -106,11 +106,11 @@
         },
     ];
 
-    (entry) => $demoObjects.some((obj) => obj.kind === entry.type);
+    // (entry) => demoObjects.some((obj) => obj.kind === entry.type);
 
-    const kbdItems = derived(demoObjects, (d) =>
+    const kbdItems = $derived(
         kbdShortcuts.filter((entry) =>
-            d.some((obj) => obj.kind === entry.kind),
+            demoObjects.some((obj) => obj.kind === entry.kind),
         ),
     );
 </script>
@@ -129,7 +129,7 @@
         </div>
     {/each}
     <hr />
-    {#each $kbdItems as { name, shortcuts }}
+    {#each kbdItems as { name, shortcuts }}
         <h5>{name}</h5>
 
         {#each Object.entries(shortcuts) as [k, v]}

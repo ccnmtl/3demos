@@ -2,24 +2,22 @@
     import { onDestroy } from 'svelte';
     import { create, all } from 'mathjs';
     import { norm2 } from '../utils';
-    import { demoObjects } from '../stores';
+    import { demoObjects } from '../states.svelte';
 
     import M from '../M.svelte';
 
     const config = {};
     const math = create(all, config);
 
-    const backupObjects = [
-        ...$demoObjects.map((obj) => {
-            obj.selected = false;
-            return obj;
-        }),
-    ];
+    const backupObjects = demoObjects.map((obj) => {
+        obj.selected = false;
+        return obj;
+    });
 
     const vecId = crypto.randomUUID();
 
     onDestroy(() => {
-        $demoObjects = [...backupObjects];
+        demoObjects.splice(0, demoObjects.length, ...backupObjects);
     });
 
     const texStrings = {
@@ -132,33 +130,31 @@
         texStrings.a = A.toTex();
         texStrings.b = B.toTex();
 
-        $demoObjects = [
-            obj,
-            {
-                uuid: vecId,
-                kind: 'vector',
-                params: {
-                    a: new math.OperatorNode('-', 'subtract', [
-                        X.transform(toN(nVects, true, A, B)),
-                        X.transform(toN(nVects, false, A, B)),
-                    ]),
-                    b: new math.OperatorNode('-', 'subtract', [
-                        Y.transform(toN(nVects, true, A, B)),
-                        Y.transform(toN(nVects, false, A, B)),
-                    ]),
-                    c: new math.OperatorNode('-', 'subtract', [
-                        Z.transform(toN(nVects, true, A, B)),
-                        Z.transform(toN(nVects, false, A, B)),
-                    ]),
-                    x: X.transform(toN(nVects, false, A, B)),
-                    y: Y.transform(toN(nVects, false, A, B)),
-                    z: Z.transform(toN(nVects, false, A, B)),
-                    n0: 0,
-                    n1: nVects - 1,
-                },
-                color: '#BB0000',
+        demoObjects.length = 0;
+        demoObjects.push(obj, {
+            uuid: vecId,
+            kind: 'vector',
+            params: {
+                a: new math.OperatorNode('-', 'subtract', [
+                    X.transform(toN(nVects, true, A, B)),
+                    X.transform(toN(nVects, false, A, B)),
+                ]),
+                b: new math.OperatorNode('-', 'subtract', [
+                    Y.transform(toN(nVects, true, A, B)),
+                    Y.transform(toN(nVects, false, A, B)),
+                ]),
+                c: new math.OperatorNode('-', 'subtract', [
+                    Z.transform(toN(nVects, true, A, B)),
+                    Z.transform(toN(nVects, false, A, B)),
+                ]),
+                x: X.transform(toN(nVects, false, A, B)),
+                y: Y.transform(toN(nVects, false, A, B)),
+                z: Z.transform(toN(nVects, false, A, B)),
+                n0: 0,
+                n1: nVects - 1,
             },
-        ];
+            color: '#BB0000',
+        });
         // addVectors(nVects);
         let tot = 0;
 

@@ -6,7 +6,7 @@
     import Histogram from '../d3/Histogram';
     import { makeObject } from '../sceneUtils';
     import { showPollResults, hidePollResults } from './utils';
-    import { demoObjects } from '../stores';
+    import { demoObjects } from '../states.svelte';
 
     export let socket;
     export let pollResponses;
@@ -41,7 +41,7 @@
         responsesArray.forEach((response) => {
             const choice = response[1];
             const frequency = responsesArray.filter(
-                (r) => r[1] === choice
+                (r) => r[1] === choice,
             ).length;
             processedData.push([choice, frequency]);
         });
@@ -65,7 +65,7 @@
                 xDomain: d3.groupSort(
                     data,
                     () => -1,
-                    (d) => d[0]
+                    (d) => d[0],
                 ),
                 // sort by descending frequency
                 color: 'steelblue',
@@ -76,8 +76,8 @@
     };
 
     const loadResponse = (item) => {
-        $demoObjects = [];
-        $demoObjects = makeObject(null, item.kind, item.params, $demoObjects);
+        demoObjects.length = 0;
+        makeObject(null, item.kind, item.params, demoObjects);
     };
 
     /**
@@ -115,7 +115,7 @@
             pollResponses,
             currentPollType,
             socket,
-            objectResponses
+            objectResponses,
         );
         render();
     };
@@ -126,7 +126,7 @@
                 pollResponses,
                 currentPollType,
                 socket,
-                objectResponses
+                objectResponses,
             );
         } else {
             hidePollResults(socket);
@@ -159,7 +159,7 @@
                     id="flexSwitchCheckDefault"
                 />
                 <label class="form-check-label" for="flexSwitchCheckDefault">
-                    <i class="bi bi-broadcast-pin" /> Show results
+                    <i class="bi bi-broadcast-pin"></i> Show results
                 </label>
             </div>
             <button
@@ -169,9 +169,9 @@
                 on:click={() => (lockPoll = !lockPoll)}
             >
                 {#if lockPoll}
-                    <i class="bi bi-unlock" /> Unrestrict Updates
+                    <i class="bi bi-unlock"></i> Unrestrict Updates
                 {:else}
-                    <i class="bi bi-lock" />Restrict Updates
+                    <i class="bi bi-lock"></i> Restrict Updates
                 {/if}
             </button>
         </div>
@@ -182,8 +182,9 @@
             on:click={clearPoints}
             class="btn btn-danger col-auto"
             title="Clear points"
+            aria-label="Clear points"
         >
-            <i class="fa fa-trash" />
+            <i class="fa fa-trash"></i>
         </button>
     {/if}
 </div>
@@ -211,7 +212,7 @@
         {/each}
     </ul>
 {/if}
-<div bind:this={d3container} {hidden} />
+<div bind:this={d3container} {hidden}></div>
 
 {#if currentPoll && currentPoll.prompt}
     <p class="ms-1">

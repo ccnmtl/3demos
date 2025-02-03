@@ -1,6 +1,6 @@
 <script>
     import { forceNumber } from '../utils';
-    import { demoObjects } from '../stores';
+    import { demoObjects } from '../states.svelte';
 
     export let currentPoll;
     export let socket;
@@ -23,7 +23,7 @@
             response = forceNumber(responseEl.value);
         } else if (currentPoll.type === 'multiple choice') {
             responseEl = e.target.querySelectorAll(
-                'input[name="poll_response"]'
+                'input[name="poll_response"]',
             );
             responseEl.forEach(function (el) {
                 if (el.checked) {
@@ -37,7 +37,7 @@
                 selectedPoint.position.z.toFixed(2),
             ];
         } else if (currentPoll.type === 'select object') {
-            response = $demoObjects.find((x) => x.uuid === selectedObjects[0]);
+            response = demoObjects.find((x) => x.uuid === selectedObjects[0]);
         }
 
         // Send response over websocket
@@ -47,7 +47,7 @@
                     poll: currentPoll.type,
                     pollResponse: response,
                 },
-            })
+            }),
         );
 
         // Display "Response Submitted!"

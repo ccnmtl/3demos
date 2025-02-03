@@ -5,6 +5,7 @@
     import { all, create } from 'mathjs';
     import M from '../M.svelte';
     import {
+        filterBang,
         FluxBoxEdgesGeometry,
         FluxBoxGeometry,
         gaussLegendre,
@@ -14,7 +15,8 @@
 
     // const dispatch = createEventDispatcher();
 
-    import { demoObjects, tickTock } from '../stores';
+    import { tickTock } from '../stores';
+    import { demoObjects } from '../states.svelte';
 
     export let scene;
     export let render;
@@ -44,9 +46,7 @@
 
     $: drawFirst(animation);
 
-    // export let $demoObjects;
-
-    const backupObjects = $demoObjects.map((obj) => {
+    const backupObjects = demoObjects.map((obj) => {
         obj.selected = false;
         return obj;
     });
@@ -163,21 +163,21 @@
     });
 
     let currentSurface =
-        $demoObjects.find((o) => o.kind === 'surface') || exampleSurfaces[0];
+        demoObjects.find((o) => o.kind === 'surface') || exampleSurfaces[0];
     let currentField =
-        $demoObjects.find((o) => o.kind === 'field') || exampleFields[0];
+        demoObjects.find((o) => o.kind === 'field') || exampleFields[0];
     currentField.flowTrails = false;
 
     let unsub;
     onMount(() => {
-        unsub = demoObjects.subscribe((e) => {
-            if (!e.some((o) => o === currentSurface)) {
-                currentSurface = null;
-            }
-            if (!e.some((o) => o === currentField)) {
-                currentField = null;
-            }
-        });
+        // unsub = demoObjects.subscribe((e) => {
+        //     if (!e.some((o) => o === currentSurface)) {
+        //         currentSurface = null;
+        //     }
+        //     if (!e.some((o) => o === currentField)) {
+        //         currentField = null;
+        //     }
+        // });
         // currentField =
         //     objects.find((o) => o.kind === 'field')?.uuid ||
         //     'flux-story-field-001-';
@@ -289,10 +289,8 @@
                     R.evaluate({ x, y, z }),
                 );
             currentField.flowTrails = false;
-            $demoObjects = [
-                ...$demoObjects.filter((o) => o.kind !== 'field'),
-                currentField,
-            ];
+            filterBang((o) => o.kind !== 'field', demoObjects);
+            demoObjects.push(currentField);
 
             if (ruv) {
                 totalFlux = computeFlux(F, ruv);
@@ -323,10 +321,8 @@
             v0 = (u) => C.evaluate({ u });
             v1 = (u) => D.evaluate({ u });
 
-            $demoObjects = [
-                ...$demoObjects.filter((o) => o.kind !== 'surface'),
-                obj,
-            ];
+            filterBang((o) => o.kind !== 'surface', demoObjects);
+            demoObjects.push(obj);
 
             if (F) totalFlux = computeFlux(F, ruv);
         } else {
@@ -407,8 +403,10 @@
             element.material?.dispose();
         }
         scene.remove(boxes);
-        unsub();
-        $demoObjects = [...backupObjects];
+        // unsub();
+        demoObjects.length = 0;
+        demoObjects.push(...backupObjects);
+
         render();
     });
 </script>
@@ -431,7 +429,7 @@
                 class="demos-obj-select m-2 bg-primary border-primary
                 text-light"
             >
-                {#each $demoObjects.filter((o) => o.kind === 'field' && o.uuid.slice(0, 10) !== 'flux-story') as obj}
+                {#each demoObjects.filter((o) => o.kind === 'field' && o.uuid.slice(0, 10) !== 'flux-story') as obj}
                     <option value={obj}>{obj.title}</option>
                 {/each}
                 <option disabled>──────────</option>
@@ -446,7 +444,7 @@
                 class="demos-obj-select m-2 bg-primary text-light"
                 bind:value={currentSurface}
             >
-                {#each $demoObjects.filter((o) => o.kind === 'surface' && o.uuid.slice(0, 10) !== 'flux-story') as obj}
+                {#each demoObjects.filter((o) => o.kind === 'surface' && o.uuid.slice(0, 10) !== 'flux-story') as obj}
                     <option value={obj}>{obj.title}</option>
                 {/each}
                 <option disabled>──────────</option>

@@ -37,7 +37,8 @@
     let SceneObjectKind;
 
     import { evaluate_cmap } from './js-colormaps';
-    import { colorMap, demoObjects } from './stores';
+    import { colorMap } from './stores';
+    import { demoObjects } from './states.svelte';
     import Story from './Story.svelte';
     import { tick } from 'svelte';
     // import { add } from 'mathjs';
@@ -81,7 +82,7 @@
     };
 
     const onPublishScene = function () {
-        publishScene($demoObjects, selectedObjects, socket);
+        publishScene(demoObjects, selectedObjects, socket);
     };
 
     let nextHue = 0;
@@ -199,16 +200,13 @@
     const addNewObject = function (kind) {
         const uuid = randomID(); // crypto.randomUUID(); caused issues on mobile devices
 
-        $demoObjects = [
-            ...$demoObjects,
-            {
-                uuid,
-                kind: kind,
-                params: defaultParams[kind](),
-                color: nextColorUp(),
-                animation: false,
-            },
-        ];
+        demoObjects.push({
+            uuid,
+            kind: kind,
+            params: defaultParams[kind](),
+            color: nextColorUp(),
+            animation: false,
+        });
 
         selectedObjects = [];
 
@@ -547,7 +545,7 @@
 
                                 <div class="objectBoxInner">
                                     <!-- Main Loop, if you will -->
-                                    {#each $demoObjects as { uuid, kind, params, color, title, animation, ...etc } (uuid)}
+                                    {#each demoObjects as { uuid, kind, params, color, title, animation, ...etc } (uuid)}
                                         <div
                                             transition:slide|global={{
                                                 delay: 0,
@@ -566,11 +564,21 @@
                                                 {params}
                                                 meta={etc}
                                                 onClose={() => {
-                                                    $demoObjects =
-                                                        $demoObjects.filter(
-                                                            (b) =>
-                                                                b.uuid !== uuid,
-                                                        );
+                                                    let j = 0;
+                                                    for (
+                                                        let i = 0;
+                                                        i < demoObjects.length;
+                                                        i++
+                                                    ) {
+                                                        if (
+                                                            demoObjects[i]
+                                                                .uuid !== uuid
+                                                        ) {
+                                                            demoObjects[j++] =
+                                                                demoObjects[i];
+                                                        }
+                                                    }
+                                                    demoObjects.length = j;
                                                     selectedObjects =
                                                         selectedObjects.filter(
                                                             (objectId) =>
@@ -604,176 +612,170 @@
                                     <div>
                                         <button
                                             on:click={() => {
-                                                $demoObjects = [
-                                                    {
-                                                        uuid: 34,
-                                                        kind: 'curve',
-                                                        params: {
-                                                            a: '0',
-                                                            b: '2*pi',
-                                                            x: 'cos(t)',
-                                                            y: 'sin(t)',
-                                                            z: '0',
-                                                        },
-                                                        color: '#aa33ff',
-                                                        animation: true,
+                                                demoObjects.length = 0;
+                                                demoObjects.push({
+                                                    uuid: 34,
+                                                    kind: 'curve',
+                                                    params: {
+                                                        a: '0',
+                                                        b: '2*pi',
+                                                        x: 'cos(t)',
+                                                        y: 'sin(t)',
+                                                        z: '0',
                                                     },
-                                                    {
-                                                        uuid: '34point22',
-                                                        kind: 'point',
-                                                        params: {
-                                                            a: 'cos(2 t)',
-                                                            b: 'sin(2 t)',
-                                                            c: 'cos(2 t) + sin(2 t)',
-                                                            t0: '0',
-                                                            t1: '2 pi',
-                                                        },
-                                                        color: '#FF0000',
-                                                        animation: false,
+                                                    color: '#aa33ff',
+                                                    animation: true,
+                                                });
+                                                demoObjects.push({
+                                                    uuid: '34point22',
+                                                    kind: 'point',
+                                                    params: {
+                                                        a: 'cos(2 t)',
+                                                        b: 'sin(2 t)',
+                                                        c: 'cos(2 t) + sin(2 t)',
+                                                        t0: '0',
+                                                        t1: '2 pi',
                                                     },
-                                                    {
-                                                        uuid: 345,
-                                                        kind: 'vector',
-                                                        params: {
-                                                            a: 'cos(t)',
-                                                            b: 'sin(t)',
-                                                            c: '1',
-                                                            x: 'cos(t)',
-                                                            y: 'sin(t)',
-                                                            z: '0',
-                                                            t0: '0',
-                                                            t1: '2*pi',
-                                                        },
-                                                        color: '#ff33ff',
-                                                        animation: false,
+                                                    color: '#FF0000',
+                                                    animation: false,
+                                                });
+                                                demoObjects.push({
+                                                    uuid: 345,
+                                                    kind: 'vector',
+                                                    params: {
+                                                        a: 'cos(t)',
+                                                        b: 'sin(t)',
+                                                        c: '1',
+                                                        x: 'cos(t)',
+                                                        y: 'sin(t)',
+                                                        z: '0',
+                                                        t0: '0',
+                                                        t1: '2*pi',
                                                     },
-                                                ];
+                                                    color: '#ff33ff',
+                                                    animation: false,
+                                                });
                                             }}>curve anim</button
                                         >
                                         <button
                                             on:click={() => {
-                                                $demoObjects = [
-                                                    {
-                                                        uuid: 34,
-                                                        kind: 'curve',
-                                                        params: {
-                                                            a: '0',
-                                                            b: '2*pi',
-                                                            x: 'cos(t)',
-                                                            y: 'sin(t)',
-                                                            z: '0',
-                                                        },
-                                                        color: '#aa33ff',
-                                                        animation: false,
+                                                demoObjects.length = 0;
+                                                demoObjects.push({
+                                                    uuid: 34,
+                                                    kind: 'curve',
+                                                    params: {
+                                                        a: '0',
+                                                        b: '2*pi',
+                                                        x: 'cos(t)',
+                                                        y: 'sin(t)',
+                                                        z: '0',
                                                     },
-                                                    {
-                                                        uuid: '34point22',
-                                                        kind: 'point',
-                                                        params: {
-                                                            a: 'cos(2 t)',
-                                                            b: 'sin(2 t)',
-                                                            c: 'cos(2 t) + sin(2 t)',
-                                                            t0: '0',
-                                                            t1: '2*pi',
-                                                        },
-                                                        color: '#FF0000',
-                                                        animation: true,
+                                                    color: '#aa33ff',
+                                                    animation: false,
+                                                });
+                                                demoObjects.push({
+                                                    uuid: '34point22',
+                                                    kind: 'point',
+                                                    params: {
+                                                        a: 'cos(2 t)',
+                                                        b: 'sin(2 t)',
+                                                        c: 'cos(2 t) + sin(2 t)',
+                                                        t0: '0',
+                                                        t1: '2*pi',
                                                     },
-                                                    {
-                                                        uuid: 345,
-                                                        kind: 'vector',
-                                                        params: {
-                                                            a: 'cos(t)',
-                                                            b: 'sin(t)',
-                                                            c: '1',
-                                                            x: 'cos(t)',
-                                                            y: 'sin(t)',
-                                                            z: '0',
-                                                            t0: '0',
-                                                            t1: '2*pi',
-                                                        },
-                                                        color: '#ff33ff',
-                                                        animation: true,
+                                                    color: '#FF0000',
+                                                    animation: true,
+                                                });
+                                                demoObjects.push({
+                                                    uuid: 345,
+                                                    kind: 'vector',
+                                                    params: {
+                                                        a: 'cos(t)',
+                                                        b: 'sin(t)',
+                                                        c: '1',
+                                                        x: 'cos(t)',
+                                                        y: 'sin(t)',
+                                                        z: '0',
+                                                        t0: '0',
+                                                        t1: '2*pi',
                                                     },
-                                                ];
+                                                    color: '#ff33ff',
+                                                    animation: true,
+                                                });
                                             }}>point/vec anim</button
                                         >
                                         <button
                                             on:click={() => {
-                                                $demoObjects = [
-                                                    {
-                                                        uuid: 'agraph3847',
-                                                        kind: 'graph',
-                                                        params: {
-                                                            a: '-1',
-                                                            b: '1',
-                                                            c: '-1',
-                                                            d: '1',
-                                                            z: 'x^2 - 3*cos(t) * x * y + y^2',
-                                                            t0: '0',
-                                                            t1: '2*pi',
-                                                        },
-                                                        color: '#ff33ff',
-                                                        animation: true,
+                                                demoObjects.length = 0;
+                                                demoObjects.push({
+                                                    uuid: 'agraph3847',
+                                                    kind: 'graph',
+                                                    params: {
+                                                        a: '-1',
+                                                        b: '1',
+                                                        c: '-1',
+                                                        d: '1',
+                                                        z: 'x^2 - 3*cos(t) * x * y + y^2',
+                                                        t0: '0',
+                                                        t1: '2*pi',
                                                     },
-                                                ];
+                                                    color: '#ff33ff',
+                                                    animation: true,
+                                                });
                                             }}>anim func</button
                                         >
                                         <button
                                             on:click={() => {
-                                                $demoObjects = [
-                                                    {
-                                                        uuid: 'agraph3847',
-                                                        kind: 'graph',
-                                                        params: {
-                                                            a: '-1',
-                                                            b: '1',
-                                                            c: '-1',
-                                                            d: '1',
-                                                            z: 'x^2 - 3*cos(t) * x * y + y^2',
-                                                            t0: '0',
-                                                            t1: '2*pi',
-                                                        },
-                                                        color: '#ff33ff',
-                                                        animation: false,
+                                                demoObjects.length = 0;
+                                                demoObjects.push({
+                                                    uuid: 'agraph3847',
+                                                    kind: 'graph',
+                                                    params: {
+                                                        a: '-1',
+                                                        b: '1',
+                                                        c: '-1',
+                                                        d: '1',
+                                                        z: 'x^2 - 3*cos(t) * x * y + y^2',
+                                                        t0: '0',
+                                                        t1: '2*pi',
                                                     },
-                                                ];
+                                                    color: '#ff33ff',
+                                                    animation: false,
+                                                });
                                             }}>unanim func</button
                                         >
                                         <button
                                             on:click={() => {
-                                                $demoObjects = [
-                                                    {
-                                                        uuid: 'swirly1234',
-                                                        kind: 'field',
-                                                        params: {
-                                                            p: 'x/2',
-                                                            q: '-z',
-                                                            r: 'y',
-                                                            nVec: '5',
-                                                        },
-                                                        color: '#ff33ff',
-                                                        animation: true,
+                                                demoObjects.length = 0;
+                                                demoObjects.push({
+                                                    uuid: 'swirly1234',
+                                                    kind: 'field',
+                                                    params: {
+                                                        p: 'x/2',
+                                                        q: '-z',
+                                                        r: 'y',
+                                                        nVec: '5',
                                                     },
-                                                ];
+                                                    color: '#ff33ff',
+                                                    animation: true,
+                                                });
                                             }}>anim field</button
                                         >
                                         <button
                                             on:click={() => {
-                                                $demoObjects = [
-                                                    {
-                                                        uuid: 'swirly1234',
-                                                        kind: 'field',
-                                                        params: {
-                                                            p: 'x/2',
-                                                            q: '-z',
-                                                            r: 'y',
-                                                            nVec: '5',
-                                                        },
-                                                        color: '#ff33ff',
-                                                        animation: false,
+                                                demoObjects.length = 0;
+                                                demoObjects.push({
+                                                    uuid: 'swirly1234',
+                                                    kind: 'field',
+                                                    params: {
+                                                        p: 'x/2',
+                                                        q: '-z',
+                                                        r: 'y',
+                                                        nVec: '5',
                                                     },
-                                                ];
+                                                    color: '#ff33ff',
+                                                    animation: false,
+                                                });
                                             }}>unanim field</button
                                         >
                                     </div>

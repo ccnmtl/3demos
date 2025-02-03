@@ -8,6 +8,7 @@
         labelAxes,
         freeChildren,
         scaleExp,
+        filterBang,
     } from '../utils';
     import {
         vMin,
@@ -15,8 +16,8 @@
         colorMap,
         densityColormap,
         viewScale,
-        demoObjects,
     } from '../stores';
+    import { demoObjects } from '../states.svelte';
     import WindowHeader from './WindowHeader.svelte';
     import { colorMapNames } from '../js-colormaps';
     import { offclick } from './offclick';
@@ -127,12 +128,10 @@
                 upload = upload.map((item) => {
                     return { ...item, uuid: item.uuid || crypto.randomUUID() };
                 });
-                $demoObjects = [
-                    ...$demoObjects.filter((item) => {
-                        return !upload.map((ob) => ob.uuid).includes(item.uuid);
-                    }),
-                    ...upload,
-                ];
+                filterBang((item) => {
+                    return !upload.map((ob) => ob.uuid).includes(item.uuid);
+                }, demoObjects);
+                demoObjects.push(...upload);
             } else {
                 alert('Object limit of 32 per upload.');
             }
@@ -146,7 +145,7 @@
     };
 
     const downloadScene = () => {
-        let json = JSON.stringify($demoObjects);
+        let json = JSON.stringify(demoObjects);
         const blob = new Blob([json], { type: 'application/json' });
         let a = document.createElement('a');
         a.download = makeFilename();
