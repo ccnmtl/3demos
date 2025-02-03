@@ -47,7 +47,7 @@ const removeObject = (uuid, objects, socket = null) => {
 /**
  * Update the given object in the scene.
  *
- * Returns a new objects array.
+ * Changes objects array in place.
  */
 const updateObject = (updatedObject, objects, socket = null) => {
     if (socket) {
@@ -62,7 +62,9 @@ const updateObject = (updatedObject, objects, socket = null) => {
     // array ordering as this will affect the form UI.
     const index = objects.findIndex((b) => b.uuid === updatedObject.uuid);
     if (index > -1) {
-        objects[index] = updateObject;
+        objects[index] = updatedObject;
+    } else {
+        objects.push(updatedObject)
     }
 };
 
