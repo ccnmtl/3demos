@@ -35,8 +35,6 @@
         animation = $bindable(false),
         params,
         color = '#FFDD33',
-        tau = 0,
-        alpha = 0,
         scene,
         render = () => {},
         onClose = () => {},
@@ -47,21 +45,48 @@
         selected,
     } = $props();
 
+    params.a0 = params.a0 || '0';
+    params.a1 = params.a1 || '1';
     // let animation = $state(false);
 
-    let xyz = (
-        t, // evaluate with t and a (the constant parameter)
-    ) =>
-        new THREE.Vector3(
-            math.parse(params.x).compile().evaluate({ t, a: aVal }),
-            math.parse(params.y).compile().evaluate({ t, a: aVal }),
-            math.parse(params.z).compile().evaluate({ t, a: aVal }),
-        );
+    let X = $derived(math.parse(params.x).compile());
+    let Y = $derived(math.parse(params.y).compile());
+    let Z = $derived(math.parse(params.z).compile());
+
+    let alpha = $state(0);
+    let a0 = $derived(math.parse(params.a0).evaluate());
+    let a1 = $derived(math.parse(params.a1).evaluate());
+    let aVal = $derived(a0 + alpha * (a1 - a0));
+    let displayAVal = $derived((Math.round(100 * aVal) / 100).toString());
+
+    let tau = $state(0);
+    let A = $derived(math.parse(params.a).evaluate({ a: aVal }));
+    let B = $derived(math.parse(params.b).evaluate({ a: aVal }));
+    let tVal = $derived(A + tau * (B - A));
+    let displayTVal = $derived((Math.round(100 * tVal) / 100).toString());
+
+    let xyz = $derived(
+        (t) =>
+            new THREE.Vector3(
+                X.evaluate({ t, a: aVal }),
+                Y.evaluate({ t, a: aVal }),
+                Z.evaluate({ t, a: aVal }),
+            ),
+    );
+    $inspect(xyz);
+
+    $effect(() => {
+        console.log('effex in framez');
+        updateFrame({ T: tVal });
+    });
+
+    $effect(() => {
+        // console.log('effex in effect', xyz(1).z);
+        console.log('effex in effect no xyz');
+        updateCurve();
+    });
 
     let boxItemElement = $state();
-
-    let aVal = 0;
-    let displayAVal = $state('0');
 
     // Only run the update if the params have changed.
     // $: hashTag = checksum(JSON.stringify(params));
@@ -69,8 +94,7 @@
 
     // Find approximate t for a given point on the curve.
     const findT = (vec) => {
-        const { a, b } = params;
-        const [A, B] = [a, b].map((x) => math.parse(x).evaluate());
+        // const { a, b } = params;
 
         let closestT = undefined;
         let closestDist = Infinity;
@@ -137,23 +161,14 @@
 
     const update = (dt = 0) => {
         const { a, b } = params;
-        const A = math.parse(a).evaluate();
-        const B = math.parse(b).evaluate();
 
-        const a0 = math.parse(params.a0).evaluate();
-        const a1 = math.parse(params.a1).evaluate();
-
-        displayAVal = (
-            Math.round(100 * (a0 + alpha * (a1 - a0))) / 100
-        ).toString();
-
-        if (TNB) {
+        if (vizOptions.TNB) {
             tau += dt / arrows.v.speed / (B - A);
         } else {
             tau += dt / (B - A);
         }
         tau %= 1;
-        const T = A + (B - A) * tau;
+        // const T = A + (B - A) * tau;
 
         // uncomment this if we want aVal to be animated:
         // if (animation) {
@@ -164,11 +179,9 @@
         //     updateCurve()
         // }
 
-        updateFrame({ T });
+        // updateFrame({ T });
     };
 
-    let TNB = $state(false);
-    let osculatingCircle = $state(false);
     let minimize = $state(false);
     // let stopButton, rewButton;
 
@@ -209,25 +222,9 @@
 
     let circleTube = new THREE.Mesh(new THREE.BufferGeometry(), grayMaterial);
 
-    scene.add(circleTube);
-    circleTube.visible = false;
+    tube.add(circleTube);
 
     const updateCurve = function () {
-        const { a0, a1 } = params;
-
-        aVal = a0
-            ? math.evaluate(a0) +
-              alpha * (math.evaluate(a1) - math.evaluate(a0))
-            : 0;
-
-        const { a, b } = params;
-        const A = math.parse(a).evaluate();
-        const B = math.parse(b).evaluate();
-
-        // if (animation) {
-        //     startAnimation(false);
-        // }
-
         const path = new ParametricCurve(1, xyz, A, B);
         const geometry = new THREE.TubeGeometry(
             path,
@@ -247,33 +244,32 @@
         //     onRenderObject(tube);
         // }
 
-        updateFrame();
+        // updateFrame({ T: tVal });
     };
 
-    $effect(() => {
-        // console.log('effex in effect', xyz(1).z);
-        console.log('effex in effect no xyz');
-        updateCurve();
+    let vizOptions = $state({
+        frame: false,
+        pos: true,
+        vel: false,
+        acc: false,
+        TNB: false,
+        osculatingCircle: false,
     });
 
-    const stringifyT = function (tau) {
-        const { a, b } = params;
-        try {
-            const [A, B] = [a, b].map((x) => math.parse(x).evaluate());
+    $effect(() => {
+        frame.visible = vizOptions.frame;
+        arrows.r.visible = vizOptions.pos;
+        arrows.v.visible = vizOptions.vel;
+        arrows.a.visible = vizOptions.acc;
 
-            const t = A + (B - A) * tau;
-
-            return (Math.round(100 * t) / 100).toString();
-        } catch (e) {
-            console.error(e);
-            return '';
-        }
-    };
+        circleTube.visible = vizOptions.osculatingCircle;
+        render();
+    });
 
     let choosingPoint = $state(false);
-    const frame = $state(new THREE.Object3D());
-    frame.visible = false;
-    scene.add(frame);
+    const frame = new THREE.Object3D();
+    // frame.visible = false;
+    tube.add(frame);
     const arrows = {
         r: new THREE.Mesh(),
         v: new THREE.Mesh(),
@@ -309,7 +305,7 @@
 
         let curvature = 0;
 
-        const rVec = xyz(T, alpha);
+        const rVec = xyz(T);
 
         const dr = {
             r: rVec,
@@ -325,7 +321,7 @@
         // Store speed for reparametrization
         arrows.v.speed = dr.v.length();
 
-        if (osculatingCircle) {
+        if (vizOptions.osculatingCircle) {
             const R = dr.r.clone(),
                 V = dr.v.clone(),
                 A = dr.a.clone();
@@ -369,13 +365,9 @@
 
             circleTube.geometry?.dispose();
             circleTube.geometry = geometry;
-
-            circleTube.visible = true;
-        } else {
-            circleTube.visible = false;
         }
 
-        if (TNB) {
+        if (vizOptions.TNB) {
             const A = dr.a.clone();
             dr.v.normalize();
             if (A.cross(dr.v).length() > gridStep / 100) {
@@ -398,7 +390,6 @@
                     height: pos.length(),
                 });
                 arrow.lookAt(pos);
-                arrow.visible = true;
             } else {
                 arrow.position.copy(pos);
                 arrow.geometry = new ArrowBufferGeometry({
@@ -418,17 +409,12 @@
     let isDynamic = $derived(dependsOn(params, 'a'));
     $inspect(isDynamic);
 
-    let X = $derived(math.parse(params.x).compile());
-    $inspect(X);
-    let A = $derived(math.parse(params.a).compile());
-    $inspect(A);
-
     // Start animating if animation changes (e.g. animating scene published)
     // Two ifs because one reacts only to animation changing and the other
     // to the $tickTock.
     $effect(() => {
         if (animation) {
-            frame.visible = true;
+            vizOptions.frame = true;
             animate();
         }
     });
@@ -444,13 +430,10 @@
     });
 
     onMount(() => {
-        params.a0 = params.a0 || '0';
-        params.a1 = params.a1 || '1';
-
-        updateCurve();
+        // updateCurve();
 
         if (animation) {
-            frame.visible = true;
+            vizOptions.frame = true;
             animate();
         }
         titleIndex++;
@@ -482,8 +465,6 @@
         render();
     });
 
-    let texString1 = $derived(stringifyT(tau));
-
     /**
      * Close on mesh so reactive statement doesn't react when individual parameters change.
      */
@@ -512,12 +493,9 @@
         if (intersects.length > 0) {
             const intersect = intersects[0];
             const T = findT(intersect.point);
-            tau =
-                (T - math.parse(params.a).evaluate()) /
-                (math.parse(params.b).evaluate() -
-                    math.parse(params.a).evaluate()); // Update the UI
-            updateFrame({ T });
-            frame.visible = true;
+            tau = (T - A) / (B - A); // Update the UI
+            // updateFrame({ T });
+            vizOptions.frame = true;
             render();
         }
     };
@@ -530,13 +508,7 @@
     };
 
     const toggleHide = function () {
-        if (tube.visible) {
-            tube.visible = false;
-            circleTube.visible = false;
-        } else {
-            tube.visible = true;
-            circleTube.visible = osculatingCircle;
-        }
+        tube.visible = !tube.visible;
         render();
     };
 
@@ -548,9 +520,7 @@
         if (selected) {
             switch (e.key) {
                 case 'Backspace':
-                    if (selectedObjects[0] === uuid) {
-                        toggleHide();
-                    }
+                    toggleHide();
                     break;
                 case 'Shift':
                     window.addEventListener(
@@ -570,8 +540,7 @@
                     render();
                     break;
                 case 'o':
-                    osculatingCircle = !osculatingCircle;
-                    render();
+                    vizOptions.osculatingCircle = !vizOptions.osculatingCircle;
                     break;
                 case 'p':
                     animation = !animation;
@@ -582,14 +551,10 @@
                     update();
                     break;
                 case 's':
-                    TNB = !TNB;
-                    render();
+                    vizOptions.TNB = !vizOptions.TNB;
                     break;
                 case 't':
-                    if (uuid === selectedObjects[selectedObjects.length - 1]) {
-                        frame.visible = !frame.visible;
-                    }
-                    render();
+                    vizOptions.frame = !vizOptions.frame;
                     break;
             }
         }
@@ -633,7 +598,7 @@
                     {params}
                     cleared={(val) => {
                         params[name] = val;
-                        updateCurve();
+                        // updateCurve();
                     }}
                 />
             {/each}
@@ -643,8 +608,8 @@
                 checker={(val, { b }) => {
                     try {
                         return (
-                            math.parse(val).evaluate() <=
-                            math.parse(b).evaluate()
+                            math.parse(val).evaluate({ a: aVal }) <=
+                            math.parse(b).evaluate({ a: aVal })
                         );
                     } catch (e) {
                         console.error('Parsing error', e);
@@ -655,7 +620,7 @@
                 {params}
                 cleared={(val) => {
                     params.a = val;
-                    updateCurve();
+                    // updateCurve();
                 }}
             />
             <span class="box box-3"><M size="sm">\leq t \leq</M></span>
@@ -665,8 +630,8 @@
                 checker={(val, { a }) => {
                     try {
                         return (
-                            math.parse(a).evaluate() <=
-                            math.parse(val).evaluate()
+                            math.parse(a).evaluate({ a: aVal }) <=
+                            math.parse(val).evaluate({ a: aVal })
                         );
                     } catch (e) {
                         console.error('Parsing error', e);
@@ -677,12 +642,12 @@
                 {params}
                 cleared={(val) => {
                     params.b = val;
-                    updateCurve();
+                    // updateCurve();
                 }}
             />
 
             <span class="box-1">
-                <span class="t-box"> <M size="sm">t =</M> {texString1}</span>
+                <span class="t-box"> <M size="sm">t =</M> {displayTVal}</span>
             </span>
             <input
                 type="range"
@@ -690,13 +655,6 @@
                 min="0"
                 max="1"
                 step="0.001"
-                oninput={() => {
-                    const { a, b } = params;
-                    const A = math.parse(a).evaluate();
-                    const B = math.parse(b).evaluate();
-
-                    updateFrame({ T: A + tau * (B - A) });
-                }}
                 class="box box-2"
             />
             <PlayButtons
@@ -727,7 +685,7 @@
                         {name}
                         cleared={(val) => {
                             params[name] = val;
-                            updateCurve();
+                            // updateCurve();
                         }}
                     />
                 {/each}
@@ -744,15 +702,12 @@
                     max="1"
                     step="0.001"
                     oninput={() => {
-                        const a0 = math.evaluate(params.a0);
-                        const a1 = math.evaluate(params.a1);
-
-                        const aVal = a0 + alpha * (a1 - a0);
-                        displayAVal = (Math.round(100 * aVal) / 100).toString();
-
-                        updateCurve();
-
-                        render();
+                        // const a0 = math.evaluate(params.a0);
+                        // const a1 = math.evaluate(params.a1);
+                        // const aVal = a0 + alpha * (a1 - a0);
+                        // displayAVal = (Math.round(100 * aVal) / 100).toString();
+                        // updateCurve();
+                        // render();
                     }}
                     class="box box-2"
                 />
@@ -773,22 +728,41 @@
                         type="checkbox"
                         name="frameVisible"
                         id="frameVisible"
-                        checked={frame.visible}
-                        onchange={(val) => {
-                            frame.visible = !frame.visible;
+                        bind:checked={vizOptions.frame}
+                        onchange={() => {
                             render();
                         }}
                     />
                     <span class="slider round"></span>
                 </label>
-                {#if TNB}
+                {#if vizOptions.frame}
                     <label for="framPos"
                         >pos
-                        <input type="checkbox" name="framePos" /></label
-                    >
+                        <input
+                            type="checkbox"
+                            name="framePos"
+                            bind:checked={vizOptions.pos}
+                        />
+                    </label>
+                    <label for="framevel"
+                        >vel
+                        <input
+                            type="checkbox"
+                            name="framevel"
+                            bind:checked={vizOptions.vel}
+                        />
+                    </label>
+                    <label for="frameacc"
+                        >acc
+                        <input
+                            type="checkbox"
+                            name="frameacc"
+                            bind:checked={vizOptions.acc}
+                        />
+                    </label>
                 {/if}
             </span>
-            {#if frame.visible}
+            {#if vizOptions.frame}
                 {#if choosingPoint}
                     <button
                         class="box box-2 btn btn-secondary"
@@ -810,13 +784,13 @@
                 {/if}
             {/if}
 
-            <span class="box-1">Reparamterize by <M>s</M></span>
+            <span class="box-1">Reparameetrize by <M>s</M></span>
             <label class="switch box box-2">
                 <input
                     type="checkbox"
                     name="reparamByArcLength"
                     id="reparamByArcLength"
-                    bind:checked={TNB}
+                    bind:checked={vizOptions.TNB}
                     onchange={updateFrame}
                 />
                 <span class="slider round"></span>
@@ -828,8 +802,7 @@
                     type="checkbox"
                     name="osculatingCircle"
                     id="osculatingCircle"
-                    bind:checked={osculatingCircle}
-                    onchange={updateFrame}
+                    bind:checked={vizOptions.osculatingCircle}
                 />
                 <span class="slider round"></span>
             </label>
@@ -852,5 +825,10 @@
         display: inline-block;
         width: 40%;
         text-align: left;
+    }
+
+    #frameSwitches {
+        display: flex;
+        justify-content: space-between;
     }
 </style>

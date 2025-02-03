@@ -89,11 +89,15 @@
             }
         });
         for (const val of Object.values(objectHolder)) {
-            demoObjects.push({ uuid: crypto.randomUUID(), ...val });
+            demoObjects.push({
+                uuid: crypto.randomUUID(),
+                animation: false,
+                ...val,
+            });
 
             if (debug) console.log(demoObjects);
         }
-        console.log('Initializing...', demoObjects);
+        // console.log('Initializing...', demoObjects);
     }
 
     let canvas;
