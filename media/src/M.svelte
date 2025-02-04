@@ -7,7 +7,13 @@
     /* global MathJax */
 
     const formatMJ = function (formula) {
-        let textSize = size === 'lg' ? '\\Large' : '';
+        const textSizes = {
+            lg: '\\Large',
+            sm: '\\small',
+            ti: '\\tiny',
+        };
+
+        const textSize = textSizes[size] || '';
 
         if (align) {
             return `${textSize} \\begin{align} ${formula} \\end{align}`;

@@ -34,7 +34,7 @@
         animate = () => {},
         animation = $bindable(false),
         params,
-        color = '#FFDD33',
+        color = $bindable('#FFDD33'),
         scene,
         render = () => {},
         onClose = () => {},
@@ -44,6 +44,8 @@
         selectedObjects,
         selected,
     } = $props();
+
+    title = title || `Curve ${++titleIndex}`;
 
     params.a0 = params.a0 || '0';
     params.a1 = params.a1 || '1';
@@ -76,14 +78,15 @@
     $inspect(xyz);
 
     $effect(() => {
-        console.log('effex in framez');
+        // console.log('effex in framez');
         updateFrame({ T: tVal });
+        render();
     });
 
     $effect(() => {
-        // console.log('effex in effect', xyz(1).z);
-        console.log('effex in effect no xyz');
+        // console.log('effex in effect no xyz');
         updateCurve();
+        render();
     });
 
     let boxItemElement = $state();
@@ -194,11 +197,11 @@
         opacity: 0.5,
     });
 
-    $effect.pre(() => {
-        // This fixes an artificial case where color was dropped as a prop when the params were re-assigned.
-        // Would like to drop it.
-        color = color ? color : '#FFA3BB';
-    });
+    // $effect.pre(() => {
+    //     // This fixes an artificial case where color was dropped as a prop when the params were re-assigned.
+    //     // Would like to drop it.
+    //     color = color ? color : '#FFA3BB';
+    // });
 
     // Keep updated
     $effect(() => {
@@ -402,7 +405,6 @@
                 arrow.visible = false;
             }
         }
-        render();
     };
 
     // Runs the update if math expression "params" has a dependence on 'a'
@@ -429,16 +431,16 @@
         }
     });
 
-    onMount(() => {
-        // updateCurve();
+    // onMount(() => {
+    //     // updateCurve();
 
-        if (animation) {
-            vizOptions.frame = true;
-            animate();
-        }
-        titleIndex++;
-        title = title || `Space Curve ${titleIndex}`;
-    });
+    //     if (animation) {
+    //         vizOptions.frame = true;
+    //         animate();
+    //     }
+    //     // titleIndex++;
+    //     // title = title || `Space Curve ${titleIndex}`;
+    // });
 
     onDestroy(() => {
         onDestroyObject(tube);
@@ -496,7 +498,6 @@
             tau = (T - A) / (B - A); // Update the UI
             // updateFrame({ T });
             vizOptions.frame = true;
-            render();
         }
     };
 
@@ -541,6 +542,15 @@
                     break;
                 case 'o':
                     vizOptions.osculatingCircle = !vizOptions.osculatingCircle;
+                    break;
+                case 'x':
+                    vizOptions.pos = !vizOptions.pos;
+                    break;
+                case 'v':
+                    vizOptions.vel = !vizOptions.vel;
+                    break;
+                case 'a':
+                    vizOptions.acc = !vizOptions.acc;
                     break;
                 case 'p':
                     animation = !animation;
@@ -701,14 +711,6 @@
                     min="0"
                     max="1"
                     step="0.001"
-                    oninput={() => {
-                        // const a0 = math.evaluate(params.a0);
-                        // const a1 = math.evaluate(params.a1);
-                        // const aVal = a0 + alpha * (a1 - a0);
-                        // displayAVal = (Math.round(100 * aVal) / 100).toString();
-                        // updateCurve();
-                        // render();
-                    }}
                     class="box box-2"
                 />
                 <!--                <PlayButtons-->
@@ -729,15 +731,12 @@
                         name="frameVisible"
                         id="frameVisible"
                         bind:checked={vizOptions.frame}
-                        onchange={() => {
-                            render();
-                        }}
                     />
                     <span class="slider round"></span>
                 </label>
                 {#if vizOptions.frame}
                     <label for="framPos"
-                        >pos
+                        ><M size={'sm'}>{'\\mathbf r'}</M>
                         <input
                             type="checkbox"
                             name="framePos"
@@ -745,7 +744,7 @@
                         />
                     </label>
                     <label for="framevel"
-                        >vel
+                        ><M size={'sm'}>{"\\mathbf r'"}</M>
                         <input
                             type="checkbox"
                             name="framevel"
@@ -753,7 +752,7 @@
                         />
                     </label>
                     <label for="frameacc"
-                        >acc
+                        ><M size={'sm'}>{"\\mathbf r''"}</M>
                         <input
                             type="checkbox"
                             name="frameacc"
@@ -779,12 +778,13 @@
                             e.stopImmediatePropagation();
                             choosingPoint = true;
                         }}
-                        >Select point
+                    >
+                        Select Point
                     </button>
                 {/if}
             {/if}
 
-            <span class="box-1">Reparameetrize by <M>s</M></span>
+            <span class="box-1">Reparametrize by <M>s</M></span>
             <label class="switch box box-2">
                 <input
                     type="checkbox"

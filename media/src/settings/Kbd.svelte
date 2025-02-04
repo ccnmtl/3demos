@@ -22,12 +22,15 @@
             name: 'Space Curve',
             shortcuts: {
                 Shift: 'Select point with mouse',
+                a: 'Show second derivative',
                 c: 'Center camera on selected point',
                 o: 'Show/hide osculating circle',
                 p: 'Play/pause animation',
                 r: 'Reset animation',
                 s: 'Toggle parametrize by arc length',
                 t: 'Show/hide position/tangent/2nd deriv',
+                v: 'Show tangent vector',
+                x: 'Show position vector',
             },
         },
         {
