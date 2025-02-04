@@ -38,11 +38,11 @@
     let debug = false;
     let stats;
     let panel = null;
-    let showPanel = true;
+    let showPanel = $state(true);
 
-    let scaleAnimation = false;
+    let scaleAnimation = $state(false);
     let scaleUpdate;
-    let selectedObjects = [];
+    const selectedObjects = $state([]);
     let hoveredObject = null;
     let selectedPoint = null;
 
@@ -108,13 +108,13 @@
 
     const selectObject = (uuid) => {
         if (uuid === null) {
-            selectedObjects = [];
+            selectedObjects.length = 0;
         } else {
             if (selectedObjects.includes(uuid)) {
-                selectedObjects = selectedObjects.filter((obj) => obj !== uuid);
+                filterBang((obj) => obj !== uuid, selectedObjects);
             } else {
-                //Can't just push. Assignment needed to trigger dynamic update
-                selectedObjects = selectedObjects.concat(uuid);
+                // Can just push for reactivity as of Svelte 5.
+                selectedObjects.push(uuid);
             }
         }
 
@@ -145,31 +145,36 @@
     let controls, controls2;
     let renderer;
 
-    let orthoCamera = false;
+    let orthoCamera = $state(false);
 
-    $: currentCamera = orthoCamera ? camera2 : camera;
-    $: currentControls = orthoCamera ? controls2 : controls;
+    let currentCamera = $derived(orthoCamera ? camera2 : camera);
+    let currentControls = $derived(orthoCamera ? controls2 : controls);
 
     // Try a sane transfer between cameras instead of turning listeners for the two controls on and off.
-    $: if (orthoCamera) {
-        controls2?.target.copy(controls.target);
-        controls2?.addEventListener('change', requestFrameIfNotRequested);
+    $effect(() => {
+        if (orthoCamera) {
+            controls2?.target.copy(controls.target);
+            controls2?.addEventListener('change', requestFrameIfNotRequested);
 
-        controls?.removeEventListener('change', requestFrameIfNotRequested);
-        camera2?.position.copy(camera.position);
-        if (controls) {
-            controls.enableDamping = false;
-        }
-    } else {
-        controls?.target.copy(controls2.target);
-        controls?.addEventListener('change', requestFrameIfNotRequested);
+            controls?.removeEventListener('change', requestFrameIfNotRequested);
+            camera2?.position.copy(camera.position);
+            if (controls) {
+                controls.enableDamping = false;
+            }
+        } else {
+            controls?.target.copy(controls2.target);
+            controls?.addEventListener('change', requestFrameIfNotRequested);
 
-        controls2?.removeEventListener('change', requestFrameIfNotRequested);
-        camera?.position.copy(camera2.position);
-        if (controls) {
-            controls.enableDamping = true;
+            controls2?.removeEventListener(
+                'change',
+                requestFrameIfNotRequested,
+            );
+            camera?.position.copy(camera2.position);
+            if (controls) {
+                controls.enableDamping = true;
+            }
         }
-    }
+    });
 
     const pi = Math.PI;
 
@@ -390,9 +395,10 @@
     // the data gets rendered by our svelte components
     let sceneObjects = [];
 
-    export let currentPoll = null;
-    export let isHost = false;
-    let activeUserCount = 0;
+    let currentPoll = $state(null);
+    let isHost = $state(false);
+
+    let activeUserCount = $state(0);
 
     let host = null;
 
@@ -419,7 +425,7 @@
     export const blowUpObjects = () => {
         if (confirm('Remove all objects in the scene?')) {
             demoObjects.length = 0;
-            selectedObjects = [];
+            selectedObjects.length = 0;
         }
     };
 
@@ -491,7 +497,7 @@
 
     const onDblClick = function (e) {
         if (!e.shiftKey) {
-            selectedObjects = [];
+            selectedObjects.length = 0;
         }
 
         e.preventDefault();
@@ -716,15 +722,14 @@
         }
     };
 
-    let socket = null;
+    let socket = $state(null);
     const router = {};
     const room = location.pathname.match(/\/rooms\/\d+\//);
-    let roomId = null;
+    const roomId = getRoomId(window.location.pathname);
 
     if (room) {
         currentMode = 'session';
         router.room = true;
-        roomId = getRoomId(window.location.pathname);
         socket = makeSocket(roomId, handleSocketMessage);
     }
 
@@ -732,9 +737,11 @@
         if (!demoObjects) {
             return;
         } else if (selectedObjects.length === 0) {
-            selectedObjects = [
+            selectedObjects.splice(
+                0,
+                selectedObjects.length,
                 demoObjects[moveDown ? demoObjects.length - 1 : 0].uuid,
-            ];
+            );
         } else if (selectedObjects.length === demoObjects.length) {
             return;
         } else {
@@ -748,11 +755,17 @@
                 demoObjects.length,
             );
             if (e.shiftKey) {
-                selectedObjects = moveDown
-                    ? selectedObjects.concat([demoObjects[newIdx].uuid])
-                    : [demoObjects[newIdx].uuid].concat(selectedObjects);
+                if (moveDown) {
+                    selectedObjects.push([demoObjects[newIdx].uuid]);
+                } else {
+                    selectedObjects.splice(0, 0, demoObjects[newIdx].uuid);
+                }
             } else {
-                selectedObjects = [demoObjects[newIdx].uuid];
+                selectedObjects.splice(
+                    0,
+                    selectedObjects.length,
+                    demoObjects[newIdx].uuid,
+                );
             }
         }
         render();
@@ -767,7 +780,7 @@
                 isMobileView = !isMobileView;
                 break;
             case 'Escape':
-                selectedObjects = [];
+                selectedObjects.length = 0;
                 render();
                 break;
             case '[':
@@ -838,7 +851,7 @@
             bind:chatBuffer
             bind:pollResponses
             bind:lockPoll
-            bind:selectedObjects
+            selectedObjects
             bind:selectedPoint
             bind:isPollsOpen
             {isMobileView}
