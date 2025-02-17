@@ -33,9 +33,9 @@
     //import stores
     import { tickTock, viewScale } from './stores.js';
 
-    let isMobileView = false;
+    let isMobileView = $state(false);
 
-    let debug = false;
+    let debug = $state(false);
     let stats;
     let panel = null;
     let showPanel = $state(true);
@@ -50,11 +50,11 @@
     // import { demoObjects } from './stores.js';
     import { demoObjects } from './states.svelte';
 
-    let gridMax = 1;
-    let gridStep = 1 / 10;
+    let gridMax = $state(1);
+    let gridStep = $state(1 / 10);
 
-    let currentChapter = 'How To';
-    let currentMode = 'how-to';
+    let currentChapter = $state('How To');
+    let currentMode = $state('how-to');
     let gridSetting = false;
 
     const urlParams = new URLSearchParams(
@@ -152,6 +152,7 @@
 
     // Try a sane transfer between cameras instead of turning listeners for the two controls on and off.
     $effect(() => {
+        console.log('camera effect running', currentCamera, orthoCamera);
         if (orthoCamera) {
             controls2?.target.copy(controls.target);
             controls2?.addEventListener('change', requestFrameIfNotRequested);
@@ -171,6 +172,7 @@
             );
             camera?.position.copy(camera2.position);
             if (controls) {
+                console.log('Control effect----');
                 controls.enableDamping = true;
             }
         }
@@ -358,6 +360,7 @@
      * Create the three.js scene. Returns the three.js renderer.
      */
     const createScene = (el) => {
+        console.log('+++CreateScene running...');
         renderer = new THREE.WebGLRenderer({
             antialias: true,
             canvas: el,
@@ -893,8 +896,8 @@
                 render={requestFrameIfNotRequested}
                 bind:update={scaleUpdate}
                 bind:animation={scaleAnimation}
-                bind:orthoCamera
-                on:animate={animateIfNotAnimating}
+                switchCamera={(b) => (orthoCamera = b)}
+                animate={animateIfNotAnimating}
                 {roomId}
             />
         </div>
