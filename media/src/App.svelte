@@ -2,9 +2,9 @@
     import { onMount } from 'svelte';
 
     import * as THREE from 'three';
-    import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-    import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
-    import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { FontLoader } from 'three/addons/loaders/FontLoader.js';
+    import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
 
     // import components
     import Panel from './Panel.svelte';
@@ -41,10 +41,10 @@
     let showPanel = $state(true);
 
     let scaleAnimation = $state(false);
-    let scaleUpdate;
+    let scaleUpdate = $state();
     const selectedObjects = $state([]);
-    let hoveredObject = null;
-    let selectedPoint = null;
+    let hoveredObject = $state(null);
+    let selectedPoint = $state(null);
 
     // The demoObjects array store is the declarative data that the scene is based on.
     // import { demoObjects } from './stores.js';
@@ -53,7 +53,6 @@
     let gridMax = $state(1);
     let gridStep = $state(1 / 10);
 
-    let currentChapter = $state('How To');
     let currentMode = $state('how-to');
     let gridSetting = false;
 
@@ -97,14 +96,13 @@
 
             if (debug) console.log(demoObjects);
         }
-        // console.log('Initializing...', demoObjects);
     }
 
     let canvas;
-    let isPollsOpen = false;
+    let isPollsOpen = $state(false);
 
-    let lockPoll = false;
-    let showPollResults = false;
+    let lockPoll = $state(false);
+    let showPollResults = $state(false);
 
     const selectObject = (uuid) => {
         if (uuid === null) {
@@ -147,36 +145,10 @@
 
     let orthoCamera = $state(false);
 
-    let currentCamera = $derived(orthoCamera ? camera2 : camera);
-    let currentControls = $derived(orthoCamera ? controls2 : controls);
+    let currentCamera = camera;
+    let currentControls = controls;
 
-    // Try a sane transfer between cameras instead of turning listeners for the two controls on and off.
-    $effect(() => {
-        console.log('camera effect running', currentCamera, orthoCamera);
-        if (orthoCamera) {
-            controls2?.target.copy(controls.target);
-            controls2?.addEventListener('change', requestFrameIfNotRequested);
-
-            controls?.removeEventListener('change', requestFrameIfNotRequested);
-            camera2?.position.copy(camera.position);
-            if (controls) {
-                controls.enableDamping = false;
-            }
-        } else {
-            controls?.target.copy(controls2.target);
-            controls?.addEventListener('change', requestFrameIfNotRequested);
-
-            controls2?.removeEventListener(
-                'change',
-                requestFrameIfNotRequested,
-            );
-            camera?.position.copy(camera2.position);
-            if (controls) {
-                console.log('Control effect----');
-                controls.enableDamping = true;
-            }
-        }
-    });
+    $inspect(currentControls);
 
     const pi = Math.PI;
 
@@ -341,15 +313,20 @@
 
         if (resizeRendererToDisplaySize(renderer)) {
             // const canvas = renderer.domElement;
-            if (orthoCamera) {
-                currentCamera.top = canvas.clientHeight / 2;
-                currentCamera.bottom = canvas.clientHeight / -2;
-                currentCamera.right = canvas.clientWidth / 2;
-                currentCamera.left = canvas.clientWidth / -2;
-            } else {
-                currentCamera.aspect = canvas.clientWidth / canvas.clientHeight;
-            }
-            currentCamera.updateProjectionMatrix();
+
+            // camera2.top = canvas.clientHeight / 2;
+            // camera2.bottom = canvas.clientHeight / -2;
+            // camera2.right = canvas.clientWidth / 2;
+            // camera2.left = canvas.clientWidth / -2;
+            // camera2.updateProjectionMatrix();
+
+            camera.aspect = canvas.clientWidth / canvas.clientHeight;
+            camera.updateProjectionMatrix();
+            setOrthoCamBox(
+                camera2,
+                camera,
+                controls.target || { x: 0, y: 0, z: 0 },
+            );
         }
 
         currentControls?.update();
@@ -360,7 +337,6 @@
      * Create the three.js scene. Returns the three.js renderer.
      */
     const createScene = (el) => {
-        console.log('+++CreateScene running...');
         renderer = new THREE.WebGLRenderer({
             antialias: true,
             canvas: el,
@@ -384,7 +360,7 @@
         controls.maxPolarAngle = Math.PI;
         controls2.maxPolarAngle = Math.PI;
 
-        controls.addEventListener('change', requestFrameIfNotRequested);
+        // controls.addEventListener('change', requestFrameIfNotRequested);
         // controls2.addEventListener('change', requestFrameIfNotRequested);
 
         // resize();
@@ -537,6 +513,8 @@
     onMount(() => {
         const renderer = createScene(canvas);
 
+        switchCamera();
+
         // stats window for debugging
         if (debug) {
             stats = new Stats();
@@ -625,10 +603,64 @@
         });
     });
 
-    let pollResponses = {};
+    function setOrthoCamBox(cam2, cam, target) {
+        const fov = cam.fov * (Math.PI / 180);
+        const aspect = cam.aspect;
+        const d = Math.hypot(
+            target.x - cam.position.x,
+            target.y - cam.position.y,
+            target.z - cam.position.z,
+        );
+
+        const h = 2 * d * Math.tan(fov / 2);
+        const w = h * aspect;
+
+        cam2.left = -w / 2;
+        cam2.right = w / 2;
+        cam2.top = h / 2;
+        cam2.bottom = -h / 2;
+        cam2.updateProjectionMatrix();
+    }
+
+    // Try a sane transfer between cameras instead of turning listeners for the two controls on and off.
+    function switchCamera(cam) {
+        if (cam === 'ortho') {
+            setOrthoCamBox(camera2, camera, controls.target);
+
+            camera2.zoom = camera.zoom;
+            camera2.position.copy(camera.position);
+            controls2.target.copy(controls.target);
+
+            controls2.enabled = true;
+            controls2.addEventListener('change', requestFrameIfNotRequested);
+            controls.enabled = false;
+            controls.removeEventListener('change', requestFrameIfNotRequested);
+
+            currentControls = controls2;
+            currentCamera = camera2;
+        } else {
+            controls.target.copy(controls2.target);
+            camera.position.copy(camera2.position);
+            camera.zoom = camera2.zoom;
+
+            camera.updateProjectionMatrix();
+
+            controls.enabled = true;
+            controls.addEventListener('change', requestFrameIfNotRequested);
+            controls2.enabled = false;
+            controls2.removeEventListener('change', requestFrameIfNotRequested);
+
+            currentControls = controls;
+            currentCamera = camera;
+        }
+
+        render();
+    }
+
+    let pollResponses = $state({});
 
     // The chat buffer: an array of objects.
-    let chatBuffer = [];
+    let chatBuffer = $state([]);
     const chatLineCount = 5;
     const pointGeometry = new THREE.SphereGeometry(0.2 / 8, 16, 16);
     const pollMaterial = new THREE.MeshLambertMaterial({
@@ -636,11 +668,10 @@
         transparent: true,
         opacity: 0.5,
     });
-    let objectResponses;
+    let objectResponses = $state();
 
     const makeQueryStringObject = function () {
         const flattenedObjects = {
-            currentChapter,
             scale: $viewScale,
             showPanel,
         };
@@ -848,7 +879,6 @@
             bind:this={panel}
             bind:debug
             bind:currentMode
-            bind:currentChapter
             bind:gridStep
             bind:gridMax
             bind:chatBuffer
@@ -865,8 +895,6 @@
             {scene}
             {onRenderObject}
             {onDestroyObject}
-            {currentCamera}
-            {currentControls}
             {requestFrameIfNotRequested}
             {socket}
             {animateIfNotAnimating}
@@ -896,7 +924,7 @@
                 render={requestFrameIfNotRequested}
                 bind:update={scaleUpdate}
                 bind:animation={scaleAnimation}
-                switchCamera={(b) => (orthoCamera = b)}
+                {switchCamera}
                 animate={animateIfNotAnimating}
                 {roomId}
             />

@@ -47,7 +47,6 @@
 
     export let debug, currentMode;
     export let currentControls;
-    export let currentChapter;
     export let gridStep, gridMax;
     export let isHost;
     export let onRenderObject, onDestroyObject;
@@ -246,9 +245,7 @@
             urlParams.forEach((val, key) => {
                 // This is bad and stupid, and hopefully it will be done better.
                 // make a viewStatus object, maybe?
-                if (key === 'currentChapter') {
-                    currentChapter = val;
-                } else if (key === 'showPanel') {
+                if (key === 'showPanel') {
                     showPanel = !(val === 'false');
                 } else if (key === 'debug') {
                     debug = val === 'true';
@@ -263,6 +260,12 @@
             return;
         } else if (e.key === 'h') {
             showPanel = !showPanel;
+        } else if (e.key === 'c' && selectedPoint) {
+            currentControls.target.set(
+                selectedPoint.position.x,
+                selectedPoint.position.y,
+                selectedPoint.position.z,
+            );
         }
     };
     window.addEventListener('keydown', onKeyDown, false);

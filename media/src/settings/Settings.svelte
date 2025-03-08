@@ -23,16 +23,31 @@
     import { offclick } from './offclick';
     import Kbd from './Kbd.svelte';
 
-    export let isMobileView;
-    export let scene, camera, render, controls;
-    export let gridMax, gridStep;
-    export let axesHolder, gridMeshes, lineMaterial, axesMaterial, axesText;
-    export let animation = false;
-    export let animate = () => {};
-    export let switchCamera;
-    export let encode;
-    // export let socket;
-    export let roomId;
+    let {
+        isMobileView,
+        scene,
+        camera,
+        render,
+        controls,
+        gridMax,
+        gridStep,
+        roomId,
+        encode,
+        animation,
+        axesHolder,
+        gridMeshes,
+        lineMaterial,
+        axesMaterial,
+        axesText,
+        animate,
+        switchCamera,
+    } = $props();
+
+    let gridVisible = $state(false);
+    $effect(() => {
+        gridMeshes.visible = gridVisible;
+    });
+    let orthoCamera = $state(false);
 
     let newGridMeshes;
     const newLineMaterial = lineMaterial.clone();
@@ -66,8 +81,8 @@
     let oldGridMax = gridMax;
 
     // These duplicate their non-Temp counterpart but are only for display which updates on moving input bar, though value only updates on change event.
-    let scaleTemp = 0;
-    $: scalaTemp = scaleExp(scaleTemp);
+    let scaleTemp = $state(0);
+    let scalaTemp = $derived(scaleExp(scaleTemp));
 
     let scala;
 
@@ -108,9 +123,9 @@
         }
     };
 
-    let showSettings = false;
-    let showUpload = false;
-    let showKbd = false;
+    let showSettings = $state(false);
+    let showUpload = $state(false);
+    let showKbd = $state(false);
 
     const uploadScene = (e) => {
         const reader = new FileReader();
@@ -226,7 +241,7 @@
                     id="gridVisible"
                     role="switch"
                     aria-checked="true"
-                    bind:checked={gridMeshes.visible}
+                    bind:checked={gridVisible}
                     onchange={render}
                 />
             </label>
@@ -239,11 +254,9 @@
                     aria-checked="false"
                     name="orthoCamera"
                     id="orthoCamera"
-                    onchange={(e) => {
-                        console.log(e.target);
-                        switchCamera(e.target.checked);
-                        render();
-                    }}
+                    bind:checked={orthoCamera}
+                    onchange={() =>
+                        switchCamera(orthoCamera ? 'ortho' : 'persp')}
                 />
             </label>
         </div>

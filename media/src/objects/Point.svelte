@@ -1,4 +1,4 @@
-<script context="module">
+<script module>
     import { create, all } from 'mathjs';
     const config = {};
     const math = create(all, config);
@@ -24,46 +24,34 @@
 
     // export let paramString;
 
-    export let uuid;
-    export let onRenderObject = function () {};
-    export let onDestroyObject = function () {};
-    export let onSelect = function () {};
+    let {
+        uuid,
+        onRenderObject,
+        onDestroyObject,
+        onSelect,
+        params = {
+            a: '-1',
+            b: '1',
+            c: '2',
+        },
+        color = '#FFFF33',
+        title,
+        scene,
+        render,
+        gridStep,
+        show,
+        animation = false,
+        selected,
+        selectedObjects,
+        animate,
+        onClose = () => {},
+    } = $props();
 
-    export let params = {
-        a: '-1',
-        b: '1',
-        c: '2',
-    };
+    let tau = $state(0);
+    let last = $state();
+    let texString1 = $state('');
 
-    export let color = '#FFFF33';
-    export let title;
-
-    // useless code to suppress dev warnings
-    export let camera;
-    export let controls;
-    export let gridMax;
-
-    camera, controls, gridMax;
-
-    let tau = 0;
-    let last;
-    let texString1 = '';
-
-    // display controls in objects panel
-    // considered for Chapters that add many objects that need not be user-configurable.
-    export let show = true;
-
-    export let scene;
-    export let render = () => {};
-    export let onClose = () => {};
-    export let gridStep;
-    export let animation = false;
-    export let selected;
-    export let selectedObjects;
-
-    let minimize = false;
-
-    const dispatch = createEventDispatcher();
+    let minimize = $state(false);
 
     const pointMaterial = new THREE.MeshLambertMaterial({
         color,
@@ -121,17 +109,19 @@
     };
 
     // call updateVector() when params change
-    $: isDynamic = dependsOn(params);
-    $: isDiscrete = dependsOn(params, 'n');
+    let isDynamic = $derived(dependsOn(params, 't'));
+    let isDiscrete = $derived(dependsOn(params, 'n'));
 
-    $: hashTag = checksum(JSON.stringify(params));
-    $: hashTag, updatePoint();
+    $effect(() => {
+        params;
+        updatePoint();
+    });
 
     // recolor on demand
-    $: {
+    $effect(() => {
         pointMaterial.color.set(color);
         render();
-    }
+    });
 
     let boxItemElement;
     /**
@@ -141,10 +131,12 @@
         flashDance(point, render);
         boxItemElement?.scrollIntoView({ behavior: 'smooth' });
     };
-    $: if (selected && selectedObjects.length > 0) flash();
+    $effect(() => {
+        if (selected && selectedObjects.length > 0) flash();
+    });
 
     onMount(() => {
-        if (animation) dispatch('animate');
+        if (animation) animate();
         titleIndex++;
         title = title || `Point ${titleIndex}`;
     });
@@ -242,25 +234,29 @@
         updatePoint(T);
     };
     // Start animating if animation changes (e.g. animating scene published)
-    $: if (animation) {
-        dispatch('animate');
-    }
-    $: if (animation) {
-        const currentTime = $tickTock;
-        last = last || currentTime;
-        update(currentTime - last);
-        last = currentTime;
-    } else {
-        last = null;
-    }
+    $effect(() => {
+        if (animation) {
+            dispatch('animate');
+        }
+    });
+    $effect(() => {
+        if (animation) {
+            const currentTime = $tickTock;
+            last = last || currentTime;
+            update(currentTime - last);
+            last = currentTime;
+        } else {
+            last = null;
+        }
+    });
 </script>
 
-<!-- svelte-ignore a11y-no-static-element-interactions -->
+<!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
     class="boxItem"
     class:selected
     bind:this={boxItemElement}
-    on:keydown
+    onkeydown={onKeyDown}
     hidden={!show}
 >
     <ObjHeader
@@ -321,7 +317,7 @@
                     min="0"
                     max="1"
                     step="0.001"
-                    on:input={() => update()}
+                    oninput={() => update()}
                     class="box box-2"
                 />
 
