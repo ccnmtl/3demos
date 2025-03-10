@@ -600,7 +600,7 @@
     <div hidden={minimize}>
         <div class="threedemos-container container">
             {#each ['x', 'y', 'z'] as name}
-                <span class="box-1"><M size="sm">{name}(t) =</M></span>
+                <span class="box-1"><M size="sm" s="{name}(t) =" /></span>
                 <InputChecker
                     value={params[name]}
                     checker={chickenParms}
@@ -633,7 +633,7 @@
                     // updateCurve();
                 }}
             />
-            <span class="box box-3"><M size="sm">\leq t \leq</M></span>
+            <span class="box box-3"><M size="sm" s="\leq t \leq" /></span>
             <InputChecker
                 className="form-control form-control-sm box box-4"
                 value={params.b}
@@ -657,7 +657,9 @@
             />
 
             <span class="box-1">
-                <span class="t-box"> <M size="sm">t =</M> {displayTVal}</span>
+                <span class="t-box">
+                    <M size="sm" s="t = {displayTVal}" /></span
+                >
             </span>
             <input
                 type="range"
@@ -682,7 +684,7 @@
                 {#each ['a0', 'a1'] as name}
                     {#if name === 'a1'}
                         <span class="box box-3"
-                            ><M size="sm">{'\\leq a \\leq '}</M></span
+                            ><M size="sm" s="\\leq a \\leq " /></span
                         >
                     {/if}
                     <InputChecker
@@ -702,7 +704,7 @@
 
                 <span class="box-1">
                     <span class="t-box">
-                        <M size="sm">a =</M> {displayAVal}</span
+                        <M size="sm" s="a = {displayAVal}" /></span
                     >
                 </span>
                 <input
@@ -736,15 +738,15 @@
                 </label>
                 {#if vizOptions.frame}
                     <label for="framPos"
-                        ><M size={'sm'}>{'\\mathbf r'}</M>
+                        ><M size={'sm'} s="\\mathbf r" />
                         <input
                             type="checkbox"
                             name="framePos"
                             bind:checked={vizOptions.pos}
                         />
                     </label>
-                    <label for="framevel"
-                        ><M size={'sm'}>{"\\mathbf r'"}</M>
+                    <label for="framevel">
+                        <M size={'sm'} s={"\\mathbf r'"} />
                         <input
                             type="checkbox"
                             name="framevel"
@@ -752,7 +754,7 @@
                         />
                     </label>
                     <label for="frameacc"
-                        ><M size={'sm'}>{"\\mathbf r''"}</M>
+                        ><M size="sm" s={"\\mathbf r''"} />
                         <input
                             type="checkbox"
                             name="frameacc"
@@ -784,7 +786,7 @@
                 {/if}
             {/if}
 
-            <span class="box-1">Reparametrize by <M>s</M></span>
+            <span class="box-1">Reparametrize by <M s="s" /></span>
             <label class="switch box box-2">
                 <input
                     type="checkbox"

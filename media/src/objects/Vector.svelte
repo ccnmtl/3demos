@@ -38,6 +38,7 @@
     export let onRenderObject = function () {};
     export let onDestroyObject = function () {};
     export let onSelect = function () {};
+    export let animate = () => {};
 
     export let params = {
         a: '-1',
@@ -69,8 +70,6 @@
     export let title;
 
     let minimize = false;
-
-    const dispatch = createEventDispatcher();
 
     const arrowMaterial = new THREE.MeshPhongMaterial({
         color: color,
@@ -178,7 +177,7 @@
     onMount(() => {
         titleIndex++;
         title = title || `Vector ${titleIndex}`;
-        if (animation) dispatch('animate');
+        if (animation) animate();
     });
     onDestroy(() => {
         onDestroyObject(arrows);
@@ -280,10 +279,10 @@
 
     // Start animating if animation changes (e.g. animating scene published)
     $: if (animation) {
-        dispatch('animate');
+        animate();
     }
     $: if (animation) {
-        dispatch('animate');
+        animate();
         const currentTime = $tickTock;
         last = last || currentTime;
         update(currentTime - last);
@@ -293,12 +292,13 @@
     }
 </script>
 
+<!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
     class="boxItem"
     class:selected
     bind:this={boxItemElement}
     hidden={!show}
-    on:keydown
+    onkeydown={onKeyDown}
 >
     <ObjHeader
         bind:minimize
@@ -310,24 +310,26 @@
         {onSelect}
     >
         <Nametag bind:title />
-        <M size="sm">\langle v_1, v_2, v_3 \rangle</M>
+        <M size="sm" s={'\\langle v_1, v_2, v_3 \\rangle'} />
     </ObjHeader>
     <div hidden={minimize}>
         <div class="threedemos-container container">
             {#each ['a', 'b', 'c', 'x', 'y', 'z'] as name}
                 {#if name === 'x'}
                     <span class="box-1">
-                        Plot at position <M size="sm">(p_1, p_2, p_3)</M>:
+                        Plot at position <M size="sm" s="(p_1, p_2, p_3)" />:
                     </span>
                 {/if}
-                <span class="box-1"><M size="sm">{varNames[name]} =</M></span>
+                <span class="box-1"
+                    ><M size="sm" s="{varNames[name]} = " /></span
+                >
                 <InputChecker
                     value={params[name]}
                     checker={chickenParms}
                     {name}
                     {params}
-                    on:cleared={(e) => {
-                        params[name] = e.detail;
+                    cleared={(val) => {
+                        params[name] = val;
                     }}
                 />
             {/each}
@@ -336,7 +338,7 @@
                 {#each ['t0', 't1'] as name}
                     {#if name === 't1'}
                         <span class="box box-3"
-                            ><M size="sm">{'\\leq t \\leq '}</M></span
+                            ><M size="sm" s={'\\leq t \\leq '} /></span
                         >
                     {/if}
                     <InputChecker
@@ -347,8 +349,8 @@
                             Number.isFinite(math.parse(val).evaluate())}
                         value={params[name]}
                         {name}
-                        on:cleared={(e) => {
-                            params[name] = e.detail;
+                        cleared={(val) => {
+                            params[name] = val;
                         }}
                     />
                 {/each}
@@ -362,7 +364,7 @@
                     min="0"
                     max="1"
                     step="0.001"
-                    on:input={() => update()}
+                    oninput={() => update()}
                     class="box box-2"
                 />
 
@@ -387,7 +389,7 @@
                     name="n0"
                 />
                 <span class="box box-3"
-                    ><M size="sm">{'\\leq n \\leq '}</M></span
+                    ><M size="sm" s={'\\leq n \\leq '} /></span
                 >
                 <input
                     class="form-control form-control-sm box-4"

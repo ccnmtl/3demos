@@ -1,7 +1,5 @@
 <script>
-    import { onMount, tick } from 'svelte';
-
-    let { align, display, size, children } = $props();
+    let { s, align = false, display = false, size } = $props();
 
     let span, span2;
     /* global MathJax */
@@ -18,29 +16,13 @@
         if (align) {
             return `${textSize} \\begin{align} ${formula} \\end{align}`;
         }
-        if (display) {
-            return `\\[ ${textSize} ${formula} \\]`;
-        }
-        return `\\( ${textSize} ${formula} \\)`;
-    };
 
-    const render = async () => {
-        // console.log('M render', children());
-        span2.innerHTML = formatMJ(span.innerText, display, size);
-        await MathJax.typesetPromise([span2]);
+        return `${textSize} ${formula}`;
     };
-
-    onMount(render);
 </script>
 
-<span bind:this={span} class="input">
-    {@render children()}
+<span bind:this={span2} class="output">
+    {@html MathJax.tex2svg(formatMJ(s), {
+        display,
+    }).innerHTML}
 </span>
-
-<span bind:this={span2} class="output"></span>
-
-<style>
-    .input {
-        display: none;
-    }
-</style>

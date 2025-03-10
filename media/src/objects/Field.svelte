@@ -439,7 +439,7 @@
         <div class="threedemos-container container">
             {#each ['p', 'q', 'r'] as name}
                 <span class="box-1"
-                    ><M size="sm">{name.toUpperCase()}(x,y,z) =</M></span
+                    ><M size="sm" s="{name.toUpperCase()}(x,y,z) =" /></span
                 >
                 <InputChecker
                     value={params[name]}

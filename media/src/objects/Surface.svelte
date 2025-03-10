@@ -865,7 +865,7 @@
     <div hidden={minimize}>
         <div class="threedemos-container container">
             {#each ['x', 'y', 'z'] as name}
-                <span class="box-1"><M size="sm">{name}(u,v) =</M></span>
+                <span class="box-1"><M size="sm" s="{name}(u,v) = " /></span>
                 <InputChecker
                     value={params[name]}
                     checker={chickenParms}
@@ -880,7 +880,7 @@
             {#each ['a', 'b'] as name}
                 {#if name === 'b'}
                     <span class="box box-3"
-                        ><M size="sm">{'\\leq u \\leq '}</M></span
+                        ><M size="sm" s={'\\leq u \\leq '} /></span
                     >
                 {/if}
                 <InputChecker
@@ -900,7 +900,7 @@
             {#each ['c', 'd'] as name}
                 {#if name === 'd'}
                     <span class="box box-3"
-                        ><M size="sm">{'\\leq v \\leq '}</M></span
+                        ><M size="sm" s={'\\leq v \\leq '} /></span
                     >
                 {/if}
                 <InputChecker
@@ -933,7 +933,7 @@
                 {#each ['t0', 't1'] as name}
                     {#if name === 't1'}
                         <span class="box box-3"
-                            ><M size="sm">{'\\leq t \\leq '}</M></span
+                            ><M size="sm" s={'\\leq t \\leq '} /></span
                         >
                     {/if}
                     <InputChecker
@@ -1014,7 +1014,7 @@
             </label>
 
             {#if chooseDensity}
-                <span class="box-1"><M size="sm">\mu(x,y,z) =</M></span>
+                <span class="box-1"><M size="sm" s={'\\mu(x,y,z) = '} /></span>
                 <InputChecker
                     value={densityString}
                     checker={(val) => {
