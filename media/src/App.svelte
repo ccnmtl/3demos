@@ -11,6 +11,8 @@
     import Settings from './settings/Settings.svelte';
     import Stats from 'stats.js';
 
+    import { filterBang } from './utils';
+
     import { getRoomId, makeSocket } from './rooms';
     import {
         convertToURLParams,
@@ -35,7 +37,8 @@
 
     let isMobileView = $state(false);
 
-    let debug = $state(false);
+    // svelte-ignore non_reactive_update
+    let debug = false;
     let stats;
     let panel = null;
     let showPanel = $state(true);
@@ -146,6 +149,7 @@
     let orthoCamera = $state(false);
 
     let currentCamera = camera;
+    // svelte-ignore non_reactive_update
     let currentControls = controls;
 
     $inspect(currentControls);
@@ -161,9 +165,7 @@
     camera.up.set(0, 0, 1);
     camera.lookAt(0, 0, 0);
 
-    camera2.position.x = (gridMax * 2) / 2;
-    camera2.position.y = (-gridMax * 3) / 2;
-    camera2.position.z = (gridMax * 4.5) / 2;
+    camera2.position.copy(camera.position);
     camera2.up.set(0, 0, 1);
     camera2.lookAt(0, 0, 0);
 
@@ -625,11 +627,10 @@
     // Try a sane transfer between cameras instead of turning listeners for the two controls on and off.
     function switchCamera(cam) {
         if (cam === 'ortho') {
-            setOrthoCamBox(camera2, camera, controls.target);
-
             camera2.zoom = camera.zoom;
             camera2.position.copy(camera.position);
             controls2.target.copy(controls.target);
+            setOrthoCamBox(camera2, camera, controls.target);
 
             controls2.enabled = true;
             controls2.addEventListener('change', requestFrameIfNotRequested);
@@ -670,14 +671,12 @@
     });
     let objectResponses = $state();
 
-    const makeQueryStringObject = function () {
+    const makeQueryStringObject = function (args) {
         const flattenedObjects = {
             scale: $viewScale,
             showPanel,
+            ...args,
         };
-        if (gridMeshes.visible) {
-            flattenedObjects['grid'] = true;
-        }
         window.location.search = btoa(
             convertToURLParams(flattenedObjects, demoObjects).toString(),
         );
@@ -768,7 +767,7 @@
     }
 
     const keySelect = function (e, moveDown) {
-        if (!demoObjects) {
+        if (!demoObjects || selectedObjects.length === demoObjects.length) {
             return;
         } else if (selectedObjects.length === 0) {
             selectedObjects.splice(
@@ -776,8 +775,6 @@
                 selectedObjects.length,
                 demoObjects[moveDown ? demoObjects.length - 1 : 0].uuid,
             );
-        } else if (selectedObjects.length === demoObjects.length) {
-            return;
         } else {
             const selectedIndex = demoObjects
                 .map((x) => x.uuid)
@@ -806,6 +803,8 @@
     };
 
     const keyDown = (e) => {
+        console.log('Key down');
+
         if (e.target.matches('input, textarea')) {
             return;
         }
@@ -925,6 +924,10 @@
                 bind:update={scaleUpdate}
                 bind:animation={scaleAnimation}
                 {switchCamera}
+                recenterCamera={() => {
+                    currentControls.target.set(0, 0, 0);
+                    render();
+                }}
                 animate={animateIfNotAnimating}
                 {roomId}
             />

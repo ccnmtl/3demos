@@ -28,12 +28,10 @@
         scene,
         camera,
         render,
-        controls,
         gridMax,
         gridStep,
         roomId,
         encode,
-        animation,
         axesHolder,
         gridMeshes,
         lineMaterial,
@@ -41,6 +39,7 @@
         axesText,
         animate,
         switchCamera,
+        recenterCamera,
     } = $props();
 
     let gridVisible = $state(false);
@@ -420,7 +419,11 @@
         class="button"
         id="encodeURL"
         title="Encode URL"
-        onclick={encode}
+        onclick={() =>
+            encode({
+                grid: gridVisible,
+                ortho: orthoCamera,
+            })}
         aria-label="Encode scene in URL"
     >
         <i class="fa fa-barcode"></i>
@@ -451,10 +454,7 @@
         class="button"
         id="cameraReset"
         title="Reset camera"
-        onclick={() => {
-            controls.target.set(0, 0, 0);
-            render();
-        }}
+        onclick={recenterCamera}
         aria-label="Recenter camera"
     >
         <i class="fa fa-video"></i>
