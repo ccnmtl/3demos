@@ -5,9 +5,9 @@
 <script>
     import { onMount, onDestroy, untrack } from 'svelte';
     import * as THREE from 'three';
-    import { create, all, exp } from 'mathjs';
+    import { create, all } from 'mathjs';
     // import { beforeUpdate } from 'svelte';
-    import { cmToGLSLfunc } from '../js-colormaps';
+    import { plainVertexShader, heatmapFragmentShader } from './shaders';
 
     import { dependsOn } from './Vector.svelte';
     import M from '../M.svelte';
@@ -125,8 +125,8 @@
             // densityFunc = (x, y, z) => compiledDensity.evaluate({ x, y, z });
 
             const shaderMaterial = new THREE.ShaderMaterial({
-                vertexShader,
-                fragmentShader: fragmentShader(
+                vertexShader: plainVertexShader,
+                fragmentShader: heatmapFragmentShader(
                     densityString,
                     $densityColormap,
                     $vMin,
@@ -274,87 +274,6 @@
         if (surfaceMesh) surfaceMesh.visible = !objHidden;
         render();
     });
-
-    /**
-     * Convert expression string to GLSL format via math.js
-     * @param {string} expression
-     * @returns string
-     */
-    function mathToGLSL(expression) {
-        console.log('mtG');
-        let glslCode = math.parse(expression).toString({
-            handler: (mathnode, options) => {
-                // console.log(mathnode);
-                if (mathnode.type == 'OperatorNode' && mathnode.fn == 'pow') {
-                    let [x, y] = mathnode.args;
-                    if (x.type == 'SymbolNode' && x.name === 'e') {
-                        return `exp(${y.toString(options)}) `;
-                    } else {
-                        return `pow(${x.toString(options)}, ${y.toString(options)}) `;
-                    }
-                } else if (mathnode.type == 'ConstantNode') {
-                    return Number.isInteger(mathnode.value)
-                        ? `${mathnode.value}.0`
-                        : `${mathnode.value}`;
-                } else if (mathnode.type == 'FunctionNode') {
-                    return `${mathnode.fn.name == 'atan2' ? 'atan' : mathnode.fn.name}(${mathnode.args.map((a) => a.toString(options)).join(', ')})`;
-                } else if (mathnode.type == 'OperatorNode') {
-                    if (mathnode.args.length === 2) {
-                        return `${mathnode.args[0].toString(options)} ${mathnode.op} ${mathnode.args[1].toString(options)}`;
-                    } else if (mathnode.args.length === 1) {
-                        return `${mathnode.op} ${mathnode.args[0].toString(options)}`;
-                    }
-                } else if (mathnode.type == 'SymbolNode') {
-                    return mathnode.name;
-                } else if (mathnode.type == 'ConditionalNode') {
-                    return `${mathnode.condition.toString(options)} ? ${mathnode.trueExpr.toString(options)} : ${mathnode.falseExpr.toString(options)}`;
-                } else if (mathnode.type == 'ParenthesisNode') {
-                    return `(${mathnode.content.toString(options)})`;
-                } else {
-                    return mathnode.type;
-                }
-            },
-            parenthesis: 'keep',
-            implicit: 'show',
-        });
-
-        // Replace `pi` with its GLSL equivalent
-        glslCode = glslCode.replace(/\bpi\b/g, '3.14159265359');
-
-        console.log(glslCode.slice(-80));
-        return glslCode;
-    }
-
-    const vertexShader = `
-varying vec3 vPosition;
-varying vec3 vNormal;
-varying vec2 vUv;
-
-void main() {
-    vUv = uv;
-    vPosition = position;
-    vNormal = normal;
-
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(vPosition, 1.0);
-}
-`;
-    const fragmentShader = (formula, colormap = 'plasma', v0 = 0, v1 = 1) => `
-varying vec3 vPosition;
-varying vec2 vUv;
-varying vec3 vNormal;
-
-${cmToGLSLfunc(colormap)}
-
-float dens(float x, float y, float z) {
-    return ${mathToGLSL(formula)};
-}
-
-
-void main() {
-  float t = (clamp(dens(vPosition.x, vPosition.y, vPosition.z), float(${v0}), float(${v1})) - float(${v0})) / (float(${v1 - v0}));
-  gl_FragColor = vec4(color(t), 1.);
-}
-`;
 
     const updateSurface = function () {
         console.log('updateCircus');
