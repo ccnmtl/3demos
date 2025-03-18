@@ -45,13 +45,17 @@
 
     let scaleAnimation = $state(false);
     let scaleUpdate = $state();
-    const selectedObjects = $state([]);
-    let hoveredObject = $state(null);
-    let selectedPoint = $state(null);
+    let hoveredObject = $state();
+    let selectedObjects = $derived(
+        demoObjects.filter((obj) => obj.selected).map((obj) => obj.uuid),
+    );
+
+    $inspect(selectedObjects);
 
     // The demoObjects array store is the declarative data that the scene is based on.
     // import { demoObjects } from './stores.js';
     import { demoObjects } from './states.svelte';
+    import { planckTemperatureDependencies } from 'mathjs';
 
     let gridMax = $state(1);
     let gridStep = $state(1 / 10);
@@ -107,19 +111,12 @@
     let lockPoll = $state(false);
     let showPollResults = $state(false);
 
-    const selectObject = (uuid) => {
-        if (uuid === null) {
-            selectedObjects.length = 0;
-        } else {
-            if (selectedObjects.includes(uuid)) {
-                filterBang((obj) => obj !== uuid, selectedObjects);
-            } else {
-                // Can just push for reactivity as of Svelte 5.
-                selectedObjects.push(uuid);
-            }
+    const selectObject = (uuid, unique = true) => {
+        const obj = demoObjects.find((o) => o.uuid === uuid);
+        if (unique) {
+            demoObjects.forEach((obj) => (obj.selected = false));
         }
-
-        render();
+        if (obj) obj.selected = !obj.selected;
     };
 
     const objectLoader = new THREE.ObjectLoader();
@@ -406,7 +403,6 @@
     export const blowUpObjects = () => {
         if (confirm('Remove all objects in the scene?')) {
             demoObjects.length = 0;
-            selectedObjects.length = 0;
         }
     };
 
@@ -478,7 +474,7 @@
 
     const onDblClick = function (e) {
         if (!e.shiftKey) {
-            selectedObjects.length = 0;
+            selectObject(null);
         }
 
         e.preventDefault();
@@ -767,14 +763,11 @@
     }
 
     const keySelect = function (e, moveDown) {
+        console.log('keyselect', selectedObjects);
         if (!demoObjects || selectedObjects.length === demoObjects.length) {
             return;
         } else if (selectedObjects.length === 0) {
-            selectedObjects.splice(
-                0,
-                selectedObjects.length,
-                demoObjects[moveDown ? demoObjects.length - 1 : 0].uuid,
-            );
+            demoObjects[moveDown ? demoObjects.length - 1 : 0].selected = true;
         } else {
             const selectedIndex = demoObjects
                 .map((x) => x.uuid)
@@ -785,25 +778,14 @@
                 selectedIndex + (moveDown ? -1 : 1),
                 demoObjects.length,
             );
-            if (e.shiftKey) {
-                if (moveDown) {
-                    selectedObjects.push([demoObjects[newIdx].uuid]);
-                } else {
-                    selectedObjects.splice(0, 0, demoObjects[newIdx].uuid);
-                }
-            } else {
-                selectedObjects.splice(
-                    0,
-                    selectedObjects.length,
-                    demoObjects[newIdx].uuid,
-                );
-            }
+            if (!e.shiftKey) selectObject(null);
+            demoObjects[newIdx].selected = true;
         }
         render();
     };
 
     const keyDown = (e) => {
-        console.log('Key down');
+        console.log('App key down');
 
         if (e.target.matches('input, textarea')) {
             return;
@@ -813,7 +795,7 @@
                 isMobileView = !isMobileView;
                 break;
             case 'Escape':
-                selectedObjects.length = 0;
+                selectObject(null);
                 render();
                 break;
             case '[':
@@ -883,8 +865,6 @@
             bind:chatBuffer
             bind:pollResponses
             bind:lockPoll
-            selectedObjects
-            bind:selectedPoint
             bind:isPollsOpen
             {isMobileView}
             bind:showPanel
@@ -892,6 +872,16 @@
             {blowUpObjects}
             {selectObject}
             {scene}
+            {currentCamera}
+            {currentControls}
+            setTarget={(pt) => {
+                currentControls.target.set(
+                    pt.position.x,
+                    pt.position.y,
+                    pt.position.z,
+                );
+                render();
+            }}
             {onRenderObject}
             {onDestroyObject}
             {requestFrameIfNotRequested}

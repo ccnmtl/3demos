@@ -1,13 +1,13 @@
 <script>
     import Badge from './Badge.svelte';
-    import M from '../M.svelte';
+    // import M from '../M.svelte';
     import { derived } from 'svelte/store';
 
     let N = $state(2);
 
     let s = $derived.by(() => {
-        let out = '\\sin x = ';
-        for (let i = 0; i < N; i++) {
+        let out = '\\sin x = x + ';
+        for (let i = 1; i < N; i++) {
             out += `\\frac{1}{${2 * i + 1}!} x^{${2 * i + 1}} + `;
         }
 
@@ -22,10 +22,8 @@
     below to dive right in. Else, choose a topic above to learn more.
 </p>
 
-<p>
-    <M {s} />
+<!-- <input type="range" min="1" max="10" bind:value={N} />
+<p> Test <code> M.svelte </code>
+    Hello <M display {s} /> how are you, <M s={`e^{i\\pi x}`} />?
 </p>
-<p>
-    {s}
-</p>
-<input type="range" min="1" max="10" bind:value={N} />
+ -->

@@ -1,12 +1,13 @@
-<script context="module">
+<script module>
     let titleIndex = 0;
 </script>
 
 <script>
-    import { onMount, onDestroy, createEventDispatcher } from 'svelte';
+    import { onMount, onDestroy, untrack } from 'svelte';
     import * as THREE from 'three';
-    import { create, all } from 'mathjs';
+    import { create, all, exp } from 'mathjs';
     // import { beforeUpdate } from 'svelte';
+    import { cmToGLSLfunc } from '../js-colormaps';
 
     import { dependsOn } from './Vector.svelte';
     import M from '../M.svelte';
@@ -17,8 +18,6 @@
 
     const config = {};
     const math = create(all, config);
-
-    const dispatch = createEventDispatcher();
 
     import {
         ArrowBufferGeometry,
@@ -34,39 +33,48 @@
     import InputChecker from '../form-components/InputChecker.svelte';
     import ColorBar from '../settings/ColorBar.svelte';
 
-    export let uuid;
-    export let onRenderObject = function () {};
-    export let onDestroyObject = function () {};
-    export let onSelect = function () {};
-
-    export let params = {
-        a: '-2',
-        b: '2',
-        c: '-2',
-        d: '1 + sin(pi*u)/2',
-        x: 'u',
-        y: 'v',
-        z: '1 - sin(u^2 - v^2)/2',
-        t0: '0',
-        t1: '1',
-    };
-    export let color = '#3232ff';
-    export let title;
-
-    export let animation = false;
+    let {
+        uuid,
+        onRenderObject = function () {},
+        onDestroyObject = function () {},
+        onSelect = function () {},
+        params = $bindable({
+            a: '-2',
+            b: '2',
+            c: '-2',
+            d: '1 + sin(pi*u)/2',
+            x: 'u',
+            y: 'v',
+            z: '1 - sin(u^2 - v^2)/2',
+            t0: '0',
+            t1: '1',
+        }),
+        color = $bindable('#3232ff'),
+        title = $bindable(),
+        animation = $bindable(false),
+        scene,
+        controls,
+        camera,
+        gridStep,
+        render = () => {},
+        onClose = () => {},
+        selected = $bindable(false),
+        selectPoint,
+        animate = () => {},
+    } = $props();
 
     let rNum = 10;
     let cNum = 10;
-    let nX = 60;
+    let nX = $state(60);
 
-    let tau = 0;
+    let tau = $state(0);
     let last = null;
-    let texString1 = '';
+    let texString1 = $state('');
 
-    let chooseDensity = false;
-    let densityString = '1';
+    let chooseDensity = $state(false);
+    let densityString = $state('1');
     let compiledDensity;
-    let densityFunc;
+    let densityFunc = () => 1;
 
     const colorMaterial = new THREE.MeshPhongMaterial({
         color: 0xffffff,
@@ -76,6 +84,7 @@
     });
 
     const colorMeBadd = (mesh, f) => {
+        console.log('bbbbbaadddddddd');
         const [vMaxLocal, vMinLocal] = vMaxMin(mesh, f);
         $vMin = Math.min($vMin, vMinLocal);
         $vMax = Math.max($vMax, vMaxLocal);
@@ -92,41 +101,62 @@
         colorBufferVertices(mesh, (x, y, z) => {
             const value = f(x, y, z);
             return blueUpRedDown(
-                (2 * (value - $vMin)) / ($vMax - $vMin) - 1,
+                (value - $vMin) / ($vMax - $vMin),
                 0.8,
                 $densityColormap,
             );
         });
     };
 
-    $: ($vMin, $vMax),
-        chooseDensity && colorMeBadd(surfaceMesh.children[0], densityFunc);
+    let frameVisible = $state(false);
+    $effect(() => {
+        if (frameVisible && tanFrame) tanFrame.visible = frameVisible;
+    });
 
-    $: if (chooseDensity && $densityColormap) {
-        densityString = densityString || '1';
-        compiledDensity = math.parse(densityString).compile();
-        densityFunc = (x, y, z) => compiledDensity.evaluate({ x, y, z });
+    // $effect(() => {
+    //     ($vMin, $vMax),
+    //         chooseDensity && colorMeBadd(surfaceMesh.children[0], densityFunc);
+    // });
 
-        if (densityFunc) {
+    $effect(() => {
+        if (chooseDensity && $densityColormap) {
+            // densityString = densityString || '1';
+            // compiledDensity = math.parse(densityString).compile();
+            // densityFunc = (x, y, z) => compiledDensity.evaluate({ x, y, z });
+
+            const shaderMaterial = new THREE.ShaderMaterial({
+                vertexShader,
+                fragmentShader: fragmentShader(
+                    densityString,
+                    $densityColormap,
+                    $vMin,
+                    $vMax,
+                ),
+                side: THREE.DoubleSide,
+            });
+
             surfaceMesh.children[1].visible = false;
-            colorMeBadd(surfaceMesh.children[0], densityFunc);
-            surfaceMesh.children[0].material = colorMaterial;
-        }
-        render();
-    } else {
-        if (surfaceMesh) {
-            surfaceMesh.children[1].visible = true;
-            surfaceMesh.children[0].material = plusMaterial;
+            // colorMeBadd(surfaceMesh.children[0], densityFunc);
+            surfaceMesh.children[0].material?.dispose();
+            surfaceMesh.children[0].material = shaderMaterial;
+
             render();
+        } else {
+            if (surfaceMesh) {
+                surfaceMesh.children[1].visible = true;
+                surfaceMesh.children[0].material = plusMaterial;
+                render();
+            }
         }
-    }
+    });
 
     let xyz;
     let abcd;
 
     // compile (in the math.js sense) each expression once they change
     // and thus have been cleared
-    $: {
+    $effect(() => {
+        console.log('parm compile');
         const [x, y, z] = [params.x, params.y, params.z].map((f) =>
             math.parse(f).compile(),
         );
@@ -136,8 +166,8 @@
                 y.evaluate({ u, v, t }),
                 z.evaluate({ u, v, t }),
             );
-    }
-    $: {
+        // });
+        // $effect(() => {
         const [a, b] = [params.a, params.b].map((f) => math.evaluate(f));
         const [c, d] = [params.c, params.d].map((f) => math.parse(f).compile());
 
@@ -147,12 +177,19 @@
             c.evaluate({ u: a + u * (b - a) }) * (1 - v) +
                 d.evaluate({ u: a + u * (b - a) }) * v,
         ];
-    }
+        untrack(updateSurface);
+    });
 
-    $: isDynamic = dependsOn(params, 't');
+    let isDynamic = $derived(dependsOn(params, 't'));
     // Only run the update if the params have changed.
-    $: hashTag = checksum(JSON.stringify(params));
-    $: hashTag, updateSurface();
+    // let hashTag = $derived(checksum(JSON.stringify(params)));
+    // $effect(() => {
+    //     console.log('upppdate effect');
+    //     updateSurface()
+    //     render();
+    // });
+
+    $inspect(params).with((type, values) => console.log(type, values));
 
     // Check midpoint of parameter space and see if all is ok.
     const chickenParms = (val, { a, b, c, d, t0, t1 }) => {
@@ -186,17 +223,7 @@
         }
     };
 
-    export let scene;
-    export let controls;
-    export let camera;
-    export let gridStep;
-    export let render = () => {};
-    export let onClose = () => {};
-    export let selected;
-    export let selectedObjects;
-    export let selectedPoint;
-
-    let minimize = false;
+    let minimize = $state(false);
 
     const whiteLineMaterial = new THREE.LineBasicMaterial({
         color: 0xffffff,
@@ -226,22 +253,111 @@
     let boxItemElement;
 
     // Keep color fresh
-    $: {
+    $effect(() => {
         plusMaterial.color.set(color);
         const hsl = {};
         plusMaterial.color.getHSL(hsl);
         hsl.h = (hsl.h + 0.618033988749895) % 1;
         minusMaterial.color.setHSL(hsl.h, hsl.s, hsl.l);
         render();
-    }
+    });
 
     let cMin, dMax; // make these globals as useful for tangents.
 
     const tol = 1e-12; //tolerance for comparisons
 
-    let surfaceMesh;
+    let surfaceMesh = $state();
+
+    let objHidden = $state(false);
+
+    $effect(() => {
+        if (surfaceMesh) surfaceMesh.visible = !objHidden;
+        render();
+    });
+
+    /**
+     * Convert expression string to GLSL format via math.js
+     * @param {string} expression
+     * @returns string
+     */
+    function mathToGLSL(expression) {
+        console.log('mtG');
+        let glslCode = math.parse(expression).toString({
+            handler: (mathnode, options) => {
+                // console.log(mathnode);
+                if (mathnode.type == 'OperatorNode' && mathnode.fn == 'pow') {
+                    let [x, y] = mathnode.args;
+                    if (x.type == 'SymbolNode' && x.name === 'e') {
+                        return `exp(${y.toString(options)}) `;
+                    } else {
+                        return `pow(${x.toString(options)}, ${y.toString(options)}) `;
+                    }
+                } else if (mathnode.type == 'ConstantNode') {
+                    return Number.isInteger(mathnode.value)
+                        ? `${mathnode.value}.0`
+                        : `${mathnode.value}`;
+                } else if (mathnode.type == 'FunctionNode') {
+                    return `${mathnode.fn.name == 'atan2' ? 'atan' : mathnode.fn.name}(${mathnode.args.map((a) => a.toString(options)).join(', ')})`;
+                } else if (mathnode.type == 'OperatorNode') {
+                    if (mathnode.args.length === 2) {
+                        return `${mathnode.args[0].toString(options)} ${mathnode.op} ${mathnode.args[1].toString(options)}`;
+                    } else if (mathnode.args.length === 1) {
+                        return `${mathnode.op} ${mathnode.args[0].toString(options)}`;
+                    }
+                } else if (mathnode.type == 'SymbolNode') {
+                    return mathnode.name;
+                } else if (mathnode.type == 'ConditionalNode') {
+                    return `${mathnode.condition.toString(options)} ? ${mathnode.trueExpr.toString(options)} : ${mathnode.falseExpr.toString(options)}`;
+                } else if (mathnode.type == 'ParenthesisNode') {
+                    return `(${mathnode.content.toString(options)})`;
+                } else {
+                    return mathnode.type;
+                }
+            },
+            parenthesis: 'keep',
+            implicit: 'show',
+        });
+
+        // Replace `pi` with its GLSL equivalent
+        glslCode = glslCode.replace(/\bpi\b/g, '3.14159265359');
+
+        console.log(glslCode.slice(-80));
+        return glslCode;
+    }
+
+    const vertexShader = `
+varying vec3 vPosition;
+varying vec3 vNormal;
+varying vec2 vUv;
+
+void main() {
+    vUv = uv;
+    vPosition = position;
+    vNormal = normal;
+
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(vPosition, 1.0);
+}
+`;
+    const fragmentShader = (formula, colormap = 'plasma', v0 = 0, v1 = 1) => `
+varying vec3 vPosition;
+varying vec2 vUv;
+varying vec3 vNormal;
+
+${cmToGLSLfunc(colormap)}
+
+float dens(float x, float y, float z) {
+    return ${mathToGLSL(formula)};
+}
+
+
+void main() {
+  float t = (clamp(dens(vPosition.x, vPosition.y, vPosition.z), float(${v0}), float(${v1})) - float(${v0})) / (float(${v1 - v0}));
+  gl_FragColor = vec4(color(t), 1.);
+}
+`;
 
     const updateSurface = function () {
+        console.log('updateCircus');
         const { t0, t1 } = params;
         const time = t0
             ? math.evaluate(t0) + tau * (math.evaluate(t1) - math.evaluate(t0))
@@ -281,8 +397,8 @@
             );
             scene.add(surfaceMesh);
         }
-        if (chooseDensity && densityFunc)
-            colorMeBadd(surfaceMesh.children[0], densityFunc);
+        // if (chooseDensity && densityFunc)
+        //     colorMeBadd(surfaceMesh.children[0], densityFunc);
 
         tanFrame.visible = false;
         tangentVectors({ uv: new THREE.Vector2(0, 0) });
@@ -435,10 +551,10 @@
         let geometry = surfaceMesh.children[0].geometry;
         let positions = geometry.attributes.position.array;
         const normals = geometry.attributes.normal.array;
-        let colors;
-        if (chooseDensity) {
-            colors = geometry.attributes.color.array;
-        }
+        // let colors;
+        // if (chooseDensity) {
+        //     colors = geometry.attributes.color.array;
+        // }
         let uvs = geometry.attributes.uv.array;
 
         const vec = new THREE.Vector3();
@@ -449,7 +565,7 @@
         let uindex = 0;
         let pindex = 0;
         let nindex = 0;
-        let cindex = 0;
+        // let cindex = 0;
         for (let i = 0; i < uvs.length / 2; i++) {
             const u = uvs[uindex++];
             const v = uvs[uindex++];
@@ -470,23 +586,23 @@
             normals[nindex++] = ru.y;
             normals[nindex++] = ru.z;
 
-            if (chooseDensity && densityFunc) {
-                const rgb = blueUpRedDown(
-                    (2 * (densityFunc(x, y, z) - vMin)) / (vMax - vMin) - 1,
-                    0.8,
-                    $densityColormap,
-                );
-                colors[cindex++] = rgb.r;
-                colors[cindex++] = rgb.g;
-                colors[cindex++] = rgb.b;
-            }
+            // if (chooseDensity && densityFunc) {
+            //     const rgb = blueUpRedDown(
+            //         (2 * (densityFunc(x, y, z) - vMin)) / (vMax - vMin) - 1,
+            //         0.8,
+            //         $densityColormap,
+            //     );
+            //     colors[cindex++] = rgb.r;
+            //     colors[cindex++] = rgb.g;
+            //     colors[cindex++] = rgb.b;
+            // }
         }
 
         geometry.attributes.normal.needsUpdate = true;
         geometry.attributes.position.needsUpdate = true;
-        if (chooseDensity && densityFunc) {
-            geometry.attributes.color.needsUpdate = true;
-        }
+        // if (chooseDensity && densityFunc) {
+        //     geometry.attributes.color.needsUpdate = true;
+        // }
 
         geometry.computeBoundingBox();
         geometry.computeBoundingSphere();
@@ -546,20 +662,23 @@
 
     // Reacts once when `animation` changes
     // Useful it the objects file is updated with new flag
-    $: if (animation) {
-        dispatch('animate');
-    }
+    $effect(() => {
+        if (animation) {
+            animate();
+        }
+    });
 
+    $effect(() => {
+        if (animation) {
+            const currentTime = $tickTock;
+            last = last || currentTime;
+            update(currentTime - last);
+            last = currentTime;
+        } else {
+            last = null;
+        }
+    });
     // Reacts when `animation` or the ticktock store change
-    $: if (animation) {
-        const currentTime = $tickTock;
-        last = last || currentTime;
-        update(currentTime - last);
-        last = currentTime;
-    } else {
-        last = null;
-    }
-
     // onMount(updateSurface);
     onMount(() => {
         titleIndex++;
@@ -567,8 +686,9 @@
 
         params.t0 = params.t0 || '0';
         params.t1 = params.t1 || '1';
+
         // updateSurface();
-        if (animation) dispatch('animate');
+        if (animation) animate();
     });
 
     onDestroy(() => {
@@ -584,18 +704,23 @@
         render();
     });
 
-    $: if (selectedObjects[selectedObjects.length - 1] === uuid) {
-        selectedPoint = point;
-    }
+    $effect(() => {
+        if (selected) {
+            selectPoint(point);
+        }
+    });
 
     /**
      * Close on mesh so reactive statement doesn't react when individual parameters change.
      */
     const flash = () => {
-        surfaceMesh.children.map((mesh) => flashDance(mesh, render));
+        flashDance(surfaceMesh.children[0], render);
+        if (!chooseDensity) flashDance(surfaceMesh.children[1], render);
         boxItemElement?.scrollIntoView({ behavior: 'smooth' });
     };
-    $: if (selected && selectedObjects.length > 0) flash();
+    $effect(() => {
+        if (selected) untrack(flash);
+    });
 
     // Select a point
     const tanFrame = new THREE.Object3D();
@@ -773,33 +898,36 @@
         }
     };
 
+    let myReq;
+
     const toggleHide = function () {
-        surfaceMesh.visible = !surfaceMesh.visible;
-        render();
+        objHidden = !objHidden;
     };
 
     const keyDown = (e) => {
+        console.log('surf key pressed');
+
         if (e.target.matches('input, textarea')) {
             return;
         } else if (selected) {
             switch (e.key) {
                 case 'Backspace':
-                    toggleHide();
+                    objHidden = !objHidden;
                     break;
                 case 'Shift':
                     window.addEventListener('mousemove', onMouseMove, false);
                     // tanFrame.visible = true;
                     break;
-                case 'c':
-                    controls.target.set(
-                        point.position.x,
-                        point.position.y,
-                        point.position.z,
-                    );
-                    render();
-                    break;
+                // case 'c':
+                //     controls.target.set(
+                //         point.position.x,
+                //         point.position.y,
+                //         point.position.z,
+                //     );
+                //     render();
+                //     break;
                 case 't':
-                    if (uuid === selectedObjects[selectedObjects.length - 1]) {
+                    if (selected) {
                         tanFrame.visible = !tanFrame.visible;
                     }
                     render();
@@ -849,16 +977,15 @@
     window.addEventListener('keyup', onKeyUp, false);
 </script>
 
-<!-- svelte-ignore a11y-no-static-element-interactions -->
-<div class="boxItem" class:selected on:keydown bind:this={boxItemElement}>
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<div class="boxItem" class:selected bind:this={boxItemElement}>
     <ObjHeader
         bind:minimize
-        bind:selectedObjects
-        {onClose}
         {toggleHide}
-        objHidden={!surfaceMesh.visible}
+        {onClose}
         {color}
-        {onSelect}
+        onSelect={(e) => selectObject(uuid, !e.shiftKey)}
+        {objHidden}
     >
         <Nametag bind:title />
     </ObjHeader>
@@ -871,17 +998,17 @@
                     checker={chickenParms}
                     {name}
                     {params}
-                    on:cleared={(e) => {
-                        params[name] = e.detail;
+                    cleared={(val) => {
+                        params[name] = val;
                     }}
                 />
             {/each}
 
             {#each ['a', 'b'] as name}
                 {#if name === 'b'}
-                    <span class="box box-3"
-                        ><M size="sm" s={'\\leq u \\leq '} /></span
-                    >
+                    <span class="box box-3">
+                        <M size="sm" s={'\\leq u \\leq '} />
+                    </span>
                 {/if}
                 <InputChecker
                     className="form-control form-control-sm {name === 'a'
@@ -891,8 +1018,8 @@
                         Number.isFinite(math.parse(val).evaluate())}
                     value={params[name]}
                     {name}
-                    on:cleared={(e) => {
-                        params[name] = e.detail;
+                    cleared={(val) => {
+                        params[name] = val;
                     }}
                 />
             {/each}
@@ -923,8 +1050,8 @@
                     }}
                     value={params[name]}
                     {name}
-                    on:cleared={(e) => {
-                        params[name] = e.detail;
+                    cleared={(val) => {
+                        params[name] = val;
                     }}
                 />
             {/each}
@@ -944,8 +1071,8 @@
                             Number.isFinite(math.parse(val).evaluate())}
                         value={params[name]}
                         {name}
-                        on:cleared={(e) => {
-                            params[name] = e.detail;
+                        cleared={(val) => {
+                            params[name] = val;
                         }}
                     />
                 {/each}
@@ -959,13 +1086,16 @@
                     min="0"
                     max="1"
                     step="0.001"
-                    on:input={() => {
-                        const t0 = math.evaluate(params.t0);
-                        const t1 = math.evaluate(params.t1);
-                        const t = t0 + tau * (t1 - t0);
-                        texString1 = (Math.round(100 * t) / 100).toString();
-                        evolveSurface(t);
-                        render();
+                    oninput={() => {
+                        cancelAnimationFrame(myReq);
+                        myReq = requestAnimationFrame(() => {
+                            const t0 = math.evaluate(params.t0);
+                            const t1 = math.evaluate(params.t1);
+                            const t = t0 + tau * (t1 - t0);
+                            texString1 = (Math.round(100 * t) / 100).toString();
+                            evolveSurface(t);
+                            render();
+                        });
                     }}
                     class="box box-2"
                 />
@@ -976,10 +1106,10 @@
                             type="checkbox"
                             name="tangentsToggle"
                             id="tangentsToggle"
-                            bind:checked={tanFrame.visible}
-                            on:change={render}
+                            bind:checked={frameVisible}
+                            onchange={render}
                         />
-                        <span class="slider round" />
+                        <span class="slider round"></span>
                     </label>
                 </span>
                 <PlayButtons
@@ -1010,7 +1140,7 @@
                     id="chooseDensity"
                     bind:checked={chooseDensity}
                 />
-                <span class="slider round" />
+                <span class="slider round"></span>
             </label>
 
             {#if chooseDensity}
@@ -1034,13 +1164,13 @@
                     }}
                     name={'f'}
                     {params}
-                    on:cleared={(e) => {
-                        compiledDensity = math.parse(e.detail).compile();
+                    cleared={(val) => {
+                        compiledDensity = math.parse(val).compile();
                         densityFunc = (x, y, z) =>
                             compiledDensity.evaluate({ x, y, z });
-                        colorMeBadd(surfaceMesh.children[0], densityFunc);
+                        // colorMeBadd(surfaceMesh.children[0], densityFunc);
                         render();
-                        densityString = e.detail;
+                        densityString = val;
                     }}
                 />
                 <div class="box colorbar-container">

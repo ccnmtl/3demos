@@ -64,7 +64,7 @@ const updateObject = (updatedObject, objects, socket = null) => {
     if (index > -1) {
         objects[index] = updatedObject;
     } else {
-        objects.push(updatedObject)
+        objects.push(updatedObject);
     }
 };
 
@@ -126,6 +126,7 @@ const flashDance = (mesh, render) => {
 
     const mat = mesh.material;
     const color = mat.color;
+    if (!color) return;
     const newcol = {};
     color.getHSL(newcol);
     const oo = mat.opacity;

@@ -1,9 +1,8 @@
 <script>
-    export let title;
+    let { title = $bindable() } = $props();
 
-    let edit = false;
+    let edit = $state(false);
     let backupTitle;
-    let editBar;
 
     const init = (el) => {
         el.focus();
@@ -18,7 +17,7 @@
         bind:this={editBar}
         bind:value={title}
         use:init
-        on:keydown={(e) => {
+        onkeydown={(e) => {
             if (e.key === 'Escape') {
                 console.log(e.key);
                 title = backupTitle;
@@ -30,28 +29,30 @@
                 }
             }
         }}
-        on:blur={() => {
+        onblur={() => {
             edit = false;
         }}
-        on:change={() => {
+        onchange={() => {
             edit = false;
         }}
-        on:click={(e) => e.stopPropagation()}
+        onclick={(e) => e.stopPropagation()}
     />
 {:else}
-    <strong
-        ><span class="edit-hover">
+    <strong>
+        <span class="edit-hover">
             {title}&nbsp;
             <a
                 href={'#'}
-                on:click|preventDefault={(e) => {
+                onclick={(e) => {
+                    e.preventDefault();
                     edit = true;
                     e.stopPropagation();
                 }}
+                aria-label="Edit object title"
             >
-                <i class="bi bi-pencil-square" /></a
-            ></span
-        >
+                <i class="bi bi-pencil-square"></i>
+            </a>
+        </span>
     </strong>
 {/if}
 

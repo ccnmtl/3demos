@@ -3,7 +3,7 @@
 </script>
 
 <script>
-    import { onMount, onDestroy } from 'svelte';
+    import { onMount, onDestroy, untrack } from 'svelte';
     import Nametag from './Nametag.svelte';
     import * as THREE from 'three';
     import { create, all } from 'mathjs';
@@ -21,16 +21,19 @@
 
     import { tickTock } from '../stores';
     import PlayButtons from '../form-components/PlayButtons.svelte';
+    import Panel from '../Panel.svelte';
+    import PathIntegral from '../stories/PathIntegral.svelte';
 
     const config = {};
     const math = create(all, config);
 
     let {
-        title,
+        title = $bindable(),
         uuid,
         onRenderObject,
         onDestroyObject,
-        onSelect,
+        selectObject,
+        selectPoint,
         animate = () => {},
         animation = $bindable(false),
         params,
@@ -38,11 +41,9 @@
         scene,
         render = () => {},
         onClose = () => {},
-        controls,
         camera,
         gridStep,
-        selectedObjects,
-        selected,
+        selected = $bindable(false),
     } = $props();
 
     title = title || `Curve ${++titleIndex}`;
@@ -203,7 +204,7 @@
     //     color = color ? color : '#FFA3BB';
     // });
 
-    // Keep updated
+    // Keep color updated
     $effect(() => {
         curveMaterial.color.set(color);
         render();
@@ -220,6 +221,7 @@
     let tube = new THREE.Mesh(new THREE.BufferGeometry(), curveMaterial);
     scene.add(tube);
 
+    // This registers the mouse-selectable scene object as belonging to this particular demoObject.
     tube.name = uuid;
     onRenderObject(tube);
 
@@ -238,16 +240,6 @@
         );
         tube.geometry.dispose();
         tube.geometry = geometry;
-        // if (tube) {
-        // } else {
-        //     tube = new THREE.Mesh(geometry, curveMaterial);
-        //     scene.add(tube);
-
-        //     tube.name = uuid;
-        //     onRenderObject(tube);
-        // }
-
-        // updateFrame({ T: tVal });
     };
 
     let vizOptions = $state({
@@ -405,6 +397,7 @@
                 arrow.visible = false;
             }
         }
+        if (selected) selectPoint(point);
     };
 
     // Runs the update if math expression "params" has a dependence on 'a'
@@ -463,7 +456,6 @@
 
         window.removeEventListener('keydown', onKeyDown);
         window.removeEventListener('keyup', onKeyUp);
-        window.removeEventListener('click', onMouseClick);
         render();
     });
 
@@ -476,7 +468,7 @@
     };
 
     $effect(() => {
-        if (selected && selectedObjects.length > 0) flash();
+        if (selected) untrack(flash);
     });
 
     const raycaster = new THREE.Raycaster();
@@ -498,13 +490,6 @@
             tau = (T - A) / (B - A); // Update the UI
             // updateFrame({ T });
             vizOptions.frame = true;
-        }
-    };
-
-    const onMouseClick = function (e) {
-        if (choosingPoint) {
-            placePointAtMouse(e);
-            choosingPoint = false;
         }
     };
 
@@ -530,16 +515,16 @@
                         false,
                     );
                     break;
-                case 'c':
-                    if (selectedObjects[selectedObjects.length - 1] === uuid) {
-                        controls.target.set(
-                            point.position.x,
-                            point.position.y,
-                            point.position.z,
-                        );
-                    }
-                    render();
-                    break;
+                // case 'c':
+                //     if (selected) {
+                //         setControlTarget(
+                //             point.position.x,
+                //             point.position.y,
+                //             point.position.z,
+                //         );
+                //     }
+                //     render();
+                //     break;
                 case 'o':
                     vizOptions.osculatingCircle = !vizOptions.osculatingCircle;
                     break;
@@ -582,17 +567,17 @@
 
     window.addEventListener('keydown', onKeyDown, false);
     window.addEventListener('keyup', onKeyUp, false);
-    window.addEventListener('click', onMouseClick);
 </script>
 
 <div class="boxItem" class:selected bind:this={boxItemElement}>
     <ObjHeader
         bind:minimize
-        bind:selectedObjects
         {toggleHide}
         {onClose}
         {color}
-        {onSelect}
+        onSelect={(e) => {
+            selectObject(uuid, !e.shiftKey);
+        }}
         objHidden={!tube.visible}
     >
         <Nametag bind:title />
@@ -770,8 +755,13 @@
                         onclick={(e) => {
                             e.stopImmediatePropagation();
                             choosingPoint = false;
+                            window.removeEventListener(
+                                'click',
+                                placePointAtMouse,
+                            );
                         }}
-                        >Cancel
+                    >
+                        Cancel
                     </button>
                 {:else}
                     <button
@@ -779,6 +769,7 @@
                         onclick={(e) => {
                             e.stopImmediatePropagation();
                             choosingPoint = true;
+                            window.addEventListener('click', placePointAtMouse);
                         }}
                     >
                         Select Point
@@ -793,7 +784,9 @@
                     name="reparamByArcLength"
                     id="reparamByArcLength"
                     bind:checked={vizOptions.TNB}
-                    onchange={updateFrame}
+                    onchange={() => {
+                        updateFrame({ T: tVal });
+                    }}
                 />
                 <span class="slider round"></span>
             </label>

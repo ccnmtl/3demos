@@ -19,6 +19,7 @@
         tripleToHex,
         joinUrl,
         processSearchEncoding,
+        filterBang,
     } from './utils';
     import { publishScene } from './sceneUtils';
 
@@ -41,12 +42,14 @@
     import { demoObjects } from './states.svelte';
     import Story from './Story.svelte';
     import { tick } from 'svelte';
+    import { xgcd } from 'mathjs';
     // import { add } from 'mathjs';
 
     export let isMobileView;
 
     export let debug, currentMode;
     export let currentControls;
+    export let setTarget;
     export let gridStep, gridMax;
     export let isHost;
     export let onRenderObject, onDestroyObject;
@@ -61,7 +64,8 @@
     export let blowUpObjects = function () {};
     export let selectObject = function () {};
     export let selectedObjects;
-    export let selectedPoint;
+    let selectedPoint;
+
     export let chatBuffer;
     export let isPollsOpen;
     export let lockPoll;
@@ -155,7 +159,7 @@
             const R = (k / 20).toString();
             return {
                 a: '0',
-                b: `${(2.1 - k / 10).toString()} * pi`,
+                b: `${((21 - k) / 10).toString()} * pi`,
                 c: `${(l / 10).toString()} * pi`,
                 d: `${(l / 10 + 1).toString()} * pi`,
                 x: `cos(u)*(1 + ${R}*sin(v))`,
@@ -261,11 +265,7 @@
         } else if (e.key === 'h') {
             showPanel = !showPanel;
         } else if (e.key === 'c' && selectedPoint) {
-            currentControls.target.set(
-                selectedPoint.position.x,
-                selectedPoint.position.y,
-                selectedPoint.position.z,
-            );
+            setTarget(selectedPoint);
         }
     };
     window.addEventListener('keydown', onKeyDown, false);
@@ -502,8 +502,10 @@
                                     <select
                                         bind:value={kindToAdd}
                                         on:change={(e) => {
-                                            if (e.target.value)
+                                            if (e.target.value) {
                                                 addNewObject(e.target.value);
+                                                document.activeElement.blur();
+                                            }
                                         }}
                                         class="demos-obj-select form-select bg-primary border-primary text-light"
                                     >
@@ -548,7 +550,9 @@
 
                                 <div class="objectBoxInner">
                                     <!-- Main Loop, if you will -->
-                                    {#each demoObjects as { uuid, kind, params, color, title, animation, ...etc } (uuid)}
+                                    {#each demoObjects as { uuid, kind, params, color, title, animation, selected, ...etc } (uuid)}
+                                        {@const KindComp =
+                                            kindToComponent[kind]}
                                         <div
                                             transition:slide|global={{
                                                 delay: 0,
@@ -556,8 +560,7 @@
                                                 easing: quintOut,
                                             }}
                                         >
-                                            <svelte:component
-                                                this={kindToComponent[kind]}
+                                            <KindComp
                                                 {scene}
                                                 {onRenderObject}
                                                 {onDestroyObject}
@@ -567,27 +570,10 @@
                                                 {params}
                                                 meta={etc}
                                                 onClose={() => {
-                                                    let j = 0;
-                                                    for (
-                                                        let i = 0;
-                                                        i < demoObjects.length;
-                                                        i++
-                                                    ) {
-                                                        if (
-                                                            demoObjects[i]
-                                                                .uuid !== uuid
-                                                        ) {
-                                                            demoObjects[j++] =
-                                                                demoObjects[i];
-                                                        }
-                                                    }
-                                                    demoObjects.length = j;
-                                                    selectedObjects =
-                                                        selectedObjects.filter(
-                                                            (objectId) =>
-                                                                objectId !==
-                                                                uuid,
-                                                        );
+                                                    filterBang(
+                                                        (x) => x.uuid !== uuid,
+                                                        demoObjects,
+                                                    );
                                                 }}
                                                 bind:color
                                                 bind:title
@@ -595,15 +581,11 @@
                                                 {uuid}
                                                 {gridStep}
                                                 {gridMax}
-                                                on:animate={animateIfNotAnimating}
                                                 animate={animateIfNotAnimating}
-                                                bind:selectedObjects
-                                                selected={selectedObjects.includes(
-                                                    uuid,
-                                                )}
-                                                onSelect={() =>
-                                                    selectObject(uuid)}
-                                                bind:selectedPoint
+                                                {selected}
+                                                {selectObject}
+                                                selectPoint={(point) =>
+                                                    (selectedPoint = point)}
                                             />
                                         </div>
                                     {/each}

@@ -14,15 +14,21 @@
         const textSize = textSizes[size] || '';
 
         if (align) {
+            display = true;
             return `${textSize} \\begin{align} ${formula} \\end{align}`;
         }
 
         return `${textSize} ${formula}`;
     };
+
+    $effect(async () => {
+        if (span2) {
+            let elem = await MathJax.tex2svgPromise(formatMJ(s), {
+                display,
+            });
+            span2.replaceChildren(elem);
+        }
+    });
 </script>
 
-<span bind:this={span2} class="output">
-    {@html MathJax.tex2svg(formatMJ(s), {
-        display,
-    }).innerHTML}
-</span>
+<span bind:this={span2} class="output"> </span>
