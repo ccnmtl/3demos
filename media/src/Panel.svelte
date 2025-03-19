@@ -919,6 +919,7 @@
         gap: 0.25em;
         max-height: 60vh;
         overflow-y: auto;
+        width: 100%;
     }
 
     .mobile .objectBoxInner {
