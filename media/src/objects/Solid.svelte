@@ -1,9 +1,9 @@
-<script context="module">
+<script module>
     let titleIndex = 0;
 </script>
 
 <script>
-    import { onMount, onDestroy } from 'svelte';
+    import { onMount, onDestroy, untrack } from 'svelte';
     import * as THREE from 'three';
     import { create, all } from 'mathjs';
 
@@ -20,23 +20,38 @@
         colorBufferVertices,
         vMaxMin,
         blueUpRedDown,
-        checksum,
+        // checksum,
         RectangularSolidGeometry,
         CylindricalSolidGeometry,
         SphericalSolidGeometry,
     } from '../utils.js';
 
     import { flashDance } from '../sceneUtils';
+    import {
+        plainVertexShader,
+        heatmapFragmentShader,
+        plainRedFrag,
+    } from './shaders';
 
     import InputChecker from '../form-components/InputChecker.svelte';
     import ColorBar from '../settings/ColorBar.svelte';
     import Nametag from './Nametag.svelte';
+    import { uniformColorData } from '../js-colormaps';
     // import ObjectParamInput from '../form-components/ObjectParamInput.svelte';
 
-    export let uuid;
-    export let onRenderObject = function () {};
-    export let onDestroyObject = function () {};
-    export let onSelect = function () {};
+    let {
+        uuid,
+        onRenderObject,
+        onDestroyObject,
+        selectObject,
+        params = $bindable(),
+        color = $bindable('#5432ff'),
+        title = $bindable(),
+        scene,
+        render,
+        onClose,
+        selected,
+    } = $props();
 
     onMount(() => {
         titleIndex++;
@@ -55,8 +70,14 @@
         render();
     });
 
+    let objHidden = $state(false);
+
+    $effect(() => {
+        solidGroup.visible = !objHidden;
+    });
+
     const toggleHide = function () {
-        solidGroup.visible = !solidGroup.visible;
+        objHidden = !objHidden;
         render();
     };
 
@@ -67,9 +88,7 @@
         if (selected) {
             switch (e.key) {
                 case 'Backspace':
-                    if (selectedObjects[0] === uuid) {
-                        toggleHide();
-                    }
+                    toggleHide();
                     break;
                 case 'd':
                     chooseDensity = !chooseDensity;
@@ -80,42 +99,16 @@
 
     window.addEventListener('keydown', onKeyDown, false);
 
-    export let params = {
-        coords: 'rect',
-        a: '0',
-        b: '1',
-        c: '0',
-        d: '1',
-        e: '0',
-        f: '(x + y) / 2',
-        t0: '0',
-        t1: '1',
-    };
+    let minimize = $state(false);
 
-    export let scene;
-    // export let controls;
-    // export let camera;
-    // export let gridStep;
-    export let render = () => {};
-    export let onClose = () => {};
-    export let selected;
-    export let selectedObjects;
-
-    let minimize = false;
-    export let color = '#5432ff';
-    export let title;
-    // export let animation = false;
-
-    let nX = 60;
+    let nX = $state(60);
 
     // let tau = 0;
     // let last = null;
     // let texString1 = '';
 
-    let chooseDensity = false;
-    let densityString = '1';
-    let compiledDensity;
-    let densityFunc;
+    let chooseDensity = $state(false);
+    let densityString = $state('1');
 
     // export let myId;
 
@@ -151,35 +144,42 @@
         });
     };
 
-    $: ($vMin, $vMax), chooseDensity && colorMeBadd(box, densityFunc);
+    $effect(() => {
+        console.log('shader effex');
+        if (chooseDensity && $densityColormap) {
+            // densityString = densityString || '1';
+            // compiledDensity = math.parse(densityString).compile();
+            // densityFunc = (x, y, z) => compiledDensity.evaluate({ x, y, z });
 
-    $: if (chooseDensity && $densityColormap) {
-        densityString = densityString || '1';
-        compiledDensity = math.parse(densityString).compile();
-        densityFunc = (x, y, z) => compiledDensity.evaluate({ x, y, z });
+            const flatArray = new Float32Array(
+                uniformColorData($densityColormap),
+            );
 
-        if (densityFunc) {
-            colorMeBadd(box, densityFunc);
-            box.material = colorMaterial;
-        }
-        render();
-    } else {
-        if (box) {
-            box.material = material;
+            const shaderMaterial = new THREE.ShaderMaterial({
+                vertexShader: plainVertexShader,
+                fragmentShader: heatmapFragmentShader(
+                    densityString,
+                    $densityColormap,
+                    $vMin,
+                    $vMax,
+                ),
+                uniforms: {
+                    colorData: { value: flatArray },
+                },
+                side: THREE.DoubleSide,
+            });
+
+            box.material?.dispose();
+            box.material = shaderMaterial;
+
             render();
+        } else {
+            if (box) {
+                box.material = material;
+                render();
+            }
         }
-    }
-
-    // const geometry = new RectangularSolidGeometry(
-    //     -Math.sqrt(2),
-    //     1,
-    //     (x) => x / 2,
-    //     (x) => 2 - x * x,
-    //     (x, y) => (x * x) / 3 - (y * y) / 3,
-    //     (x, y) => 1 + Math.sin(x * 4) / 4
-    // );
-
-    // const edges = new THREE.EdgesGeometry(geometry, Math.Pi / 6);
+    });
 
     const material = new THREE.MeshPhongMaterial({
         color: '#993588',
@@ -190,17 +190,10 @@
         opacity: 0.7,
     });
 
-    $: {
-        // if (selectedObjects.length === 0 || selected) {
-        //     material.opacity = 1.0;
-        //     colorMaterial.opacity = 1.0;
-        // } else {
-        //     material.opacity = 0.5;
-        //     colorMaterial.opacity = 0.5;
-        // }
+    $effect(() => {
         material.color.set(color);
         render();
-    }
+    });
 
     let boxItemElement;
     /**
@@ -211,7 +204,10 @@
         boxItemElement?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         // console.log("I am scroll into view, I can't think of nothin' else.");
     };
-    $: if (selected && selectedObjects.length > 0) flash();
+
+    $effect(() => {
+        if (selected) untrack(flash);
+    });
 
     const whiteLineMaterial = new THREE.LineBasicMaterial({
         color: 0xffffff,
@@ -268,12 +264,16 @@
             .toString();
     };
 
-    $: if (params.coords) {
-        params.c = renameCoords(params.c, params.coords);
-        params.d = renameCoords(params.d, params.coords);
-        params.e = renameCoords(params.e, params.coords);
-        params.f = renameCoords(params.f, params.coords);
-    }
+    $effect(() => {
+        if (params.coords) {
+            untrack(() => {
+                params.c = renameCoords(params.c, params.coords);
+                params.d = renameCoords(params.d, params.coords);
+                params.e = renameCoords(params.e, params.coords);
+                params.f = renameCoords(params.f, params.coords);
+            });
+        }
+    });
 
     // "compiled" versions of bounds
     let A, B, C, D, E, F;
@@ -329,10 +329,6 @@
         box.geometry = geom;
         borders.geometry = new THREE.EdgesGeometry(geom, 40);
 
-        if (chooseDensity && densityFunc) {
-            colorMeBadd(box, densityFunc);
-        }
-
         onRenderObject(box);
         render();
     };
@@ -375,22 +371,27 @@
     };
 
     // Only run the update if the params have changed.
-    $: hashTag = checksum(JSON.stringify(params));
-    $: hashTag, updateRegion() && render();
+    // $: hashTag = checksum(JSON.stringify(params));
+    $effect(() => {
+        updateRegion();
+        render();
+    });
 
     render();
 </script>
 
-<div class="boxItem" class:selected bind:this={boxItemElement} on:keydown>
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<div class="boxItem" class:selected bind:this={boxItemElement}>
     <ObjHeader
         bind:minimize
-        bind:selectedObjects
-        {onClose}
         {toggleHide}
-        objHidden={!solidGroup.visible}
+        {onClose}
         {color}
-        {onSelect}><Nametag bind:title /></ObjHeader
+        onSelect={(e) => selectObject(uuid, !e.shiftKey)}
+        {objHidden}
     >
+        <Nametag bind:title />
+    </ObjHeader>
     <div hidden={minimize}>
         <div class="threedemos-container container">
             <span class="box-1">Coordinates</span>
@@ -402,14 +403,13 @@
 
             {#each ['a', 'b'] as name}
                 {#if name === 'b'}
-                    <span class="box box-3"
-                        ><M size="sm">
-                            {#if params.coords === 'rect'}
-                                {`\\leq x \\leq`}
-                            {:else}
-                                {`\\leq \\theta \\leq`}
-                            {/if}
-                        </M>
+                    <span class="box box-3">
+                        <M
+                            size="sm"
+                            s={params.coords === 'rect'
+                                ? `\\leq x \\leq`
+                                : `\\leq \\theta \\leq`}
+                        />
                     </span>
                 {/if}
                 <InputChecker
@@ -420,8 +420,8 @@
                         Number.isFinite(math.parse(val).evaluate())}
                     value={params[name]}
                     {name}
-                    on:cleared={(e) => {
-                        params[name] = e.detail;
+                    cleared={(val) => {
+                        params[name] = val;
                     }}
                 />
             {/each}
@@ -429,15 +429,14 @@
             {#each ['c', 'd'] as name}
                 {#if name === 'd'}
                     <span class="box box-3"
-                        ><M size="sm">
-                            {#if params.coords === 'rect'}
-                                {`\\leq y \\leq`}
-                            {:else if params.coords === 'cyl'}
-                                {`\\leq r \\leq`}
-                            {:else}
-                                {`\\leq \\phi \\leq`}
-                            {/if}</M
-                        >
+                        ><M
+                            size="sm"
+                            s={params.coords === 'rect'
+                                ? `\\leq y \\leq`
+                                : params.coords === 'cyl'
+                                  ? `\\leq r \\leq`
+                                  : `\\leq \\phi \\leq`}
+                        />
                     </span>
                 {/if}
                 <InputChecker
@@ -464,8 +463,8 @@
                     }}
                     value={params[name]}
                     {name}
-                    on:cleared={(e) => {
-                        params[name] = e.detail;
+                    cleared={(val) => {
+                        params[name] = val;
                     }}
                 />
             {/each}
@@ -473,13 +472,12 @@
             {#each ['e', 'f'] as name}
                 {#if name === 'f'}
                     <span class="box box-3"
-                        ><M size="sm">
-                            {#if params.coords === 'spher'}
-                                {`\\leq \\rho \\leq`}
-                            {:else}
-                                {`\\leq z \\leq`}
-                            {/if}</M
-                        >
+                        ><M
+                            size="sm"
+                            s={params.coords === 'spher'
+                                ? `\\leq \\rho \\leq`
+                                : `\\leq z \\leq`}
+                        />
                     </span>
                 {/if}
                 <InputChecker
@@ -490,8 +488,8 @@
                     value={params[name]}
                     {name}
                     {params}
-                    on:cleared={(e) => {
-                        params[name] = e.detail;
+                    cleared={(val) => {
+                        params[name] = val;
                     }}
                 />
             {/each}
@@ -513,11 +511,11 @@
                     id="chooseDensity"
                     bind:checked={chooseDensity}
                 />
-                <span class="slider round" />
+                <span class="slider round"></span>
             </label>
 
             {#if chooseDensity}
-                <span class="box-1"><M size="sm">\mu(x,y,z) =</M></span>
+                <span class="box-1"><M size="sm" s="\\mu(x,y,z) =" /></span>
                 <InputChecker
                     value={densityString}
                     checker={(val) => {
@@ -536,16 +534,9 @@
                     }}
                     name={'mu'}
                     {params}
-                    on:cleared={(e) => {
-                        compiledDensity = math.parse(e.detail).compile();
-                        densityFunc = (x, y, z) =>
-                            compiledDensity.evaluate({ x, y, z });
-                        colorMeBadd(box, densityFunc);
-                        // surfaceMesh.children[0].geometry.attributes.color.needsUpdate = true;
-                        // surfaceMesh.children[0].material = colorMaterial;
-                        // surfaceMesh.children[0].material = plusMaterial;
+                    cleared={(val) => {
+                        densityString = val;
                         render();
-                        densityString = e.detail;
                     }}
                 />
                 <div class="box colorbar-container">

@@ -8,6 +8,7 @@
     import { create, all } from 'mathjs';
     // import { beforeUpdate } from 'svelte';
     import { plainVertexShader, heatmapFragmentShader } from './shaders';
+    import { uniformColorData } from '../js-colormaps';
 
     import { dependsOn } from './Vector.svelte';
     import M from '../M.svelte';
@@ -67,8 +68,12 @@
     let nX = $state(60);
 
     let tau = $state(0);
+    let t0 = $derived(math.parse(params.t0 ?? '0').evaluate());
+    let t1 = $derived(math.parse(params.t1 ?? '1').evaluate());
+    let tVal = $derived(t0 + tau * (t1 - t0));
+    let displayTVal = $derived((Math.round(100 * tVal) / 100).toString());
+
     let last = null;
-    let texString1 = $state('');
 
     let chooseDensity = $state(false);
     let densityString = $state('1');
@@ -124,6 +129,10 @@
             // compiledDensity = math.parse(densityString).compile();
             // densityFunc = (x, y, z) => compiledDensity.evaluate({ x, y, z });
 
+            const flatArray = new Float32Array(
+                uniformColorData($densityColormap),
+            );
+
             const shaderMaterial = new THREE.ShaderMaterial({
                 vertexShader: plainVertexShader,
                 fragmentShader: heatmapFragmentShader(
@@ -132,6 +141,9 @@
                     $vMin,
                     $vMax,
                 ),
+                uniforms: {
+                    colorData: { value: flatArray },
+                },
                 side: THREE.DoubleSide,
             });
 
@@ -325,16 +337,11 @@
     };
 
     const meshLines = function (rData, rNum = 10, cNum = 10, nX = 60) {
-        let { a, b, c, d, x, y, z, t0, t1 } = rData;
+        let { a, b, c, d, x, y, z } = rData;
         // const N = lcm(lcm(rNum, cNum), nX);
         const A = math.parse(a).evaluate(),
             B = math.parse(b).evaluate();
         [c, d, x, y, z] = math.parse([c, d, x, y, z]);
-
-        const T0 = t0 ? math.evaluate(t0) : 0;
-        const T1 = t1 ? math.evaluate(t1) : 1;
-
-        const t = T0 + tau * (T1 - T0);
 
         const du = (B - A) / rNum;
         const dx = (B - A) / lcm(nX, cNum);
@@ -344,7 +351,7 @@
             const C = c.evaluate({ u: u }),
                 D = d.evaluate({ u: u });
             const dy = (D - C) / lcm(nX, rNum);
-            const params = { u: u, v: C, t };
+            const params = { u: u, v: C, t: tVal };
             uvs.push(params.u, params.v);
             points.push(
                 new THREE.Vector3(
@@ -384,7 +391,7 @@
         }
 
         // v-Meshes
-        const params = { u: A, t };
+        const params = { u: A, t: tVal };
         (cMin = c.evaluate(params)), (dMax = d.evaluate(params));
         for (let u = A + dx; u <= B; u += dx) {
             params.u = u;
@@ -563,18 +570,10 @@
     };
 
     const update = function (dt = 0) {
-        const t0 = math.parse(params.t0).evaluate();
-        const t1 = math.parse(params.t1).evaluate();
-
-        texString1 = (
-            Math.round(100 * (t0 + tau * (t1 - t0))) / 100
-        ).toString();
-
         tau += dt / (t1 - t0);
         tau %= 1;
-        const t = t0 + tau * (t1 - t0);
 
-        evolveSurface(t);
+        evolveSurface(tVal);
 
         render();
     };
@@ -709,7 +708,7 @@
 
     // Construct tangent vectors at a point u,v (both 0 to 1)
     const tangentVectors = function ({ uv, eps = 1e-4, plane = true } = {}) {
-        const { a, b, c, d, t0, t1 } = params;
+        const { a, b, c, d } = params;
         const A = math.parse(a).evaluate(),
             B = math.parse(b).evaluate();
         const [C, D] = math.parse([c, d]);
@@ -719,15 +718,10 @@
             (1 - uv.y) * C.evaluate({ u: U }) + uv.y * D.evaluate({ u: U }),
         ];
 
-        const T0 = t0 ? math.evaluate(t0) : 0;
-        const T1 = t1 ? math.evaluate(t1) : 1;
-
-        const t = T0 + tau * (T1 - T0);
-
         const { p, ru, rv, n } = rFrame({
             r: (u, v) => {
                 const out = new THREE.Vector3();
-                xyz(u, v, out, t);
+                xyz(u, v, out, tVal);
                 return out;
             },
             uv: uvs,
@@ -997,7 +991,9 @@
                 {/each}
 
                 <span class="box-1">
-                    <span class="t-box">t = {texString1}</span>
+                    <span class="t-box"
+                        ><M s="t = " /><M s={displayTVal} /></span
+                    >
                 </span>
                 <input
                     type="range"
@@ -1008,11 +1004,7 @@
                     oninput={() => {
                         cancelAnimationFrame(myReq);
                         myReq = requestAnimationFrame(() => {
-                            const t0 = math.evaluate(params.t0);
-                            const t1 = math.evaluate(params.t1);
-                            const t = t0 + tau * (t1 - t0);
-                            texString1 = (Math.round(100 * t) / 100).toString();
-                            evolveSurface(t);
+                            evolveSurface(tVal);
                             render();
                         });
                     }}
@@ -1087,7 +1079,6 @@
                         compiledDensity = math.parse(val).compile();
                         densityFunc = (x, y, z) =>
                             compiledDensity.evaluate({ x, y, z });
-                        // colorMeBadd(surfaceMesh.children[0], densityFunc);
                         render();
                         densityString = val;
                     }}

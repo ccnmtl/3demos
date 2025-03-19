@@ -1,4 +1,4 @@
-import { cmToGLSLfunc } from '../js-colormaps';
+import { cmToGLSLUniformFunc, cmToGLSLfunc } from '../js-colormaps';
 import { parse } from 'mathjs';
 
 
@@ -69,7 +69,7 @@ varying vec3 vPosition;
 varying vec2 vUv;
 varying vec3 vNormal;
 
-${cmToGLSLfunc(colormap)}
+${cmToGLSLUniformFunc(colormap)}
 
 float dens(float x, float y, float z) {
 return ${mathToGLSL(formula)};
@@ -82,8 +82,15 @@ gl_FragColor = vec4(color(t), 1.);
 }
 `;
 
+const plainRedFrag = `
+void main() {
+  gl_FragColor = vec4(1, 0, 0, 1.);
+}`;
+
+
 export {
   mathToGLSL,
   plainVertexShader,
   heatmapFragmentShader,
+  plainRedFrag,
 };

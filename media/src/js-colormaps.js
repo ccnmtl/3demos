@@ -266,3 +266,28 @@ export function cmToGLSLfunc(name) {
 
   return out;
 }
+
+/**
+ * Formats the color data for a GLSL fragment shader
+ * @param {string} name 
+ * @returns string
+ */
+export function cmToGLSLUniformFunc(name) {
+  const N = data[name].colors.length;
+  let out = `\nint N = ${N};\n`;
+  out += `\nuniform vec3 colorData[${N}]; \n`;
+  out += `\nvec3 color(float t) {
+    int j = 0;
+    float ix = t*float(N);
+    while (float(j + 1) < ix) {
+      j++;
+    }
+    return ${data[name].interpolate ? 'mix(colorData[j], colorData[j+1], fract(ix));' : 'colorData[j];'}
+  }\n`;
+
+  return out;
+}
+
+export function uniformColorData(name) {
+  return data[name].colors.flat();
+}

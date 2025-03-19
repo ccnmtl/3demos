@@ -572,7 +572,9 @@
                                                 render={requestFrameIfNotRequested}
                                                 onClose={() => {
                                                     filterBang(
-                                                        (x) => x.uuid !== uuid,
+                                                        (x) =>
+                                                            x.uuid !==
+                                                            dobj.uuid,
                                                         demoObjects,
                                                     );
                                                 }}
