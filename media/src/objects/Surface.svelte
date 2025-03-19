@@ -37,7 +37,6 @@
         uuid,
         onRenderObject = function () {},
         onDestroyObject = function () {},
-        onSelect = function () {},
         params = $bindable({
             a: '-2',
             b: '2',
@@ -49,16 +48,16 @@
             t0: '0',
             t1: '1',
         }),
-        color = $bindable('#3232ff'),
+        color = $bindable(),
         title = $bindable(),
         animation = $bindable(false),
         scene,
-        controls,
         camera,
         gridStep,
         render = () => {},
         onClose = () => {},
-        selected = $bindable(false),
+        selected,
+        selectObject,
         selectPoint,
         animate = () => {},
     } = $props();
@@ -110,7 +109,7 @@
 
     let frameVisible = $state(false);
     $effect(() => {
-        if (frameVisible && tanFrame) tanFrame.visible = frameVisible;
+        if (tanFrame) tanFrame.visible = frameVisible;
     });
 
     // $effect(() => {
@@ -119,6 +118,7 @@
     // });
 
     $effect(() => {
+        console.log('shader effex');
         if (chooseDensity && $densityColormap) {
             // densityString = densityString || '1';
             // compiledDensity = math.parse(densityString).compile();
@@ -624,6 +624,7 @@
     });
 
     $effect(() => {
+        console.log('point selectin');
         if (selected) {
             selectPoint(point);
         }
@@ -638,6 +639,7 @@
         boxItemElement?.scrollIntoView({ behavior: 'smooth' });
     };
     $effect(() => {
+        console.log('flasheffex');
         if (selected) untrack(flash);
     });
 
@@ -824,8 +826,6 @@
     };
 
     const keyDown = (e) => {
-        console.log('surf key pressed');
-
         if (e.target.matches('input, textarea')) {
             return;
         } else if (selected) {

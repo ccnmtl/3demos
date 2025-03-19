@@ -176,10 +176,10 @@
 
 <article {hidden}>
     <p>
-        Suppose we have a curve <M>C</M> in space parameterized by a smooth function
-        <M>{`\\mathbf{r}(t)`}</M> for <M>{`a \\leq t \\leq b`}</M> and we wish to
-        know how long it is. That is, we want to compute the
-        <b>arc length</b> of <M>C</M>.
+        Suppose we have a curve <M s="C" /> in space parameterized by a smooth function
+        <M s={`\\mathbf{r}(t)`} /> for <M s={`a \\leq t \\leq b`} /> and we wish
+        to know how long it is. That is, we want to compute the
+        <b>arc length</b> of <M s="C" />.
     </p>
 
     <p>
@@ -200,13 +200,13 @@
         </select>
     </p>
 
-    <M display>{`\\mathbf{r}(t) = ${texStrings.r}`}</M>
-    <M display>{`${texStrings.a} \\leq t \\leq ${texStrings.b}`}</M>
+    <M display s={`\\mathbf{r}(t) = ${texStrings.r}`} />
+    <M display s={`${texStrings.a} \\leq t \\leq ${texStrings.b}`} />
 
     <p>
-        We can estimate the length by selecting a finite number <M>
-            {`N = ${nVects}`}
-        </M>
+        We can estimate the length by selecting a finite number <M
+            s={`N = ${nVects}`}
+        />
         <span class="row">
             <input
                 type="range"
@@ -221,40 +221,43 @@
             />
         </span>
         of positions along the curve and measuring the distance between them. To
-        wit, we select a partition of <M>{'[a,b]'}</M>.:
+        wit, we select a partition of <M s={'[a,b]'} />.:
     </p>
 
-    <M align>
-        {'t_0 &= a \\\\ t_1 &= a + \\Delta t \\\\ \\vdots  \\\\ t_N &= a + N \\Delta t = b \\\\'}
-    </M>
+    <M
+        align
+        s={'t_0 &= a \\\\ t_1 &= a + \\Delta t \\\\ \\vdots  \\\\ t_N &= a + N \\Delta t = b \\\\'}
+    />
 
     <p>
-        where <M>{'\\Delta t = \\frac{b - a}{N} \\).'}</M>.
+        where <M s={'\\Delta t = \\frac{b - a}{N} \\).'} />.
     </p>
 
     <p>Thus we can approximate arc length as</p>
 
-    <M display>
-        {`\\sum_{i = 1}^{${nVects}} |\\mathbf r(t_i) - \\mathbf r(t_{i - 1})|`}
-    </M>
-    <M display>
-        {`\\approx ${Math.round(1000 * lengthApproximation) / 1000}.`}
-    </M>
+    <M
+        display
+        s={`\\sum_{i = 1}^{${nVects}} |\\mathbf r(t_i) - \\mathbf r(t_{i - 1})|`}
+    />
+    <M
+        display
+        s={`\\approx ${Math.round(1000 * lengthApproximation) / 1000}.`}
+    />
 
     <p>
-        As <M>{'N \\to \\infty, \\Delta t \\to 0'}</M>, and this approximation
+        As <M s={'N \\to \\infty, \\Delta t \\to 0'} />, and this approximation
         becomes a Riemann sum (after multiplying and dividing by <M
-            >{'\\Delta t'}</M
-        >) converging to the exact arc length.
+            s={'\\Delta t'}
+        />) converging to the exact arc length.
     </p>
     <p>
-        That is, <M>
-            {` \\sum\\limits_{i = 1}^{N} \\frac{|\\mathbf r(t_i) - \\mathbf r(t_{i - 1})|}{\\Delta t} \\Delta t \\to  `}
-        </M>
+        That is, <M
+            s={` \\sum\\limits_{i = 1}^{N} \\frac{|\\mathbf r(t_i) - \\mathbf r(t_{i - 1})|}{\\Delta t} \\Delta t \\to  `}
+        />
         <span class="defin">
-            <M display size="lg">{" \\int_a^b |\\mathbf r ' (t) |\\,dt "}</M>
+            <M display size="lg" s={" \\int_a^b |\\mathbf r ' (t) |\\,dt "} />
         </span>
-        which is the definition of arc length <M>s</M>.
+        which is the definition of arc length <M s="s" />.
     </p>
 </article>
 

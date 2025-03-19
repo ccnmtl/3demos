@@ -1,1 +1,1 @@
-export let demoObjects = $state([]);
+export const demoObjects = $state([]);

@@ -14,7 +14,6 @@
 {#if edit}
     <input
         type="text"
-        bind:this={editBar}
         bind:value={title}
         use:init
         onkeydown={(e) => {
