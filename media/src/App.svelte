@@ -785,8 +785,6 @@
     };
 
     const keyDown = (e) => {
-        console.log('App key down');
-
         if (e.target.matches('input, textarea')) {
             return;
         }

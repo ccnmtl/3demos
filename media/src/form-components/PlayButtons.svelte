@@ -5,7 +5,7 @@
         play = () => {},
         pause,
         rew,
-        animate,
+        // animate,
     } = $props();
 </script>
 
@@ -16,7 +16,7 @@
             animation = !animation;
             if (animation) {
                 play();
-                animate();
+                // animate();
             } else {
                 pause();
             }

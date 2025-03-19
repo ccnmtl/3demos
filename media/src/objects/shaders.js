@@ -69,15 +69,17 @@ varying vec3 vPosition;
 varying vec2 vUv;
 varying vec3 vNormal;
 
+uniform float tVal;
+
 ${cmToGLSLUniformFunc(colormap)}
 
-float dens(float x, float y, float z) {
+float dens(float x, float y, float z, float t) {
 return ${mathToGLSL(formula)};
 }
 
 
 void main() {
-float t = (clamp(dens(vPosition.x, vPosition.y, vPosition.z), float(${v0}), float(${v1})) - float(${v0})) / (float(${v1 - v0}));
+float t = (clamp(dens(vPosition.x, vPosition.y, vPosition.z, tVal), float(${v0}), float(${v1})) - float(${v0})) / (float(${v1 - v0}));
 gl_FragColor = vec4(color(t), 1.);
 }
 `;

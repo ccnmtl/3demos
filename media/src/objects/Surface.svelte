@@ -7,7 +7,11 @@
     import * as THREE from 'three';
     import { create, all } from 'mathjs';
     // import { beforeUpdate } from 'svelte';
-    import { plainVertexShader, heatmapFragmentShader } from './shaders';
+    import {
+        plainVertexShader,
+        heatmapFragmentShader,
+        plainRedFrag,
+    } from './shaders';
     import { uniformColorData } from '../js-colormaps';
 
     import { dependsOn } from './Vector.svelte';
@@ -71,14 +75,14 @@
     let t0 = $derived(math.parse(params.t0 ?? '0').evaluate());
     let t1 = $derived(math.parse(params.t1 ?? '1').evaluate());
     let tVal = $derived(t0 + tau * (t1 - t0));
-    let displayTVal = $derived((Math.round(100 * tVal) / 100).toString());
+    let displayTVal = $derived(tVal.toFixed(2));
 
     let last = null;
 
     let chooseDensity = $state(false);
-    let densityString = $state('1');
-    let compiledDensity;
-    let densityFunc = () => 1;
+    params.mu = params.mu ?? '1';
+    // let compiledDensity;
+    // let densityFunc = () => 1;
 
     const colorMaterial = new THREE.MeshPhongMaterial({
         color: 0xffffff,
@@ -87,33 +91,41 @@
         vertexColors: true,
     });
 
-    const colorMeBadd = (mesh, f) => {
-        console.log('bbbbbaadddddddd');
-        const [vMaxLocal, vMinLocal] = vMaxMin(mesh, f);
-        $vMin = Math.min($vMin, vMinLocal);
-        $vMax = Math.max($vMax, vMaxLocal);
-        if ($vMax == $vMin) {
-            if ($vMax == 0) {
-                $vMax = 1;
-                $vMin = -1;
-            } else {
-                $vMax = (4 / 3) * Math.abs($vMax);
-                $vMin = (-4 / 3) * Math.abs($vMin);
-            }
-        }
+    const shaderMaterial = new THREE.ShaderMaterial({
+        vertexShader: plainVertexShader,
+        fragmentShader: plainRedFrag,
+        uniforms: {},
+        side: THREE.DoubleSide,
+    });
 
-        colorBufferVertices(mesh, (x, y, z) => {
-            const value = f(x, y, z);
-            return blueUpRedDown(
-                (value - $vMin) / ($vMax - $vMin),
-                0.8,
-                $densityColormap,
-            );
-        });
-    };
+    // const colorMeBadd = (mesh, f) => {
+    //     console.log('bbbbbaadddddddd');
+    //     const [vMaxLocal, vMinLocal] = vMaxMin(mesh, f);
+    //     $vMin = Math.min($vMin, vMinLocal);
+    //     $vMax = Math.max($vMax, vMaxLocal);
+    //     if ($vMax == $vMin) {
+    //         if ($vMax == 0) {
+    //             $vMax = 1;
+    //             $vMin = -1;
+    //         } else {
+    //             $vMax = (4 / 3) * Math.abs($vMax);
+    //             $vMin = (-4 / 3) * Math.abs($vMin);
+    //         }
+    //     }
+
+    //     colorBufferVertices(mesh, (x, y, z) => {
+    //         const value = f(x, y, z);
+    //         return blueUpRedDown(
+    //             (value - $vMin) / ($vMax - $vMin),
+    //             0.8,
+    //             $densityColormap,
+    //         );
+    //     });
+    // };
 
     let frameVisible = $state(false);
     $effect(() => {
+        // console.log('tanframe effect');
         if (tanFrame) tanFrame.visible = frameVisible;
     });
 
@@ -125,27 +137,33 @@
     $effect(() => {
         console.log('shader effex');
         if (chooseDensity && $densityColormap) {
-            // densityString = densityString || '1';
-            // compiledDensity = math.parse(densityString).compile();
-            // densityFunc = (x, y, z) => compiledDensity.evaluate({ x, y, z });
-
             const flatArray = new Float32Array(
                 uniformColorData($densityColormap),
             );
 
-            const shaderMaterial = new THREE.ShaderMaterial({
-                vertexShader: plainVertexShader,
-                fragmentShader: heatmapFragmentShader(
-                    densityString,
-                    $densityColormap,
-                    $vMin,
-                    $vMax,
-                ),
-                uniforms: {
-                    colorData: { value: flatArray },
-                },
-                side: THREE.DoubleSide,
-            });
+            shaderMaterial.fragmentShader = heatmapFragmentShader(
+                params.mu,
+                $densityColormap,
+                $vMin,
+                $vMax,
+            );
+            shaderMaterial.uniforms.colorData = { value: flatArray };
+            shaderMaterial.uniforms.tVal = { value: untrack(() => tVal) };
+
+            // const shaderMaterial = new THREE.ShaderMaterial({
+            //     vertexShader: plainVertexShader,
+            //     fragmentShader: heatmapFragmentShader(
+            //         params.mu,
+            //         $densityColormap,
+            //         $vMin,
+            //         $vMax,
+            //     ),
+            //     uniforms: {
+            //         colorData: { value: flatArray },
+            //         // tVal: { value: tVal },
+            //     },
+            //     side: THREE.DoubleSide,
+            // });
 
             surfaceMesh.children[1].visible = false;
             // colorMeBadd(surfaceMesh.children[0], densityFunc);
@@ -168,7 +186,7 @@
     // compile (in the math.js sense) each expression once they change
     // and thus have been cleared
     $effect(() => {
-        console.log('parm compile');
+        // console.log('parm compile');
         const [x, y, z] = [params.x, params.y, params.z].map((f) =>
             math.parse(f).compile(),
         );
@@ -192,16 +210,14 @@
         untrack(updateSurface);
     });
 
-    let isDynamic = $derived(dependsOn(params, 't'));
+    let isDynamic = $derived(
+        dependsOn({ x: params.x, y: params.y, z: params.z }, 't'),
+    );
+    let isRhoDynamic = $derived(dependsOn({ mu: params.mu }, 't'));
     // Only run the update if the params have changed.
     // let hashTag = $derived(checksum(JSON.stringify(params)));
-    // $effect(() => {
-    //     console.log('upppdate effect');
-    //     updateSurface()
-    //     render();
-    // });
 
-    $inspect(params).with((type, values) => console.log(type, values));
+    $inspect(params);
 
     // Check midpoint of parameter space and see if all is ok.
     const chickenParms = (val, { a, b, c, d, t0, t1 }) => {
@@ -288,7 +304,6 @@
     });
 
     const updateSurface = function () {
-        console.log('updateCircus');
         const { t0, t1 } = params;
         const time = t0
             ? math.evaluate(t0) + tau * (math.evaluate(t1) - math.evaluate(t0))
@@ -473,10 +488,12 @@
     };
 
     const evolveSurface = function (t) {
+        // if (debug) console.log('evolveSurface', t);
         // the front and back surfaces share a geometry. The meshlines are separate
         let geometry = surfaceMesh.children[0].geometry;
         let positions = geometry.attributes.position.array;
         const normals = geometry.attributes.normal.array;
+
         // let colors;
         // if (chooseDensity) {
         //     colors = geometry.attributes.color.array;
@@ -497,10 +514,9 @@
             const v = uvs[uindex++];
             const [U, V] = abcd(u, v);
             xyz(U, V, vec, t);
-            const { x, y, z } = vec;
-            positions[pindex++] = x;
-            positions[pindex++] = y;
-            positions[pindex++] = z;
+            positions[pindex++] = vec.x;
+            positions[pindex++] = vec.y;
+            positions[pindex++] = vec.z;
 
             // normals
 
@@ -533,7 +549,7 @@
         geometry.computeBoundingBox();
         geometry.computeBoundingSphere();
 
-        // meshes
+        // // meshes
         geometry = surfaceMesh.children[2].geometry;
         positions = geometry.attributes.position.array;
         uvs = geometry.attributes.uv.array;
@@ -544,10 +560,9 @@
             const u = uvs[uindex++];
             const v = uvs[uindex++];
             xyz(u, v, vec, t);
-            const { x, y, z } = vec;
-            positions[pindex++] = x;
-            positions[pindex++] = y;
-            positions[pindex++] = z;
+            positions[pindex++] = vec.x;
+            positions[pindex++] = vec.y;
+            positions[pindex++] = vec.z;
         }
 
         geometry.attributes.position.needsUpdate = true;
@@ -573,7 +588,10 @@
         tau += dt / (t1 - t0);
         tau %= 1;
 
-        evolveSurface(tVal);
+        if (isDynamic) evolveSurface(tVal);
+        if (isRhoDynamic) {
+            shaderMaterial.uniforms.tVal = { value: tVal };
+        }
 
         render();
     };
@@ -582,19 +600,23 @@
     // Useful it the objects file is updated with new flag
     $effect(() => {
         if (animation) {
-            animate();
+            untrack(animate);
         }
     });
 
-    $effect(() => {
+    function currentTock() {
         if (animation) {
             const currentTime = $tickTock;
+
             last = last || currentTime;
             update(currentTime - last);
             last = currentTime;
         } else {
             last = null;
         }
+    }
+    $effect(() => {
+        if ($tickTock) untrack(currentTock);
     });
     // Reacts when `animation` or the ticktock store change
     // onMount(updateSurface);
@@ -623,7 +645,6 @@
     });
 
     $effect(() => {
-        console.log('point selectin');
         if (selected) {
             selectPoint(point);
         }
@@ -638,7 +659,6 @@
         boxItemElement?.scrollIntoView({ behavior: 'smooth' });
     };
     $effect(() => {
-        console.log('flasheffex');
         if (selected) untrack(flash);
     });
 
@@ -839,6 +859,10 @@
                 //     );
                 //     render();
                 //     break;
+                case 'd':
+                    chooseDensity = !chooseDensity;
+                    render();
+                    break;
                 case 't':
                     if (selected) {
                         tanFrame.visible = !tanFrame.visible;
@@ -969,7 +993,7 @@
                 />
             {/each}
 
-            {#if isDynamic}
+            {#if isDynamic || isRhoDynamic}
                 {#each ['t0', 't1'] as name}
                     {#if name === 't1'}
                         <span class="box box-3"
@@ -1004,7 +1028,10 @@
                     oninput={() => {
                         cancelAnimationFrame(myReq);
                         myReq = requestAnimationFrame(() => {
-                            evolveSurface(tVal);
+                            if (isDynamic) evolveSurface(tVal);
+                            if (isRhoDynamic) {
+                                shaderMaterial.uniforms.tVal = { value: tVal };
+                            }
                             render();
                         });
                     }}
@@ -1025,7 +1052,6 @@
                 </span>
                 <PlayButtons
                     bind:animation
-                    {animate}
                     pause={() => (last = null)}
                     rew={() => {
                         tau = 0;
@@ -1057,16 +1083,19 @@
             {#if chooseDensity}
                 <span class="box-1"><M size="sm" s={'\\mu(x,y,z) = '} /></span>
                 <InputChecker
-                    value={densityString}
+                    value={params.mu}
                     checker={(val) => {
                         const vec = new THREE.Vector3();
                         xyz(0.5, 0.5, vec);
 
                         let parsedVal;
                         try {
-                            parsedVal = math
-                                .parse(val)
-                                .evaluate({ x: vec.x, y: vec.y, z: vec.z });
+                            parsedVal = math.parse(val).evaluate({
+                                x: vec.x,
+                                y: vec.y,
+                                z: vec.z,
+                                t: tVal,
+                            });
                         } catch (e) {
                             console.error(e);
                             return false;
@@ -1076,11 +1105,8 @@
                     name={'f'}
                     {params}
                     cleared={(val) => {
-                        compiledDensity = math.parse(val).compile();
-                        densityFunc = (x, y, z) =>
-                            compiledDensity.evaluate({ x, y, z });
+                        params.mu = val;
                         render();
-                        densityString = val;
                     }}
                 />
                 <div class="box colorbar-container">
