@@ -28,15 +28,13 @@
         </a>
     </span>
     <div class="item-header">
-        {#if !objHidden}
-            <button
-                title={(objHidden ? 'Show' : 'Hide') + 'object'}
-                onclick={toggleHide}
-                aria-label="Hide"
-            >
-                <i class={'fa fa-eye' + (objHidden ? '-slash' : '')}></i>
-            </button>
-        {/if}
+        <button
+            title={(objHidden ? 'Show' : 'Hide') + 'object'}
+            onclick={toggleHide}
+            aria-label="Hide/Show"
+        >
+            <i class="fa fa-eye{!objHidden ? '-slash' : ''}"></i>
+        </button>
         <button
             title={(minimize ? 'Reveal ' : 'Collapse ') + 'object parameters'}
             onclick={() => {
@@ -45,7 +43,7 @@
             aria-label={(minimize ? 'Reveal ' : 'Collapse ') +
                 'object parameters'}
         >
-            <i class="fa fa-window-minimize"></i>
+            <i class="fa fa-window-{minimize ? 'maximize' : 'minimize'}"></i>
         </button>
         <button
             title="Remove object"
