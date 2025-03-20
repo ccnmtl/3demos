@@ -18,7 +18,7 @@
     "@typescript-eslint/types": "^8.0.0",
     "d3": "^7.7.0",
     "eslint": "^9.1.0",
-    "eslint-plugin-svelte": "^2.45.1",
+    "eslint-plugin-svelte": "^3.3.1",
     "mocha": "^11.0.1",
     "rollup": "^4.2.0",
     "rollup-plugin-css-only": "^4.3.0",
@@ -31,6 +31,6 @@
     "reconnecting-websocket": "^4.4.0",
     "sirv-cli": "^3.0.0",
     "stats.js": "^0.17.0",
-    "three": "^0.174.0"
+    "three": "^0.173.0"
   }
 }
