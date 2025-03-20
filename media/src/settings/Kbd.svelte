@@ -1,7 +1,5 @@
 <script>
-    import { derived } from 'svelte/store';
     import { demoObjects } from '../states.svelte';
-    import { randomInt } from 'mathjs';
 
     //shortcut registry
     // register keyboard shortcuts when present
@@ -11,6 +9,7 @@
         BkSp: 'Show/hide selected',
         h: 'Show/hide panel',
         m: 'Toggle mobile view',
+        c: 'Center camera on selected point',
         Esc: 'Deselect all',
         '[/]': 'Select previous/next object',
         '{/}': 'Group  previous/next object',
@@ -23,7 +22,6 @@
             shortcuts: {
                 Shift: 'Select point with mouse',
                 a: 'Show second derivative',
-                c: 'Center camera on selected point',
                 o: 'Show/hide osculating circle',
                 p: 'Play/pause animation',
                 r: 'Reset animation',
@@ -38,7 +36,6 @@
             name: 'Function Graph',
             shortcuts: {
                 Shift: 'Select point with mouse',
-                c: 'Center camera on selected point',
                 i: 'Show/hide Riemann sum boxes',
                 l: 'Show/hide level curves',
                 n: 'Show/hide normal vector',
@@ -56,7 +53,6 @@
             name: 'Level Surface',
             shortcuts: {
                 Shift: 'Select point with mouse',
-                c: 'Center camera on selected point',
                 n: 'Show/hide normal vector',
                 t: 'Show/hide tangent frame',
                 y: 'Show/hide tangent plane',
@@ -99,7 +95,6 @@
             name: 'Parametric Surface',
             shortcuts: {
                 Shift: 'Select point with mouse',
-                c: 'Center camera on selected point',
                 n: 'Show/hide normal vector',
                 p: 'Play/pause animation',
                 r: 'Reset animation',

@@ -127,7 +127,6 @@
     });
 
     onMount(() => {
-        if (animation) animate();
         titleIndex++;
         title = title || `Point ${titleIndex}`;
     });
@@ -285,8 +284,9 @@
                 {/each}
 
                 <span class="box-1">
-                    <span class="t-box"><M s="t =" /><M s={displayTVal} /></span
-                    >
+                    <span class="t-box">
+                        <M s="t =" /><M s={displayTVal} />
+                    </span>
                 </span>
                 <input
                     type="range"

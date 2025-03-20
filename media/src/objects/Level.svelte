@@ -1,9 +1,9 @@
-<script context="module">
+<script module>
     let titleIndex = 0;
 </script>
 
 <script>
-    import { onDestroy, onMount } from 'svelte';
+    import { onDestroy, onMount, untrack } from 'svelte';
     import * as THREE from 'three';
     import { create, all } from 'mathjs';
 
@@ -21,38 +21,35 @@
     import { marchingCubes, ArrowBufferGeometry, checksum } from '../utils.js';
     import { flashDance } from '../sceneUtils';
 
-    export let uuid;
-    export let onRenderObject = function () {};
-    export let onDestroyObject = function () {};
-    export let onSelect = function () {};
+    let {
+        uuid,
+        onRenderObject,
+        onDestroyObject,
+        params = $bindable({
+            g: 'x^2 - y^2 + z^2',
+            k: '1',
+            a: '-2',
+            b: '2',
+            c: '-2',
+            d: '2',
+            e: '-2',
+            f: '2',
+        }),
+        color = $bindable('#FFFF33'),
+        title = $bindable(),
+        scene,
+        render,
+        gridStep,
+        show = true,
+        selected,
+        selectPoint,
+        selectObject,
+        camera,
+        onClose = () => {},
+    } = $props();
 
-    export let params = {
-        g: 'x^2 - y^2 + z^2',
-        k: '1',
-        a: '-2',
-        b: '2',
-        c: '-2',
-        d: '2',
-        e: '-2',
-        f: '2',
-    };
-
-    export let scene;
-    export let render = () => {};
-    export let onClose = () => {};
-    export let selected;
-    export let selectedObjects;
-    export let selectedPoint;
-    export let title;
-
-    export let camera,
-        controls,
-        // animation = false,
-        gridStep;
-    // showLevelCurves = false;
-
-    let minimize = false;
-    let loading = false;
+    let minimize = $state(false);
+    let loading = $state(false);
 
     const geometry = new THREE.BufferGeometry();
     const xTraceGeometry = new THREE.BufferGeometry();
@@ -77,18 +74,20 @@
     });
 
     // $: col = new THREE.Color(color);
-    $: {
+    $effect(() => {
         plusMaterial.color.set(color);
         const hsl = {};
         plusMaterial.color.getHSL(hsl);
         hsl.h = (hsl.h + 0.618033988749895) % 1;
         minusMaterial.color.setHSL(hsl.h, hsl.s, hsl.l);
         render();
-    }
+    });
 
-    $: if (selectedObjects[selectedObjects.length - 1] === uuid) {
-        selectedPoint = point;
-    }
+    $effect(() => {
+        if (selected) {
+            selectPoint(point);
+        }
+    });
 
     let boxItemElement;
     /**
@@ -98,7 +97,9 @@
         mesh.children.map((mesh) => flashDance(mesh, render));
         boxItemElement?.scrollIntoView({ behavior: 'smooth' });
     };
-    $: if (selected && selectedObjects.length > 0) flash();
+    $effect(() => {
+        if (selected) untrack(flash);
+    });
 
     const whiteLineMaterial = new THREE.LineBasicMaterial({
         color: 0xffffff,
@@ -151,10 +152,8 @@
         }
         return valuation;
     };
-    export let color = '#3232ff';
 
-    $: hashTag = checksum(JSON.stringify(params));
-    $: hashTag, updateLevel();
+    $effect(() => updateLevel());
 
     const levelWorkerSuccessHandler = (data) => {
         const { normals, vertices, xpts, ypts, zpts } = data;
@@ -255,7 +254,7 @@
         tanFrame.add(arrows[key]);
     }
 
-    let choosingPoint = false;
+    let choosingPoint = $state(false);
     const pointMaterial = new THREE.MeshLambertMaterial({ color: 0xffff33 });
     const point = new THREE.Mesh(
         new THREE.SphereGeometry(0.2 / 8, 16, 16),
@@ -277,7 +276,10 @@
     );
     tanFrame.add(planeShard);
 
-    tanFrame.visible = false;
+    let frameVisible = $state(false);
+    $effect(() => {
+        tanFrame.visible = frameVisible;
+    });
 
     scene.add(tanFrame);
 
@@ -401,9 +403,8 @@
         if (selected) {
             switch (e.key) {
                 case 'Backspace':
-                    if (selectedObjects[0] === uuid) {
-                        toggleHide();
-                    }
+                    toggleHide();
+
                     break;
                 case 'Shift':
                     window.addEventListener(
@@ -411,25 +412,17 @@
                         placePointAtMouse,
                         false,
                     );
-                    tanFrame.visible = true;
+                    frameVisible = true;
                     break;
-                case 'c':
-                    controls.target.set(
-                        point.position.x,
-                        point.position.y,
-                        point.position.z,
-                    );
-                    render();
-                    break;
+
                 case 't':
-                    if (uuid === selectedObjects[selectedObjects.length - 1]) {
-                        tanFrame.visible = !tanFrame.visible;
-                    }
+                    frameVisible = !frameVisible;
+
                     render();
                     break;
                 case 'y':
                     if (!planeShard.visible) {
-                        tanFrame.visible = true;
+                        frameVisible = true;
                         planeShard.visible = true;
                     } else {
                         planeShard.visible = false;
@@ -438,7 +431,7 @@
                     break;
                 case 'n':
                     if (!arrows.n.visible) {
-                        tanFrame.visible = true;
+                        frameVisible = true;
                         arrows.n.visible = true;
                     } else {
                         arrows.n.visible = false;
@@ -461,15 +454,16 @@
     window.addEventListener('click', onMouseClick);
 </script>
 
-<div class="boxItem" class:selected bind:this={boxItemElement} on:keydown>
+<div class="boxItem" class:selected bind:this={boxItemElement}>
     <ObjHeader
         bind:minimize
-        bind:selectedObjects
         {onClose}
         {toggleHide}
         objHidden={!mesh.visible}
         {color}
-        {onSelect}
+        onSelect={(e) => {
+            selectObject(uuid, !e.shiftKey);
+        }}
     >
         <Nametag bind:title />
         <span hidden={!loading}>
@@ -479,25 +473,25 @@
     </ObjHeader>
     <div hidden={minimize}>
         <div class="threedemos-container container">
-            <span class="box-1"><M size="sm">g(x,y,z) =</M></span>
+            <span class="box-1"><M size="sm" s="g(x,y,z) =" /></span>
             <InputChecker
                 value={params['g']}
                 checker={chickenParms}
                 name={'g'}
                 {params}
-                on:cleared={(e) => {
-                    params['g'] = e.detail;
+                cleared={(val) => {
+                    params['g'] = val;
                 }}
             />
 
-            <span class="box-1"><M size="sm">k =</M></span>
+            <span class="box-1"><M size="sm" s="k" /></span>
             <InputChecker
                 value={params['k']}
                 checker={(val) => Number.isFinite(math.parse(val).evaluate())}
                 name={'k'}
                 {params}
-                on:cleared={(e) => {
-                    params['k'] = e.detail;
+                cleared={(val) => {
+                    params['k'] = val;
                 }}
             />
 
@@ -509,7 +503,7 @@
                     params.a = newVal;
                 }}
             />
-            <span class="box box-3"><M size="sm">\leq x \leq</M></span>
+            <span class="box box-3"><M size="sm" s={`\\leq x \\leq`} /></span>
             <ObjectParamInput
                 type="number"
                 className="form-control form-control-sm box"
@@ -527,7 +521,7 @@
                     params.c = newVal;
                 }}
             />
-            <span class="box box-3"><M size="sm">\leq y \leq</M></span>
+            <span class="box box-3"><M size="sm" s={`\\leq y \\leq`} /></span>
             <ObjectParamInput
                 type="number"
                 className="form-control form-control-sm box"
@@ -545,7 +539,7 @@
                     params.e = newVal;
                 }}
             />
-            <span class="box box-3"><M size="sm">\leq z \leq</M></span>
+            <span class="box box-3"><M size="sm" s={`\\leq z \\leq`} /></span>
             <ObjectParamInput
                 type="number"
                 className="form-control form-control-sm box"
@@ -573,16 +567,16 @@
                     value="false"
                     name="frameVisible"
                     id="frameVisible"
-                    bind:checked={tanFrame.visible}
-                    on:change={render}
+                    bind:checked={frameVisible}
+                    onchange={render}
                 />
                 <span class="slider round"></span>
             </label>
-            {#if tanFrame.visible}
+            {#if frameVisible}
                 {#if choosingPoint}
                     <button
                         class="box box-2 btn btn-secondary"
-                        on:click={(e) => {
+                        onclick={(e) => {
                             e.stopImmediatePropagation();
                             choosingPoint = false;
                         }}>Cancel</button
@@ -590,7 +584,7 @@
                 {:else}
                     <button
                         class="box box-2 btn btn-primary"
-                        on:click={(e) => {
+                        onclick={(e) => {
                             e.stopImmediatePropagation();
                             choosingPoint = true;
                         }}>Select point</button

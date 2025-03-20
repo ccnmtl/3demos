@@ -1,11 +1,11 @@
-<script context="module">
+<script module>
     let titleIndex = 0;
 </script>
 
 <script>
-    import { onMount, onDestroy, createEventDispatcher } from 'svelte';
+    import { onMount, onDestroy, createEventDispatcher, untrack } from 'svelte';
     import * as THREE from 'three';
-    import { create, all } from 'mathjs';
+    import { create, all, e } from 'mathjs';
 
     import M from '../M.svelte';
     import ObjHeader from './ObjHeader.svelte';
@@ -21,40 +21,39 @@
     const config = {};
     const math = create(all, config);
 
-    const dispatch = createEventDispatcher();
+    let {
+        uuid,
+        onRenderObject,
+        onDestroyObject,
+        params = $bindable({
+            p: 'y',
+            q: 'z',
+            r: '-x',
+            nVec: 6,
+        }),
+        scene,
+        render,
+        animation = $bindable(false),
+        animate,
+        onClose,
+        gridMax,
+        gridStep,
+        selectObject,
+        selected,
+        color = $bindable('#373765'),
+        title = $bindable(),
+        meta = {
+            flowTrails: true,
+        },
+    } = $props();
 
-    export let uuid;
-    export let onRenderObject = function () {};
-    export let onDestroyObject = function () {};
-    export let onSelect = function () {};
+    $effect(() => updateField());
 
-    export let params = {
-        p: 'y',
-        q: 'z',
-        r: '-x',
-        nVec: 6,
-    };
+    let nCubed = $derived(Math.pow(params.nVec, 3));
 
-    $: hashTag = checksum(JSON.stringify(params));
-    $: hashTag, updateField();
-
-    $: nCubed = Math.pow(params.nVec, 3);
-
-    export let scene;
-    export let render = () => {};
-    export let animation = false;
-    export let onClose = () => {};
-    export let gridMax, gridStep;
-    export let selectedObjects;
-    export let selected;
-    export let color = '#373765';
-    export let title;
-
-    export let meta;
-
-    let flowTrails = meta.flowTrails === true;
+    let flowTrails = $state(meta.flowTrails && true);
     // console.log(meta, flowTrails);
-    let minimize = false;
+    let minimize = $state(false);
 
     /**
      *  "Check parameters"
@@ -88,13 +87,9 @@
 
     const compColor = new THREE.Color();
     let interpretColor;
+
     // Keep color fresh
-    $: {
-        // if (selectedObjects.length === 0 || selected) {
-        //     fieldMaterial.opacity = 1.0;
-        // } else {
-        //     fieldMaterial.opacity = 0.3;
-        // }
+    $effect(() => {
         fieldMaterial.color.set(color);
         const hsl = {};
         fieldMaterial.color.getHSL(hsl);
@@ -115,7 +110,7 @@
             trails.geometry.attributes.color.needsUpdate = true;
         }
         render();
-    }
+    });
 
     let boxItemElement;
     /**
@@ -125,7 +120,9 @@
         flashDance(flowArrows.children[0], render);
         boxItemElement?.scrollIntoView({ behavior: 'smooth' });
     };
-    $: if (selected && selectedObjects.length > 0) flash();
+    $effect(() => {
+        if (selected) untrack(flash);
+    });
 
     const trailGeometry = new THREE.BufferGeometry();
 
@@ -134,13 +131,13 @@
 
     const trails = new THREE.LineSegments(trailGeometry, trailMaterial);
 
-    $: vfScale = gridStep * 5;
-    $: arrowArgs = {
+    let vfScale = $derived(gridStep * 5);
+    let arrowArgs = $derived({
         radiusTop: vfScale / 60,
         radiusBottom: vfScale / 150,
         heightTop: vfScale / 16,
         heightIncludesHead: true,
-    };
+    });
 
     const setTrailColors = function (
         colorArray,
@@ -370,20 +367,23 @@
     // animation loop
     let last = null;
 
-    $: if (animation) {
-        const currentTime = $tickTock;
-        last = last || currentTime;
-        if (!trails.geometry.attributes.position) {
-            maxLength = initFlowArrows(flowArrows, gridMax, params.nVec);
+    $effect(() => {
+        if (animation) {
+            const currentTime = $tickTock;
+            last = last || currentTime;
+            if (!trails.geometry.attributes.position) {
+                maxLength = initFlowArrows(flowArrows, gridMax, params.nVec);
+            }
+            update(currentTime - last);
+            last = currentTime;
         }
-        update(currentTime - last);
-        last = currentTime;
-    }
+    });
 
-    // Move to afterUpdate?
-    $: if (animation) {
-        dispatch('animate');
-    }
+    $effect(() => {
+        if (animation) {
+            untrack(animate);
+        }
+    });
 
     const toggleHide = function () {
         flowArrows.visible = !flowArrows.visible;
@@ -422,35 +422,39 @@
     window.addEventListener('keydown', onKeyDown, false);
 </script>
 
-<!-- svelte-ignore a11y-no-static-element-interactions -->
-<div class="boxItem" class:selected bind:this={boxItemElement} on:keydown>
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<div class="boxItem" class:selected bind:this={boxItemElement}>
     <ObjHeader
         bind:minimize
-        bind:selectedObjects
         {onClose}
         {toggleHide}
         objHidden={!flowArrows.visible}
         {color}
-        {onSelect}
+        onSelect={(e) => selectObject(uuid, !e.shiftKey)}
     >
         <Nametag bind:title />
     </ObjHeader>
+
+    {#snippet vfComponent(nm)}
+        <span class="box-1"
+            ><M size="sm" s="{nm.toUpperCase()}(x,y,z) =" /></span
+        >
+        <InputChecker
+            value={params[nm]}
+            checker={chickenParms}
+            name={nm}
+            {params}
+            cleared={(val) => {
+                params[nm] = val;
+            }}
+        />
+    {/snippet}
+
     <div hidden={minimize}>
         <div class="threedemos-container container">
-            {#each ['p', 'q', 'r'] as name}
-                <span class="box-1"
-                    ><M size="sm" s="{name.toUpperCase()}(x,y,z) =" /></span
-                >
-                <InputChecker
-                    value={params[name]}
-                    checker={chickenParms}
-                    {name}
-                    {params}
-                    on:cleared={(e) => {
-                        params[name] = e.detail;
-                    }}
-                />
-            {/each}
+            {@render vfComponent('p')}
+            {@render vfComponent('q')}
+            {@render vfComponent('r')}
 
             <span class="box-1">Resolution</span>
             <input
@@ -460,7 +464,7 @@
                 max="10"
                 step="1"
                 class="box box-2"
-                on:input={() => {
+                oninput={() => {
                     freeChildren(flowArrows);
                     maxLength = initFlowArrows(
                         flowArrows,
@@ -479,9 +483,9 @@
                     name="trailsVisible"
                     id="trailsVisible"
                     bind:checked={flowTrails}
-                    on:change={freeTrails}
+                    onchange={freeTrails}
                 />
-                <span class="slider round" />
+                <span class="slider round"></span>
             </label>
 
             <PlayButtons

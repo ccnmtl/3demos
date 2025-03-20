@@ -28,8 +28,8 @@
         scene,
         camera,
         render,
-        gridMax,
-        gridStep,
+        gridMax = $bindable(),
+        gridStep = $bindable(),
         roomId,
         encode,
         axesHolder,
@@ -37,9 +37,11 @@
         lineMaterial,
         axesMaterial,
         axesText,
+        animation = $bindable(),
         animate,
         switchCamera,
         recenterCamera,
+        update = $bindable(),
     } = $props();
 
     let gridVisible = $state(false);
@@ -53,7 +55,7 @@
     newLineMaterial.polygonOffset = true;
     newLineMaterial.polygonOffsetFactor = 0.1;
 
-    export const update = (dt) => {
+    update = (dt) => {
         const s = (scaleState - oldGridMax) / (gridMax - oldGridMax);
         if ((gridMax - scaleState) * (scaleState - oldGridMax) >= 0) {
             newLineMaterial.opacity = s;
