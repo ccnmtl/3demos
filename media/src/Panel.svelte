@@ -557,7 +557,7 @@
                                             kindToComponent[dobj.kind]}
 
                                         <div
-                                            transition:slide|global={{
+                                            transition:slide={{
                                                 delay: 0,
                                                 duration: 200,
                                                 easing: quintOut,

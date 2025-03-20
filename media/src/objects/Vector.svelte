@@ -1,4 +1,4 @@
-<script context="module">
+<script module>
     import { create, all } from 'mathjs';
     const config = {};
     const math = create(all, config);
@@ -22,7 +22,7 @@
 </script>
 
 <script>
-    import { onMount, onDestroy, createEventDispatcher } from 'svelte';
+    import { onMount, onDestroy, untrack } from 'svelte';
     import * as THREE from 'three';
     import { tickTock } from '../stores';
 
@@ -34,42 +34,45 @@
     import { flashDance } from '../sceneUtils';
     import InputChecker from '../form-components/InputChecker.svelte';
 
-    export let uuid;
-    export let onRenderObject = function () {};
-    export let onDestroyObject = function () {};
-    export let onSelect = function () {};
-    export let animate = () => {};
+    let {
+        uuid,
+        onRenderObject,
+        onDestroyObject,
+        selectObject,
+        animate,
+        title = $bindable(),
+        params = $bindable({
+            a: '-1',
+            b: '1',
+            c: '2',
+            x: '0',
+            y: '0',
+            z: '0',
+            n0: 0,
+            n1: 1,
+        }),
+        color = $bindable('#ff0000'),
+        animation = $bindable(false),
+        selected,
+        show = true,
+        scene,
+        render,
+        onClose,
+        gridStep,
+    } = $props();
 
-    export let params = {
-        a: '-1',
-        b: '1',
-        c: '2',
-        x: '0',
-        y: '0',
-        z: '0',
-        n0: 0,
-        n1: 1,
-    };
+    let minimize = $state(false);
 
-    export let color = '#FF0000';
-    let tau = 0;
-    let last;
-    let texString1 = '';
+    let tau = $state(0);
+    let t0 = $derived(math.parse(params.t0 ?? '0').evaluate());
+    let t1 = $derived(math.parse(params.t1 ?? '1').evaluate());
+    let tVal = $derived(t0 + tau * (t1 - t0));
+    let displayTVal = $derived(tVal.toFixed(2));
 
-    // display controls in objects panel
-    // considered for Chapters that add many objects that need not be user-configurable.
-    export let show = true;
+    let last = null;
 
-    export let scene;
-    export let render = () => {};
-    export let onClose = () => {};
-    export let gridStep;
-    export let animation = false;
-    export let selected;
-    export let selectedObjects;
-    export let title;
-
-    let minimize = false;
+    let N0 = $derived(math.parse(params.n0 ?? '0').evaluate());
+    let N1 = $derived(math.parse(params.n1 ?? '0').evaluate());
 
     const arrowMaterial = new THREE.MeshPhongMaterial({
         color: color,
@@ -85,8 +88,8 @@
         radiusBottom: vfScale / 75,
         heightTop: vfScale / 8,
     };
-    const arrows = new THREE.Object3D();
 
+    const arrows = new THREE.Object3D();
     const arrow = new THREE.Mesh(
         new ArrowBufferGeometry({
             ...arrowArgs,
@@ -94,28 +97,11 @@
         }),
         arrowMaterial,
     );
-    arrows.add(arrow);
 
+    arrows.add(arrow);
     scene.add(arrows);
 
     const updateVector = function () {
-        const { a, b, c, x, y, z } = params;
-
-        let t;
-        const { t0, t1 } = params;
-        if (t0 && t1) {
-            const T0 = math.evaluate(t0);
-            const T1 = math.evaluate(t1);
-
-            t = T0 + tau * (T1 - T0);
-        } else {
-            t = 0;
-        }
-        let N0, N1;
-        const { n0, n1 } = params;
-        N0 = n0 || 0;
-        N1 = n1 || 0;
-
         while (arrows.children.length < N1 - N0 + 1) {
             arrows.add(
                 new THREE.Mesh(
@@ -133,11 +119,12 @@
             arrows.remove(arrow);
         }
 
+        const { a, b, c, x, y, z } = params;
         for (let index = N0; index <= N1; index++) {
             const arrow = arrows.children[index - N0];
             const [A, B, C, X, Y, Z] = math
                 .parse([a, b, c, x, y, z])
-                .map((s) => s.evaluate({ t, n: index }));
+                .map((s) => s.evaluate({ t: tVal, n: index }));
 
             const v = new THREE.Vector3(A, B, C);
             arrow.position.set(X, Y, Z);
@@ -153,16 +140,16 @@
     };
 
     // call updateVector() when params change
-    $: isDynamic = dependsOn(params, 't');
-    $: isDiscrete = dependsOn(params, 'n');
-    $: hashTag = checksum(JSON.stringify(params));
-    $: hashTag, updateVector();
+    let isDynamic = $derived(dependsOn(params, 't'));
+    let isDiscrete = $derived(dependsOn(params, 'n'));
+
+    $effect(updateVector);
 
     // recolor on demand
-    $: {
+    $effect(() => {
         arrowMaterial.color.set(color);
         render();
-    }
+    });
 
     let boxItemElement;
     /**
@@ -172,8 +159,9 @@
         flashDance(arrow, render);
         boxItemElement?.scrollIntoView({ behavior: 'smooth' });
     };
-    $: if (selected && selectedObjects.length > 0) flash();
-
+    $effect(() => {
+        if (selected) untrack(flash);
+    });
     onMount(() => {
         titleIndex++;
         title = title || `Vector ${titleIndex}`;
@@ -194,7 +182,7 @@
     });
 
     const toggleHide = function () {
-        arrow.visible = !arrow.visible;
+        arrows.visible = !arrows.visible;
         render();
     };
 
@@ -268,28 +256,27 @@
         const B = math.parse(t1).evaluate();
 
         tau += dt / (B - A);
-        if (tau > 1 || tau < 0) tau %= 1;
+        tau %= 1;
 
-        const T = A + (B - A) * tau;
-
-        texString1 = (Math.round(100 * T) / 100).toString();
-
-        updateVector(T);
+        updateVector(tVal);
     };
 
     // Start animating if animation changes (e.g. animating scene published)
-    $: if (animation) {
-        animate();
-    }
-    $: if (animation) {
-        animate();
-        const currentTime = $tickTock;
-        last = last || currentTime;
-        update(currentTime - last);
-        last = currentTime;
-    } else {
-        // last = null;
-    }
+    $effect(() => {
+        if (animation) untrack(animate);
+    });
+
+    $effect(() => {
+        if (animation) {
+            animate();
+            const currentTime = $tickTock;
+            last = last || currentTime;
+            update(currentTime - last);
+            last = currentTime;
+        } else {
+            last = null;
+        }
+    });
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -302,12 +289,11 @@
 >
     <ObjHeader
         bind:minimize
-        bind:selectedObjects
         {onClose}
         {toggleHide}
-        objHidden={!arrow.visible}
+        objHidden={!arrows.visible}
         {color}
-        {onSelect}
+        onSelect={(e) => selectObject(uuid, !e.shiftKey)}
     >
         <Nametag bind:title />
         <M size="sm" s={'\\langle v_1, v_2, v_3 \\rangle'} />
@@ -356,7 +342,8 @@
                 {/each}
 
                 <span class="box-1">
-                    <span class="t-box">t = {texString1}</span>
+                    <span class="t-box"><M s="t =" /><M s={displayTVal} /></span
+                    >
                 </span>
                 <input
                     type="range"

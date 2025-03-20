@@ -9,7 +9,7 @@
 </script>
 
 <script>
-    import { onMount, onDestroy, createEventDispatcher } from 'svelte';
+    import { onMount, onDestroy, untrack } from 'svelte';
     // import { slide } from 'svelte/transition';
     import * as THREE from 'three';
     import { tickTock } from '../stores';
@@ -28,28 +28,35 @@
         uuid,
         onRenderObject,
         onDestroyObject,
-        onSelect,
-        params = {
+        params = $bindable({
             a: '-1',
             b: '1',
             c: '2',
-        },
-        color = '#FFFF33',
-        title,
+        }),
+        color = $bindable('#FFFF33'),
+        title = $bindable(),
         scene,
         render,
         gridStep,
-        show,
-        animation = false,
+        show = true,
+        animation = $bindable(false),
         selected,
-        selectedObjects,
+        selectPoint,
+        selectObject,
         animate,
         onClose = () => {},
     } = $props();
 
     let tau = $state(0);
-    let last = $state();
-    let texString1 = $state('');
+    let t0 = $derived(math.parse(params.t0 ?? '0').evaluate());
+    let t1 = $derived(math.parse(params.t1 ?? '1').evaluate());
+    let tVal = $derived(t0 + tau * (t1 - t0));
+    let displayTVal = $derived(tVal.toFixed(2));
+
+    let N0 = $derived(math.parse(params.n0 ?? '0').evaluate());
+    let N1 = $derived(math.parse(params.n1 ?? '0').evaluate());
+
+    let last;
 
     let minimize = $state(false);
 
@@ -64,27 +71,10 @@
     point.position.set(1, 1, 1);
 
     points.add(point);
+    selectPoint(point);
     scene.add(points);
 
     const updatePoint = function () {
-        const { a, b, c } = params;
-        let t;
-        const { t0, t1 } = params;
-        if (t0 && t1) {
-            const A = math.evaluate(t0);
-            const B = math.evaluate(t1);
-
-            t = A + tau * (B - A);
-        } else {
-            t = 0;
-        }
-
-        let N0, N1;
-        const { n0, n1 } = params;
-
-        N0 = n0 || 0;
-        N1 = n1 || 0;
-
         while (points.children.length < N1 - N0 + 1) {
             points.add(new THREE.Mesh(pointGeo, pointMaterial));
         }
@@ -93,13 +83,14 @@
             points.remove(point);
         }
 
+        const { a, b, c } = params;
         const [A, B, C] = math.parse([a, b, c]);
 
         for (let index = N0; index <= N1; index++) {
             const point = points.children[index - N0];
 
             point.position.set(
-                ...[A, B, C].map((s) => s.evaluate({ t, n: index })),
+                ...[A, B, C].map((s) => s.evaluate({ t: tVal, n: index })),
             );
         }
 
@@ -132,7 +123,7 @@
         boxItemElement?.scrollIntoView({ behavior: 'smooth' });
     };
     $effect(() => {
-        if (selected && selectedObjects.length > 0) flash();
+        if (selected) untrack(flash);
     });
 
     onMount(() => {
@@ -221,23 +212,13 @@
     // texString1 = `t = ${Math.round(100 * T) / 100}`;
 
     const update = (dt = 0) => {
-        const { t0, t1 } = params;
-        const A = math.parse(t0).evaluate();
-        const B = math.parse(t1).evaluate();
-
-        tau += dt / (B - A);
-        if (tau > 1 || tau < 0) tau %= 1;
-
-        const T = A + (B - A) * tau;
-        texString1 = (Math.round(100 * T) / 100).toString();
-
-        updatePoint(T);
+        tau += dt / (t1 - t0);
+        tau %= 1;
+        updatePoint(tVal);
     };
     // Start animating if animation changes (e.g. animating scene published)
     $effect(() => {
-        if (animation) {
-            dispatch('animate');
-        }
+        if (animation) untrack(animate);
     });
     $effect(() => {
         if (animation) {
@@ -252,36 +233,31 @@
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
-<div
-    class="boxItem"
-    class:selected
-    bind:this={boxItemElement}
-    onkeydown={onKeyDown}
-    hidden={!show}
->
+<div class="boxItem" class:selected bind:this={boxItemElement} hidden={!show}>
     <ObjHeader
         bind:minimize
-        bind:selectedObjects
         {onClose}
         {toggleHide}
         objHidden={!point.visible}
         {color}
-        {onSelect}
+        onSelect={(e) => selectObject(uuid, !e.shiftKey)}
     >
         <Nametag bind:title />
-        <M size="sm">\langle p_1, p_2, p_3 \rangle</M>
+        <M size="sm" s={`\\langle p_1, p_2, p_3 \\rangle`} />
     </ObjHeader>
     <div hidden={minimize}>
         <div class="threedemos-container container">
             {#each ['a', 'b', 'c'] as name}
-                <span class="box-1"><M size="sm">{varNames[name]} =</M></span>
+                <span class="box-1"
+                    ><M size="sm" s={varNames[name] + ' = '} /></span
+                >
                 <InputChecker
                     value={params[name]}
                     checker={chickenParms}
                     {name}
                     {params}
-                    on:cleared={(e) => {
-                        params[name] = e.detail;
+                    cleared={(val) => {
+                        params[name] = val;
                     }}
                 />
             {/each}
@@ -291,7 +267,7 @@
                 {#each ['t0', 't1'] as name}
                     {#if name === 't1'}
                         <span class="box box-3"
-                            ><M size="sm">{'\\leq t \\leq '}</M></span
+                            ><M size="sm" s={'\\leq t \\leq '} /></span
                         >
                     {/if}
                     <InputChecker
@@ -302,14 +278,15 @@
                             Number.isFinite(math.parse(val).evaluate())}
                         value={params[name]}
                         {name}
-                        on:cleared={(e) => {
-                            params[name] = e.detail;
+                        oncleared={(val) => {
+                            params[name] = val;
                         }}
                     />
                 {/each}
 
                 <span class="box-1">
-                    <span class="t-box">t = {texString1}</span>
+                    <span class="t-box"><M s="t =" /><M s={displayTVal} /></span
+                    >
                 </span>
                 <input
                     type="range"
@@ -323,7 +300,6 @@
 
                 <PlayButtons
                     bind:animation
-                    {animate}
                     pause={() => (last = null)}
                     rew={() => {
                         tau = 0;
@@ -342,7 +318,7 @@
                     name="n0"
                 />
                 <span class="box box-3">
-                    <M size="sm">{'\\leq n \\leq '}</M>
+                    <M size="sm" s={'\\leq n \\leq '} />
                 </span>
                 <input
                     class="form-control form-control-sm box-4"

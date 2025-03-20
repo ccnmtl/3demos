@@ -53,6 +53,9 @@
         selected,
     } = $props();
 
+    // default density
+    params.mu = params.mu ?? '1';
+
     onMount(() => {
         titleIndex++;
         title = title || `Solid Region ${titleIndex}`;
@@ -103,12 +106,7 @@
 
     let nX = $state(60);
 
-    // let tau = 0;
-    // let last = null;
-    // let texString1 = '';
-
     let chooseDensity = $state(false);
-    let densityString = $state('1');
 
     // export let myId;
 
@@ -147,8 +145,8 @@
     $effect(() => {
         console.log('shader effex');
         if (chooseDensity && $densityColormap) {
-            // densityString = densityString || '1';
-            // compiledDensity = math.parse(densityString).compile();
+            // params.mu = params.mu || '1';
+            // compiledDensity = math.parse(params.mu).compile();
             // densityFunc = (x, y, z) => compiledDensity.evaluate({ x, y, z });
 
             const flatArray = new Float32Array(
@@ -158,7 +156,7 @@
             const shaderMaterial = new THREE.ShaderMaterial({
                 vertexShader: plainVertexShader,
                 fragmentShader: heatmapFragmentShader(
-                    densityString,
+                    params.mu,
                     $densityColormap,
                     $vMin,
                     $vMax,
@@ -517,7 +515,7 @@
             {#if chooseDensity}
                 <span class="box-1"><M size="sm" s="\\mu(x,y,z) =" /></span>
                 <InputChecker
-                    value={densityString}
+                    value={params.mu}
                     checker={(val) => {
                         const pos = box.geometry.attributes.position.array;
                         const N = Math.round((Math.random() * pos.length) / 3);
@@ -535,7 +533,7 @@
                     name={'mu'}
                     {params}
                     cleared={(val) => {
-                        densityString = val;
+                        params.mu = val;
                         render();
                     }}
                 />
