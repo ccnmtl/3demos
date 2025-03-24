@@ -50,7 +50,7 @@
         demoObjects.filter((obj) => obj.selected).map((obj) => obj.uuid),
     );
 
-    $inspect(selectedObjects);
+    // $inspect(selectedObjects);
 
     // The demoObjects array store is the declarative data that the scene is based on.
     // import { demoObjects } from './stores.js';
@@ -149,7 +149,7 @@
     // svelte-ignore non_reactive_update
     let currentControls = controls;
 
-    $inspect(currentControls);
+    // $inspect(currentControls);
 
     const pi = Math.PI;
 
@@ -249,18 +249,14 @@
         return needResize;
     };
 
-    let myReq,
-        last,
-        animating = false;
+    let myReq;
+    let last;
 
-    const animateIfNotAnimating = function () {
-        if (!animating) {
-            cancelAnimationFrame(myReq);
-            frameRequested = true;
-            myReq = requestAnimationFrame(animate);
-            animating = true;
-        }
-    };
+    function animateIfNotAnimating() {
+        cancelAnimationFrame(myReq);
+        frameRequested = true;
+        myReq = requestAnimationFrame(animate);
+    }
 
     const animate = (time = 0) => {
         if (debug) {
@@ -293,11 +289,9 @@
         if (scaleAnimation || demoObjects.some((b) => b.animation)) {
             myReq = requestAnimationFrame(animate);
             frameRequested = true;
-            animating = true;
         } else {
             cancelAnimationFrame(myReq);
             frameRequested = false;
-            animating = false;
             last = false;
         }
     };

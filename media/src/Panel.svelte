@@ -404,7 +404,6 @@
                                         {scene}
                                         render={requestFrameIfNotRequested}
                                         animate={animateIfNotAnimating}
-                                        bind:currentMode
                                     />
                                 </TabPane>
                                 <TabPane
@@ -555,14 +554,15 @@
                                     {#each demoObjects as dobj (dobj.uuid)}
                                         {@const KindComp =
                                             kindToComponent[dobj.kind]}
-
+                                        <!-- 
                                         <div
                                             transition:slide={{
                                                 delay: 0,
                                                 duration: 200,
                                                 easing: quintOut,
                                             }}
-                                        >
+                                        > -->
+                                        <div>
                                             <KindComp
                                                 {scene}
                                                 {onRenderObject}
