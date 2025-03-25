@@ -1,5 +1,6 @@
 <script>
     import { onMount } from 'svelte';
+    import { innerWidth } from 'svelte/reactivity/window';
 
     import * as THREE from 'three';
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -35,7 +36,7 @@
     //import stores
     import { tickTock, viewScale } from './stores.js';
 
-    let isMobileView = $state(false);
+    let isMobileView = $derived(innerWidth.current < 768);
 
     // svelte-ignore non_reactive_update
     let debug = false;
@@ -400,13 +401,6 @@
         }
     };
 
-    isMobileView = window.innerWidth < 768;
-    window.addEventListener('resize', () => {
-        requestFrameIfNotRequested();
-
-        isMobileView = window.innerWidth < 768;
-    });
-
     /**
      * onRenderObject
      *
@@ -593,6 +587,8 @@
                 );
             });
         });
+
+        window.addEventListener('resize', render);
     });
 
     function setOrthoCamBox(cam2, cam, target) {
@@ -783,9 +779,6 @@
             return;
         }
         switch (e.key) {
-            case 'm':
-                isMobileView = !isMobileView;
-                break;
             case 'Escape':
                 selectObject(null);
                 render();
@@ -992,8 +985,8 @@
 
     .demos-logo {
         position: absolute;
-        top: 5px;
-        left: 5px;
+        top: 0px;
+        left: 0px;
         z-index: 1;
     }
 

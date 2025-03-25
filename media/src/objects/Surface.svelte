@@ -217,7 +217,7 @@
     // Only run the update if the params have changed.
     // let hashTag = $derived(checksum(JSON.stringify(params)));
 
-    $inspect(params);
+    // $inspect(params);
 
     // Check midpoint of parameter space and see if all is ok.
     const chickenParms = (val, { a, b, c, d, t0, t1 }) => {
