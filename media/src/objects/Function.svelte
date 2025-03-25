@@ -6,6 +6,10 @@
     import { onMount, onDestroy, untrack } from 'svelte';
     import { slide } from 'svelte/transition';
     import * as THREE from 'three';
+    import { LineSegments2 } from 'three/addons/lines/LineSegments2.js';
+    import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
+    import { LineSegmentsGeometry } from 'three/addons/lines/LineSegmentsGeometry.js';
+
     import { create, all, neutronMassDependencies } from 'mathjs';
 
     import M from '../M.svelte';
@@ -58,8 +62,11 @@
         selectPoint,
         selectObject,
         animate,
+        camera,
         onClose = () => {},
     } = $props();
+
+    // $inspect(camera);
 
     /**
      *  "Check parameters"
@@ -94,7 +101,7 @@
     let tVal = $derived(t0 + tau * (t1 - t0));
     let displayTVal = $derived(tVal.toFixed(2));
 
-    $inspect(t0, t1);
+    // $inspect(t0, t1);
 
     let last = null;
 
@@ -102,7 +109,7 @@
     let data = $state({
         rNum: 10,
         cNum: 10,
-        nX: 50,
+        nX: 100,
         nL: 16,
         N: 1,
         s: 0,
@@ -623,7 +630,7 @@
     let levelReq;
 
     const updateLevelShift = (timestamp) => {
-        console.log('uLS', timestamp);
+        // console.log('uLS', timestamp);
         lastLevelTime = lastLevelTime || timestamp;
         const dt = (timestamp - lastLevelTime) / 1000;
         // console.log(dt, lastLevelTime, timestamp);
@@ -714,13 +721,17 @@
             });
 
             if (points.length > 1) {
-                const levelGeometry = new THREE.BufferGeometry();
+                const lsg = new THREE.BufferGeometry();
+                lsg.setFromPoints(points);
+                const lsm = new THREE.LineSegments(lsg, undefined);
 
-                levelGeometry.setFromPoints(points);
+                const levelGeometry = new LineSegmentsGeometry();
+                // levelGeometry.setFromPoints(points);
+                levelGeometry.fromLineSegments(lsm);
 
-                const levelMesh = new THREE.LineSegments(
+                const levelMesh = new LineSegments2(
                     levelGeometry,
-                    new THREE.LineBasicMaterial({
+                    new LineMaterial({
                         color: new THREE.Color().setHSL(
                             (lev - zMin) / (zMax - zMin),
                             0.5,
@@ -919,7 +930,7 @@
                     render();
                     break;
                 case 't':
-                    if (uuid === selectedObjects[selectedObjects.length - 1]) {
+                    if (selected) {
                         showTangents = !showTangents;
                         render();
                     }

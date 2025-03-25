@@ -145,7 +145,7 @@
 
     let orthoCamera = $state(false);
 
-    let currentCamera = camera;
+    let currentCamera = $state(camera);
     // svelte-ignore non_reactive_update
     let currentControls = controls;
 
