@@ -135,7 +135,7 @@
     // });
 
     $effect(() => {
-        console.log('shader effex');
+        // console.log('shader effex');
         if (chooseDensity && $densityColormap) {
             const flatArray = new Float32Array(
                 uniformColorData($densityColormap),

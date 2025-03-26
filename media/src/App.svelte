@@ -12,7 +12,7 @@
     import Settings from './settings/Settings.svelte';
     import Stats from 'stats.js';
 
-    import { filterBang } from './utils';
+    // import { filterBang } from './utils';
 
     import { getRoomId, makeSocket } from './rooms';
     import {

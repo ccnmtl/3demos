@@ -37,7 +37,6 @@
         lineMaterial,
         axesMaterial,
         axesText,
-        animation = $bindable(),
         animate,
         switchCamera,
         recenterCamera,
