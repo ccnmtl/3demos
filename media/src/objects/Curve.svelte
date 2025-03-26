@@ -48,8 +48,8 @@
 
     title = title || `Curve ${++titleIndex}`;
 
-    params.a0 = params.a0 || '0';
-    params.a1 = params.a1 || '1';
+    params.a0 = params.a0 ?? '0';
+    params.a1 = params.a1 ?? '1';
     // let animation = $state(false);
 
     let X = $derived(math.parse(params.x).compile());
