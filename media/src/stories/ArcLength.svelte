@@ -1,5 +1,5 @@
 <script>
-    import { onDestroy } from 'svelte';
+    import { onDestroy, untrack } from 'svelte';
     import { create, all } from 'mathjs';
     import { norm2 } from '../utils';
     import { demoObjects } from '../states.svelte';
@@ -41,8 +41,8 @@
 
     // eslint-enable
 
-    let hidden = false;
-    let lengthApproximation = 0;
+    let hidden = $state(false);
+    let lengthApproximation = $state(0);
 
     const exampleCurves = [
         {
@@ -55,8 +55,11 @@
                 x: 'cos(t)',
                 y: 'sin(t)',
                 z: 't / (4pi)',
+                a0: '0',
+                a1: '1',
             },
             color: '#CB44CB',
+            animation: false,
         },
         {
             uuid: crypto.randomUUID(),
@@ -68,8 +71,11 @@
                 x: 'sin(t)',
                 y: 'cos(t)',
                 z: 'cos(3t)/3 + 1/2',
+                a0: '0',
+                a1: '1',
             },
             color: '#CB44CB',
+            animation: false,
         },
         {
             uuid: crypto.randomUUID(),
@@ -81,22 +87,27 @@
                 x: 't',
                 y: 't^2',
                 z: 't^3',
+                a0: '0',
+                a1: '1',
             },
             color: '#CB44CB',
+            animation: false,
         },
         ...backupObjects.filter((obj) => obj.kind === 'curve'),
     ];
 
-    let exTitle = null;
-    let nVects = 3;
+    let exTitle = $state(
+        backupObjects.find((obj) => obj.kind === 'curve')?.title || 'Helix',
+    );
+    let nVects = $state(3);
     // let firstVectorObject = null;
 
-    const toN = (
+    function toN(
         nVects,
         plusOne = false,
         A = math.parse('0'),
         B = math.parse('1'),
-    ) => {
+    ) {
         return (node) => {
             if (node.isSymbolNode && node.name === 't') {
                 // console.log('I got one!', node.toString());
@@ -109,10 +120,17 @@
                 return node;
             }
         };
-    };
+    }
+
+    $effect(() => {
+        if (exTitle && nVects) {
+            untrack(() => {
+                addCurve(exTitle);
+            });
+        }
+    });
 
     const addCurve = function (title) {
-        exTitle = title;
         const obj = exampleCurves.find((obj) => obj.title === title);
         if (!obj) return;
         const params = obj.params;
@@ -150,10 +168,11 @@
                 x: X.transform(toN(nVects, false, A, B)),
                 y: Y.transform(toN(nVects, false, A, B)),
                 z: Z.transform(toN(nVects, false, A, B)),
-                n0: 0,
-                n1: nVects - 1,
+                n0: '0',
+                n1: `${nVects - 1}`,
             },
             color: '#BB0000',
+            animation: false,
         });
         // addVectors(nVects);
         let tot = 0;
@@ -190,9 +209,6 @@
             name="choose-curve"
             id="choose-curve"
             bind:value={exTitle}
-            on:change={() => {
-                addCurve(exTitle);
-            }}
         >
             {#each exampleCurves as { title }}
                 <option value={title}>{title}</option>
@@ -211,12 +227,12 @@
             <input
                 type="range"
                 min="1"
-                value={nVects}
+                bind:value={nVects}
                 max="40"
                 step="1"
-                on:input={(e) => {
-                    nVects = math.evaluate(e.target.value);
-                    addCurve(exTitle);
+                oninput={(e) => {
+                    // nVects = math.evaluate(e.target.value);
+                    // addCurve(exTitle);
                 }}
             />
         </span>
