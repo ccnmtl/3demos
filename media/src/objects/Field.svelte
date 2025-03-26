@@ -3,7 +3,7 @@
 </script>
 
 <script>
-    import { onMount, onDestroy, createEventDispatcher, untrack } from 'svelte';
+    import { onMount, onDestroy, untrack } from 'svelte';
     import * as THREE from 'three';
     import { create, all, e } from 'mathjs';
 
@@ -343,7 +343,7 @@
         maxLength = initFlowArrows(flowArrows, gridMax, params.nVec);
         updateFlowArrows(flowArrows, fieldF, 0);
         render();
-        if (animation) dispatch('animate');
+        if (animation) animate();
     });
     onDestroy(() => {
         onDestroyObject(flowArrows);
@@ -408,7 +408,7 @@
                     flowArrows.visible = true;
                     animation = !animation;
                     if (animation) {
-                        dispatch('animate');
+                        animate();
                     }
                     render();
                     break;
