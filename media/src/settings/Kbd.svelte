@@ -1,7 +1,5 @@
 <script>
-    import { derived } from 'svelte/store';
-    import { demoObjects } from '../stores';
-    import { randomInt } from 'mathjs';
+    import { demoObjects } from '../states.svelte';
 
     //shortcut registry
     // register keyboard shortcuts when present
@@ -11,6 +9,7 @@
         BkSp: 'Show/hide selected',
         h: 'Show/hide panel',
         m: 'Toggle mobile view',
+        c: 'Center camera on selected point',
         Esc: 'Deselect all',
         '[/]': 'Select previous/next object',
         '{/}': 'Group  previous/next object',
@@ -22,12 +21,14 @@
             name: 'Space Curve',
             shortcuts: {
                 Shift: 'Select point with mouse',
-                c: 'Center camera on selected point',
+                a: 'Show second derivative',
                 o: 'Show/hide osculating circle',
                 p: 'Play/pause animation',
                 r: 'Reset animation',
                 s: 'Toggle parametrize by arc length',
                 t: 'Show/hide position/tangent/2nd deriv',
+                v: 'Show tangent vector',
+                x: 'Show position vector',
             },
         },
         {
@@ -35,7 +36,6 @@
             name: 'Function Graph',
             shortcuts: {
                 Shift: 'Select point with mouse',
-                c: 'Center camera on selected point',
                 i: 'Show/hide Riemann sum boxes',
                 l: 'Show/hide level curves',
                 n: 'Show/hide normal vector',
@@ -53,7 +53,6 @@
             name: 'Level Surface',
             shortcuts: {
                 Shift: 'Select point with mouse',
-                c: 'Center camera on selected point',
                 n: 'Show/hide normal vector',
                 t: 'Show/hide tangent frame',
                 y: 'Show/hide tangent plane',
@@ -96,7 +95,6 @@
             name: 'Parametric Surface',
             shortcuts: {
                 Shift: 'Select point with mouse',
-                c: 'Center camera on selected point',
                 n: 'Show/hide normal vector',
                 p: 'Play/pause animation',
                 r: 'Reset animation',
@@ -106,11 +104,11 @@
         },
     ];
 
-    (entry) => $demoObjects.some((obj) => obj.kind === entry.type);
+    // (entry) => demoObjects.some((obj) => obj.kind === entry.type);
 
-    const kbdItems = derived(demoObjects, (d) =>
+    const kbdItems = $derived(
         kbdShortcuts.filter((entry) =>
-            d.some((obj) => obj.kind === entry.kind),
+            demoObjects.some((obj) => obj.kind === entry.kind),
         ),
     );
 </script>
@@ -129,7 +127,7 @@
         </div>
     {/each}
     <hr />
-    {#each $kbdItems as { name, shortcuts }}
+    {#each kbdItems as { name, shortcuts }}
         <h5>{name}</h5>
 
         {#each Object.entries(shortcuts) as [k, v]}

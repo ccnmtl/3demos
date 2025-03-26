@@ -194,7 +194,7 @@ export function evaluate_cmap(x, name, reverse) {
 
   // Ensure that the value of `x` is valid (i.e., 0 <= x <= 1)
   if (!(0 <= x <= 1)) {
-    alert('Illegal value for x! Must be in [0, 1].')
+    alert('Illegal value for x! Must be in [0, 1].');
   }
 
   // Ensure that `name` is a valid colormap
@@ -238,11 +238,56 @@ function qualitative(x, colors) {
 
 function partial(name) {
   if (name.endsWith('_r')) {
-    return function (x) { return evaluate_cmap(x, name.substring(0, name.length - 2), true) };
+    return function (x) { return evaluate_cmap(x, name.substring(0, name.length - 2), true); };
   } else {
-    return function (x) { return evaluate_cmap(x, name, false) };
+    return function (x) { return evaluate_cmap(x, name, false); };
   }
 
 }
 
 export const colorMapNames = Object.keys(data);
+
+/**
+ * Formats the color data for a GLSL fragment shader
+ * @param {string} name 
+ * @returns string
+ */
+export function cmToGLSLfunc(name) {
+  let out = `\nint N = ${data[name].colors.length};\n`;
+  out += `\nvec3 colorData[${data[name].colors.length}] = vec3[](${data[name].colors.map((c) => `vec3(${c[0]},${c[1]},${c[2]})`).join(',')});\n`;
+  out += `\nvec3 color(float t) {
+    int j = 0;
+    float ix = t*float(N);
+    while (float(j + 1) < ix) {
+      j++;
+    }
+    return ${data[name].interpolate ? 'mix(colorData[j], colorData[j+1], fract(ix));' : 'colorData[j];'}
+  }\n`;
+
+  return out;
+}
+
+/**
+ * Formats the color data for a GLSL fragment shader
+ * @param {string} name 
+ * @returns string
+ */
+export function cmToGLSLUniformFunc(name) {
+  const N = data[name].colors.length;
+  let out = `\nint N = ${N};\n`;
+  out += `\nuniform vec3 colorData[${N}]; \n`;
+  out += `\nvec3 color(float t) {
+    int j = 0;
+    float ix = t*float(N);
+    while (float(j + 1) < ix) {
+      j++;
+    }
+    return ${data[name].interpolate ? 'mix(colorData[j], colorData[j+1], fract(ix));' : 'colorData[j];'}
+  }\n`;
+
+  return out;
+}
+
+export function uniformColorData(name) {
+  return data[name].colors.flat();
+}

@@ -1,53 +1,56 @@
 <script>
-    export let minimize;
-    export let onClose;
-    export let color;
-    export let objHidden = null;
-    export let selectedObjects;
-    export let onSelect = function () {};
-    export let toggleHide = function () {};
+    let {
+        minimize = $bindable(false),
+        onClose,
+        color,
+        objHidden,
+        onSelect,
+        toggleHide = () => {},
+        children,
+    } = $props();
 </script>
 
 <div class="box-title">
     <span>
         <strong style="color: {color};">
-            <i class="fa fa-square" />
+            <i class="fa fa-square"></i>
         </strong>
         <a
             href={'#'}
             class="link-light"
             title="Select object"
-            on:click|preventDefault={(e) => {
-                if (e.shiftKey) {
-                    onSelect();
-                } else {
-                    selectedObjects = [];
-                    onSelect();
-                }
+            onclick={(e) => {
+                e.preventDefault();
+                onSelect(e);
             }}
         >
-            <slot />
+            {@render children?.()}
         </a>
     </span>
     <div class="item-header">
-        {#if objHidden != null}
-            <button
-                title={(objHidden ? 'Show' : 'Hide') + 'object'}
-                on:click={toggleHide}
-            >
-                <i class={'fa fa-eye' + (objHidden ? '-slash' : '')} />
-            </button>
-        {/if}
+        <button
+            title={(objHidden ? 'Show' : 'Hide') + 'object'}
+            onclick={toggleHide}
+            aria-label="Hide/Show"
+        >
+            <i class="fa fa-eye{!objHidden ? '-slash' : ''}"></i>
+        </button>
         <button
             title={(minimize ? 'Reveal ' : 'Collapse ') + 'object parameters'}
-            on:click={() => {
+            onclick={() => {
                 minimize = !minimize;
             }}
+            aria-label={(minimize ? 'Reveal ' : 'Collapse ') +
+                'object parameters'}
         >
-            <i class="fa fa-window-minimize" />
+            <i class="fa fa-window-{minimize ? 'maximize' : 'minimize'}"></i>
         </button>
-        <button title="Remove object" on:click={onClose}>
-            <i class="fa fa-window-close" />
+        <button
+            title="Remove object"
+            onclick={onClose}
+            aria-label="Close/delete object"
+        >
+            <i class="fa fa-window-close"></i>
         </button>
     </div>
 </div>

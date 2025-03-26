@@ -1,24 +1,26 @@
 <script>
+    import Blank from './stories/Blank.svelte';
     import ArcLength from './stories/ArcLength.svelte';
     import Linear from './stories/Linear.svelte';
     import PathIntegral from './stories/PathIntegral.svelte';
     import SurfaceArea from './stories/SurfaceArea.svelte';
     import FluxIntegral from './stories/FluxIntegral.svelte';
 
-    export let scene;
-    export let render;
-    export let currentMode;
+    let { scene, render, animate = () => {} } = $props();
 
-    let currentStory = null;
+    /**
+     * @type {typeof import('./stories/Blank.svelte').default}
+     */
+    let CurrentStory = $state(Blank);
 </script>
 
 <div class="btn-group mb-2">
     <select
-        bind:value={currentStory}
+        bind:value={CurrentStory}
         class="demos-obj-select form-select bg-primary border-primary text-light"
         name="story-selector"
     >
-        <option value={null}>Select Story...</option>
+        <option value={Blank}>Select Story...</option>
         <option value={ArcLength}>Arc Length</option>
         <option value={Linear}>Linearization</option>
         <option value={PathIntegral}>Path Integrals</option>
@@ -27,16 +29,9 @@
     </select>
 </div>
 
-{#if currentMode === 'story' && currentStory}
-    <div class="story-content-box">
-        <svelte:component this={currentStory} {scene} {render} on:animate />
-    </div>
-{:else}
-    <p>
-        This is Story Mode. It is in development. Choose a topic to learn more
-        theory, see guided examples, and try out exercises.
-    </p>
-{/if}
+<div class="story-content-box">
+    <CurrentStory {scene} {render} {animate} />
+</div>
 
 <style>
     .demos-obj-select {

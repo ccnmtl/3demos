@@ -3,9 +3,10 @@
 </script>
 
 <article>
-    <M display>
-        {'L(\\mathbf x) = f(\\mathbf a) + \\nabla f(\\mathbf a)) \\cdot (\\mathbf x - \\mathbf a)'}
-    </M>
+    <M
+        display
+        s={'L(\\mathbf x) = f(\\mathbf a) + \\nabla f(\\mathbf a)) \\cdot (\\mathbf x - \\mathbf a)'}
+    />
 
     <p>Coming soon...</p>
 

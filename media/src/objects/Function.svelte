@@ -1,12 +1,16 @@
-<script context="module">
+<script module>
     let titleIndex = 0;
 </script>
 
 <script>
-    import { onMount, onDestroy, createEventDispatcher } from 'svelte';
+    import { onMount, onDestroy, untrack } from 'svelte';
     import { slide } from 'svelte/transition';
     import * as THREE from 'three';
-    import { create, all } from 'mathjs';
+    import { LineSegments2 } from 'three/addons/lines/LineSegments2.js';
+    import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
+    import { LineSegmentsGeometry } from 'three/addons/lines/LineSegmentsGeometry.js';
+
+    import { create, all, neutronMassDependencies } from 'mathjs';
 
     import M from '../M.svelte';
     import ObjHeader from './ObjHeader.svelte';
@@ -24,8 +28,6 @@
         axis: 'y',
     };
 
-    const dispatch = createEventDispatcher();
-
     import {
         lcm,
         marchingSegments,
@@ -37,18 +39,34 @@
     } from '../utils.js';
     import { flashDance } from '../sceneUtils';
 
-    export let uuid;
-    export let onRenderObject = function () {};
-    export let onDestroyObject = function () {};
-    export let onSelect = function () {};
+    let {
+        uuid,
+        onRenderObject,
+        onDestroyObject,
+        params = $bindable({
+            a: '-2',
+            b: '2',
+            c: '-2',
+            d: '1 + sin(pi*x)/4',
+            z: 'exp(-(1 - (x^2 + y^2))^2)',
+        }),
+        color = $bindable('#FFFF33'),
+        title = $bindable(),
+        scene,
+        render,
+        gridStep,
+        show = true,
+        showLevelCurves = false,
+        animation = $bindable(false),
+        selected,
+        selectPoint,
+        selectObject,
+        animate,
+        camera,
+        onClose = () => {},
+    } = $props();
 
-    export let params = {
-        a: '-2',
-        b: '2',
-        c: '-2',
-        d: '1 + sin(pi*x)/4',
-        z: 'exp(-(1 - (x^2 + y^2))^2)',
-    };
+    // $inspect(camera);
 
     /**
      *  "Check parameters"
@@ -63,14 +81,6 @@
             const D = math.parse(d).evaluate({ x: (A + B) / 2 });
             const parsedVal = math.parse(val);
 
-            let t0, t1;
-            if (dependsOn({ val }, 't')) {
-                params.t0 = params.t0 || '0';
-                params.t1 = params.t1 || '1';
-
-                t0 = math.parse(params.t0).evaluate();
-                t1 = math.parse(params.t1).evaluate();
-            }
             valuation = Number.isFinite(
                 parsedVal.evaluate({
                     x: (A + B) / 2,
@@ -84,16 +94,22 @@
         }
         return valuation;
     };
-    export let color = '#3232ff';
 
-    let texString1 = '';
+    let tau = $state(0);
+    let t0 = $derived(math.parse(params.t0 ?? '0').evaluate());
+    let t1 = $derived(math.parse(params.t1 ?? '1').evaluate());
+    let tVal = $derived(t0 + tau * (t1 - t0));
+    let displayTVal = $derived(tVal.toFixed(2));
+
+    // $inspect(t0, t1);
+
     let last = null;
 
     // Better called "meta-parameters" these are internal values that can stay in the component.
-    let data = {
+    let data = $state({
         rNum: 10,
         cNum: 10,
-        nX: 50,
+        nX: 100,
         nL: 16,
         N: 1,
         s: 0,
@@ -101,24 +117,9 @@
         samp: 0,
         levelDelta: -1,
         shiftLevel: 0.0,
-    };
-    let tau = 0;
-    // let animateLevels = false;
+    });
 
-    export let camera;
-    export let controls;
-    export let gridStep;
-    export let showLevelCurves = false;
-    export let scene;
-    export let render = () => {};
-    export let onClose = () => {};
-    export let animation = false;
-    export let selected;
-    export let selectedObjects;
-    export let selectedPoint;
-    export let title;
-
-    let minimize = false;
+    let minimize = $state(false);
 
     const colorMaterial = new THREE.MeshPhongMaterial({
         color: 0xffffff,
@@ -134,15 +135,21 @@
     });
 
     // Tangents
-    let showTangents = false;
-    let choosingPoint = false;
+    let showTangents = $state(false);
+    let choosingPoint = $state(false);
     const pointMaterial = new THREE.MeshLambertMaterial({ color: 0xffff33 });
     const point = new THREE.Mesh(
         new THREE.SphereGeometry(gridStep / 8, 16, 16),
         pointMaterial,
     );
     point.position.set(1, 1, 1);
-    $: point.visible = showTangents;
+
+    $effect(() => {
+        point.visible = showTangents;
+    });
+    $effect(() => {
+        if (selected) selectPoint(point);
+    });
 
     const arrowParams = {
         radiusTop: gridStep / 10,
@@ -201,12 +208,10 @@
     scene.add(point);
 
     // Compile main function
-    let func;
-
-    $: {
+    let func = $derived.by(() => {
         const z = math.parse(params.z).compile();
-        func = (x, y, t) => z.evaluate({ x, y, t });
-    }
+        return (x, y, t) => z.evaluate({ x, y, t });
+    });
 
     const tangentVectors = function () {
         // const arrowParams = {
@@ -216,17 +221,13 @@
         // };
 
         const dx = 0.001;
-        const [A, B] = [params.t0, params.t1].map((x) =>
-            math.parse(x).evaluate(),
-        );
-        const t = A + tau * (B - A);
 
         const x = point.position.x;
         const y = point.position.y;
 
-        const f0 = func(x, y, t);
-        const fx = (func(x + dx / 2, y, t) - func(x - dx / 2, y, t)) / dx;
-        const fy = (func(x, y + dx / 2, t) - func(x, y - dx / 2, t)) / dx;
+        const f0 = func(x, y, tVal);
+        const fx = (func(x + dx / 2, y, tVal) - func(x - dx / 2, y, tVal)) / dx;
+        const fy = (func(x, y + dx / 2, tVal) - func(x, y - dx / 2, tVal)) / dx;
 
         for (let key of Object.keys(arrows)) {
             const geo = arrows[key].geometry;
@@ -288,7 +289,7 @@
         linewidth: 4,
     });
 
-    let materialOpacity = 0.8;
+    let materialOpacity = $state(0.8);
 
     const plusMaterial = new THREE.MeshPhongMaterial({
         color: color,
@@ -296,7 +297,6 @@
         side: THREE.FrontSide,
         vertexColors: false,
         transparent: true,
-        opacity: materialOpacity,
         depthTest: true,
     });
     const minusMaterial = new THREE.MeshPhongMaterial({
@@ -305,7 +305,6 @@
         side: THREE.BackSide,
         vertexColors: false,
         transparent: true,
-        opacity: materialOpacity,
     });
 
     // Set other side a complementary color.
@@ -324,16 +323,16 @@
 
     let surfaceMesh = new THREE.Object3D();
 
+    let graphVisible = $state(true);
+    $effect(() => (surfaceMesh.visible = graphVisible));
+
     const updateSurface = function () {
-        const { a, b, c, d, t0, t1 } = params;
+        const { a, b, c, d } = params;
         const A = math.parse(a).evaluate();
         const B = math.parse(b).evaluate();
-        const T0 = math.parse(t0).evaluate();
-        const T1 = math.parse(t1).evaluate();
+
         const C = math.parse(c);
         const D = math.parse(d);
-
-        const time = T0 + tau * (T1 - T0);
 
         const geometry = new ParametricGeometry(
             (u, v, vec) => {
@@ -343,7 +342,7 @@
 
                 const V = (1 - v) * cU + v * dU;
 
-                vec.set(U, V, func(U, V, time));
+                vec.set(U, V, func(U, V, tVal));
             },
             data.nX,
             data.nX,
@@ -383,13 +382,15 @@
             scene.add(surfaceMesh);
         }
 
-        point.position.z = func(point.position.x, point.position.y, time);
+        point.position.z = func(point.position.x, point.position.y, tVal);
 
         tangentVectors();
 
         if (showLevelCurves) {
             updateLevels();
         }
+
+        if (showLevelCurves) updateLevels();
 
         if (boxMesh.visible) {
             updateBoxes();
@@ -403,12 +404,8 @@
 
         const A = math.parse(a).evaluate();
         const B = math.parse(b).evaluate();
-        const T0 = math.parse(t0).evaluate();
-        const T1 = math.parse(t1).evaluate();
         const C = math.parse(c).compile();
         const D = math.parse(d).compile();
-
-        const time = T0 + tau * (T1 - T0);
 
         const du = (B - A) / rNum;
         const dx = (B - A) / lcm(nX, cNum);
@@ -422,14 +419,14 @@
             // args.x = u;
             // args.y = cU;
 
-            points.push(new THREE.Vector3(u, cU, func(u, cU, time)));
+            points.push(new THREE.Vector3(u, cU, func(u, cU, tVal)));
             for (let v = cU + dy; v < dU; v += dy) {
                 // args.y = v;
-                points.push(new THREE.Vector3(u, v, func(u, v, time)));
-                points.push(new THREE.Vector3(u, v, func(u, v, time)));
+                points.push(new THREE.Vector3(u, v, func(u, v, tVal)));
+                points.push(new THREE.Vector3(u, v, func(u, v, tVal)));
             }
             // args.y = D;
-            points.push(new THREE.Vector3(u, dU, func(u, dU, time)));
+            points.push(new THREE.Vector3(u, dU, func(u, dU, tVal)));
         }
 
         // v-Meshes
@@ -454,21 +451,21 @@
             for (let u = A; u <= B - dx + tol; u += dx) {
                 // args.x = u;
                 if (C.evaluate({ x: u }) <= v && v <= D.evaluate({ x: u })) {
-                    points.push(new THREE.Vector3(u, v, func(u, v, time)));
+                    points.push(new THREE.Vector3(u, v, func(u, v, tVal)));
                     if (nextZero < u + dx) {
                         // args.x = nextZero;
                         points.push(
                             new THREE.Vector3(
                                 nextZero,
                                 v,
-                                func(nextZero, v, time),
+                                func(nextZero, v, tVal),
                             ),
                         );
                         nextZero = zs.shift();
                     } else {
                         // args.x = u + dx;
                         points.push(
-                            new THREE.Vector3(u + dx, v, func(u + dx, v, time)),
+                            new THREE.Vector3(u + dx, v, func(u + dx, v, tVal)),
                         );
                     }
                 } else {
@@ -478,13 +475,13 @@
                             new THREE.Vector3(
                                 nextZero,
                                 v,
-                                func(nextZero, v, time),
+                                func(nextZero, v, tVal),
                             ),
                         );
                         nextZero = zs.shift();
                         // args.x = u + dx;
                         points.push(
-                            new THREE.Vector3(u + dx, v, func(u + dx, v, time)),
+                            new THREE.Vector3(u + dx, v, func(u + dx, v, tVal)),
                         );
                     }
                 }
@@ -496,7 +493,7 @@
     };
 
     const evolveSurface = function (t) {
-        boxMesh.visible = false;
+        boxMeshVisible = false;
 
         // the front and back surfaces share a geometry. The meshlines are separate
         for (let j = 0; j < 3; j += 2) {
@@ -572,23 +569,24 @@
     /**
      * Reactivity, REE-ac-tivity
      */
-    $: isDynamic = dependsOn(params, 't');
-    $: hashTag = checksum(JSON.stringify(params));
-    $: hashTag, updateSurface();
+    let isDynamic = $derived(dependsOn(params, 't'));
+
+    $effect(() => {
+        [params.z, params.a, params.b, params.c, params.d];
+        untrack(updateSurface);
+    });
+
+    // $effect(updateSurface);
 
     // Keep color fresh
-    $: {
+    $effect(() => {
         plusMaterial.color.set(color);
         const hsl = {};
         plusMaterial.color.getHSL(hsl);
         hsl.h = (hsl.h + 0.618033988749895) % 1;
         minusMaterial.color.setHSL(hsl.h, hsl.s, hsl.l);
         render();
-    }
-
-    $: if (selectedObjects[selectedObjects.length - 1] === uuid) {
-        selectedPoint = point;
-    }
+    });
 
     let boxItemElement;
     /**
@@ -598,47 +596,41 @@
         surfaceMesh.children.map((mesh) => flashDance(mesh, render));
         boxItemElement?.scrollIntoView({ behavior: 'smooth' });
     };
-    $: if (selected && selectedObjects.length > 0) flash();
+
+    $effect(() => {
+        if (selected) untrack(flash);
+    });
 
     const update = function (dt) {
-        const t0 = math.parse(params.t0).evaluate();
-        const t1 = math.parse(params.t1).evaluate();
+        tau += dt / (t1 - t0);
+        tau %= 1;
 
-        texString1 = (
-            Math.round(100 * (t0 + tau * (t1 - t0))) / 100
-        ).toString();
-
-        if (animation) {
-            tau += dt / (t1 - t0);
-            tau %= 1;
-            const t = t0 + tau * (t1 - t0);
-
-            evolveSurface(t);
-        }
+        evolveSurface(tVal);
 
         render();
     };
 
     // Reacts once when `animation` changes
     // Useful it the objects file is updated with new flag
-    $: if (animation) {
-        dispatch('animate');
-    }
-
-    // Reacts when `animation` or the ticktock store change
-    $: if (animation) {
-        const currentTime = $tickTock;
-        last = last || currentTime;
-        update(currentTime - last);
-        last = currentTime;
-    } else {
-        last = null;
-    }
+    $effect(() => {
+        if (animation) untrack(animate);
+    });
+    $effect(() => {
+        if (animation) {
+            const currentTime = $tickTock;
+            last = last || currentTime;
+            update(currentTime - last);
+            last = currentTime;
+        } else {
+            last = null;
+        }
+    });
 
     let lastLevelTime = null;
     let levelReq;
 
     const updateLevelShift = (timestamp) => {
+        // console.log('uLS', timestamp);
         lastLevelTime = lastLevelTime || timestamp;
         const dt = (timestamp - lastLevelTime) / 1000;
         // console.log(dt, lastLevelTime, timestamp);
@@ -668,23 +660,22 @@
         render();
     };
 
-    const changeLevels = function (t) {
-        for (let index = 0; index < levelHolder.children.length; index++) {
-            const element = levelHolder.children[index];
+    function changeLevels(t) {
+        for (let element of levelHolder.children) {
             element.position.set(0, 0, shiftInterpolation(t, element.level));
         }
-    };
+    }
 
-    const updateLevels = function () {
+    function updateLevels() {
         for (let index = levelHolder.children.length - 1; index >= 0; index--) {
             const element = levelHolder.children[index];
             element.geometry.dispose();
             levelHolder.remove(element);
         }
         const { a, b, c, d } = params;
-        const t0 = math.parse(params.t0).evaluate();
-        const t1 = math.parse(params.t1).evaluate();
-        const t = t0 + tau * (t1 - t0);
+        // const t0 = math.parse(params.t0).evaluate();
+        // const t1 = math.parse(params.t1).evaluate();
+        // const t = t0 + tau * (t1 - t0);
         let C = 0,
             D = 0,
             zMin = 0,
@@ -703,7 +694,7 @@
                 const Z = func(
                     A + ((B - A) * i) / data.nL,
                     C + ((D - C) * j) / data.nL,
-                    t,
+                    tVal,
                 );
                 zMin = Math.min(zMin, Z);
                 zMax = Math.max(zMax, Z);
@@ -717,7 +708,7 @@
         ) {
             const points = marchingSquares({
                 f: (x, y) => {
-                    return func(x, y, t);
+                    return func(x, y, tVal);
                 },
                 xmin: A,
                 xmax: B,
@@ -730,13 +721,17 @@
             });
 
             if (points.length > 1) {
-                const levelGeometry = new THREE.BufferGeometry();
+                const lsg = new THREE.BufferGeometry();
+                lsg.setFromPoints(points);
+                const lsm = new THREE.LineSegments(lsg, undefined);
 
-                levelGeometry.setFromPoints(points);
+                const levelGeometry = new LineSegmentsGeometry();
+                // levelGeometry.setFromPoints(points);
+                levelGeometry.fromLineSegments(lsm);
 
-                const levelMesh = new THREE.LineSegments(
+                const levelMesh = new LineSegments2(
                     levelGeometry,
-                    new THREE.LineBasicMaterial({
+                    new LineMaterial({
                         color: new THREE.Color().setHSL(
                             (lev - zMin) / (zMax - zMin),
                             0.5,
@@ -764,24 +759,28 @@
             0,
             shiftInterpolation(data.shiftLevel, curveBall.level),
         );
-    };
+    }
 
-    $: {
+    $effect(() => {
         if (showLevelCurves) {
-            updateLevels();
+            untrack(updateLevels);
             levelHolder.visible = true;
         } else {
             levelHolder.visible = false;
         }
         render();
-    }
+    });
 
     // For drawing Riemann sums
-    //  - Construct boxes overdomain of function with height given
+    //  - Construct boxes over domain of function with height given
     // by the function value at that location
+
     const boxMesh = new THREE.Mesh();
     boxMesh.material = colorMaterial;
-    boxMesh.visible = false;
+
+    let boxMeshVisible = $state(false);
+    $effect(() => (boxMesh.visible = boxMeshVisible));
+
     scene.add(boxMesh);
     const boxMeshEdges = new THREE.LineSegments(
         new THREE.BufferGeometry(),
@@ -825,11 +824,9 @@
         titleIndex++;
         title = title || `Graph ${titleIndex}`;
 
-        params.t0 = params.t0 || '0';
-        params.t1 = params.t1 || '1';
         updateSurface();
         updateBoxes();
-        if (animation) dispatch('animate');
+        // if (animation) dispatch('animate');
     });
 
     onDestroy(() => {
@@ -898,7 +895,7 @@
     };
 
     const toggleHide = function () {
-        surfaceMesh.visible = !surfaceMesh.visible;
+        graphVisible = !graphVisible;
         render();
     };
 
@@ -929,11 +926,11 @@
                     render();
                     break;
                 case 'Backspace':
-                    surfaceMesh.visible = !surfaceMesh.visible;
+                    graphVisible = !graphVisible;
                     render();
                     break;
                 case 't':
-                    if (uuid === selectedObjects[selectedObjects.length - 1]) {
+                    if (selected) {
                         showTangents = !showTangents;
                         render();
                     }
@@ -998,60 +995,58 @@
     window.addEventListener('click', onMouseClick);
 </script>
 
-<!-- svelte-ignore a11y-no-static-element-interactions -->
-<div class="boxItem" class:selected bind:this={boxItemElement} on:keydown>
+<!-- snippets -->
+{#snippet intervalEndPtInput(nm, gridno)}
+    <InputChecker
+        className="form-control form-control-sm box-{gridno}"
+        checker={(val) => Number.isFinite(math.parse(val).evaluate())}
+        value={params[nm]}
+        name={nm}
+        cleared={(val) => {
+            params[nm] = val;
+        }}
+    />
+{/snippet}
+
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<div class="boxItem" class:selected bind:this={boxItemElement}>
     <ObjHeader
         bind:minimize
-        bind:selectedObjects
         {onClose}
         {toggleHide}
-        objHidden={!surfaceMesh.visible}
+        objHidden={!point.visible}
         {color}
-        {onSelect}
+        onSelect={(e) => selectObject(uuid, !e.shiftKey)}
     >
         <Nametag bind:title />
     </ObjHeader>
     <div hidden={minimize}>
         <div class="threedemos-container container">
             <span class="box-1">
-                <M size="sm">f(x,y[,t]) =</M>
+                <M size="sm" s="f(x,y[,t]) =" />
             </span>
             <InputChecker
                 value={params['z']}
                 checker={chickenParms}
                 name={'z'}
                 {params}
-                on:cleared={(e) => {
-                    params['z'] = e.detail;
+                cleared={(val) => {
+                    params['z'] = val;
                     // updateSurface();
                 }}
             />
 
-            {#each ['a', 'b'] as name}
-                {#if name === 'b'}
-                    <span class="box box-3"
-                        ><M size="sm">{'\\leq x \\leq '}</M></span
-                    >
-                {/if}
-                <InputChecker
-                    className="form-control form-control-sm {name === 'a'
-                        ? 'box-1'
-                        : 'box-4'}"
-                    checker={(val) =>
-                        Number.isFinite(math.parse(val).evaluate())}
-                    value={params[name]}
-                    {name}
-                    on:cleared={(e) => {
-                        params[name] = e.detail;
-                    }}
-                />
-            {/each}
+            {@render intervalEndPtInput('a', '1')}
+            <span class="box box-3">
+                <M size="sm" s={'\\leq x \\leq '} />
+            </span>
+            {@render intervalEndPtInput('b', '4')}
 
             {#each ['c', 'd'] as name}
                 {#if name === 'd'}
-                    <span class="box box-3"
-                        ><M size="sm">{'\\leq y \\leq '}</M></span
-                    >
+                    <span class="box box-3">
+                        <M size="sm" s={'\\leq y \\leq '} />
+                    </span>
                 {/if}
                 <InputChecker
                     className="form-control form-control-sm {name === 'c'
@@ -1073,8 +1068,8 @@
                     }}
                     value={params[name]}
                     {name}
-                    on:cleared={(e) => {
-                        params[name] = e.detail;
+                    cleared={(val) => {
+                        params[name] = val;
                     }}
                 />
             {/each}
@@ -1086,7 +1081,7 @@
                 min="10"
                 max="60"
                 step="5"
-                on:input={updateSurface}
+                oninput={updateSurface}
                 class="box box-2"
             />
             <span class="box-1"> Levels </span>
@@ -1097,18 +1092,18 @@
                     id="showLevels"
                     bind:checked={showLevelCurves}
                 />
-                <span class="slider round" />
+                <span class="slider round"></span>
             </label>
             <span class="box-4">
                 <button
                     class="btn box-4"
-                    on:click={activateLevelElevator}
+                    onclick={activateLevelElevator}
                     class:hidden={!showLevelCurves}
                 >
                     {#if data.levelDelta === 1}
-                        Up <i class="fa fa-caret-up" />
+                        Up <i class="fa fa-caret-up"></i>
                     {:else}
-                        Down <i class="fa fa-caret-down" />
+                        Down <i class="fa fa-caret-down"></i>
                     {/if}
                 </button>
             </span>
@@ -1118,36 +1113,22 @@
                     type="checkbox"
                     name="graphVisible"
                     id="graphVisible"
-                    bind:checked={surfaceMesh.visible}
-                    on:change={render}
+                    bind:checked={graphVisible}
+                    onchange={render}
                 />
-                <span class="slider round" />
+                <span class="slider round"></span>
             </label>
 
             {#if isDynamic}
-                <!-- <div class="dynamic-container" transition:slide|global> -->
-                {#each ['t0', 't1'] as name}
-                    {#if name === 't1'}
-                        <span class="box box-3"
-                            ><M size="sm">{'\\leq t \\leq '}</M></span
-                        >
-                    {/if}
-                    <InputChecker
-                        className="form-control form-control-sm {name === 't0'
-                            ? 'box-1'
-                            : 'box-4'}"
-                        checker={(val) =>
-                            Number.isFinite(math.parse(val).evaluate())}
-                        value={params[name]}
-                        {name}
-                        on:cleared={(e) => {
-                            params[name] = e.detail;
-                        }}
-                    />
-                {/each}
+                {@render intervalEndPtInput('t0', '1')}
+                <span class="box box-3">
+                    <M size="sm" s={'\\leq t \\leq '} />
+                </span>
+                {@render intervalEndPtInput('t1', '4')}
 
                 <span class="box-1">
-                    <span class="t-box">t = {texString1}</span>
+                    <span class="t-box"><M s="t =" /><M s={displayTVal} /></span
+                    >
                 </span>
                 <input
                     type="range"
@@ -1155,12 +1136,8 @@
                     min="0"
                     max="1"
                     step="0.001"
-                    on:input={() => {
-                        const t0 = math.evaluate(params.t0);
-                        const t1 = math.evaluate(params.t1);
-                        const t = t0 + tau * (t1 - t0);
-                        texString1 = (Math.round(100 * t) / 100).toString();
-                        evolveSurface(t);
+                    oninput={() => {
+                        evolveSurface(tVal);
                         render();
                     }}
                     class="box box-2"
@@ -1168,9 +1145,8 @@
 
                 <PlayButtons
                     bind:animation
-                    on:animate
-                    on:pause={() => (last = null)}
-                    on:rew={() => {
+                    pause={() => (last = null)}
+                    rew={() => {
                         tau = 0;
                     }}
                 />
@@ -1184,15 +1160,15 @@
                     name="frameVisible"
                     id="frameVisible"
                     bind:checked={showTangents}
-                    on:change={render}
+                    onchange={render}
                 />
-                <span class="slider round" />
+                <span class="slider round"></span>
             </label>
             {#if showTangents}
                 {#if choosingPoint}
                     <button
                         class="box box-2 btn btn-secondary"
-                        on:click={(e) => {
+                        onclick={(e) => {
                             e.stopImmediatePropagation();
                             choosingPoint = false;
                         }}>Cancel</button
@@ -1200,7 +1176,7 @@
                 {:else}
                     <button
                         class="box box-2 btn btn-primary"
-                        on:click={(e) => {
+                        onclick={(e) => {
                             e.stopImmediatePropagation();
                             choosingPoint = true;
                         }}>Select point</button
@@ -1224,7 +1200,7 @@
                 min="0"
                 max="1"
                 step="0.05"
-                on:input={() => {
+                oninput={() => {
                     plusMaterial.opacity = materialOpacity;
                     minusMaterial.opacity = materialOpacity;
                     render();
@@ -1237,19 +1213,19 @@
                     type="checkbox"
                     name="doIntegral"
                     id="doIntegral"
-                    bind:checked={boxMesh.visible}
-                    on:change={() => {
-                        if (boxMesh.visible) {
+                    bind:checked={boxMeshVisible}
+                    onchange={() => {
+                        if (boxMeshVisible) {
                             updateBoxes();
                         }
                         render();
                     }}
                 />
-                <span class="slider round" />
+                <span class="slider round"></span>
             </label>
-            {#if boxMesh.visible}
+            {#if boxMeshVisible}
                 <span class="box-1" transition:slide={transParams}>
-                    <M size="sm">N</M>
+                    <M size="sm" s="N" />
                 </span>
                 <input
                     transition:slide={transParams}
@@ -1258,7 +1234,7 @@
                     min="1"
                     max="81"
                     step="1"
-                    on:input={() => {
+                    oninput={() => {
                         updateBoxes();
                         render();
                     }}
@@ -1274,7 +1250,7 @@
                     min="0"
                     max="4"
                     step="1"
-                    on:input={() => {
+                    oninput={() => {
                         const pt = [
                             [0, 0],
                             [1, 0],

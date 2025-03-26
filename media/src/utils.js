@@ -2774,7 +2774,7 @@ class ShardsEdgesGeometry extends THREE.BufferGeometry {
 /**
  * 
  * @param {int} x 
- * @returns {strint} 2 character hex code for int
+ * @returns {string} 2 character hex code for int
  */
 const hex = (x) => {
     let str = x.toString(16);
@@ -2788,7 +2788,8 @@ const hex = (x) => {
 
 
 /**
- * Good ol' l2 norm
+ * Good ol' l2 norm. 
+ * Uh, Math.hypot does this.
  * @param  {...Number[]} v - array of values
  * @returns {Number} the (l2) magnitude of v
  */
@@ -2810,6 +2811,21 @@ const scaleExp = (scale) => Math.round(
         Math.pow(10, Math.floor(scale))
     )
 ) / 100;
+
+/**
+ * Filters arr in place, leaving all elements where func(x) is truthy.
+ * @param {function} func 
+ * @param {array} arr 
+ */
+const filterBang = (func, arr) => {
+    let j = 0;
+    for (let i = 0; i < arr.length; i++) {
+        if (func(arr[i])) {
+            arr[j++] = arr[i];
+        }
+    }
+    arr.length = j;
+};
 
 export {
     norm2,
@@ -2847,4 +2863,5 @@ export {
     modFloor,
     tripleToHex,
     scaleExp,
+    filterBang,
 };

@@ -1,5 +1,5 @@
 <script>
-    import { createEventDispatcher, onMount } from 'svelte';
+    import { onMount } from 'svelte';
     import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
     import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
     import {
@@ -8,6 +8,7 @@
         labelAxes,
         freeChildren,
         scaleExp,
+        filterBang,
     } from '../utils';
     import {
         vMin,
@@ -15,31 +16,45 @@
         colorMap,
         densityColormap,
         viewScale,
-        demoObjects,
     } from '../stores';
+    import { demoObjects } from '../states.svelte';
     import WindowHeader from './WindowHeader.svelte';
     import { colorMapNames } from '../js-colormaps';
     import { offclick } from './offclick';
     import Kbd from './Kbd.svelte';
 
-    const dispatch = createEventDispatcher();
+    let {
+        isMobileView,
+        scene,
+        camera,
+        render,
+        gridMax = $bindable(),
+        gridStep = $bindable(),
+        roomId,
+        encode,
+        axesHolder,
+        gridMeshes,
+        lineMaterial,
+        axesMaterial,
+        axesText,
+        animate,
+        switchCamera,
+        recenterCamera,
+        update = $bindable(),
+    } = $props();
 
-    export let isMobileView;
-    export let scene, camera, render, controls;
-    export let gridMax, gridStep;
-    export let axesHolder, gridMeshes, lineMaterial, axesMaterial, axesText;
-    export let animation = false;
-    export let orthoCamera = false;
-    export let encode;
-    // export let socket;
-    export let roomId;
+    let gridVisible = $state(false);
+    $effect(() => {
+        gridMeshes.visible = gridVisible;
+    });
+    let orthoCamera = $state(false);
 
     let newGridMeshes;
     const newLineMaterial = lineMaterial.clone();
     newLineMaterial.polygonOffset = true;
     newLineMaterial.polygonOffsetFactor = 0.1;
 
-    export const update = (dt) => {
+    update = (dt) => {
         const s = (scaleState - oldGridMax) / (gridMax - oldGridMax);
         if ((gridMax - scaleState) * (scaleState - oldGridMax) >= 0) {
             newLineMaterial.opacity = s;
@@ -66,8 +81,8 @@
     let oldGridMax = gridMax;
 
     // These duplicate their non-Temp counterpart but are only for display which updates on moving input bar, though value only updates on change event.
-    let scaleTemp = 0;
-    $: scalaTemp = scaleExp(scaleTemp);
+    let scaleTemp = $state(0);
+    let scalaTemp = $derived(scaleExp(scaleTemp));
 
     let scala;
 
@@ -103,14 +118,14 @@
 
             if (gridMax !== oldGridMax) {
                 animation = true;
-                dispatch('animate');
+                animate();
             }
         }
     };
 
-    let showSettings = false;
-    let showUpload = false;
-    let showKbd = false;
+    let showSettings = $state(false);
+    let showUpload = $state(false);
+    let showKbd = $state(false);
 
     const uploadScene = (e) => {
         const reader = new FileReader();
@@ -127,12 +142,10 @@
                 upload = upload.map((item) => {
                     return { ...item, uuid: item.uuid || crypto.randomUUID() };
                 });
-                $demoObjects = [
-                    ...$demoObjects.filter((item) => {
-                        return !upload.map((ob) => ob.uuid).includes(item.uuid);
-                    }),
-                    ...upload,
-                ];
+                filterBang((item) => {
+                    return !upload.map((ob) => ob.uuid).includes(item.uuid);
+                }, demoObjects);
+                demoObjects.push(...upload);
             } else {
                 alert('Object limit of 32 per upload.');
             }
@@ -146,7 +159,7 @@
     };
 
     const downloadScene = () => {
-        let json = JSON.stringify($demoObjects);
+        let json = JSON.stringify(demoObjects);
         const blob = new Blob([json], { type: 'application/json' });
         let a = document.createElement('a');
         a.download = makeFilename();
@@ -185,7 +198,7 @@
         class:grid={showSettings}
         id="settings-box"
         use:offclick
-        on:offclick={() => {
+        onoffclick={() => {
             'caught offclick';
             showSettings = false;
         }}
@@ -210,7 +223,7 @@
                         max="3"
                         step=".02"
                         bind:value={scaleTemp}
-                        on:change={(e) => {
+                        onchange={(e) => {
                             $viewScale = e.target.value;
                         }}
                     />
@@ -228,8 +241,8 @@
                     id="gridVisible"
                     role="switch"
                     aria-checked="true"
-                    bind:checked={gridMeshes.visible}
-                    on:change={render}
+                    bind:checked={gridVisible}
+                    onchange={render}
                 />
             </label>
             <label class="form-check-label" for="orthoCamera">
@@ -242,7 +255,8 @@
                     name="orthoCamera"
                     id="orthoCamera"
                     bind:checked={orthoCamera}
-                    on:change={render}
+                    onchange={() =>
+                        switchCamera(orthoCamera ? 'ortho' : 'persp')}
                 />
             </label>
         </div>
@@ -263,7 +277,7 @@
                     id="colormap-select"
                     list="cmaps"
                     value={$colorMap}
-                    on:input={(e) => {
+                    oninput={(e) => {
                         const val = e.target.value;
                         // console.log('densemap update', val);
                         if (colorMapNames.includes(val)) {
@@ -274,7 +288,7 @@
             </div>
             <datalist id="cmaps">
                 {#each colorMapNames as cm}
-                    <option value={cm} />
+                    <option value={cm}>{cm}</option>
                 {/each}
             </datalist>
         </div>
@@ -289,7 +303,7 @@
                     id="densitymap-select"
                     list="cmaps"
                     value={$densityColormap}
-                    on:input={(e) => {
+                    oninput={(e) => {
                         const val = e.target.value;
                         // console.log('densemap update', val);
                         if (colorMapNames.includes(val)) {
@@ -321,7 +335,7 @@
                 <button
                     class="button settings-button"
                     aria-label="Reset the vmin/vmax for coloring."
-                    on:click={() => {
+                    onclick={() => {
                         $vMin = -1;
                         $vMax = 1;
                         render();
@@ -338,7 +352,7 @@
         class="settings-box"
         class:grid={showUpload}
         use:offclick
-        on:offclick={() => {
+        onoffclick={() => {
             showUpload = false;
         }}
         id="upload-box"
@@ -358,7 +372,7 @@
                 id="sceneUpload"
                 type="file"
                 accept="application/json"
-                on:change={(e) => {
+                onchange={(e) => {
                     uploadScene(e);
                 }}
             />
@@ -370,7 +384,7 @@
         class="settings-box"
         class:grid={showUpload}
         use:offclick
-        on:offclick={(e) => {
+        onoffclick={(e) => {
             showKbd = false;
             console.log('offclickd', e);
         }}
@@ -393,67 +407,84 @@
         class="button"
         id="settings"
         title="Settings"
-        on:click={() => {
+        onclick={() => {
             showUpload = false;
             showKbd = false;
             showSettings = !showSettings;
         }}
+        aria-label="Settings"
     >
-        <i class="fa fa-cog" />
+        <i class="fa fa-cog"></i>
     </button>
-    <button class="button" id="encodeURL" title="Encode URL" on:click={encode}>
-        <i class="fa fa-barcode" />
+    <button
+        class="button"
+        id="encodeURL"
+        title="Encode URL"
+        onclick={() =>
+            encode({
+                grid: gridVisible,
+                ortho: orthoCamera,
+            })}
+        aria-label="Encode scene in URL"
+    >
+        <i class="fa fa-barcode"></i>
     </button>
     <button
         class="button"
         title="Upload Scene"
         id="upload"
-        on:click={() => {
+        onclick={() => {
             showSettings = false;
             showUpload = !showUpload;
             showKbd = false;
         }}
+        aria-label="Load scene from file"
     >
-        <i class="fa fa-upload" />
+        <i class="fa fa-upload"></i>
     </button>
     <button
         class="button"
         id="download"
         title="Download Scene"
-        on:click={downloadScene}
+        onclick={downloadScene}
+        aria-label="Save scene as JSON file"
     >
-        <i class="fa fa-download" />
+        <i class="fa fa-download"></i>
     </button>
     <button
         class="button"
         id="cameraReset"
         title="Reset camera"
-        on:click={() => {
-            controls.target.set(0, 0, 0);
-            render();
-        }}
+        onclick={recenterCamera}
+        aria-label="Recenter camera"
     >
-        <i class="fa fa-video" />
+        <i class="fa fa-video"></i>
     </button>
-    <button class="button" id="screenshot" title="Take screenshot">
-        <i class="fa fa-camera" />
+    <button
+        class="button"
+        id="screenshot"
+        title="Take screenshot"
+        aria-label="Take screenshot"
+    >
+        <i class="fa fa-camera"></i>
     </button>
     <button
         class="button"
         title="Keyboard Shortcuts"
         id="keyboard"
-        on:click={(e) => {
+        onclick={(e) => {
             showSettings = false;
             showUpload = false;
             showKbd = !showKbd;
             console.log('clickety', e);
         }}
+        aria-label="Show keyboard shortcuts"
     >
-        <i class="fa fa-keyboard" />
+        <i class="fa fa-keyboard"></i>
     </button>
     {#if roomId}
-        <a href="/" class="button" title="Exit room">
-            <i class="fa fa-sign-out-alt" />
+        <a href="/" class="button" title="Exit room" aria-label="Exit room">
+            <i class="fa fa-sign-out-alt"></i>
         </a>
     {/if}
 </div>

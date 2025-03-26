@@ -5,53 +5,60 @@
     import { all, create } from 'mathjs';
     import M from '../M.svelte';
     import {
+        filterBang,
         FluxBoxEdgesGeometry,
         FluxBoxGeometry,
         gaussLegendre,
     } from '../utils';
-    import { onMount, onDestroy } from 'svelte';
+    import { onMount, onDestroy, untrack } from 'svelte';
     // import { createEventDispatcher } from 'svelte';
 
     // const dispatch = createEventDispatcher();
 
-    import { demoObjects, tickTock } from '../stores';
+    import { tickTock } from '../stores';
+    import { demoObjects } from '../states.svelte';
 
-    export let scene;
-    export let render;
-    // export let objects;
+    let { scene, render, animate } = $props();
 
     const config = {};
     const math = create(all, config);
 
-    let animation = false;
-    let last = null;
-    let sampleParam = 0;
-
-    const drawNext = (currentTime) => {
-        // const currentTime = $tickTock;
-        last = last || currentTime;
-        tau += currentTime - last;
-        tau %= 1;
-        updateTau(tau);
-        last = currentTime;
-    };
-
-    $: if (animation) drawNext($tickTock);
-
-    const drawFirst = (anim) => {
-        currentField.animation = anim;
-    };
-
-    $: drawFirst(animation);
-
-    // export let $demoObjects;
-
-    const backupObjects = $demoObjects.map((obj) => {
-        obj.selected = false;
-        return obj;
+    let animation = $state(false);
+    $effect(() => {
+        if (animation) {
+            untrack(() => {
+                // console.log('anim effex', currentField);
+                currentField.animation = true;
+                animate();
+            });
+        }
     });
 
-    const exampleSurfaces = [
+    let last = null;
+    let sampleParam = $state(0);
+
+    $effect(() => {
+        $tickTock;
+        // console.log('tix tox');
+        untrack(() => {
+            if (animation) {
+                // const currentTime = $tickTock;
+                last = last || $tickTock;
+                tau += $tickTock - last;
+                tau %= 1;
+                updateTau(tau);
+                last = $tickTock;
+            }
+        });
+    });
+
+    let backupObjects = $state(
+        demoObjects.map((obj) => {
+            return { ...obj, selected: false };
+        }),
+    );
+
+    const exampleSurfaces = $state([
         {
             uuid: 'flux-story-example-001-',
             kind: 'surface',
@@ -68,6 +75,7 @@
                 t1: '1',
             },
             color: '#CB44CB',
+            animation: false,
         },
         {
             uuid: 'flux-story-example-000-',
@@ -85,6 +93,7 @@
                 t1: '1',
             },
             color: '#CB44CB',
+            animation: false,
         },
         {
             uuid: 'flux-story-example-002-',
@@ -102,10 +111,11 @@
                 t1: '1',
             },
             color: '#CB44CB',
+            animation: false,
         },
-    ];
+    ]);
 
-    const exampleFields = [
+    const exampleFields = $state([
         {
             uuid: 'flux-story-field-000-',
             kind: 'field',
@@ -117,6 +127,7 @@
                 nVec: 4,
             },
             color: '#128812',
+            animation: false,
         },
         {
             uuid: 'flux-story-field-001-',
@@ -129,6 +140,7 @@
                 nVec: 4,
             },
             color: '#128812',
+            animation: false,
         },
         {
             uuid: 'flux-story-field-002-',
@@ -141,6 +153,7 @@
                 nVec: 4,
             },
             color: '#1212CC',
+            animation: false,
         },
         {
             uuid: 'flux-story-field-003-',
@@ -153,8 +166,9 @@
                 nVec: 4,
             },
             color: '#1212CC',
+            animation: false,
         },
-    ];
+    ]);
 
     const whiteLineMaterial = new THREE.LineBasicMaterial({
         color: 0xffffff,
@@ -162,52 +176,125 @@
         depthTest: true,
     });
 
-    let currentSurface =
-        $demoObjects.find((o) => o.kind === 'surface') || exampleSurfaces[0];
-    let currentField =
-        $demoObjects.find((o) => o.kind === 'field') || exampleFields[0];
-    currentField.flowTrails = false;
+    let currentSurface = $state(
+        backupObjects.find((o) => o.kind === 'surface') ?? exampleSurfaces[0],
+    );
+    let currentField = $state(
+        backupObjects.find((o) => o.kind === 'field') ?? exampleFields[0],
+    );
 
-    let unsub;
+    $effect(() => {
+        console.log('demobj maintenance');
+        if (currentField && currentSurface)
+            untrack(() => {
+                demoObjects[0] = currentSurface;
+                demoObjects[1] = currentField;
+                demoObjects.length = 2;
+                // filterBang(
+                //     (o) => o === currentField || o === currentSurface,
+                //     demoObjects,
+                // );
+                // if (demoObjects.findIndex((o) => o === currentField) < 0)
+                //     demoObjects.push(currentField);
+                // if (demoObjects.findIndex((o) => o === currentSurface) < 0)
+                //     demoObjects.push(currentSurface);
+            });
+    });
+    // $effect(() => {
+    //     if (currentField)
+    //         untrack(() => {
+    //             filterBang(
+    //                 (o) => o.uuid === currentField.uuid || o.uuid === currentSurface.uuid,
+    //                 demoObjects,
+    //             );
+    //             if (demoObjects.findIndex((o) => o === currentField) < 0)
+    //                 demoObjects.push(currentField);
+    //             if (demoObjects.findIndex((o) => o === currentSurface) < 0)
+    //                 demoObjects.push(currentSurface);
+    //         });
+    // });
+
     onMount(() => {
-        unsub = demoObjects.subscribe((e) => {
-            if (!e.some((o) => o === currentSurface)) {
-                currentSurface = null;
-            }
-            if (!e.some((o) => o === currentField)) {
-                currentField = null;
-            }
-        });
-        // currentField =
-        //     objects.find((o) => o.kind === 'field')?.uuid ||
-        //     'flux-story-field-001-';
-        // currentSurface =
-        //     objects.find((o) => o.kind === 'surface') || exampleSurfaces[0];
-
+        currentField.flowTrails = false;
         render();
     });
 
-    let ruv = null;
-    let F = null;
+    let u0 = $derived.by(() => {
+        const A = math.parse(currentSurface.params.a);
+        return A.evaluate();
+    });
+    let u1 = $derived.by(() => {
+        const B = math.parse(currentSurface.params.b);
+        return B.evaluate();
+    });
+    let v0 = $derived.by(() => {
+        const C = math.parse(currentSurface.params.c);
+        return (u) => C.evaluate({ u: u });
+    });
+    let v1 = $derived.by(() => {
+        const D = math.parse(currentSurface.params.d);
+        return (u) => D.evaluate({ u: u });
+    });
 
-    let geo;
-    let geoDown;
-    let edgesUp;
-    let edgesDown;
+    let geo = $state();
+    let geoDown = $state();
 
-    let approxFlux = '';
-    let totalFlux = 0;
+    $effect(() => {
+        untrack(() => geo?.dispose());
+        geo = new FluxBoxGeometry(
+            F,
+            ruv,
+            u0,
+            u1,
+            v0,
+            v1,
+            nBoxes,
+            false,
+            untrack(() => tau),
+            'pos',
+            sampleParam,
+        );
+    });
 
-    const computeFlux = (F, r) => {
-        const { x, y, z, a, b, c, d } = currentSurface.params;
-        const [A, B, C, D] = [a, b, c, d].map((w) => math.parse(w).compile());
+    $effect(() => {
+        untrack(() => geoDown?.dispose());
+        geoDown = new FluxBoxGeometry(
+            F,
+            ruv,
+            u0,
+            u1,
+            v0,
+            v1,
+            nBoxes,
+            false,
+            untrack(() => tau),
+            'neg',
+            sampleParam,
+        );
+    });
 
-        console.log(x, y, z, a, b, c, d);
+    let edgesUp = $state();
+    $effect(() => {
+        untrack(() => edgesUp?.dispose());
+        edgesUp = new FluxBoxEdgesGeometry(geo, false, tau);
+    });
 
-        const u0 = A.evaluate();
-        const u1 = B.evaluate();
-        const v0 = (u) => C.evaluate({ u });
-        const v1 = (u) => D.evaluate({ u });
+    let edgesDown = $state();
+    $effect(() => {
+        untrack(() => edgesDown?.dispose());
+        edgesDown = new FluxBoxEdgesGeometry(geoDown, false, tau);
+    });
+
+    $effect(() => {
+        boxes.children[0].geometry = geo;
+        boxes.children[2].geometry = geoDown;
+    });
+
+    let approxFlux = $derived(geo?.volume ?? '');
+    let totalFlux = $derived.by(() => {
+        const { x, y, z } = currentSurface.params;
+
+        console.log(x, y, z);
 
         const [xu, yu, zu] = [x, y, z].map((expr) =>
             math.derivative(expr, 'u').compile(),
@@ -221,7 +308,7 @@
                 gaussLegendre(
                     (v) =>
                         math.dot(
-                            F(...r(u, v)).toArray(),
+                            F(...ruv(u, v)).toArray(),
                             math.cross(
                                 [
                                     xu.evaluate({ u, v }),
@@ -243,7 +330,7 @@
             u1,
             20,
         );
-    };
+    });
 
     // console.log(geo);
 
@@ -271,134 +358,129 @@
 
     scene.add(boxes);
 
-    let tau = 1;
-    let nBoxes = 1;
+    let tau = $state(0);
+    let nBoxes = $state(1);
+    let boxesVisible = $state(true);
+    $effect(() => {
+        boxes.visible = boxesVisible;
+    });
 
-    const setF = (obj) => {
+    let F = $derived.by(() => {
         // const obj = exampleFields.find((o) => o.uuid === uuid);
-        if (obj) {
-            const { p, q, r } = obj.params;
+        let out;
+        if (currentField) {
+            const { p, q, r } = currentField.params;
             const P = math.parse(p).compile();
             const Q = math.parse(q).compile();
             const R = math.parse(r).compile();
 
-            F = (x, y, z) =>
+            out = (x, y, z) =>
                 new THREE.Vector3(
                     P.evaluate({ x, y, z }),
                     Q.evaluate({ x, y, z }),
                     R.evaluate({ x, y, z }),
                 );
-            currentField.flowTrails = false;
-            $demoObjects = [
-                ...$demoObjects.filter((o) => o.kind !== 'field'),
-                currentField,
-            ];
-
-            if (ruv) {
-                totalFlux = computeFlux(F, ruv);
-            }
+            // currentField.flowTrails = false;
+            // filterBang((o) => o.kind !== 'field', demoObjects);
+            // demoObjects.push(currentField);
         } else {
-            F = null;
+            out = null;
         }
-    };
+        return out;
+    });
 
-    $: setF(currentField);
-
-    let u0, u1, v0, v1;
-    const setRuv = (obj) => {
+    let ruv = $derived.by(() => {
+        let out;
         // const obj = exampleSurfaces.find((o) => o.uuid === uuid);
-        if (obj) {
-            const { x, y, z, a, b, c, d } = obj.params;
+        if (currentSurface) {
+            const { x, y, z, a, b, c, d } = currentSurface.params;
             const [X, Y, Z, A, B, C, D] = [x, y, z, a, b, c, d].map((w) =>
                 math.parse(w).compile(),
             );
 
-            ruv = (u, v) => [
+            out = (u, v) => [
                 X.evaluate({ u, v }),
                 Y.evaluate({ u, v }),
                 Z.evaluate({ u, v }),
             ];
-            u0 = A.evaluate();
-            u1 = B.evaluate();
-            v0 = (u) => C.evaluate({ u });
-            v1 = (u) => D.evaluate({ u });
+            // u0 = A.evaluate();
+            // u1 = B.evaluate();
+            // v0 = (u) => C.evaluate({ u });
+            // v1 = (u) => D.evaluate({ u });
 
-            $demoObjects = [
-                ...$demoObjects.filter((o) => o.kind !== 'surface'),
-                obj,
-            ];
+            // filterBang((o) => o.kind !== 'surface', demoObjects);
+            // demoObjects.push(currentSurface);
 
-            if (F) totalFlux = computeFlux(F, ruv);
+            // if (F) totalFlux = computeFlux(F, ruv);
         } else {
-            ruv = null;
+            out = null;
         }
-    };
+        return out;
+    });
 
-    $: setRuv(currentSurface);
+    // const updateGeo = (N, F, r, A, B, C, D, samp) => {
+    //     geo?.dispose();
+    //     edgesUp?.dispose();
+    //     geoDown?.dispose();
+    //     edgesDown?.dispose();
+    //     if (r && F) {
+    //         geo = new FluxBoxGeometry(
+    //             F,
+    //             r,
+    //             A,
+    //             B,
+    //             C,
+    //             D,
+    //             N,
+    //             false,
+    //             tau,
+    //             'pos',
+    //             samp,
+    //         );
+    //         approxFlux = `${geo.volume.toFixed(3)}`;
+    //         boxes.children[0].geometry = geo;
+    //         edgesUp = new FluxBoxEdgesGeometry(geo, false, tau);
+    //         boxes.children[1].geometry = edgesUp;
+    //         geoDown = new FluxBoxGeometry(
+    //             F,
+    //             r,
+    //             A,
+    //             B,
+    //             C,
+    //             D,
+    //             N,
+    //             false,
+    //             tau,
+    //             'neg',
+    //         );
+    //         boxes.children[2].geometry = geoDown;
+    //         edgesDown = new FluxBoxEdgesGeometry(geoDown, false, tau);
+    //         boxes.children[3].geometry = edgesDown;
+    //         boxes.visible = true;
+    //     } else {
+    //         boxes.visible = false;
+    //     }
 
-    const updateGeo = (N, F, r, A, B, C, D, samp) => {
-        geo?.dispose();
-        edgesUp?.dispose();
-        geoDown?.dispose();
-        edgesDown?.dispose();
-        if (r && F) {
-            geo = new FluxBoxGeometry(
-                F,
-                r,
-                A,
-                B,
-                C,
-                D,
-                N,
-                false,
-                tau,
-                'pos',
-                samp,
-            );
-            approxFlux = `${Math.round(1000 * geo.volume) / 1000}`;
-            boxes.children[0].geometry = geo;
-            edgesUp = new FluxBoxEdgesGeometry(geo, false, tau);
-            boxes.children[1].geometry = edgesUp;
-            geoDown = new FluxBoxGeometry(
-                F,
-                r,
-                A,
-                B,
-                C,
-                D,
-                N,
-                false,
-                tau,
-                'neg',
-            );
-            boxes.children[2].geometry = geoDown;
-            edgesDown = new FluxBoxEdgesGeometry(geoDown, false, tau);
-            boxes.children[3].geometry = edgesDown;
-            boxes.visible = true;
-        } else {
-            boxes.visible = false;
-        }
+    //     render();
+    // };
 
-        render();
-    };
-
-    $: updateGeo(nBoxes, F, ruv, u0, u1, v0, v1, sampleParam);
+    // $effect(() => updateGeo(nBoxes, F, ruv, u0, u1, v0, v1, sampleParam));
 
     const updateTau = (t) => {
         if (geo) {
             geo.changeT(t);
-            edgesUp?.dispose();
-            edgesUp = new FluxBoxEdgesGeometry(geo, false, t);
+            // edgesUp?.dispose();
+            // edgesUp = new FluxBoxEdgesGeometry(geo, false, t);
             boxes.children[1].geometry = edgesUp;
             geoDown.changeT(t);
-            edgesDown?.dispose();
-            edgesDown = new FluxBoxEdgesGeometry(geoDown, false, t);
+            // edgesDown?.dispose();
+            // edgesDown = new FluxBoxEdgesGeometry(geoDown, false, t);
             boxes.children[3].geometry = edgesDown;
             render();
         }
     };
 
-    $: updateTau(tau);
+    $effect(() => updateTau(tau));
 
     onDestroy(() => {
         for (let index = 0; index < boxes.children.length; index++) {
@@ -407,8 +489,10 @@
             element.material?.dispose();
         }
         scene.remove(boxes);
-        unsub();
-        $demoObjects = [...backupObjects];
+        // unsub();
+        demoObjects.length = 0;
+        demoObjects.push(...backupObjects);
+
         render();
     });
 </script>
@@ -417,21 +501,21 @@
     <h1>Flux Integrals</h1>
 
     <p>
-        Let <M>{`\\mathbf r: D\\to \\Omega \\subset \\mathbb{R}^3`}</M> be a parametric
-        surface oriented with normal <M>{`\\mathbf N`}</M> and <M>
-            {`\\mathbf F`}
-        </M> a vector field continuous on <M>{`\\Omega`}</M>.
+        Let <M s={`\\mathbf r: D\\to \\Omega \\subset \\mathbb{R}^3`} /> be a parametric
+        surface oriented with normal <M s={`\\mathbf N`} /> and <M
+            s={`\\mathbf F`}
+        /> a vector field continuous on <M s={`\\Omega`} />.
     </p>
 
     <div class="row">
         <div class="col-auto">
-            <M>{'\\mathbf F:'}</M>
+            <M s={'\\mathbf F:'} />
             <select
-                bind:value={currentField}
                 class="demos-obj-select m-2 bg-primary border-primary
                 text-light"
+                bind:value={currentField}
             >
-                {#each $demoObjects.filter((o) => o.kind === 'field' && o.uuid.slice(0, 10) !== 'flux-story') as obj}
+                {#each backupObjects.filter((o) => o.kind === 'field' && o.uuid.slice(0, 10) !== 'flux-story') as obj}
                     <option value={obj}>{obj.title}</option>
                 {/each}
                 <option disabled>──────────</option>
@@ -441,12 +525,12 @@
             </select>
         </div>
         <div class="col-auto">
-            <M>{'\\Omega:'}</M>
+            <M s={'\\Omega:'} />
             <select
                 class="demos-obj-select m-2 bg-primary text-light"
                 bind:value={currentSurface}
             >
-                {#each $demoObjects.filter((o) => o.kind === 'surface' && o.uuid.slice(0, 10) !== 'flux-story') as obj}
+                {#each backupObjects.filter((o) => o.kind === 'surface' && o.uuid.slice(0, 10) !== 'flux-story') as obj}
                     <option value={obj}>{obj.title}</option>
                 {/each}
                 <option disabled>──────────</option>
@@ -455,34 +539,36 @@
                 {/each}
             </select>
         </div>
-        <div class="col-auto">
+        <!-- <div class="col-auto">
             <button
                 class=" bg-primary text-light"
-                on:click={() => {
+                onclick={() => {
                     setF(currentField);
                     setRuv(currentSurface);
                 }}
+                aria-label="Reload menu"
             >
-                <i class="bi bi-arrow-clockwise" />
+                <i class="bi bi-arrow-clockwise"></i>
             </button>
-        </div>
+        </div> -->
     </div>
 
     <p>
         Then the <b>flux</b>
-        <M>{'\\Phi'}</M> of the vector field through the surface is given by
+        <M s={'\\Phi'} /> of the vector field through the surface is given by
 
-        <M align>
-            {'\\Phi &= \\iint_\\Omega \\mathbf F\\cdot\\,d\\mathbf S = \\iint_\\Omega \\mathbf F\\cdot\\mathbf N\\,dS \\\\ &= \\iint_D \\mathbf F(\\mathbf r(u,v)) \\cdot \\mathbf r_u \\times \\mathbf r_v\\,dS.'}
-        </M>
+        <M
+            align
+            s={'\\Phi &= \\iint_\\Omega \\mathbf F\\cdot\\,d\\mathbf S = \\iint_\\Omega \\mathbf F\\cdot\\mathbf N\\,dS \\\\ &= \\iint_D \\mathbf F(\\mathbf r(u,v)) \\cdot \\mathbf r_u \\times \\mathbf r_v\\,dS.'}
+        />
     </p>
 
     <p>
         That integrand is a <em>triple product</em> which can be visualized as
         the volume of a parallelopiped with two tangent vectors to the surface
         and the vector field itself being the third edge. To see this, we chop
-        the domain <M>D</M> into <M>n \times n</M> rectongles and draw the parallelopipeds
-        to approximate the flux.
+        the domain <M s="D" /> into <M s={`n \times n`} /> rectangles and draw the
+        parallelopipeds to approximate the flux.
     </p>
 
     <!-- <p>
@@ -501,7 +587,7 @@
 
     <div class="row my-3">
         <div class="col-auto">
-            <span class=""><M>{'n = '}</M></span>
+            <span class=""><M s={'n = '} /></span>
             <span class=""
                 ><input
                     type="range"
@@ -518,10 +604,10 @@
             <label class="switch box box-3">
                 <input
                     type="checkbox"
-                    bind:checked={boxes.visible}
-                    on:change={render}
+                    bind:checked={boxesVisible}
+                    onchange={render}
                 />
-                <span class="slider round" />
+                <span class="slider round"></span>
             </label>
         </div>
         <div class="col-auto">
@@ -530,7 +616,7 @@
                 <input
                     type="checkbox"
                     checked={false}
-                    on:change={(e) => {
+                    onchange={(e) => {
                         if (e.target.checked) {
                             sampleParam = 0.5;
                         } else {
@@ -538,38 +624,38 @@
                         }
                     }}
                 />
-                <span class="slider round" />
+                <span class="slider round"></span>
             </label>
         </div>
     </div>
 
-    <M display
-        >{`\\Phi = \\sum_{i = 1}^{${nBoxes}}\\sum_{j = 1}^{${nBoxes}} \\mathbf F\\cdot \\mathbf r_u\\times \\mathbf r_v \\,\\Delta u\\, \\Delta v = ${approxFlux}`}
-    </M>
+    <M
+        display
+        s={`\\Phi = \\sum_{i = 1}^{${nBoxes}}\\sum_{j = 1}^{${nBoxes}} \\mathbf F\\cdot \\mathbf r_u\\times \\mathbf r_v \\,\\Delta u\\, \\Delta v = ${approxFlux}`}
+    />
 
     <p>
-        A (somewhat) better approximation is <M display
-            >{`\\Phi = \\iint\\limits_\\Omega \\mathbf F \\cdot d\\mathbf S \\approx ${
+        A (somewhat) better approximation is <M
+            display
+            s={`\\Phi = \\iint\\limits_\\Omega \\mathbf F \\cdot d\\mathbf S \\approx ${
                 Math.round(1e8 * totalFlux) / 1e8
-            }`}</M
-        >
+            }`}
+        />
     </p>
 
     <p>
-        Imagine <M>
-            {'\\mathbf F'}</M
-        > as the velocity field of some fluid. The we can interpret <M>
-            {'\\Phi'}
-        </M> as the net volume flowing per unit time through the surface in the direction
-        of its orientation. By scaling the vector field in time, we can "see" this
-        volume flowing through the surface. <strong>Warning</strong> the
-        quantity <M>{'\\Phi'}</M> is computed as a static computation. This is meant
-        only to help see where positive/negative contributions come from.
+        Imagine <M s={'\\mathbf F'} /> as the velocity field of some fluid. The we
+        can interpret <M s={'\\Phi'} /> as the net volume flowing per unit time through
+        the surface in the direction of its orientation. By scaling the vector field
+        in time, we can "see" this volume flowing through the surface.
+        <strong>Warning</strong>
+        the quantity <M s={'\\Phi'} /> is computed as a static computation. This
+        is meant only to help see where positive/negative contributions come from.
     </p>
 
     <div class="row my-3">
         <div class="col-auto">
-            <span><M>{'t'}</M></span>
+            <span><M s="t" /></span>
             <span>
                 <input
                     type="range"
@@ -584,17 +670,17 @@
         <div class="col-auto">
             <PlayButtons
                 bind:animation
-                on:animate
-                on:play={() => {
-                    console.log("playin'");
-                    boxes.visible = true;
-                    currentField.animation = true;
+                play={() => {
+                    boxesVisible = true;
                 }}
-                on:pause={() => {
+                pause={() => {
+                    currentField.animation = false;
                     last = null;
                 }}
-                on:rew={() => {
+                rew={() => {
+                    currentField.animation = false;
                     tau = 0;
+                    last = null;
                 }}
             />
         </div>

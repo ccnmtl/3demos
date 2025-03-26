@@ -1,41 +1,34 @@
 <script>
-    import { afterUpdate } from 'svelte';
-
-    export let align = false;
-    export let display = false;
-    export let size = 'sm';
+    let { s, align = false, display = false, size } = $props();
 
     let span, span2;
     /* global MathJax */
 
     const formatMJ = function (formula) {
-        let textSize = size === 'lg' ? '\\Large' : '';
+        const textSizes = {
+            lg: '\\Large',
+            sm: '\\small',
+            ti: '\\tiny',
+        };
+
+        const textSize = textSizes[size] || '';
 
         if (align) {
+            display = true;
             return `${textSize} \\begin{align} ${formula} \\end{align}`;
         }
-        if (display) {
-            return `\\[ ${textSize} ${formula} \\]`;
+
+        return `${textSize} ${formula}`;
+    };
+
+    $effect(async () => {
+        if (span2) {
+            let elem = await MathJax.tex2svgPromise(formatMJ(s), {
+                display,
+            });
+            span2.replaceChildren(elem);
         }
-        return `\\( ${textSize} ${formula} \\)`;
-    };
-
-    const render = async () => {
-        span2.innerHTML = formatMJ(span.innerText, display, size);
-        await MathJax.typesetPromise([span2]);
-    };
-
-    afterUpdate(render);
+    });
 </script>
 
-<span bind:this={span} class="input">
-    <slot />
-</span>
-
-<span bind:this={span2} class="output" />
-
-<style>
-    .input {
-        display: none;
-    }
-</style>
+<span bind:this={span2} class="output"> </span>

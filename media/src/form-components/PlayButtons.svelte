@@ -1,34 +1,36 @@
 <script>
-    import { createEventDispatcher } from 'svelte';
-
-    const dispatch = createEventDispatcher();
-    export let className = 'play-buttons box-2';
-    export let animation = false;
+    let {
+        className = 'play-buttons box-2',
+        animation = $bindable(false),
+        play = () => {},
+        pause,
+        rew,
+        // animate,
+    } = $props();
 </script>
 
 <div class={className}>
     <button
         class="btn playpausebtn"
-        on:click={() => {
-            dispatch(animation ? 'pause' : 'animate');
-            if (!animation) dispatch('play');
+        onclick={() => {
             animation = !animation;
+            if (animation) {
+                play();
+                // animate();
+            } else {
+                pause();
+            }
         }}
+        aria-label="play/pause"
     >
         {#if !animation}
-            <i class="fa fa-play" />
+            <i class="fa fa-play"></i>
         {:else}
-            <i class="fa fa-pause" />
+            <i class="fa fa-pause"></i>
         {/if}
     </button>
-    <button
-        class="btn rewbtn"
-        on:click={() => {
-            dispatch('rew');
-            // animation = false;
-        }}
-    >
-        <i class="fa fa-fast-backward" />
+    <button class="btn rewbtn" onclick={rew} aria-label="rewind">
+        <i class="fa fa-fast-backward"></i>
     </button>
 </div>
 

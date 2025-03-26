@@ -3,20 +3,19 @@
     import * as THREE from 'three';
 
     import { all, create } from 'mathjs';
-    import { ParametricGeometry, gaussLegendre } from '../utils';
-    import { onDestroy } from 'svelte';
-    import { demoObjects } from '../stores';
+    import { ParametricGeometry, filterBang, gaussLegendre } from '../utils';
+    import { onDestroy, untrack } from 'svelte';
+    import { demoObjects } from '../states.svelte';
     import M from '../M.svelte';
 
     const math = create(all, {});
 
-    // export let $demoObjects;
-    export let scene;
-    export let render;
-    let tau = 0;
-    let sau = 0;
-    let integralValue = 0;
-    let animateIntegral = false;
+    let { scene, render } = $props();
+
+    let tau = $state(0);
+    let sau = $state(0);
+    let integralValue = $state(0);
+    let animateIntegral = $state(false);
 
     // tags for animation (I for Integral animation; others for diffChoice animation)
     let raf;
@@ -108,9 +107,10 @@
         opacity: 0.4,
     });
 
-    $: T =
+    let T = $derived(
         math.parse(curveData[pathChoice].r.b).evaluate() * tau +
-        (1 - tau) * math.parse(curveData[pathChoice].r.a).evaluate();
+            (1 - tau) * math.parse(curveData[pathChoice].r.a).evaluate(),
+    );
 
     const wall = new THREE.Mesh(undefined, minusMaterial);
     const backwall = new THREE.Mesh(undefined, plusMaterial);
@@ -125,7 +125,7 @@
     // console.log(segs.geometry);
     scene.add(wall);
 
-    $: {
+    $effect(() => {
         ceiling.geometry?.dispose();
         ceiling.geometry = new ParametricGeometry(
             (u, v, vec) => {
@@ -136,9 +136,9 @@
             35,
             35,
         );
-    }
+    });
 
-    $: {
+    $effect(() => {
         wall.geometry.dispose();
         const a = math.parse(curveData[pathChoice].r.a).evaluate();
         wall.geometry = new ParametricGeometry(
@@ -185,7 +185,7 @@
         const xp = math.derivative(x, 't');
         const yp = math.derivative(y, 't');
         if (diffChoice === 'ds') {
-            console.log('im in ds');
+            // console.log("I'm in ds");
             fn = (t) =>
                 funcData[funcChoice].func(
                     x.evaluate({ t }),
@@ -208,8 +208,10 @@
                     y.evaluate({ t }),
                 ) * yp.evaluate({ t });
         }
-        integralValue = gaussLegendre(fn, a, T, 30);
-    }
+        untrack(() => {
+            integralValue = gaussLegendre(fn, a, T, 30);
+        });
+    });
 
     const curveId = crypto.randomUUID();
 
@@ -258,137 +260,152 @@
         },
     };
 
-    const backupObjects = structuredClone($demoObjects);
+    let backupObjects = demoObjects.map((dobj) => {
+        dobj.selected = false;
+        return dobj;
+    });
 
-    let pathChoice = 'circle';
+    let pathChoice = $state('circle');
 
-    let funcChoice = 'linear';
+    let funcChoice = $state('linear');
 
-    let diffChoice = 'ds';
+    let diffChoice = $state('ds');
 
     onDestroy(() => {
-        $demoObjects = backupObjects;
+        demoObjects.length = 0;
+        demoObjects.push(...backupObjects);
         scene.remove(wall);
     });
 
-    $: $demoObjects = [
-        ...$demoObjects.filter((k) => k.uuid !== curveId),
-        {
-            uuid: curveId,
-            kind: 'curve',
-            params: {
-                x: curveData[pathChoice].r.x,
-                y: curveData[pathChoice].r.y,
-                z: '0',
-                a: curveData[pathChoice].r.a,
-                b: curveData[pathChoice].r.b,
-            },
-            color: '#AA1243',
-        },
-    ];
+    $effect(() => {
+        if (pathChoice)
+            untrack(() => {
+                filterBang((k) => k.uuid !== curveId, demoObjects);
+                demoObjects.push({
+                    uuid: curveId,
+                    kind: 'curve',
+                    params: {
+                        x: curveData[pathChoice].r.x,
+                        y: curveData[pathChoice].r.y,
+                        z: '0',
+                        a: curveData[pathChoice].r.a,
+                        b: curveData[pathChoice].r.b,
+                        a0: '0',
+                        a1: '1',
+                    },
+                    color: '#AA1243',
+                    animation: false,
+                });
+            });
+    });
 </script>
 
 <div>
     <p>
-        Let <M>C</M> be a path in <M>{'\\mathbb{R}^n'}</M> parametrized by <M
-            >\vec r(t)</M
-        > for
-        <M>a \leq t \leq b</M>.
+        Let <M s="C" /> be a path in <M s={'\\mathbb{R}^n'} /> parametrized by <M
+            s={'\\vec r(t)'}
+        /> for
+        <M s={`a \\leq t \\leq b`} />.
     </p>
     <div id="path-selection" class="selectables">
         <button
             class="btn-choice"
             class:active={pathChoice === 'circle'}
-            on:click={() => (pathChoice = 'circle')}>circle</button
+            onclick={() => (pathChoice = 'circle')}>circle</button
         >
         <button
             class="btn-choice"
             class:active={pathChoice === 'parabola'}
-            on:click={() => (pathChoice = 'parabola')}>parabola</button
+            onclick={() => (pathChoice = 'parabola')}>parabola</button
         >
         <button
             class="btn-choice"
             class:active={pathChoice === 'other'}
-            on:click={() => (pathChoice = 'other')}>other</button
+            onclick={() => (pathChoice = 'other')}>other</button
         >
     </div>
-    <M display>
-        {`\\langle x(t), y(t) \\rangle = \\langle  ${curveData[pathChoice].tex}  \\rangle`}
-    </M>
-    <M display>
-        {`${math.parse(curveData[pathChoice].r.a).toTex()} \\leq t \\leq ${math
+    <M
+        display
+        s={`\\langle x(t), y(t) \\rangle = \\langle  ${curveData[pathChoice].tex}  \\rangle`}
+    />
+    <M
+        display
+        s={`${math.parse(curveData[pathChoice].r.a).toTex()} \\leq t \\leq ${math
             .parse(curveData[pathChoice].r.b)
             .toTex()} `}
-    </M>
+    />
+
     <p>
-        Let <M>f</M> be a continuous scalar field on <M>{'\\mathbb{R}^n'}</M>.
-        Show graph:
+        Let <M s="f" /> be a continuous scalar field on <M
+            s={'\\mathbb{R}^n'}
+        />. Show graph:
         <label class="switch box box-3">
             <input
                 type="checkbox"
                 bind:checked={ceiling.visible}
-                on:change={render}
+                onchange={render}
             />
-            <span class="slider round" />
+            <span class="slider round"></span>
         </label>
     </p>
     <div id="func-selection" class="selectables">
         <button
             class="btn-choice"
             class:active={funcChoice === 'linear'}
-            on:click={() => (funcChoice = 'linear')}>linear</button
+            onclick={() => (funcChoice = 'linear')}>linear</button
         >
         <button
             class="btn-choice"
             class:active={funcChoice === 'quadratic'}
-            on:click={() => (funcChoice = 'quadratic')}>quadratic</button
+            onclick={() => (funcChoice = 'quadratic')}>quadratic</button
         >
         <button
             class="btn-choice"
             class:active={funcChoice === 'periodic'}
-            on:click={() => (funcChoice = 'periodic')}>periodic</button
+            onclick={() => (funcChoice = 'periodic')}>periodic</button
         >
     </div>
 
-    <M display>{`f(x,y) = ${funcData[funcChoice].tex}`}</M>
+    <M display s={`f(x,y) = ${funcData[funcChoice].tex}`} />
 
     <p>
-        Choose "how" to integrate: with respect to arc length <M>ds</M> or one or
-        another coordinates, <M>dx</M>, <M>dy</M>, etc.
+        Choose "how" to integrate: with respect to arc length <M s="ds" /> or one
+        or another coordinates, <M s="dx" />, <M s="dy" />, etc.
     </p>
     <div id="diff-selection" class="selectables">
         <button
             class="btn-choice"
             class:active={diffChoice === 'ds'}
-            on:click={() => {
+            onclick={() => {
                 diffChoice = 'ds';
                 requestAnimationFrame(toDs);
-            }}><M>ds</M></button
+            }}><M s="ds" /></button
         >
         <button
             class="btn-choice"
             class:active={diffChoice === 'dx'}
-            on:click={() => {
+            onclick={() => {
                 diffChoice = 'dx';
                 requestAnimationFrame(toDx);
-            }}><M>dx</M></button
+            }}><M s="dx" /></button
         >
         <button
             class="btn-choice"
             class:active={diffChoice === 'dy'}
-            on:click={() => {
+            onclick={() => {
                 diffChoice = 'dy';
                 requestAnimationFrame(toDy);
-            }}><M>dy</M></button
+            }}><M s="dy" /></button
         >
     </div>
     <p>
         We integrate (gradually using controls below) along the curve and
         compute the accumulation.
     </p>
-    <M display>{`\\int_C f\\,${diffChoice} = `}</M>
-    <M display
-        >{`\\int_{${curveData[pathChoice].r.a}}^{${
+    <M display s={`\\int_C f\\,${diffChoice} = `} />
+    <M
+        display
+        s={`\\int_{${curveData[pathChoice].r.a}}^{${
             Math.round(100 * T) / 100
         }} \\left(${funcData[funcChoice].tex
             .replace('x', 'x(t)')
@@ -399,12 +416,13 @@
                   ? "x'(t)"
                   : "y'(t)"
         }\\,dt`}
-    </M>
-    <M display
-        >{`
+    />
+    <M
+        display
+        s={`
         = ${Math.round(1000 * integralValue) / 1000}
         `}
-    </M>
+    />
 
     <input
         type="range"
@@ -417,12 +435,12 @@
 
     <PlayButtons
         bind:animation={animateIntegral}
-        on:play={() => (rafI = requestAnimationFrame(toI))}
-        on:pause={() => {
+        play={() => (rafI = requestAnimationFrame(toI))}
+        pause={() => {
             cancelAnimationFrame(rafI);
             lastI = null;
         }}
-        on:rew={() => {
+        rew={() => {
             cancelAnimationFrame(rafI);
             lastI = null;
             tau = 0;

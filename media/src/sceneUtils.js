@@ -1,3 +1,5 @@
+import { filterBang } from './utils';
+
 /**
  * Make a three.js object with the given parameters.
  *
@@ -20,7 +22,7 @@ const makeObject = (
         }));
     }
 
-    return [...objects, newObject];
+    objects.push(newObject);
 };
 
 /**
@@ -39,13 +41,13 @@ const removeObject = (uuid, objects, socket = null) => {
         }));
     }
 
-    return objects.filter((b) => b.uuid !== uuid);
+    filterBang((b) => b.uuid !== uuid, objects);
 };
 
 /**
  * Update the given object in the scene.
  *
- * Returns a new objects array.
+ * Changes objects array in place.
  */
 const updateObject = (updatedObject, objects, socket = null) => {
     if (socket) {
@@ -58,13 +60,12 @@ const updateObject = (updatedObject, objects, socket = null) => {
 
     // Replace old object with this uuid in place, not changing
     // array ordering as this will affect the form UI.
-    return objects.map(b => {
-        if (b.uuid !== updatedObject.uuid) {
-            return b;
-        } else {
-            return updatedObject;
-        }
-    });
+    const index = objects.findIndex((b) => b.uuid === updatedObject.uuid);
+    if (index > -1) {
+        objects[index] = updatedObject;
+    } else {
+        objects.push(updatedObject);
+    }
 };
 
 
@@ -87,21 +88,20 @@ const handleSceneEvent = function (data, objects) {
     if (data.message) {
         if (data.message.newObject) {
             const newObject = data.message.newObject;
-            objects = makeObject(
+            makeObject(
                 newObject.uuid,
                 newObject.kind,
                 newObject.params,
                 objects);
         } else if (data.message.removeObject) {
-            objects = removeObject(data.message.removeObject.uuid, objects);
+            removeObject(data.message.removeObject.uuid, objects);
         } else if (data.message.updateObject) {
-            objects = updateObject(data.message.updateObject, objects);
+            updateObject(data.message.updateObject, objects);
         } else if (data.message.publishScene) {
-            objects = data.message.publishScene;
+            objects.splice(0, objects.length, ...data.message.publishScene);
         }
     }
 
-    return objects;
 };
 
 /**
@@ -126,6 +126,7 @@ const flashDance = (mesh, render) => {
 
     const mat = mesh.material;
     const color = mat.color;
+    if (!color) return;
     const newcol = {};
     color.getHSL(newcol);
     const oo = mat.opacity;

@@ -1,25 +1,23 @@
 <script>
-    import { onDestroy } from 'svelte';
+    import { onDestroy, untrack } from 'svelte';
     import { create, all } from 'mathjs';
     import { norm2 } from '../utils';
-    import { demoObjects } from '../stores';
+    import { demoObjects } from '../states.svelte';
 
     import M from '../M.svelte';
 
     const config = {};
     const math = create(all, config);
 
-    const backupObjects = [
-        ...$demoObjects.map((obj) => {
-            obj.selected = false;
-            return obj;
-        }),
-    ];
+    const backupObjects = demoObjects.map((obj) => {
+        obj.selected = false;
+        return obj;
+    });
 
     const vecId = crypto.randomUUID();
 
     onDestroy(() => {
-        $demoObjects = [...backupObjects];
+        demoObjects.splice(0, demoObjects.length, ...backupObjects);
     });
 
     const texStrings = {
@@ -43,8 +41,8 @@
 
     // eslint-enable
 
-    let hidden = false;
-    let lengthApproximation = 0;
+    let hidden = $state(false);
+    let lengthApproximation = $state(0);
 
     const exampleCurves = [
         {
@@ -57,8 +55,11 @@
                 x: 'cos(t)',
                 y: 'sin(t)',
                 z: 't / (4pi)',
+                a0: '0',
+                a1: '1',
             },
             color: '#CB44CB',
+            animation: false,
         },
         {
             uuid: crypto.randomUUID(),
@@ -70,8 +71,11 @@
                 x: 'sin(t)',
                 y: 'cos(t)',
                 z: 'cos(3t)/3 + 1/2',
+                a0: '0',
+                a1: '1',
             },
             color: '#CB44CB',
+            animation: false,
         },
         {
             uuid: crypto.randomUUID(),
@@ -83,22 +87,27 @@
                 x: 't',
                 y: 't^2',
                 z: 't^3',
+                a0: '0',
+                a1: '1',
             },
             color: '#CB44CB',
+            animation: false,
         },
         ...backupObjects.filter((obj) => obj.kind === 'curve'),
     ];
 
-    let exTitle = null;
-    let nVects = 3;
+    let exTitle = $state(
+        backupObjects.find((obj) => obj.kind === 'curve')?.title || 'Helix',
+    );
+    let nVects = $state(3);
     // let firstVectorObject = null;
 
-    const toN = (
+    function toN(
         nVects,
         plusOne = false,
         A = math.parse('0'),
         B = math.parse('1'),
-    ) => {
+    ) {
         return (node) => {
             if (node.isSymbolNode && node.name === 't') {
                 // console.log('I got one!', node.toString());
@@ -111,10 +120,17 @@
                 return node;
             }
         };
-    };
+    }
+
+    $effect(() => {
+        if (exTitle && nVects) {
+            untrack(() => {
+                addCurve(exTitle);
+            });
+        }
+    });
 
     const addCurve = function (title) {
-        exTitle = title;
         const obj = exampleCurves.find((obj) => obj.title === title);
         if (!obj) return;
         const params = obj.params;
@@ -132,33 +148,32 @@
         texStrings.a = A.toTex();
         texStrings.b = B.toTex();
 
-        $demoObjects = [
-            obj,
-            {
-                uuid: vecId,
-                kind: 'vector',
-                params: {
-                    a: new math.OperatorNode('-', 'subtract', [
-                        X.transform(toN(nVects, true, A, B)),
-                        X.transform(toN(nVects, false, A, B)),
-                    ]),
-                    b: new math.OperatorNode('-', 'subtract', [
-                        Y.transform(toN(nVects, true, A, B)),
-                        Y.transform(toN(nVects, false, A, B)),
-                    ]),
-                    c: new math.OperatorNode('-', 'subtract', [
-                        Z.transform(toN(nVects, true, A, B)),
-                        Z.transform(toN(nVects, false, A, B)),
-                    ]),
-                    x: X.transform(toN(nVects, false, A, B)),
-                    y: Y.transform(toN(nVects, false, A, B)),
-                    z: Z.transform(toN(nVects, false, A, B)),
-                    n0: 0,
-                    n1: nVects - 1,
-                },
-                color: '#BB0000',
+        demoObjects.length = 0;
+        demoObjects.push(obj, {
+            uuid: vecId,
+            kind: 'vector',
+            params: {
+                a: new math.OperatorNode('-', 'subtract', [
+                    X.transform(toN(nVects, true, A, B)),
+                    X.transform(toN(nVects, false, A, B)),
+                ]),
+                b: new math.OperatorNode('-', 'subtract', [
+                    Y.transform(toN(nVects, true, A, B)),
+                    Y.transform(toN(nVects, false, A, B)),
+                ]),
+                c: new math.OperatorNode('-', 'subtract', [
+                    Z.transform(toN(nVects, true, A, B)),
+                    Z.transform(toN(nVects, false, A, B)),
+                ]),
+                x: X.transform(toN(nVects, false, A, B)),
+                y: Y.transform(toN(nVects, false, A, B)),
+                z: Z.transform(toN(nVects, false, A, B)),
+                n0: '0',
+                n1: `${nVects - 1}`,
             },
-        ];
+            color: '#BB0000',
+            animation: false,
+        });
         // addVectors(nVects);
         let tot = 0;
 
@@ -180,10 +195,10 @@
 
 <article {hidden}>
     <p>
-        Suppose we have a curve <M>C</M> in space parameterized by a smooth function
-        <M>{`\\mathbf{r}(t)`}</M> for <M>{`a \\leq t \\leq b`}</M> and we wish to
-        know how long it is. That is, we want to compute the
-        <b>arc length</b> of <M>C</M>.
+        Suppose we have a curve <M s="C" /> in space parameterized by a smooth function
+        <M s={`\\mathbf{r}(t)`} /> for <M s={`a \\leq t \\leq b`} /> and we wish
+        to know how long it is. That is, we want to compute the
+        <b>arc length</b> of <M s="C" />.
     </p>
 
     <p>
@@ -194,9 +209,6 @@
             name="choose-curve"
             id="choose-curve"
             bind:value={exTitle}
-            on:change={() => {
-                addCurve(exTitle);
-            }}
         >
             {#each exampleCurves as { title }}
                 <option value={title}>{title}</option>
@@ -204,61 +216,64 @@
         </select>
     </p>
 
-    <M display>{`\\mathbf{r}(t) = ${texStrings.r}`}</M>
-    <M display>{`${texStrings.a} \\leq t \\leq ${texStrings.b}`}</M>
+    <M display s={`\\mathbf{r}(t) = ${texStrings.r}`} />
+    <M display s={`${texStrings.a} \\leq t \\leq ${texStrings.b}`} />
 
     <p>
-        We can estimate the length by selecting a finite number <M>
-            {`N = ${nVects}`}
-        </M>
+        We can estimate the length by selecting a finite number <M
+            s={`N = ${nVects}`}
+        />
         <span class="row">
             <input
                 type="range"
                 min="1"
-                value={nVects}
+                bind:value={nVects}
                 max="40"
                 step="1"
-                on:input={(e) => {
-                    nVects = math.evaluate(e.target.value);
-                    addCurve(exTitle);
+                oninput={(e) => {
+                    // nVects = math.evaluate(e.target.value);
+                    // addCurve(exTitle);
                 }}
             />
         </span>
         of positions along the curve and measuring the distance between them. To
-        wit, we select a partition of <M>{'[a,b]'}</M>.:
+        wit, we select a partition of <M s={'[a,b]'} />.:
     </p>
 
-    <M align>
-        {'t_0 &= a \\\\ t_1 &= a + \\Delta t \\\\ \\vdots  \\\\ t_N &= a + N \\Delta t = b \\\\'}
-    </M>
+    <M
+        align
+        s={'t_0 &= a \\\\ t_1 &= a + \\Delta t \\\\ \\vdots  \\\\ t_N &= a + N \\Delta t = b \\\\'}
+    />
 
     <p>
-        where <M>{'\\Delta t = \\frac{b - a}{N} \\).'}</M>.
+        where <M s={'\\Delta t = \\frac{b - a}{N} \\).'} />.
     </p>
 
     <p>Thus we can approximate arc length as</p>
 
-    <M display>
-        {`\\sum_{i = 1}^{${nVects}} |\\mathbf r(t_i) - \\mathbf r(t_{i - 1})|`}
-    </M>
-    <M display>
-        {`\\approx ${Math.round(1000 * lengthApproximation) / 1000}.`}
-    </M>
+    <M
+        display
+        s={`\\sum_{i = 1}^{${nVects}} |\\mathbf r(t_i) - \\mathbf r(t_{i - 1})|`}
+    />
+    <M
+        display
+        s={`\\approx ${Math.round(1000 * lengthApproximation) / 1000}.`}
+    />
 
     <p>
-        As <M>{'N \\to \\infty, \\Delta t \\to 0'}</M>, and this approximation
+        As <M s={'N \\to \\infty, \\Delta t \\to 0'} />, and this approximation
         becomes a Riemann sum (after multiplying and dividing by <M
-            >{'\\Delta t'}</M
-        >) converging to the exact arc length.
+            s={'\\Delta t'}
+        />) converging to the exact arc length.
     </p>
     <p>
-        That is, <M>
-            {` \\sum\\limits_{i = 1}^{N} \\frac{|\\mathbf r(t_i) - \\mathbf r(t_{i - 1})|}{\\Delta t} \\Delta t \\to  `}
-        </M>
+        That is, <M
+            s={` \\sum\\limits_{i = 1}^{N} \\frac{|\\mathbf r(t_i) - \\mathbf r(t_{i - 1})|}{\\Delta t} \\Delta t \\to  `}
+        />
         <span class="defin">
-            <M display size="lg">{" \\int_a^b |\\mathbf r ' (t) |\\,dt "}</M>
+            <M display size="lg" s={" \\int_a^b |\\mathbf r ' (t) |\\,dt "} />
         </span>
-        which is the definition of arc length <M>s</M>.
+        which is the definition of arc length <M s="s" />.
     </p>
 </article>
 

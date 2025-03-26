@@ -6,10 +6,11 @@
     import {
         ShardsEdgesGeometry,
         ShardsGeometry,
+        filterBang,
         gaussLegendre,
     } from '../utils';
     import { onMount, onDestroy } from 'svelte';
-    import { demoObjects } from '../stores';
+    import { demoObjects } from '../states.svelte';
     // import { createEventDispatcher } from 'svelte';
 
     // const dispatch = createEventDispatcher();
@@ -22,12 +23,10 @@
 
     let sampleParam = 0;
 
-    const backupObjects = [
-        ...$demoObjects.map((obj) => {
-            obj.selected = false;
-            return obj;
-        }),
-    ];
+    const backupObjects = demoObjects.map((obj) => {
+        obj.selected = false;
+        return obj;
+    });
 
     const standardExamples = [
         {
@@ -99,7 +98,7 @@
     });
 
     let currentSurface =
-        $demoObjects.find((o) => o.kind === 'surface') || exampleSurfaces[0];
+        demoObjects.find((o) => o.kind === 'surface') || exampleSurfaces[0];
 
     onMount(() => {
         // currentField =
@@ -117,7 +116,8 @@
             element.material?.dispose();
         }
         scene.remove(boxes);
-        $demoObjects = [...backupObjects];
+        demoObjects.length = 0;
+        demoObjects.push(...backupObjects);
         render();
     });
 
@@ -233,10 +233,8 @@
             v0 = () => -1;
             v1 = () => 1;
         }
-        $demoObjects = [
-            ...$demoObjects.filter((o) => o.kind !== 'surface'),
-            obj,
-        ];
+        filterBang((o) => o.kind !== 'surface', demoObjects);
+        demoObjects.push(obj);
     };
 
     $: setRuv(currentSurface);
@@ -301,19 +299,20 @@
                 on:click={() => {
                     exampleSurfaces = [
                         ...standardExamples,
-                        ...$demoObjects.filter(
+                        ...demoObjects.filter(
                             (obj) =>
                                 obj.kind === 'surface' &&
                                 obj.uuid.slice(0, 18) !== 'area-story-example',
                         ),
                     ];
                     currentSurface =
-                        $demoObjects.find((o) => o.kind === 'surface') ||
+                        demoObjects.find((o) => o.kind === 'surface') ||
                         exampleSurfaces[0];
                     setRuv(currentSurface);
                 }}
+                aria-label="Refresh list"
             >
-                <i class="bi bi-arrow-clockwise" />
+                <i class="bi bi-arrow-clockwise"></i>
             </button>
         </div>
     </div>

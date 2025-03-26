@@ -1,15 +1,18 @@
 <script>
     import { onMount } from 'svelte';
+    import { innerWidth } from 'svelte/reactivity/window';
 
     import * as THREE from 'three';
-    import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-    import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
-    import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { FontLoader } from 'three/addons/loaders/FontLoader.js';
+    import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
 
     // import components
     import Panel from './Panel.svelte';
     import Settings from './settings/Settings.svelte';
     import Stats from 'stats.js';
+
+    // import { filterBang } from './utils';
 
     import { getRoomId, makeSocket } from './rooms';
     import {
@@ -33,27 +36,32 @@
     //import stores
     import { tickTock, viewScale } from './stores.js';
 
-    let isMobileView = false;
+    let isMobileView = $derived(innerWidth.current < 768);
 
+    // svelte-ignore non_reactive_update
     let debug = false;
     let stats;
     let panel = null;
-    let showPanel = true;
+    let showPanel = $state(true);
 
-    let scaleAnimation = false;
-    let scaleUpdate;
-    let selectedObjects = [];
-    let hoveredObject = null;
-    let selectedPoint = null;
+    let scaleAnimation = $state(false);
+    let scaleUpdate = $state();
+    let hoveredObject = $state();
+    let selectedObjects = $derived(
+        demoObjects.filter((obj) => obj.selected).map((obj) => obj.uuid),
+    );
+
+    // $inspect(selectedObjects);
 
     // The demoObjects array store is the declarative data that the scene is based on.
-    import { demoObjects } from './stores.js';
+    // import { demoObjects } from './stores.js';
+    import { demoObjects } from './states.svelte';
+    import { planckTemperatureDependencies } from 'mathjs';
 
-    let gridMax = 1;
-    let gridStep = 1 / 10;
+    let gridMax = $state(1);
+    let gridStep = $state(1 / 10);
 
-    let currentChapter = 'How To';
-    let currentMode = 'how-to';
+    let currentMode = $state('how-to');
     let gridSetting = false;
 
     const urlParams = new URLSearchParams(
@@ -88,35 +96,28 @@
             }
         });
         for (const val of Object.values(objectHolder)) {
-            // objects = makeObject(val.uuid, val.kind, val.params, objects);
-            $demoObjects = [
-                ...$demoObjects,
-                { uuid: crypto.randomUUID(), ...val },
-            ];
-            if (debug) console.log($demoObjects);
+            demoObjects.push({
+                uuid: crypto.randomUUID(),
+                animation: false,
+                ...val,
+            });
+
+            if (debug) console.log(demoObjects);
         }
-        console.log('Initializing...', $demoObjects);
     }
 
     let canvas;
-    let isPollsOpen = false;
+    let isPollsOpen = $state(false);
 
-    let lockPoll = false;
-    let showPollResults = false;
+    let lockPoll = $state(false);
+    let showPollResults = $state(false);
 
-    const selectObject = (uuid) => {
-        if (uuid === null) {
-            selectedObjects = [];
-        } else {
-            if (selectedObjects.includes(uuid)) {
-                selectedObjects = selectedObjects.filter((obj) => obj !== uuid);
-            } else {
-                //Can't just push. Assignment needed to trigger dynamic update
-                selectedObjects = selectedObjects.concat(uuid);
-            }
+    const selectObject = (uuid, unique = true) => {
+        const obj = demoObjects.find((o) => o.uuid === uuid);
+        if (unique) {
+            demoObjects.forEach((obj) => (obj.selected = false));
         }
-
-        render();
+        if (obj) obj.selected = !obj.selected;
     };
 
     const objectLoader = new THREE.ObjectLoader();
@@ -143,31 +144,13 @@
     let controls, controls2;
     let renderer;
 
-    let orthoCamera = false;
+    let orthoCamera = $state(false);
 
-    $: currentCamera = orthoCamera ? camera2 : camera;
-    $: currentControls = orthoCamera ? controls2 : controls;
+    let currentCamera = $state(camera);
+    // svelte-ignore non_reactive_update
+    let currentControls = controls;
 
-    // Try a sane transfer between cameras instead of turning listeners for the two controls on and off.
-    $: if (orthoCamera) {
-        controls2?.target.copy(controls.target);
-        controls2?.addEventListener('change', requestFrameIfNotRequested);
-
-        controls?.removeEventListener('change', requestFrameIfNotRequested);
-        camera2?.position.copy(camera.position);
-        if (controls) {
-            controls.enableDamping = false;
-        }
-    } else {
-        controls?.target.copy(controls2.target);
-        controls?.addEventListener('change', requestFrameIfNotRequested);
-
-        controls2?.removeEventListener('change', requestFrameIfNotRequested);
-        camera?.position.copy(camera2.position);
-        if (controls) {
-            controls.enableDamping = true;
-        }
-    }
+    // $inspect(currentControls);
 
     const pi = Math.PI;
 
@@ -180,9 +163,7 @@
     camera.up.set(0, 0, 1);
     camera.lookAt(0, 0, 0);
 
-    camera2.position.x = (gridMax * 2) / 2;
-    camera2.position.y = (-gridMax * 3) / 2;
-    camera2.position.z = (gridMax * 4.5) / 2;
+    camera2.position.copy(camera.position);
     camera2.up.set(0, 0, 1);
     camera2.lookAt(0, 0, 0);
 
@@ -269,18 +250,14 @@
         return needResize;
     };
 
-    let myReq,
-        last,
-        animating = false;
+    let myReq;
+    let last;
 
-    const animateIfNotAnimating = function () {
-        if (!animating) {
-            cancelAnimationFrame(myReq);
-            frameRequested = true;
-            myReq = requestAnimationFrame(animate);
-            animating = true;
-        }
-    };
+    function animateIfNotAnimating() {
+        cancelAnimationFrame(myReq);
+        frameRequested = true;
+        myReq = requestAnimationFrame(animate);
+    }
 
     const animate = (time = 0) => {
         if (debug) {
@@ -310,14 +287,12 @@
             stats.end();
         }
 
-        if (scaleAnimation || $demoObjects.some((b) => b.animation)) {
+        if (scaleAnimation || demoObjects.some((b) => b.animation)) {
             myReq = requestAnimationFrame(animate);
             frameRequested = true;
-            animating = true;
         } else {
             cancelAnimationFrame(myReq);
             frameRequested = false;
-            animating = false;
             last = false;
         }
     };
@@ -332,15 +307,20 @@
 
         if (resizeRendererToDisplaySize(renderer)) {
             // const canvas = renderer.domElement;
-            if (orthoCamera) {
-                currentCamera.top = canvas.clientHeight / 2;
-                currentCamera.bottom = canvas.clientHeight / -2;
-                currentCamera.right = canvas.clientWidth / 2;
-                currentCamera.left = canvas.clientWidth / -2;
-            } else {
-                currentCamera.aspect = canvas.clientWidth / canvas.clientHeight;
-            }
-            currentCamera.updateProjectionMatrix();
+
+            // camera2.top = canvas.clientHeight / 2;
+            // camera2.bottom = canvas.clientHeight / -2;
+            // camera2.right = canvas.clientWidth / 2;
+            // camera2.left = canvas.clientWidth / -2;
+            // camera2.updateProjectionMatrix();
+
+            camera.aspect = canvas.clientWidth / canvas.clientHeight;
+            camera.updateProjectionMatrix();
+            setOrthoCamBox(
+                camera2,
+                camera,
+                controls.target || { x: 0, y: 0, z: 0 },
+            );
         }
 
         currentControls?.update();
@@ -374,7 +354,7 @@
         controls.maxPolarAngle = Math.PI;
         controls2.maxPolarAngle = Math.PI;
 
-        controls.addEventListener('change', requestFrameIfNotRequested);
+        // controls.addEventListener('change', requestFrameIfNotRequested);
         // controls2.addEventListener('change', requestFrameIfNotRequested);
 
         // resize();
@@ -388,14 +368,19 @@
     // the data gets rendered by our svelte components
     let sceneObjects = [];
 
-    export let currentPoll = null;
-    export let isHost = false;
-    let activeUserCount = 0;
+    let currentPoll = $state(null);
+    let isHost = $state(false);
+
+    let activeUserCount = $state(0);
 
     let host = null;
 
     if (window.SCENE_STATE && window.SCENE_STATE.objects) {
-        $demoObjects = window.SCENE_STATE.objects;
+        demoObjects.splice(
+            0,
+            demoObjects.length,
+            ...window.SCENE_STATE.objects,
+        );
     }
 
     if (window.SCENE_STATE && window.SCENE_STATE.poll) {
@@ -412,17 +397,9 @@
 
     export const blowUpObjects = () => {
         if (confirm('Remove all objects in the scene?')) {
-            $demoObjects = [];
-            selectedObjects = [];
+            demoObjects.length = 0;
         }
     };
-
-    isMobileView = window.innerWidth < 768;
-    window.addEventListener('resize', () => {
-        requestFrameIfNotRequested();
-
-        isMobileView = window.innerWidth < 768;
-    });
 
     /**
      * onRenderObject
@@ -485,7 +462,7 @@
 
     const onDblClick = function (e) {
         if (!e.shiftKey) {
-            selectedObjects = [];
+            selectObject(null);
         }
 
         e.preventDefault();
@@ -522,6 +499,8 @@
     onMount(() => {
         const renderer = createScene(canvas);
 
+        switchCamera();
+
         // stats window for debugging
         if (debug) {
             stats = new Stats();
@@ -531,7 +510,7 @@
 
         // If any of the loaded objects are currently animating, start
         // animation.
-        if ($demoObjects.some((b) => b.animation)) {
+        if (demoObjects.some((b) => b.animation)) {
             // Do initial render to set canvas size correctly.
             render();
             // Start animation
@@ -608,12 +587,67 @@
                 );
             });
         });
+
+        window.addEventListener('resize', render);
     });
 
-    let pollResponses = {};
+    function setOrthoCamBox(cam2, cam, target) {
+        const fov = cam.fov * (Math.PI / 180);
+        const aspect = cam.aspect;
+        const d = Math.hypot(
+            target.x - cam.position.x,
+            target.y - cam.position.y,
+            target.z - cam.position.z,
+        );
+
+        const h = 2 * d * Math.tan(fov / 2);
+        const w = h * aspect;
+
+        cam2.left = -w / 2;
+        cam2.right = w / 2;
+        cam2.top = h / 2;
+        cam2.bottom = -h / 2;
+        cam2.updateProjectionMatrix();
+    }
+
+    // Try a sane transfer between cameras instead of turning listeners for the two controls on and off.
+    function switchCamera(cam) {
+        if (cam === 'ortho') {
+            camera2.zoom = camera.zoom;
+            camera2.position.copy(camera.position);
+            controls2.target.copy(controls.target);
+            setOrthoCamBox(camera2, camera, controls.target);
+
+            controls2.enabled = true;
+            controls2.addEventListener('change', requestFrameIfNotRequested);
+            controls.enabled = false;
+            controls.removeEventListener('change', requestFrameIfNotRequested);
+
+            currentControls = controls2;
+            currentCamera = camera2;
+        } else {
+            controls.target.copy(controls2.target);
+            camera.position.copy(camera2.position);
+            camera.zoom = camera2.zoom;
+
+            camera.updateProjectionMatrix();
+
+            controls.enabled = true;
+            controls.addEventListener('change', requestFrameIfNotRequested);
+            controls2.enabled = false;
+            controls2.removeEventListener('change', requestFrameIfNotRequested);
+
+            currentControls = controls;
+            currentCamera = camera;
+        }
+
+        render();
+    }
+
+    let pollResponses = $state({});
 
     // The chat buffer: an array of objects.
-    let chatBuffer = [];
+    let chatBuffer = $state([]);
     const chatLineCount = 5;
     const pointGeometry = new THREE.SphereGeometry(0.2 / 8, 16, 16);
     const pollMaterial = new THREE.MeshLambertMaterial({
@@ -621,19 +655,16 @@
         transparent: true,
         opacity: 0.5,
     });
-    let objectResponses;
+    let objectResponses = $state();
 
-    const makeQueryStringObject = function () {
+    const makeQueryStringObject = function (args) {
         const flattenedObjects = {
-            currentChapter,
             scale: $viewScale,
             showPanel,
+            ...args,
         };
-        if (gridMeshes.visible) {
-            flattenedObjects['grid'] = true;
-        }
         window.location.search = btoa(
-            convertToURLParams(flattenedObjects, $demoObjects).toString(),
+            convertToURLParams(flattenedObjects, demoObjects).toString(),
         );
     };
 
@@ -706,48 +737,39 @@
                 activeUserCount = data.message.updateActiveUsers;
             }
         } else {
-            $demoObjects = handleSceneEvent(data, $demoObjects);
+            handleSceneEvent(data, demoObjects);
         }
     };
 
-    let socket = null;
+    let socket = $state(null);
     const router = {};
     const room = location.pathname.match(/\/rooms\/\d+\//);
-    let roomId = null;
+    const roomId = getRoomId(window.location.pathname);
 
     if (room) {
         currentMode = 'session';
         router.room = true;
-        roomId = getRoomId(window.location.pathname);
         socket = makeSocket(roomId, handleSocketMessage);
     }
 
     const keySelect = function (e, moveDown) {
-        if (!$demoObjects) {
+        console.log('keyselect', selectedObjects);
+        if (!demoObjects || selectedObjects.length === demoObjects.length) {
             return;
         } else if (selectedObjects.length === 0) {
-            selectedObjects = [
-                $demoObjects[moveDown ? $demoObjects.length - 1 : 0].uuid,
-            ];
-        } else if (selectedObjects.length === $demoObjects.length) {
-            return;
+            demoObjects[moveDown ? demoObjects.length - 1 : 0].selected = true;
         } else {
-            const selectedIndex = $demoObjects
+            const selectedIndex = demoObjects
                 .map((x) => x.uuid)
                 .indexOf(
                     selectedObjects[moveDown ? selectedObjects.length - 1 : 0],
                 );
             const newIdx = modFloor(
                 selectedIndex + (moveDown ? -1 : 1),
-                $demoObjects.length,
+                demoObjects.length,
             );
-            if (e.shiftKey) {
-                selectedObjects = moveDown
-                    ? selectedObjects.concat([$demoObjects[newIdx].uuid])
-                    : [$demoObjects[newIdx].uuid].concat(selectedObjects);
-            } else {
-                selectedObjects = [$demoObjects[newIdx].uuid];
-            }
+            if (!e.shiftKey) selectObject(null);
+            demoObjects[newIdx].selected = true;
         }
         render();
     };
@@ -757,11 +779,8 @@
             return;
         }
         switch (e.key) {
-            case 'm':
-                isMobileView = !isMobileView;
-                break;
             case 'Escape':
-                selectedObjects = [];
+                selectObject(null);
                 render();
                 break;
             case '[':
@@ -826,14 +845,11 @@
             bind:this={panel}
             bind:debug
             bind:currentMode
-            bind:currentChapter
             bind:gridStep
             bind:gridMax
             bind:chatBuffer
             bind:pollResponses
             bind:lockPoll
-            bind:selectedObjects
-            bind:selectedPoint
             bind:isPollsOpen
             {isMobileView}
             bind:showPanel
@@ -841,10 +857,18 @@
             {blowUpObjects}
             {selectObject}
             {scene}
-            {onRenderObject}
-            {onDestroyObject}
             {currentCamera}
             {currentControls}
+            setTarget={(pt) => {
+                currentControls.target.set(
+                    pt.position.x,
+                    pt.position.y,
+                    pt.position.z,
+                );
+                render();
+            }}
+            {onRenderObject}
+            {onDestroyObject}
             {requestFrameIfNotRequested}
             {socket}
             {animateIfNotAnimating}
@@ -853,7 +877,8 @@
             {objectResponses}
         />
 
-        <canvas class="flex-grow-1" tabIndex="0" id="c" bind:this={canvas} />
+        <canvas class="flex-grow-1" tabIndex="0" id="c" bind:this={canvas}
+        ></canvas>
 
         <div class="settings-panel-box" class:mobile={isMobileView}>
             <Settings
@@ -873,8 +898,12 @@
                 render={requestFrameIfNotRequested}
                 bind:update={scaleUpdate}
                 bind:animation={scaleAnimation}
-                bind:orthoCamera
-                on:animate={animateIfNotAnimating}
+                {switchCamera}
+                recenterCamera={() => {
+                    currentControls.target.set(0, 0, 0);
+                    render();
+                }}
+                animate={animateIfNotAnimating}
                 {roomId}
             />
         </div>
@@ -884,12 +913,17 @@
                 class="active-users-count"
                 title={activeUserCount + ' users in session'}
             >
-                <i class="bi bi-person-fill" />
+                <i class="bi bi-person-fill"></i>
                 {activeUserCount}
             </div>
 
-            <a class="leave-room" href="/" title="Exit Room">
-                <i class="fa fa-sign-out" />
+            <a
+                class="leave-room"
+                href="/"
+                title="Exit Room"
+                aria-label="Room signout"
+            >
+                <i class="fa fa-sign-out"></i>
             </a>
         {/if}
     </div>
@@ -899,7 +933,7 @@
             class="scene-overlay active-users-count"
             title={activeUserCount + ' users in session'}
         >
-            <i class="bi bi-person-fill" />
+            <i class="bi bi-person-fill"></i>
             {activeUserCount}
         </div>
     {/if}
@@ -951,8 +985,8 @@
 
     .demos-logo {
         position: absolute;
-        top: 5px;
-        left: 5px;
+        top: 0px;
+        left: 0px;
         z-index: 1;
     }
 

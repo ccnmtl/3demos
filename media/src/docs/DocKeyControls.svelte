@@ -10,13 +10,12 @@
     </li>
     <li>
         <Badge>{`[ / ]`}</Badge>
-        Shift selection to the object just before the first or after the last
-        selected object.
+        Shift selection to the object just before the first or after the last selected
+        object.
     </li>
     <li>
         <Badge>{`{ / }`}</Badge>
-        Add the object just above or below the respective objects to the
-        selection.
+        Add the object just above or below the respective objects to the selection.
     </li>
     <li>
         <Badge>Esc</Badge>
@@ -30,7 +29,7 @@
         <Badge>p</Badge>
         Play/Pause animation for the selected objects.
         <ul>
-            <li>Requires <M size="sm">t</M> variable.</li>
+            <li>Requires <M size="sm" s="t" /> variable.</li>
             <li>Not available for <em>Solid Region</em> objects.</li>
         </ul>
     </li>
@@ -96,8 +95,8 @@
     <ul>
         <li>
             <Badge>0</Badge>
-            Toggle level sets displayed on graph <M size="sm">z = f(x,y)</M> vs.
-            in plane <M size="sm">z = 0</M>.
+            Toggle level sets displayed on graph <M size="sm" s="z = f(x,y)" /> vs.
+            in plane <M size="sm" s="z = 0" />.
         </li>
     </ul>
 </ul>

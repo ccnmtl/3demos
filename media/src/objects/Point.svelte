@@ -1,4 +1,4 @@
-<script context="module">
+<script module>
     import { create, all } from 'mathjs';
     const config = {};
     const math = create(all, config);
@@ -9,7 +9,7 @@
 </script>
 
 <script>
-    import { onMount, onDestroy, createEventDispatcher } from 'svelte';
+    import { onMount, onDestroy, untrack } from 'svelte';
     // import { slide } from 'svelte/transition';
     import * as THREE from 'three';
     import { tickTock } from '../stores';
@@ -24,46 +24,41 @@
 
     // export let paramString;
 
-    export let uuid;
-    export let onRenderObject = function () {};
-    export let onDestroyObject = function () {};
-    export let onSelect = function () {};
+    let {
+        uuid,
+        onRenderObject,
+        onDestroyObject,
+        params = $bindable({
+            a: '-1',
+            b: '1',
+            c: '2',
+        }),
+        color = $bindable('#FFFF33'),
+        title = $bindable(),
+        scene,
+        render,
+        gridStep,
+        show = true,
+        animation = $bindable(false),
+        selected,
+        selectPoint,
+        selectObject,
+        animate,
+        onClose = () => {},
+    } = $props();
 
-    export let params = {
-        a: '-1',
-        b: '1',
-        c: '2',
-    };
+    let tau = $state(0);
+    let t0 = $derived(math.parse(params.t0 ?? '0').evaluate());
+    let t1 = $derived(math.parse(params.t1 ?? '1').evaluate());
+    let tVal = $derived(t0 + tau * (t1 - t0));
+    let displayTVal = $derived(tVal.toFixed(2));
 
-    export let color = '#FFFF33';
-    export let title;
+    let N0 = $derived(math.parse(params.n0 ?? '0').evaluate());
+    let N1 = $derived(math.parse(params.n1 ?? '0').evaluate());
 
-    // useless code to suppress dev warnings
-    export let camera;
-    export let controls;
-    export let gridMax;
-
-    camera, controls, gridMax;
-
-    let tau = 0;
     let last;
-    let texString1 = '';
 
-    // display controls in objects panel
-    // considered for Chapters that add many objects that need not be user-configurable.
-    export let show = true;
-
-    export let scene;
-    export let render = () => {};
-    export let onClose = () => {};
-    export let gridStep;
-    export let animation = false;
-    export let selected;
-    export let selectedObjects;
-
-    let minimize = false;
-
-    const dispatch = createEventDispatcher();
+    let minimize = $state(false);
 
     const pointMaterial = new THREE.MeshLambertMaterial({
         color,
@@ -76,27 +71,10 @@
     point.position.set(1, 1, 1);
 
     points.add(point);
+    selectPoint(point);
     scene.add(points);
 
     const updatePoint = function () {
-        const { a, b, c } = params;
-        let t;
-        const { t0, t1 } = params;
-        if (t0 && t1) {
-            const A = math.evaluate(t0);
-            const B = math.evaluate(t1);
-
-            t = A + tau * (B - A);
-        } else {
-            t = 0;
-        }
-
-        let N0, N1;
-        const { n0, n1 } = params;
-
-        N0 = n0 || 0;
-        N1 = n1 || 0;
-
         while (points.children.length < N1 - N0 + 1) {
             points.add(new THREE.Mesh(pointGeo, pointMaterial));
         }
@@ -105,13 +83,14 @@
             points.remove(point);
         }
 
+        const { a, b, c } = params;
         const [A, B, C] = math.parse([a, b, c]);
 
         for (let index = N0; index <= N1; index++) {
             const point = points.children[index - N0];
 
             point.position.set(
-                ...[A, B, C].map((s) => s.evaluate({ t, n: index })),
+                ...[A, B, C].map((s) => s.evaluate({ t: tVal, n: index })),
             );
         }
 
@@ -121,17 +100,19 @@
     };
 
     // call updateVector() when params change
-    $: isDynamic = dependsOn(params);
-    $: isDiscrete = dependsOn(params, 'n');
+    let isDynamic = $derived(dependsOn(params, 't'));
+    let isDiscrete = $derived(dependsOn(params, 'n'));
 
-    $: hashTag = checksum(JSON.stringify(params));
-    $: hashTag, updatePoint();
+    $effect(() => {
+        params;
+        updatePoint();
+    });
 
     // recolor on demand
-    $: {
+    $effect(() => {
         pointMaterial.color.set(color);
         render();
-    }
+    });
 
     let boxItemElement;
     /**
@@ -141,10 +122,11 @@
         flashDance(point, render);
         boxItemElement?.scrollIntoView({ behavior: 'smooth' });
     };
-    $: if (selected && selectedObjects.length > 0) flash();
+    $effect(() => {
+        if (selected) untrack(flash);
+    });
 
     onMount(() => {
-        if (animation) dispatch('animate');
         titleIndex++;
         title = title || `Point ${titleIndex}`;
     });
@@ -229,63 +211,52 @@
     // texString1 = `t = ${Math.round(100 * T) / 100}`;
 
     const update = (dt = 0) => {
-        const { t0, t1 } = params;
-        const A = math.parse(t0).evaluate();
-        const B = math.parse(t1).evaluate();
-
-        tau += dt / (B - A);
-        if (tau > 1 || tau < 0) tau %= 1;
-
-        const T = A + (B - A) * tau;
-        texString1 = (Math.round(100 * T) / 100).toString();
-
-        updatePoint(T);
+        tau += dt / (t1 - t0);
+        tau %= 1;
+        updatePoint(tVal);
     };
     // Start animating if animation changes (e.g. animating scene published)
-    $: if (animation) {
-        dispatch('animate');
-    }
-    $: if (animation) {
-        const currentTime = $tickTock;
-        last = last || currentTime;
-        update(currentTime - last);
-        last = currentTime;
-    } else {
-        last = null;
-    }
+    $effect(() => {
+        if (animation) untrack(animate);
+    });
+    $effect(() => {
+        if (animation) {
+            const currentTime = $tickTock;
+            last = last || currentTime;
+            update(currentTime - last);
+            last = currentTime;
+        } else {
+            last = null;
+        }
+    });
 </script>
 
-<!-- svelte-ignore a11y-no-static-element-interactions -->
-<div
-    class="boxItem"
-    class:selected
-    bind:this={boxItemElement}
-    on:keydown
-    hidden={!show}
->
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<div class="boxItem" class:selected bind:this={boxItemElement} hidden={!show}>
     <ObjHeader
         bind:minimize
-        bind:selectedObjects
         {onClose}
         {toggleHide}
         objHidden={!point.visible}
         {color}
-        {onSelect}
+        onSelect={(e) => selectObject(uuid, !e.shiftKey)}
     >
         <Nametag bind:title />
-        <M size="sm">\langle p_1, p_2, p_3 \rangle</M>
+        <M size="sm" s={`\\langle p_1, p_2, p_3 \\rangle`} />
     </ObjHeader>
     <div hidden={minimize}>
         <div class="threedemos-container container">
             {#each ['a', 'b', 'c'] as name}
-                <span class="box-1"><M size="sm">{varNames[name]} =</M></span>
+                <span class="box-1"
+                    ><M size="sm" s={varNames[name] + ' = '} /></span
+                >
                 <InputChecker
                     value={params[name]}
                     checker={chickenParms}
                     {name}
                     {params}
-                    on:cleared={(e) => {
-                        params[name] = e.detail;
+                    cleared={(val) => {
+                        params[name] = val;
                     }}
                 />
             {/each}
@@ -295,7 +266,7 @@
                 {#each ['t0', 't1'] as name}
                     {#if name === 't1'}
                         <span class="box box-3"
-                            ><M size="sm">{'\\leq t \\leq '}</M></span
+                            ><M size="sm" s={'\\leq t \\leq '} /></span
                         >
                     {/if}
                     <InputChecker
@@ -306,14 +277,16 @@
                             Number.isFinite(math.parse(val).evaluate())}
                         value={params[name]}
                         {name}
-                        on:cleared={(e) => {
-                            params[name] = e.detail;
+                        oncleared={(val) => {
+                            params[name] = val;
                         }}
                     />
                 {/each}
 
                 <span class="box-1">
-                    <span class="t-box">t = {texString1}</span>
+                    <span class="t-box">
+                        <M s="t =" /><M s={displayTVal} />
+                    </span>
                 </span>
                 <input
                     type="range"
@@ -321,15 +294,14 @@
                     min="0"
                     max="1"
                     step="0.001"
-                    on:input={() => update()}
+                    oninput={() => update()}
                     class="box box-2"
                 />
 
                 <PlayButtons
                     bind:animation
-                    on:animate
-                    on:pause={() => (last = null)}
-                    on:rew={() => {
+                    pause={() => (last = null)}
+                    rew={() => {
                         tau = 0;
                         update();
                     }}
@@ -346,7 +318,7 @@
                     name="n0"
                 />
                 <span class="box box-3">
-                    <M size="sm">{'\\leq n \\leq '}</M>
+                    <M size="sm" s={'\\leq n \\leq '} />
                 </span>
                 <input
                     class="form-control form-control-sm box-4"
