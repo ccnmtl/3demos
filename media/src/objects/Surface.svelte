@@ -629,6 +629,7 @@
 
         // updateSurface();
         if (animation) animate();
+        if (params.mu && params.mu != '1') chooseDensity = true;
     });
 
     onDestroy(() => {

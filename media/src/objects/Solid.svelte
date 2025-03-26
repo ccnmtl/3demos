@@ -59,6 +59,8 @@
     onMount(() => {
         titleIndex++;
         title = title || `Solid Region ${titleIndex}`;
+
+        if (params.mu && params.mu != '1') chooseDensity = true;
     });
 
     onDestroy(() => {
