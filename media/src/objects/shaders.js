@@ -79,7 +79,7 @@ return ${mathToGLSL(formula)};
 
 
 void main() {
-float t = (clamp(dens(vPosition.x, vPosition.y, vPosition.z, tVal), float(${v0}), float(${v1})) - float(${v0})) / (float(${v1 - v0}));
+float t = clamp((dens(vPosition.x, vPosition.y, vPosition.z, tVal) - float(${v0})) / float(${v1 - v0}), 0., 1.);
 gl_FragColor = vec4(color(t), 1.);
 }
 `;

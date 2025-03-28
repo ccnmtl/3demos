@@ -278,8 +278,8 @@ export function cmToGLSLUniformFunc(name) {
   out += `\nuniform vec3 colorData[${N}]; \n`;
   out += `\nvec3 color(float t) {
     int j = 0;
-    float ix = t*float(N);
-    while (float(j + 1) < ix) {
+    float ix = t*float(N-1);
+    while (float(j + 1) <= ix) {
       j++;
     }
     return ${data[name].interpolate ? 'mix(colorData[j], colorData[j+1], fract(ix));' : 'colorData[j];'}
