@@ -1212,6 +1212,13 @@ class ParametricCurve extends THREE.Curve {
     }
 }
 
+/**
+ * 
+ * @param {*} param0 
+ * @param {*} fontLoader 
+ * @param {*} TextGeometry 
+ * @returns 
+ */
 function labelAxes({
     scene,
     gridMax = 1,

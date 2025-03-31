@@ -17,7 +17,7 @@
         densityColormap,
         viewScale,
     } from '../stores';
-    import { demoObjects } from '../states.svelte';
+    import { demoObjects, scaleData } from '../states.svelte';
     import WindowHeader from './WindowHeader.svelte';
     import { colorMapNames } from '../js-colormaps';
     import { offclick } from './offclick';
@@ -168,16 +168,7 @@
         a.remove();
     };
 
-    onMount(() => {
-        const unsubscribe = viewScale.subscribe((value) => {
-            scala = scaleExp(value);
-            console.log('scale updated', scala);
-            rescale();
-        });
-        console.log('setting mounted');
-        scaleTemp = $viewScale;
-        return unsubscribe;
-    });
+    onMount(() => {});
     window.addEventListener('keydown', (e) => {
         if (e.target.matches('input, textarea')) {
             return;
@@ -223,11 +214,11 @@
                         max="3"
                         step=".02"
                         bind:value={scaleTemp}
-                        onchange={(e) => {
-                            $viewScale = e.target.value;
+                        onchange={() => {
+                            scaleData.next = scaleTemp;
                         }}
                     />
-                    <span class="output text-end">{scalaTemp}</span>
+                    <span class="output text-end">{scaleExp(scaleTemp)}</span>
                 </span>
             </div>
         </div>

@@ -55,14 +55,40 @@
 
     // The demoObjects array store is the declarative data that the scene is based on.
     // import { demoObjects } from './stores.js';
-    import { demoObjects } from './states.svelte';
-    import { planckTemperatureDependencies } from 'mathjs';
+    import { demoObjects, scaleData } from './states.svelte';
+    import { timeDay } from 'd3';
 
-    let gridMax = $state(1);
-    let gridStep = $state(1 / 10);
+    let gridMax = $derived(scaleExp(scaleData.current));
+    let gridStep = $derived(gridMax / 10);
+
+    $inspect(gridMax);
+
+    let lastScaleTime;
+    let tauScale = 0;
+
+    function rescale(time) {
+        if (!lastScaleTime) lastScaleTime = time;
+        const dt = (time - lastScaleTime) / 1000;
+        lastScaleTime = timeDay;
+    }
+
+    $effect(() => {
+        if (scaleData.next != scaleData.current) {
+            drawAxes();
+            requestAnimationFrame(rescale);
+            // requestAnimationFrame(() => {
+            //     scaleData.current +=
+            //         Math.sign(scaleData.next - scaleData.current) *
+            //         Math.min(
+            //             1 / 60,
+            //             Math.abs(scaleData.next - scaleData.current),
+            //         );
+            // });
+        }
+    });
 
     let currentMode = $state('how-to');
-    let gridSetting = false;
+    let gridSetting = $state(false);
 
     const urlParams = new URLSearchParams(
         processSearchEncoding(location.search),
@@ -207,6 +233,13 @@
         depthTest: true,
     });
 
+    const requestFrameIfNotRequested = function () {
+        if (!frameRequested) {
+            frameRequested = true;
+            myReq = requestAnimationFrame(render);
+        }
+    };
+
     // Make xy grid lines (off by default).
     let gridMeshes = drawGrid({ gridMax, gridStep, lineMaterial });
     gridMeshes.renderDepth = -1;
@@ -217,13 +250,6 @@
     const axesMaterial = new THREE.MeshLambertMaterial({ color: 0x320032 });
     let axesHolder = drawAxes({ gridMax, gridStep, axesMaterial });
     scene.add(axesHolder);
-
-    const requestFrameIfNotRequested = function () {
-        if (!frameRequested) {
-            frameRequested = true;
-            myReq = requestAnimationFrame(render);
-        }
-    };
 
     // Fonts
     const fontLoader = new FontLoader();

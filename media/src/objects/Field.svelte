@@ -297,7 +297,7 @@
     const freeChildren = function (objectHolder) {
         for (let i = objectHolder.children.length - 1; i >= 0; i--) {
             const element = objectHolder.children[i];
-            if (element.geometry.dispose) element.geometry.dispose();
+            element.geometry?.dispose();
             objectHolder.remove(element);
         }
     };
