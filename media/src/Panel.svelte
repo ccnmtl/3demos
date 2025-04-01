@@ -70,7 +70,7 @@
         chatBuffer,
         lockPoll,
         objectResponses,
-        showPanel = true,
+        showPanel = $bindable(true),
     } = $props();
 
     let selectedPoint = $state();
