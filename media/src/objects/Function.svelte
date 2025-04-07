@@ -615,15 +615,19 @@
     $effect(() => {
         if (animation) untrack(animate);
     });
-    $effect(() => {
+    function currentTock() {
         if (animation) {
             const currentTime = $tickTock;
+
             last = last || currentTime;
             update(currentTime - last);
             last = currentTime;
         } else {
             last = null;
         }
+    }
+    $effect(() => {
+        if ($tickTock) untrack(currentTock);
     });
 
     let lastLevelTime = null;
