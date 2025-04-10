@@ -57,7 +57,7 @@
         gridStep,
         show = true,
         showLevelCurves = false,
-        animation = $bindable(false),
+        // animation = $bindable(false),
         selected,
         selectPoint,
         selectObject,
@@ -65,6 +65,8 @@
         camera,
         onClose = () => {},
     } = $props();
+
+    let animation = $state(false);
 
     // $inspect(camera);
 
@@ -494,9 +496,13 @@
 
     const evolveSurface = function (t) {
         boxMeshVisible = false;
-
+        const zz = math
+            .parse('3 / 4 * cos(2*x + 2*y + t)/(1 + x^2 + y^2)')
+            .compile();
+        const func = (x, y, t) => zz.evaluate({ x, y, t });
         // the front and back surfaces share a geometry. The meshlines are separate
         for (let j = 0; j < 3; j += 2) {
+            console.time(`evolve ${j} loop `);
             const geometry = surfaceMesh.children[j].geometry;
             const positions = geometry.attributes.position.array;
 
@@ -538,6 +544,7 @@
                 geometry.computeBoundingBox();
                 geometry.computeBoundingSphere();
             }
+            console.timeEnd(`evolve ${j} loop `);
         }
 
         if (showTangents) {
@@ -601,34 +608,38 @@
         if (selected) untrack(flash);
     });
 
-    const update = function (dt) {
+    function update(tstamp) {
+        last = last ?? tstamp;
+        const dt = (tstamp - last) / 1000;
         tau += dt / (t1 - t0);
         tau %= 1;
 
         evolveSurface(tVal);
 
         render();
-    };
+        last = tstamp;
+        if (animation) requestAnimationFrame(update);
+    }
 
     // Reacts once when `animation` changes
     // Useful it the objects file is updated with new flag
-    $effect(() => {
-        if (animation) untrack(animate);
-    });
-    function currentTock() {
-        if (animation) {
-            const currentTime = $tickTock;
+    // $effect(() => {
+    //     if (animation) untrack(animate);
+    // });
+    // function currentTock() {
+    //     if (animation) {
+    //         const currentTime = $tickTock;
 
-            last = last || currentTime;
-            update(currentTime - last);
-            last = currentTime;
-        } else {
-            last = null;
-        }
-    }
-    $effect(() => {
-        if ($tickTock) untrack(currentTock);
-    });
+    //         last = last || currentTime;
+    //         update(currentTime - last);
+    //         last = currentTime;
+    //     } else {
+    //         last = null;
+    //     }
+    // }
+    // $effect(() => {
+    //     if ($tickTock) untrack(currentTock);
+    // });
 
     let lastLevelTime = null;
     let levelReq;
@@ -1149,6 +1160,9 @@
 
                 <PlayButtons
                     bind:animation
+                    play={() => {
+                        requestAnimationFrame(update);
+                    }}
                     pause={() => (last = null)}
                     rew={() => {
                         tau = 0;
