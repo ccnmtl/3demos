@@ -1582,10 +1582,21 @@ class ParametricGeometry extends THREE.BufferGeometry {
     }
 }
 
+/**
+ * return a geometry of an approximation of f on the rectangle [a,b] \times [c,d]
+       using M\times N subrectangles and sampling at (s,t) (relative coords) in each.
+ * @param {function(x: number, y:number): number} f integrand f(x,y)
+ * @param {number} a lower x bound
+ * @param {number} b upper x bound
+ * @param {number} c lower y bound
+ * @param {number} d upper y bound 
+ * @param {number} M number of x subdivisions 
+ * @param {number} N number of y subdivisions 
+ * @param {number} s proportion for x sample point
+ * @param {number} t proportion for y sample point
+ * @returns BufferGeometry
+ */
 function blockGeometry(f, a, b, c, d, M = 5, N = 5, s = 0.5, t = 0.5) {
-    /* return a geometry of an approximation of f on the rectangle [a,b] \times [c,d]
-       using M\times N subrectangles and sampling at (s,t) (relative coords) in each.*/
-
     let points = [];
     let colors = [];
     let normals = [];
