@@ -501,6 +501,9 @@
             .parse('3 / 4 * cos(2*x + 2*y + t)/(1 + x^2 + y^2)')
             .compile();
         const func = (x, y, t) => zz.evaluate({ x, y, t });
+        console.time('one func');
+        func(1.234, 0.844, 3.1);
+        console.timeEnd('one func');
         // the front and back surfaces share a geometry. The meshlines are separate
         for (let j = 0; j < 3; j += 2) {
             console.time(`evolve ${j} loop `);
