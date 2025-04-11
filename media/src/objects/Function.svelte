@@ -104,12 +104,13 @@
     // $inspect(t0, t1);
 
     let last = null;
+    let evolving = false;
 
     // Better called "meta-parameters" these are internal values that can stay in the component.
     let data = $state({
         rNum: 10,
         cNum: 10,
-        nX: 100,
+        nX: 50,
         nL: 16,
         N: 1,
         s: 0,
@@ -1141,8 +1142,16 @@
                     max="1"
                     step="0.001"
                     oninput={() => {
-                        evolveSurface(tVal);
-                        render();
+                        if (evolving) {
+                            return;
+                        } else {
+                            evolving = true;
+                            requestAnimationFrame(() => {
+                                evolveSurface(tVal);
+                                render();
+                                evolving = false;
+                            });
+                        }
                     }}
                     class="box box-2"
                 />
@@ -1152,6 +1161,8 @@
                     pause={() => (last = null)}
                     rew={() => {
                         tau = 0;
+                        evolveSurface(tVal);
+                        render();
                     }}
                 />
                 <!-- </div> -->

@@ -69,7 +69,7 @@
 
     let rNum = 10;
     let cNum = 10;
-    let nX = $state(60);
+    let nX = $state(50);
 
     let tau = $state(0);
     let t0 = $derived(math.parse(params.t0 ?? '0').evaluate());
