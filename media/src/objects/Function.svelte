@@ -726,8 +726,8 @@
                 ymax: D,
                 level: lev,
                 zLevel: 0,
-                nX: data.nX,
-                nY: data.nX,
+                nX: 200,
+                nY: 200,
             });
 
             if (points.length > 1) {
