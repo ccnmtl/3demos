@@ -34,6 +34,9 @@
         checksum,
         ParametricGeometry,
     } from '../utils.js';
+
+    import { mathToJSFunction } from './mathutils';
+
     import { flashDance } from '../sceneUtils';
     import InputChecker from '../form-components/InputChecker.svelte';
     import ColorBar from '../settings/ColorBar.svelte';
@@ -180,33 +183,34 @@
         }
     });
 
-    let xyz;
-    let abcd;
+    let xyz = $derived.by(() => {
+        const [x, y, z] = [params.x, params.y, params.z].map((f) =>
+            mathToJSFunction(f, ['u', 'v', 't']),
+        );
+        return (u, v, vec, t = 0) =>
+            vec.set(x(u, v, t), y(u, v, t), z(u, v, t));
+    });
+    let abcd = $derived.by(() => {
+        const [a, b] = [params.a, params.b].map((f) => math.evaluate(f));
+        const [c, d] = [params.c, params.d].map((f) =>
+            mathToJSFunction(f, ['u']),
+        );
+
+        // take uv on unit square to actual uv coords for ParametricGeom
+        return (u, v) => [
+            a + u * (b - a),
+            c(a + u * (b - a)) * (1 - v) + d(a + u * (b - a)) * v,
+        ];
+    });
 
     // compile (in the math.js sense) each expression once they change
     // and thus have been cleared
     $effect(() => {
         // console.log('parm compile');
-        const [x, y, z] = [params.x, params.y, params.z].map((f) =>
-            math.parse(f).compile(),
-        );
-        xyz = (u, v, vec, t = 0) =>
-            vec.set(
-                x.evaluate({ u, v, t }),
-                y.evaluate({ u, v, t }),
-                z.evaluate({ u, v, t }),
-            );
-        // });
-        // $effect(() => {
-        const [a, b] = [params.a, params.b].map((f) => math.evaluate(f));
-        const [c, d] = [params.c, params.d].map((f) => math.parse(f).compile());
 
-        // take uv on unit square to actual uv coords for parametricgeom
-        abcd = (u, v) => [
-            a + u * (b - a),
-            c.evaluate({ u: a + u * (b - a) }) * (1 - v) +
-                d.evaluate({ u: a + u * (b - a) }) * v,
-        ];
+        // React on changes here.
+        const { a, b, c, d, x, y, z } = params;
+
         untrack(updateSurface);
     });
 
@@ -304,15 +308,15 @@
     });
 
     const updateSurface = function () {
-        const { t0, t1 } = params;
-        const time = t0
-            ? math.evaluate(t0) + tau * (math.evaluate(t1) - math.evaluate(t0))
-            : 0;
+        // const { t0, t1 } = params;
+        // const time = t0
+        //     ? math.evaluate(t0) + tau * (math.evaluate(t1) - math.evaluate(t0))
+        //     : 0;
 
         const geometry = new ParametricGeometry(
             (u, v, vec) => {
                 const [U, V] = abcd(u, v);
-                xyz(U, V, vec, time);
+                xyz(U, V, vec, tVal);
             },
             nX || 30,
             nX || 30,

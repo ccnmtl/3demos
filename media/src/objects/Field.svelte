@@ -5,7 +5,7 @@
 <script>
     import { onMount, onDestroy, untrack } from 'svelte';
     import * as THREE from 'three';
-    import { create, all, e } from 'mathjs';
+    import { create, all, e, xgcd } from 'mathjs';
 
     import M from '../M.svelte';
     import ObjHeader from './ObjHeader.svelte';
@@ -17,6 +17,7 @@
     import InputChecker from '../form-components/InputChecker.svelte';
     import PlayButtons from '../form-components/PlayButtons.svelte';
     import FlowArrowMesh from './FlowArrowMesh';
+    import { mathToJSFunction } from './mathutils';
 
     const config = {};
     const math = create(all, config);
@@ -314,20 +315,20 @@
         render();
     };
 
-    let fieldF;
-
-    const updateField = function () {
+    let fieldF = $derived.by(() => {
         const { p, q, r } = params;
 
-        const [P, Q, R] = [p, q, r].map((x) => math.parse(x).compile());
+        const [P, Q, R] = [p, q, r].map((x) =>
+            mathToJSFunction(x, ['x', 'y', 'z']),
+        );
 
-        fieldF = (x, y, z, vec) => {
-            const args = { x, y, z };
-            vec.set(P.evaluate(args), Q.evaluate(args), R.evaluate(args));
-
+        return (x, y, z, vec) => {
+            vec.set(P(x, y, z), Q(x, y, z), R(x, y, z));
             return vec;
         };
-    };
+    });
+
+    const updateField = function () {};
 
     let maxLength = 2;
     flowArrows.name = uuid;

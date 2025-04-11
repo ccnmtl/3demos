@@ -10,7 +10,7 @@
     import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
     import { LineSegmentsGeometry } from 'three/addons/lines/LineSegmentsGeometry.js';
 
-    import { create, all, neutronMassDependencies } from 'mathjs';
+    import { create, all } from 'mathjs';
 
     import M from '../M.svelte';
     import ObjHeader from './ObjHeader.svelte';
@@ -37,6 +37,9 @@
         blockGeometry,
         checksum,
     } from '../utils.js';
+
+    import { mathToJSFunction } from './mathutils';
+
     import { flashDance } from '../sceneUtils';
 
     let {
@@ -209,10 +212,12 @@
     scene.add(point);
 
     // Compile main function
-    let func = $derived.by(() => {
-        const z = math.parse(params.z).compile();
-        return (x, y, t) => z.evaluate({ x, y, t });
-    });
+    // let func = $derived.by(() => {
+    //     const z = math.parse(params.z).compile();
+    //     return (x, y, t) => z.evaluate({ x, y, t });
+    // });
+
+    let func = $derived(mathToJSFunction(params.z, ['x', 'y', 't']));
 
     const tangentVectors = function () {
         // const arrowParams = {
@@ -721,8 +726,8 @@
                 ymax: D,
                 level: lev,
                 zLevel: 0,
-                nX: data.nX,
-                nY: data.nX,
+                nX: 200,
+                nY: 200,
             });
 
             if (points.length > 1) {
