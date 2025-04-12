@@ -12,6 +12,8 @@
     import Nametag from './Nametag.svelte';
     import ObjectParamInput from '../form-components/ObjectParamInput.svelte';
     import InputChecker from '../form-components/InputChecker.svelte';
+    import { marchingCubesWithTraces } from './levelWorker';
+    import { mathToJSFunction } from './mathutils';
 
     const config = {};
     const math = create(all, config);
@@ -121,13 +123,28 @@
     scene.add(mesh);
 
     const updateLevel = function () {
-        loading = true;
-        const gc = math.parse(params.g).compile();
-        updateParams(gc, params).then((data) => {
-            levelWorkerSuccessHandler(data);
-            onRenderObject(plusMesh, minusMesh);
+        const data = marchingCubesWithTraces({
+            f: gc,
+            level: k,
+            xMin: a,
+            xMax: b,
+            yMin: c,
+            yMax: d,
+            zMin: e,
+            zMax: f,
+            N: 60,
         });
+        levelWorkerSuccessHandler(data);
     };
+
+    let gc = $derived(mathToJSFunction(params.g, ['x', 'y', 'z']));
+    let k = $derived(math.parse(params.k).evaluate());
+    let a = $derived(math.parse(String(params.a)).evaluate());
+    let b = $derived(math.parse(String(params.b)).evaluate());
+    let c = $derived(math.parse(String(params.c)).evaluate());
+    let d = $derived(math.parse(String(params.d)).evaluate());
+    let e = $derived(math.parse(String(params.e)).evaluate());
+    let f = $derived(math.parse(String(params.f)).evaluate());
 
     /**
      *  "Check parameters"
@@ -156,7 +173,7 @@
     $effect(() => updateLevel());
 
     const levelWorkerSuccessHandler = (data) => {
-        const { normals, vertices, xpts, ypts, zpts } = data;
+        const { normals, vertices, traceSegments } = data;
         geometry.setAttribute(
             'position',
             new THREE.Float32BufferAttribute(vertices, 3),
@@ -168,42 +185,42 @@
 
         mesh.visible = true;
 
-        {
-            xTraceGeometry.setAttribute(
-                'position',
-                new THREE.Float32BufferAttribute(xpts, 3),
-            );
+        // {
+        //     xTraceGeometry.setAttribute(
+        //         'position',
+        //         new THREE.Float32BufferAttribute([], 3),
+        //     );
 
-            const trace = new THREE.LineSegments(
-                xTraceGeometry,
-                whiteLineMaterial,
-            );
+        //     const trace = new THREE.LineSegments(
+        //         xTraceGeometry,
+        //         whiteLineMaterial,
+        //     );
 
-            trace.rotation.y = Math.PI / 2;
-            trace.rotation.z = Math.PI / 2;
+        //     trace.rotation.y = Math.PI / 2;
+        //     trace.rotation.z = Math.PI / 2;
 
-            mesh.add(trace);
-        }
-        {
-            yTraceGeometry.setAttribute(
-                'position',
-                new THREE.Float32BufferAttribute(ypts, 3),
-            );
+        //     mesh.add(trace);
+        // }
+        // {
+        //     yTraceGeometry.setAttribute(
+        //         'position',
+        //         new THREE.Float32BufferAttribute(ypts, 3),
+        //     );
 
-            const trace = new THREE.LineSegments(
-                yTraceGeometry,
-                whiteLineMaterial,
-            );
+        //     const trace = new THREE.LineSegments(
+        //         yTraceGeometry,
+        //         whiteLineMaterial,
+        //     );
 
-            trace.rotation.x = -Math.PI / 2;
-            trace.rotation.z = -Math.PI / 2;
+        //     trace.rotation.x = -Math.PI / 2;
+        //     trace.rotation.z = -Math.PI / 2;
 
-            mesh.add(trace);
-        }
+        //     mesh.add(trace);
+        // }
         {
             zTraceGeometry.setAttribute(
                 'position',
-                new THREE.Float32BufferAttribute(zpts, 3),
+                new THREE.Float32BufferAttribute(traceSegments, 3),
             );
 
             const trace = new THREE.LineSegments(
@@ -223,7 +240,7 @@
     };
     onMount(() => {
         titleIndex++;
-        title = title || `Level Surface ${titleIndex}`;
+        title = title || `Level Set ${titleIndex}`;
     });
 
     onDestroy(() => {
@@ -283,11 +300,7 @@
 
     scene.add(tanFrame);
 
-    const nFrame = function ({
-        f = (x, y, z) => math.evaluate(params.g, { x, y, z }),
-        point = point,
-        eps = 1e-4,
-    } = {}) {
+    const nFrame = function ({ f = gc, point = point, eps = 1e-4 } = {}) {
         const [u, v, w] = [
             point.position.x,
             point.position.y,
@@ -334,20 +347,18 @@
         planeShard.geometry.dispose();
 
         if (plane) {
-            const { a, b, c, d, e, f } = params;
-
             const tangentPlaneGeometry = marchingCubes({
                 f: (x, y, z) => {
                     const xVec = new THREE.Vector3(x, y, z);
                     return xVec.dot(n);
                 },
                 level: n.dot(p) + 1e-8, // offset to avoid overlap artifacts
-                xMin: math.evaluate(String(a)),
-                xMax: math.evaluate(String(b)),
-                yMin: math.evaluate(String(c)),
-                yMax: math.evaluate(String(d)),
-                zMin: math.evaluate(String(e)),
-                zMax: math.evaluate(String(f)),
+                xMin: a,
+                xMax: b,
+                yMin: c,
+                yMax: d,
+                zMin: e,
+                zMax: f,
                 N: 2,
             });
 

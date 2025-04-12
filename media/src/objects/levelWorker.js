@@ -25,17 +25,17 @@ export function updateParams(gc, params) {
         setTimeout(() => {
             const func = (x, y, z) => {
                 try {
-                    return gc.evaluate({x, y, z});
+                    return gc.evaluate({ x, y, z });
                 } catch (err) {
                     paramErrors.g = true;
                     return reject(paramErrors);
                 }
-            }
+            };
 
             // Test compiled g eval with some basic xyz params, for
             // validation purposes.
             try {
-                gc.evaluate({x: -2, y: -2, z: -2});
+                gc.evaluate({ x: -2, y: -2, z: -2 });
             } catch (err) {
                 paramErrors.g = true;
                 return reject(paramErrors);
@@ -50,17 +50,17 @@ export function updateParams(gc, params) {
             }
 
             const { normals, vertices, traceSegments } =
-                  marchingCubesWithTraces({
-                      f: func,
-                      level: kE,
-                      xMin: math.evaluate(String(a)),
-                      xMax: math.evaluate(String(b)),
-                      yMin: math.evaluate(String(c)),
-                      yMax: math.evaluate(String(d)),
-                      zMin: math.evaluate(String(e)),
-                      zMax: math.evaluate(String(f)),
-                      N: 30,
-                  });
+                marchingCubesWithTraces({
+                    f: func,
+                    level: kE,
+                    xMin: math.evaluate(String(a)),
+                    xMax: math.evaluate(String(b)),
+                    yMin: math.evaluate(String(c)),
+                    yMax: math.evaluate(String(d)),
+                    zMin: math.evaluate(String(e)),
+                    zMax: math.evaluate(String(f)),
+                    N: 30,
+                });
 
             resolve({
                 normals, vertices, xpts: [], ypts: [], zpts: traceSegments
@@ -461,7 +461,26 @@ function marchingCube(vals, level) {
     return triangles;
 }
 
-function marchingCubesWithTraces({
+/**
+ * Does marching squares and returns arrays for the normals, vertices for the associated buffergeometry
+ * as well as for the mesh LineSegments
+ *
+ * @param {Object} [params={}] - The parameters object.
+ * @param {number} [params.f] - function.
+ * @param {number} [params.level=0] - the level set to compute
+ * @param {number} [params.xMin=-1] - x min
+ * @param {number} [params.xMax=1] - x max
+ * @param {number} [params.yMin=-1] - y min
+ * @param {number} [params.yMax=1] - y max
+ * @param {number} [params.zMin=-1] - z min
+ * @param {number} [params.zMax=1] - z max
+ * @param {number} [params.N=30] - grid resolution
+ * @param {number} [params.xN=10] - no. of x meshes
+ * @param {number} [params.yN=10] - no. of y meshes
+ * @param {number} [params.zN=10] - no. of z meshes
+ * @returns {Object} normals, positions, traceSegments
+ */
+export function marchingCubesWithTraces({
     f,
     level = 0,
     xMin = -1,
@@ -472,10 +491,10 @@ function marchingCubesWithTraces({
     zMax = 1,
     N = 30,
     xN = 10,
-/* eslint-disable */
+    /* eslint-disable */
     yN = 10,
     zN = 10,
-/* eslint-enable */
+    /* eslint-enable */
 } = {}) {
     // const geometry = new THREE.BufferGeometry();
 
@@ -554,8 +573,8 @@ function marchingCubesWithTraces({
                     const pt = pts[index];
 
                     const u = x + pt[0] * dx,
-                          v = y + pt[1] * dy,
-                          w = z + pt[2] * dz;
+                        v = y + pt[1] * dy,
+                        w = z + pt[2] * dz;
 
                     h = Math.max(u * eps, (2 * eps) ** 2);
                     const fx = (f(u + h / 2, v, w) - f(u - h / 2, v, w)) / h;
@@ -564,7 +583,7 @@ function marchingCubesWithTraces({
                     h = Math.max(w * eps, (2 * eps) ** 2);
                     const fz = (f(u, v, w + h / 2) - f(u, v, w - h / 2)) / h;
                     const inverseSquare =
-                          1 / math.sqrt(fx * fx + fy * fy + fz * fz);
+                        1 / math.sqrt(fx * fx + fy * fy + fz * fz);
 
                     vertices.push(u, v, w);
                     normals.push(
