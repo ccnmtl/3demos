@@ -31,7 +31,7 @@
         }),
     );
 
-    $inspect(backupObjects);
+    // $inspect(backupObjects);
 
     let standardExamples = $state([
         {
@@ -39,12 +39,12 @@
             kind: 'surface',
             title: 'Example 1',
             params: {
-                a: '0',
-                b: '2',
-                c: '0',
-                d: '2',
-                x: 'u v - 1',
-                y: 'u - v',
+                a: '1',
+                b: '3',
+                c: '1',
+                d: '3',
+                x: 'v + u/2 - 5/2',
+                y: 'u - v/2 - 1/2',
                 z: 'sin(u v) - (u - v)^2 / 20',
                 t0: '0',
                 t1: '1',
@@ -90,15 +90,6 @@
         },
     ]);
 
-    let exampleSurfaces = $state([
-        ...standardExamples,
-        ...backupObjects.filter(
-            (obj) =>
-                obj.kind === 'surface' &&
-                obj.uuid.slice(0, 18) !== 'area-story-example',
-        ),
-    ]);
-
     const whiteLineMaterial = new THREE.LineBasicMaterial({
         color: 0xffffff,
         linewidth: 2,
@@ -109,7 +100,7 @@
         backupObjects.find((o) => o.kind === 'surface') ?? standardExamples[0],
     );
 
-    $inspect(currentSurface);
+    // $inspect(currentSurface);
 
     onMount(() => {
         // currentField =
@@ -150,12 +141,13 @@
 
     scene.add(boxes);
 
-    let boxesVisible = $state(true);
+    let boxesVisible = $state(false);
     $effect(() => {
         boxes.visible = boxesVisible;
     });
 
-    let nBoxes = $state(3);
+    let nBoxes = $state(1);
+    let boxing = false;
 
     let u0 = $derived(math.parse(currentSurface.params.a).evaluate());
     let u1 = $derived(math.parse(currentSurface.params.b).evaluate());
@@ -202,83 +194,11 @@
     );
     $inspect(totalArea);
 
-    // const setRuv = (obj) => {
-    //     // const dt = 1e-4;
-    //     // const obj = exampleSurfaces.find((o) => o.uuid === uuid);
-    //     if (obj) {
-    //         const { x, y, z, a, b, c, d } = obj.params;
-    //         const [X, Y, Z, A, B, C, D] = [x, y, z, a, b, c, d].map((w) =>
-    //             math.parse(w).compile(),
-    //         );
-
-    //         r = (u, v) => [
-    //             X.evaluate({ u, v }),
-    //             Y.evaluate({ u, v }),
-    //             Z.evaluate({ u, v }),
-    //         ];
-    //         u0 = A.evaluate();
-    //         u1 = B.evaluate();
-    //         v0 = (u) => C.evaluate({ u });
-    //         v1 = (u) => D.evaluate({ u });
-
-    //         const [xu, yu, zu] = [x, y, z].map((expr) =>
-    //             math.derivative(expr, 'u').compile(),
-    //         );
-    //         const [xv, yv, zv] = [x, y, z].map((expr) =>
-    //             math.derivative(expr, 'v').compile(),
-    //         );
-
-    //         // const ru = new THREE.Vector3();
-    //         // const rv = new THREE.Vector3();
-
-    //         totalArea = gaussLegendre(
-    //             (u) =>
-    //                 gaussLegendre(
-    //                     (v) =>
-    //                         math.norm(
-    //                             math.cross(
-    //                                 [
-    //                                     xu.evaluate({ u, v }),
-    //                                     yu.evaluate({ u, v }),
-    //                                     zu.evaluate({ u, v }),
-    //                                 ],
-    //                                 [
-    //                                     xv.evaluate({ u, v }),
-    //                                     yv.evaluate({ u, v }),
-    //                                     zv.evaluate({ u, v }),
-    //                                 ],
-    //                             ),
-    //                         ),
-    //                     v0(u),
-    //                     v1(u),
-    //                     10,
-    //                 ),
-    //             u0,
-    //             u1,
-    //             10,
-    //         );
-
-    //         // // Match color to that of surface
-    //         // plusMaterial.color.set(obj.color);
-    //         // const hsl = {};
-    //         // plusMaterial.color.getHSL(hsl);
-    //         // minusMaterial.color.setHSL(hsl.h + 0.6, hsl.s, hsl.l);
-    //     } else {
-    //         r = (u, v) => [u, v, (u * u) / 4 - (v * v) / 4];
-    //         u0 = -1;
-    //         u1 = 1;
-    //         v0 = () => -1;
-    //         v1 = () => 1;
-    //     }
-    //     filterBang((o) => o.kind !== 'surface', demoObjects);
-    //     demoObjects.push(obj);
-    // };
-
     let approxArea = $derived(geo?.area ?? '');
 
     $effect(() => {
         untrack(() => geo?.dispose());
-        console.log('geo.updated');
+        // console.log('geo.updated');
         geo = new ShardsGeometry(r, u0, u1, v0, v1, nBoxes, sampleParam);
     });
 
@@ -294,7 +214,7 @@
     });
 
     $effect(() => {
-        console.log('demobj maintenance');
+        // console.log('demobj maintenance');
         if (currentSurface)
             untrack(() => {
                 demoObjects[0] = currentSurface;
@@ -388,10 +308,20 @@
                     min="1"
                     max="35"
                     step="1"
-                    bind:value={nBoxes}
+                    value={nBoxes}
+                    oninput={(e) => {
+                        if (boxing) {
+                            return;
+                        } else {
+                            boxing = true;
+                            requestAnimationFrame(() => {
+                                nBoxes = e.target.value;
+                                boxing = false;
+                            });
+                        }
+                    }}
                 /></span
             >
-            <span class="" style="width: 2rem;"><M s={nBoxes} /></span>
         </div>
 
         <div class="col-auto">
@@ -428,7 +358,8 @@
 
 <p>
     Adding each area gives <M
-        s={`\\sum \\Delta S = \\sum |\\mathbf r_u \\times \\mathbf r_v|\\,\\Delta u \\,\\Delta v = ${
+        display
+        s={`\\sum_{i = 1}^{${nBoxes}} \\Delta S = \\sum |\\mathbf r_u \\times \\mathbf r_v|\\,\\Delta u \\,\\Delta v = ${
             Math.round(10000 * approxArea) / 10000
         }.`}
     />
