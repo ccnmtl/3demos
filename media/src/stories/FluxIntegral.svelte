@@ -17,6 +17,7 @@
 
     import { tickTock } from '../stores';
     import { demoObjects } from '../states.svelte';
+    import { mathToJSFunction } from '../objects/mathutils';
 
     let { scene, render, animate } = $props();
 
@@ -227,14 +228,8 @@
         const B = math.parse(currentSurface.params.b);
         return B.evaluate();
     });
-    let v0 = $derived.by(() => {
-        const C = math.parse(currentSurface.params.c);
-        return (u) => C.evaluate({ u: u });
-    });
-    let v1 = $derived.by(() => {
-        const D = math.parse(currentSurface.params.d);
-        return (u) => D.evaluate({ u: u });
-    });
+    let v0 = $derived(mathToJSFunction(currentSurface.params.c, ['u']));
+    let v1 = $derived(mathToJSFunction(currentSurface.params.d, ['u']));
 
     let geo = $state();
     let geoDown = $state();
@@ -393,16 +388,12 @@
         let out;
         // const obj = exampleSurfaces.find((o) => o.uuid === uuid);
         if (currentSurface) {
-            const { x, y, z, a, b, c, d } = currentSurface.params;
-            const [X, Y, Z, A, B, C, D] = [x, y, z, a, b, c, d].map((w) =>
-                math.parse(w).compile(),
+            const { x, y, z } = currentSurface.params;
+            const [X, Y, Z] = [x, y, z].map((w) =>
+                mathToJSFunction(w, ['u', 'v']),
             );
 
-            out = (u, v) => [
-                X.evaluate({ u, v }),
-                Y.evaluate({ u, v }),
-                Z.evaluate({ u, v }),
-            ];
+            out = (u, v) => [X(u, v), Y(u, v), Z(u, v)];
             // u0 = A.evaluate();
             // u1 = B.evaluate();
             // v0 = (u) => C.evaluate({ u });

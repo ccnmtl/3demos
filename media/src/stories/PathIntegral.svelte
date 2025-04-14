@@ -125,6 +125,11 @@
     // console.log(segs.geometry);
     scene.add(wall);
 
+    let ceilingVisible = $state(true);
+    $effect(() => {
+        ceiling.visible = ceilingVisible;
+    });
+
     $effect(() => {
         ceiling.geometry?.dispose();
         ceiling.geometry = new ParametricGeometry(
@@ -342,7 +347,7 @@
         <label class="switch box box-3">
             <input
                 type="checkbox"
-                bind:checked={ceiling.visible}
+                bind:checked={ceilingVisible}
                 onchange={render}
             />
             <span class="slider round"></span>
