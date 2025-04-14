@@ -22,6 +22,7 @@
 
     import { marchingCubes, ArrowBufferGeometry, checksum } from '../utils.js';
     import { flashDance } from '../sceneUtils';
+    import { dependsOn } from './Vector.svelte';
 
     let {
         uuid,
@@ -122,29 +123,18 @@
     mesh.visible = false;
     scene.add(mesh);
 
-    const updateLevel = function () {
-        const data = marchingCubesWithTraces({
-            f: gc,
-            level: k,
-            xMin: a,
-            xMax: b,
-            yMin: c,
-            yMax: d,
-            zMin: e,
-            zMax: f,
-            N: 60,
-        });
-        levelWorkerSuccessHandler(data);
-    };
-
     let gc = $derived(mathToJSFunction(params.g, ['x', 'y', 'z']));
-    let k = $derived(math.parse(params.k).evaluate());
+    let k = $derived(mathToJSFunction(params.k, ['t']));
     let a = $derived(math.parse(String(params.a)).evaluate());
     let b = $derived(math.parse(String(params.b)).evaluate());
     let c = $derived(math.parse(String(params.c)).evaluate());
     let d = $derived(math.parse(String(params.d)).evaluate());
     let e = $derived(math.parse(String(params.e)).evaluate());
     let f = $derived(math.parse(String(params.f)).evaluate());
+
+    let tau = $state(0);
+
+    let isDynamic = $derived(dependsOn({ k: params.k }, 't'));
 
     /**
      *  "Check parameters"
@@ -170,7 +160,20 @@
         return valuation;
     };
 
-    $effect(() => updateLevel());
+    $effect(() => {
+        const data = marchingCubesWithTraces({
+            f: gc,
+            level: k(tau),
+            xMin: a,
+            xMax: b,
+            yMin: c,
+            yMax: d,
+            zMin: e,
+            zMax: f,
+            N: 40,
+        });
+        untrack(() => levelWorkerSuccessHandler(data));
+    });
 
     const levelWorkerSuccessHandler = (data) => {
         const { normals, vertices, traceSegments } = data;
@@ -495,16 +498,30 @@
                 }}
             />
 
-            <span class="box-1"><M size="sm" s="k" /></span>
+            <span class="box-1"
+                ><M size="sm" s="k = {k(tau).toFixed(2)} = " /></span
+            >
             <InputChecker
                 value={params['k']}
-                checker={(val) => Number.isFinite(math.parse(val).evaluate())}
+                checker={(val) =>
+                    Number.isFinite(math.parse(val).evaluate({ t: tau }))}
                 name={'k'}
                 {params}
                 cleared={(val) => {
                     params['k'] = val;
                 }}
             />
+
+            {#if isDynamic}
+                <input
+                    type="range"
+                    bind:value={tau}
+                    min="0"
+                    max="1"
+                    step="0.02"
+                    class="box box-2"
+                />
+            {/if}
 
             <ObjectParamInput
                 type="number"
