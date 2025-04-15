@@ -803,7 +803,7 @@
             ];
         } catch (e) {
             console.error("Can't show integral boxes on nonconstant bounds",e);
-            return
+            return;
         }
 
         const [A, B, C, D] = [
