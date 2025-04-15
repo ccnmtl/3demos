@@ -343,7 +343,7 @@
                     bind:checked={boxes.visible}
                     on:change={render}
                 />
-                <span class="slider round" />
+                <span class="slider round"></span>
             </label>
         </div>
 
@@ -361,7 +361,7 @@
                         }
                     }}
                 />
-                <span class="slider round" />
+                <span class="slider round"></span>
             </label>
         </div>
     </div>
