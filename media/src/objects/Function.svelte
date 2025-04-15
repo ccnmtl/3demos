@@ -799,16 +799,28 @@
     boxMesh.add(boxMeshEdges);
 
     const updateBoxes = function () {
-        const { a, b, c, d, t0, t1 } = params;
-        const [A, B, C, D, T0, T1] = [
-            math.evaluate(a),
-            math.evaluate(b),
-            math.evaluate(c),
-            math.evaluate(d),
-            math.evaluate(t0),
-            math.evaluate(t1),
-        ];
-        const t = T0 + tau * (T1 - T0);
+        const { a, b, c, d} = params;
+        try {
+         [
+                math.evaluate(a),
+                math.evaluate(b),
+                math.evaluate(c),
+                math.evaluate(d),
+            ];
+        } catch (e) {
+            console.error("Can't show integral boxes on nonconstant bounds",e);
+            return;
+        }
+
+        const [A, B, C, D] = [
+                math.evaluate(a),
+                math.evaluate(b),
+                math.evaluate(c),
+                math.evaluate(d),
+            ];
+
+
+        // const t = T0 + tau * (T1 - T0);
 
         if (boxMesh.geometry) {
             boxMesh.geometry.dispose();
@@ -816,7 +828,7 @@
         }
         boxMesh.geometry = blockGeometry(
             (x, y) => {
-                return func(x, y, t);
+                return func(x, y, tVal);
             },
             A,
             B,
