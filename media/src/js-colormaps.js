@@ -256,12 +256,16 @@ export function cmToGLSLfunc(name) {
   let out = `\nint N = ${data[name].colors.length};\n`;
   out += `\nvec3 colorData[${data[name].colors.length}] = vec3[](${data[name].colors.map((c) => `vec3(${c[0]},${c[1]},${c[2]})`).join(',')});\n`;
   out += `\nvec3 color(float t) {
-    int j = 0;
-    float ix = t*float(N);
-    while (float(j + 1) < ix) {
-      j++;
+    if (t >= 1.) {
+      return colorData[N - 1];
+    } else {
+      int j = 0;
+      float ix = t*float(N);
+      while (float(j + 1) < ix - 1.) {
+        j++;
+      }
+      return ${data[name].interpolate ? 'mix(colorData[j], colorData[j+1], fract(ix));' : 'colorData[j];'}
     }
-    return ${data[name].interpolate ? 'mix(colorData[j], colorData[j+1], fract(ix));' : 'colorData[j];'}
   }\n`;
 
   return out;
@@ -277,12 +281,16 @@ export function cmToGLSLUniformFunc(name) {
   let out = `\nint N = ${N};\n`;
   out += `\nuniform vec3 colorData[${N}]; \n`;
   out += `\nvec3 color(float t) {
-    int j = 0;
-    float ix = t*float(N);
-    while (float(j + 1) < ix) {
-      j++;
+    if (t >= 1.) {
+      return colorData[N - 1];
+    } else {
+      int j = 0;
+      float ix = t*float(N);
+      while (float(j + 1) < ix - 1.) {
+        j++;
+      }
+      return ${data[name].interpolate ? 'mix(colorData[j], colorData[j+1], fract(ix));' : 'colorData[j];'}
     }
-    return ${data[name].interpolate ? 'mix(colorData[j], colorData[j+1], fract(ix));' : 'colorData[j];'}
   }\n`;
 
   return out;
