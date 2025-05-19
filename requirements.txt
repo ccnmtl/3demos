@@ -14,7 +14,7 @@ channels-redis==4.2.0
 charset-normalizer==3.4.0
 constantly==23.10.4
 coverage==7.8.0
-cryptography==44.0.0
+cryptography==45.0.2
 sentry-sdk[django]==2.28.0
 ctlsettings==0.4.3
 daphne==4.1.2
