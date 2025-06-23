@@ -39,7 +39,7 @@ pyasn1==0.6.0
 pyasn1-modules==0.4.0
 pycodestyle==2.14.0
 pycparser==2.22
-pyflakes==3.3.2
+pyflakes==3.4.0
 pyOpenSSL==25.1.0
 pyparsing==3.2.3
 PySocks==1.7.1
