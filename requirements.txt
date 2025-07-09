@@ -7,7 +7,7 @@ Automat==25.4.16
 backports.zoneinfo;python_version<"3.9"
 boto3>=1.20.0,<1.40.0
 botocore>=1.25.0,<1.40.0
-certifi==2025.6.15
+certifi==2025.7.9
 cffi==1.17.0
 channels==4.2.2
 channels-redis==4.2.1
