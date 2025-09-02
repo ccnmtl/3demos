@@ -50,11 +50,14 @@
     let tau = $state(0);
     let t0 = $derived(math.parse(params.t0 ?? '0').evaluate());
     let t1 = $derived(math.parse(params.t1 ?? '1').evaluate());
+
+    // $inspect(t1);
+
     let tVal = $derived(t0 + tau * (t1 - t0));
     let displayTVal = $derived(tVal.toFixed(2));
 
-    let N0 = $derived(math.parse(params.n0 ?? '0').evaluate());
-    let N1 = $derived(math.parse(params.n1 ?? '0').evaluate());
+    let N0 = $derived(math.parse(params.n0.toString() ?? '0').evaluate());
+    let N1 = $derived(math.parse(params.n1.toString() ?? '0').evaluate());
 
     let last;
 
@@ -277,7 +280,7 @@
                             Number.isFinite(math.parse(val).evaluate())}
                         value={params[name]}
                         {name}
-                        oncleared={(val) => {
+                        cleared={(val) => {
                             params[name] = val;
                         }}
                     />

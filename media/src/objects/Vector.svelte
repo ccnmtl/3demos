@@ -71,8 +71,8 @@
 
     let last = null;
 
-    let N0 = $derived(math.parse(params.n0 ?? '0').evaluate());
-    let N1 = $derived(math.parse(params.n1 ?? '0').evaluate());
+    let N0 = $derived(math.parse(params.n0.toString() ?? '0').evaluate());
+    let N1 = $derived(math.parse(params.n1.toString() ?? '0').evaluate());
 
     const arrowMaterial = new THREE.MeshPhongMaterial({
         color: color,
@@ -382,6 +382,7 @@
                     class="form-control form-control-sm box-4"
                     type="number"
                     bind:value={params.n1}
+                    min={params.n0}
                     name="n1"
                 />
             {/if}
