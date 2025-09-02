@@ -71,8 +71,8 @@
 
     let last = null;
 
-    let N0 = $derived(math.parse(params.n0.toString() ?? '0').evaluate());
-    let N1 = $derived(math.parse(params.n1.toString() ?? '0').evaluate());
+    let N0 = $derived(math.parse(params.n0?.toString() ?? '0').evaluate());
+    let N1 = $derived(math.parse(params.n1?.toString() ?? '0').evaluate());
 
     const arrowMaterial = new THREE.MeshPhongMaterial({
         color: color,
