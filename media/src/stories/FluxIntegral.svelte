@@ -46,7 +46,7 @@
                 // const currentTime = $tickTock;
                 last = last || $tickTock;
                 tau += $tickTock - last;
-                tau %= 1;
+                if (tau > 1) tau %= 1;
                 updateTau(tau);
                 last = $tickTock;
             }

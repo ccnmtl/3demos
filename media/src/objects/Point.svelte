@@ -215,7 +215,7 @@
 
     const update = (dt = 0) => {
         tau += dt / (t1 - t0);
-        tau %= 1;
+        if (tau > 1) tau %= 1;
         updatePoint(tVal);
     };
     // Start animating if animation changes (e.g. animating scene published)
