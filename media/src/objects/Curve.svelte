@@ -171,7 +171,7 @@
         } else {
             tau += dt / (B - A);
         }
-        tau %= 1;
+        if (tau > 1) tau %= 1;
         // const T = A + (B - A) * tau;
 
         // uncomment this if we want aVal to be animated:

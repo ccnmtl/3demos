@@ -590,7 +590,7 @@
 
     const update = function (dt = 0) {
         tau += dt / (t1 - t0);
-        tau %= 1;
+        if (tau > 1) tau %= 1;
 
         if (isDynamic) evolveSurface(tVal);
         if (isRhoDynamic) {

@@ -256,7 +256,7 @@
         const B = math.parse(t1).evaluate();
 
         tau += dt / (B - A);
-        tau %= 1;
+        if (tau > 1) tau %= 1;
 
         updateVector(tVal);
     };
