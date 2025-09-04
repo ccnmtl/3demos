@@ -45,6 +45,7 @@
         selectObject,
         animate,
         onClose = () => {},
+        playMode = 'bounce',
     } = $props();
 
     let tau = $state(0);
@@ -105,6 +106,20 @@
     // call updateVector() when params change
     let isDynamic = $derived(dependsOn(params, 't'));
     let isDiscrete = $derived(dependsOn(params, 'n'));
+
+    /**
+     * @type "once"|"loop"|"bounce"
+     */
+    // let playMode = $state('loop');
+    function playModeCycle() {
+        if (playMode == 'once') {
+            playMode = 'loop';
+        } else if (playMode == 'loop') {
+            playMode = 'bounce';
+        } else {
+            playMode = 'once';
+        }
+    }
 
     $effect(() => {
         params;
@@ -213,9 +228,25 @@
 
     // texString1 = `t = ${Math.round(100 * T) / 100}`;
 
+    let modeSign = 1;
+
     const update = (dt = 0) => {
-        tau += dt / (t1 - t0);
-        if (tau > 1) tau %= 1;
+        tau += (modeSign * dt) / (t1 - t0);
+        if (tau > 1) {
+            if (playMode == 'loop') {
+                tau %= 1;
+            } else if (playMode == 'once') {
+                tau = 1;
+                animation = false;
+            } else {
+                modeSign = -1;
+                tau = 2 - tau;
+            }
+        }
+        if (tau <= 0) {
+            modeSign = 1;
+            tau *= -1;
+        }
         updatePoint(tVal);
     };
     // Start animating if animation changes (e.g. animating scene published)
@@ -308,6 +339,8 @@
                         tau = 0;
                         update();
                     }}
+                    {playMode}
+                    clicker={playModeCycle}
                 />
                 <!-- </div> -->
             {/if}
