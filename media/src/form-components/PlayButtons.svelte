@@ -5,6 +5,8 @@
         play = () => {},
         pause,
         rew,
+        clicker = () => {},
+        playMode = 'loop',
         // animate,
     } = $props();
 </script>
@@ -32,6 +34,15 @@
     <button class="btn rewbtn" onclick={rew} aria-label="rewind">
         <i class="fa fa-fast-backward"></i>
     </button>
+    <button class="btn modebtn" onclick={clicker} aria-label="play mode">
+        {#if playMode == 'loop'}
+            <i class="fa fa-retweet"></i>
+        {:else if playMode == 'once'}
+            <i class="fa fa-arrow-right"></i>
+        {:else}
+            <i class="fa fa-arrows-alt-h"></i>
+        {/if}
+    </button>
 </div>
 
 <style>
@@ -42,5 +53,8 @@
     }
     .btn {
         color: white;
+    }
+    .modebtn {
+        width: 1rem;
     }
 </style>
