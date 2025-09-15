@@ -45,7 +45,7 @@
         selectObject,
         animate,
         onClose = () => {},
-        playMode = 'bounce',
+        playMode = 'loop',
     } = $props();
 
     let tau = $state(0);
@@ -107,10 +107,6 @@
     let isDynamic = $derived(dependsOn(params, 't'));
     let isDiscrete = $derived(dependsOn(params, 'n'));
 
-    /**
-     * @type "once"|"loop"|"bounce"
-     */
-    // let playMode = $state('loop');
     function playModeCycle() {
         if (playMode == 'once') {
             playMode = 'loop';
