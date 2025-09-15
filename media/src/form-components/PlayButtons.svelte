@@ -55,6 +55,10 @@
         color: white;
     }
     .modebtn {
-        width: 1rem;
+        width: 3em; /* or px if you prefer */
+        text-align: center;
     }
+    /* .modebtn:hover {
+        border: 1px solid white;
+    } */
 </style>

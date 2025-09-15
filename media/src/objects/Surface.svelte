@@ -68,6 +68,7 @@
         selectObject,
         selectPoint,
         animate = () => {},
+        playMode = 'loop',
     } = $props();
 
     let rNum = 10;
@@ -588,9 +589,36 @@
         }
     };
 
+    let modeSign = 1;
+
+    function playModeCycle() {
+        if (playMode == 'once') {
+            playMode = 'loop';
+        } else if (playMode == 'loop') {
+            playMode = 'bounce';
+        } else {
+            playMode = 'once';
+        }
+    }
+
     const update = function (dt = 0) {
-        tau += dt / (t1 - t0);
-        if (tau > 1) tau %= 1;
+        tau += (modeSign * dt) / (t1 - t0);
+
+        if (tau > 1) {
+            if (playMode == 'loop') {
+                tau %= 1;
+            } else if (playMode == 'once') {
+                tau = 1;
+                animation = false;
+            } else {
+                modeSign = -1;
+                tau = 2 - tau;
+            }
+        }
+        if (tau <= 0) {
+            modeSign = 1;
+            tau *= -1;
+        }
 
         if (isDynamic) evolveSurface(tVal);
         if (isRhoDynamic) {
@@ -1062,6 +1090,8 @@
                         tau = 0;
                         update();
                     }}
+                    {playMode}
+                    clicker={playModeCycle}
                 />
             {/if}
 

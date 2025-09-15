@@ -59,6 +59,7 @@
         render,
         onClose,
         gridStep,
+        playMode = 'loop',
     } = $props();
 
     let minimize = $state(false);
@@ -142,6 +143,16 @@
     // call updateVector() when params change
     let isDynamic = $derived(dependsOn(params, 't'));
     let isDiscrete = $derived(dependsOn(params, 'n'));
+
+    function playModeCycle() {
+        if (playMode == 'once') {
+            playMode = 'loop';
+        } else if (playMode == 'loop') {
+            playMode = 'bounce';
+        } else {
+            playMode = 'once';
+        }
+    }
 
     $effect(updateVector);
 
@@ -250,13 +261,25 @@
         return valuation;
     };
 
-    const update = (dt = 0) => {
-        const { t0, t1 } = params;
-        const A = math.parse(t0).evaluate();
-        const B = math.parse(t1).evaluate();
+    let modeSign = 1;
 
-        tau += dt / (B - A);
-        if (tau > 1) tau %= 1;
+    const update = (dt = 0) => {
+        tau += (modeSign * dt) / (t1 - t0);
+        if (tau > 1) {
+            if (playMode == 'loop') {
+                tau %= 1;
+            } else if (playMode == 'once') {
+                tau = 1;
+                animation = false;
+            } else {
+                modeSign = -1;
+                tau = 2 - tau;
+            }
+        }
+        if (tau <= 0) {
+            modeSign = 1;
+            tau *= -1;
+        }
 
         updateVector(tVal);
     };
@@ -363,6 +386,8 @@
                         tau = 0;
                         update();
                     }}
+                    {playMode}
+                    clicker={playModeCycle}
                 />
                 <!-- </div> -->
             {/if}

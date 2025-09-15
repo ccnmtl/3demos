@@ -44,6 +44,7 @@
         camera,
         gridStep,
         selected = $bindable(false),
+        playMode = 'loop',
     } = $props();
 
     title = title || `Curve ${++titleIndex}`;
@@ -163,15 +164,42 @@
 
     let last;
 
+    function playModeCycle() {
+        if (playMode == 'once') {
+            playMode = 'loop';
+        } else if (playMode == 'loop') {
+            playMode = 'bounce';
+        } else {
+            playMode = 'once';
+        }
+    }
+
+    let modeSign = 1;
+
     const update = (dt = 0) => {
-        const { a, b } = params;
+        // const { a, b } = params;
 
         if (vizOptions.TNB) {
-            tau += dt / arrows.v.speed / (B - A);
+            tau += (modeSign * dt) / arrows.v.speed / (B - A);
         } else {
-            tau += dt / (B - A);
+            tau += (modeSign * dt) / (B - A);
         }
-        if (tau > 1) tau %= 1;
+        if (tau > 1) {
+            if (playMode == 'loop') {
+                tau %= 1;
+            } else if (playMode == 'once') {
+                tau = 1;
+                animation = false;
+            } else {
+                modeSign = -1;
+                tau = 2 - tau;
+            }
+        }
+        if (tau <= 0) {
+            modeSign = 1;
+            tau *= -1;
+        }
+
         // const T = A + (B - A) * tau;
 
         // uncomment this if we want aVal to be animated:
@@ -663,6 +691,8 @@
                     animation = false;
                     update();
                 }}
+                {playMode}
+                clicker={playModeCycle}
             />
 
             {#if isDynamic}

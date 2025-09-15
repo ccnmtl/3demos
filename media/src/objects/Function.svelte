@@ -67,6 +67,7 @@
         animate,
         camera,
         onClose = () => {},
+        playMode = 'loop',
     } = $props();
 
     // $inspect(camera);
@@ -577,6 +578,16 @@
      */
     let isDynamic = $derived(dependsOn(params, 't'));
 
+    function playModeCycle() {
+        if (playMode == 'once') {
+            playMode = 'loop';
+        } else if (playMode == 'loop') {
+            playMode = 'bounce';
+        } else {
+            playMode = 'once';
+        }
+    }
+
     $effect(() => {
         [params.z, params.a, params.b, params.c, params.d];
         untrack(updateSurface);
@@ -607,9 +618,25 @@
         if (selected) untrack(flash);
     });
 
+    let modeSign = 1;
+
     const update = function (dt) {
-        tau += dt / (t1 - t0);
-        if (tau > 1) tau %= 1;
+        tau += (modeSign * dt) / (t1 - t0);
+        if (tau > 1) {
+            if (playMode == 'loop') {
+                tau %= 1;
+            } else if (playMode == 'once') {
+                tau = 1;
+                animation = false;
+            } else {
+                modeSign = -1;
+                tau = 2 - tau;
+            }
+        }
+        if (tau <= 0) {
+            modeSign = 1;
+            tau *= -1;
+        }
 
         evolveSurface(tVal);
 
@@ -1180,6 +1207,8 @@
                         evolveSurface(tVal);
                         render();
                     }}
+                    {playMode}
+                    clicker={playModeCycle}
                 />
                 <!-- </div> -->
             {/if}
