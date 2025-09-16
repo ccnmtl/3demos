@@ -67,6 +67,7 @@
         animate,
         camera,
         onClose = () => {},
+        playMode = 'loop',
     } = $props();
 
     // $inspect(camera);
@@ -577,6 +578,16 @@
      */
     let isDynamic = $derived(dependsOn(params, 't'));
 
+    function playModeCycle() {
+        if (playMode == 'once') {
+            playMode = 'loop';
+        } else if (playMode == 'loop') {
+            playMode = 'bounce';
+        } else {
+            playMode = 'once';
+        }
+    }
+
     $effect(() => {
         [params.z, params.a, params.b, params.c, params.d];
         untrack(updateSurface);
@@ -607,9 +618,25 @@
         if (selected) untrack(flash);
     });
 
+    let modeSign = 1;
+
     const update = function (dt) {
-        tau += dt / (t1 - t0);
-        tau %= 1;
+        tau += (modeSign * dt) / (t1 - t0);
+        if (tau > 1) {
+            if (playMode == 'loop') {
+                tau %= 1;
+            } else if (playMode == 'once') {
+                tau = 1;
+                animation = false;
+            } else {
+                modeSign = -1;
+                tau = 2 - tau;
+            }
+        }
+        if (tau <= 0) {
+            modeSign = 1;
+            tau *= -1;
+        }
 
         evolveSurface(tVal);
 
@@ -799,26 +826,25 @@
     boxMesh.add(boxMeshEdges);
 
     const updateBoxes = function () {
-        const { a, b, c, d} = params;
+        const { a, b, c, d } = params;
         try {
-         [
+            [
                 math.evaluate(a),
                 math.evaluate(b),
                 math.evaluate(c),
                 math.evaluate(d),
             ];
         } catch (e) {
-            console.error("Can't show integral boxes on nonconstant bounds",e);
+            console.error("Can't show integral boxes on nonconstant bounds", e);
             return;
         }
 
         const [A, B, C, D] = [
-                math.evaluate(a),
-                math.evaluate(b),
-                math.evaluate(c),
-                math.evaluate(d),
-            ];
-
+            math.evaluate(a),
+            math.evaluate(b),
+            math.evaluate(c),
+            math.evaluate(d),
+        ];
 
         // const t = T0 + tau * (T1 - T0);
 
@@ -1181,6 +1207,8 @@
                         evolveSurface(tVal);
                         render();
                     }}
+                    {playMode}
+                    clicker={playModeCycle}
                 />
                 <!-- </div> -->
             {/if}
