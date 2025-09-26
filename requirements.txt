@@ -60,7 +60,7 @@ tqdm==4.67.0
 trio==0.31.0
 trio-websocket==0.12.2
 Twisted==25.5.0
-txaio==25.6.1
+txaio==25.9.2
 typing_extensions==4.15.0
 urllib3==2.5.0
 webdriver-manager==4.0.2
