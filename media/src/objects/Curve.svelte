@@ -77,7 +77,7 @@
                 Z.evaluate({ t, a: aVal }),
             ),
     );
-    $inspect(xyz);
+    // $inspect(xyz);
 
     $effect(() => {
         // console.log('effex in framez');
@@ -279,6 +279,8 @@
         osculatingCircle: false,
     });
 
+    // $inspect(vizOptions);
+
     $effect(() => {
         frame.visible = vizOptions.frame;
         arrows.r.visible = vizOptions.pos;
@@ -430,7 +432,7 @@
 
     // Runs the update if math expression "params" has a dependence on 'a'
     let isDynamic = $derived(dependsOn(params, 'a'));
-    $inspect(isDynamic);
+    // $inspect(isDynamic);
 
     // Start animating if animation changes (e.g. animating scene published)
     // Two ifs because one reacts only to animation changing and the other
@@ -742,37 +744,38 @@
 
             <span class="box-1">Frame</span>
             <span class="box box-2" id="frameSwitches">
-                <label class="switch" for="frameVisible">
+                <label class="switch">
                     <input
                         type="checkbox"
-                        name="frameVisible"
-                        id="frameVisible"
+                        name="frameVis"
+                        id="frameVis"
                         bind:checked={vizOptions.frame}
                     />
                     <span class="slider round"></span>
                 </label>
                 {#if vizOptions.frame}
-                    <label for="framPos"
+                    <label
                         ><M size={'sm'} s="\\mathbf r" />
                         <input
                             type="checkbox"
                             name="framePos"
+                            id="framePos"
                             bind:checked={vizOptions.pos}
                         />
                     </label>
-                    <label for="framevel">
+                    <label>
                         <M size={'sm'} s={"\\mathbf r'"} />
                         <input
                             type="checkbox"
-                            name="framevel"
+                            name="frameVel"
                             bind:checked={vizOptions.vel}
                         />
                     </label>
-                    <label for="frameacc"
+                    <label
                         ><M size="sm" s={"\\mathbf r''"} />
                         <input
                             type="checkbox"
-                            name="frameacc"
+                            name="frameAcc"
                             bind:checked={vizOptions.acc}
                         />
                     </label>
