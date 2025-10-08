@@ -48,7 +48,7 @@ python-dotenv==1.1.0
 redis[hiredis]==6.4.0
 requests==2.32.3
 s3transfer==0.14.0
-websocket-client==1.8.0  # selenium
+websocket-client==1.9.0  # selenium
 selenium==4.36.0
 service-identity==24.2.0
 six==1.17.0
