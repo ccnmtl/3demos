@@ -2876,3 +2876,88 @@ export {
     scaleExp,
     filterBang,
 };
+
+
+/**
+ * Sample roughly evenly spaced points on an implicit surface g(x, y, z) = 0
+ * within a cuboid defined by [xmin, xmax], [ymin, ymax], [zmin, zmax].
+ *
+ * @param {Function} g - scalar field function g(x, y, z)
+ * @param {Array} bounds - [[xmin, xmax], [ymin, ymax], [zmin, zmax]]
+ * @param {number} nx - grid resolution in x
+ * @param {number} ny - grid resolution in y
+ * @param {number} nz - grid resolution in z
+ * @returns {Array<[number, number, number]>} sampled points
+ */
+export function sampleImplicitSurface(g, bounds, nx = 40, ny = 40, nz = 40) {
+    const [[xmin, xmax], [ymin, ymax], [zmin, zmax]] = bounds;
+    const dx = (xmax - xmin) / (nx - 1);
+    const dy = (ymax - ymin) / (ny - 1);
+    const dz = (zmax - zmin) / (nz - 1);
+
+    // Precompute scalar field on the grid
+    const grid = Array.from({ length: nx }, () =>
+        Array.from({ length: ny }, () => new Array(nz))
+    );
+
+    for (let i = 0; i < nx; i++) {
+        const x = xmin + i * dx;
+        for (let j = 0; j < ny; j++) {
+            const y = ymin + j * dy;
+            for (let k = 0; k < nz; k++) {
+                const z = zmin + k * dz;
+                grid[i][j][k] = g(x, y, z);
+            }
+        }
+    }
+
+    const points = [];
+
+    // Check each cube in the grid for sign changes (surface crossings)
+    for (let i = 0; i < nx - 1; i++) {
+        for (let j = 0; j < ny - 1; j++) {
+            for (let k = 0; k < nz - 1; k++) {
+                // The cube's 8 corner values
+                const corners = [
+                    [i, j, k],
+                    [i + 1, j, k],
+                    [i + 1, j + 1, k],
+                    [i, j + 1, k],
+                    [i, j, k + 1],
+                    [i + 1, j, k + 1],
+                    [i + 1, j + 1, k + 1],
+                    [i, j + 1, k + 1]
+                ].map(([ii, jj, kk]) => grid[ii][jj][kk]);
+
+                const minVal = Math.min(...corners);
+                const maxVal = Math.max(...corners);
+
+                if (minVal * maxVal > 0) continue; // No sign change → skip
+
+                // Find approximate intersection point (weighted average)
+                let sumWeights = 0;
+                let px = 0, py = 0, pz = 0;
+
+                for (let ii = 0; ii <= 1; ii++) {
+                    for (let jj = 0; jj <= 1; jj++) {
+                        for (let kk = 0; kk <= 1; kk++) {
+                            const val = grid[i + ii][j + jj][k + kk];
+                            const weight = 1 / (Math.abs(val) + 1e-6);
+                            const x = xmin + (i + ii) * dx;
+                            const y = ymin + (j + jj) * dy;
+                            const z = zmin + (k + kk) * dz;
+                            px += weight * x;
+                            py += weight * y;
+                            pz += weight * z;
+                            sumWeights += weight;
+                        }
+                    }
+                }
+
+                points.push([px / sumWeights, py / sumWeights, pz / sumWeights]);
+            }
+        }
+    }
+
+    return points;
+}
