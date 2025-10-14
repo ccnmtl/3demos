@@ -2,6 +2,7 @@
     import Blank from './stories/Blank.svelte';
     import ArcLength from './stories/ArcLength.svelte';
     import Linear from './stories/Linear.svelte';
+    import Lagrange from './stories/Lagrange.svelte';
     import PathIntegral from './stories/PathIntegral.svelte';
     import SurfaceArea from './stories/SurfaceArea.svelte';
     import FluxIntegral from './stories/FluxIntegral.svelte';
@@ -23,6 +24,7 @@
         <option value={Blank}>Select Story...</option>
         <option value={ArcLength}>Arc Length</option>
         <option value={Linear}>Linearization</option>
+        <option value={Lagrange}>Lagrange</option>
         <option value={PathIntegral}>Path Integrals</option>
         <option value={SurfaceArea}>Surface Area</option>
         <option value={FluxIntegral}>Flux Integrals</option>
