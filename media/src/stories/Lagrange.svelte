@@ -9,6 +9,7 @@
         filterBang,
         gaussLegendre,
         sampleImplicitSurface,
+        evolveFlowOnLevel,
     } from '../utils';
     import { mathToJSFunction } from '../objects/mathutils';
     import { onMount, onDestroy, untrack } from 'svelte';
@@ -78,7 +79,7 @@
     let edgesUp = $state();
 
     const plusMaterial = new THREE.MeshStandardMaterial({
-        color: 0xccddff,
+        color: 0x000000,
         side: THREE.DoubleSide,
         roughness: 0.4,
         metalness: 0.8,
@@ -97,7 +98,7 @@
         boxes.visible = boxesVisible;
     });
 
-    let nBoxes = $state(10);
+    let nBoxes = $state(5);
     let boxing = false;
 
     let x0 = $derived(math.parse(currentSurface.params.a).evaluate());
@@ -111,14 +112,17 @@
     );
 
     let pts = $derived(
-        sampleImplicitSurface(g, [
-            [x0, x1],
-            [y0, y1],
-            [z0, z1],
+        sampleImplicitSurface(
+            g,
+            [
+                [x0, x1],
+                [y0, y1],
+                [z0, z1],
+            ],
             nBoxes,
             nBoxes,
             nBoxes,
-        ]),
+        ),
     );
 
     $inspect(pts);
@@ -159,6 +163,25 @@
                 //     demoObjects.push(currentSurface);
             });
     });
+
+    const F = (x, y, z) => [x, y, 1 / 13];
+
+    let req;
+
+    function go() {
+        boxes.children.forEach((b) => {
+            const [px, py, pz] = evolveFlowOnLevel(
+                F,
+                g,
+                [b.position.x, b.position.y, b.position.z],
+                0.01,
+            );
+
+            b.position.set(px, py, pz);
+        });
+        render();
+        req = requestAnimationFrame(go);
+    }
 </script>
 
 <div>
@@ -173,6 +196,16 @@
         step="1"
         max="20"
     />
+    <button
+        onclick={() => {
+            if (req) {
+                cancelAnimationFrame(req);
+                req = undefined;
+            } else {
+                go();
+            }
+        }}>Evolve</button
+    >
 </div>
 
 <style>
