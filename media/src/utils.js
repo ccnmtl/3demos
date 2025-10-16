@@ -903,8 +903,13 @@ class ArrowBufferGeometry extends THREE.BufferGeometry {
         // helper variables
 
         let index = 0;
+        const tooShort = height < heightTop;
         const indexArray = [];
-        const tubeHeight = heightIncludesHead ? height - heightTop : height;
+        const tubeHeight = heightIncludesHead
+            ? tooShort
+                ? 0
+                : height - heightTop
+            : height;
         let groupStart = 0;
 
         // generate geometry
@@ -1025,6 +1030,11 @@ class ArrowBufferGeometry extends THREE.BufferGeometry {
             const vertex = new THREE.Vector3();
 
             let groupCount = 0;
+
+            if (tooShort) {
+                radiusTop *= height / heightTop;
+                heightTop = height;
+            }
 
             const radius = top || headBase ? radiusTop : radiusBottom;
             const sign = top ? 1 : -1;
@@ -1151,6 +1161,7 @@ class ArrowBufferGeometry extends THREE.BufferGeometry {
 
             if (z !== 0) {
                 points[index] += newHeight - oldHeight;
+                // points[index] = Math.max(points[index], 0);
             }
             index++;
         }
@@ -3381,6 +3392,17 @@ const filterBang = (func, arr) => {
 };
 
 /**
+ *
+ * @param {number} m min
+ * @param {number} x value
+ * @param {number} M max
+ * @returns {number} value x or the boundary value it's closer to
+ */
+function clamp(m, x, M) {
+    return Math.min(M, Math.max(m, x));
+}
+
+/**
  * Sample roughly evenly spaced points on an implicit surface g(x, y, z) = 0
  * within a cuboid defined by [xmin, xmax], [ymin, ymax], [zmin, zmax].
  *
@@ -3555,6 +3577,7 @@ export {
     FluxBoxEdgesGeometry,
     ShardsGeometry,
     ShardsEdgesGeometry,
+    clamp,
     nextHue,
     makeHSLColor,
     blockGeometry,
