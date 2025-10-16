@@ -136,11 +136,11 @@ const squaresTable = {
 };
 
 const msPositions = [
-    [0, 0],
-    [1, 0],
-    [1, 1],
-    [0, 1],
-],
+        [0, 0],
+        [1, 0],
+        [1, 1],
+        [0, 1],
+    ],
     msDirections = [
         [1, 0],
         [0, 1],
@@ -900,8 +900,13 @@ class ArrowBufferGeometry extends THREE.BufferGeometry {
         // helper variables
 
         let index = 0;
+        const tooShort = height < heightTop;
         const indexArray = [];
-        const tubeHeight = heightIncludesHead ? height - heightTop : height;
+        const tubeHeight = heightIncludesHead
+            ? tooShort
+                ? 0
+                : height - heightTop
+            : height;
         let groupStart = 0;
 
         // generate geometry
@@ -1010,9 +1015,9 @@ class ArrowBufferGeometry extends THREE.BufferGeometry {
         }
 
         /**
-         * 
-         * @param {boolean} top 
-         * @param {boolean} headBase 
+         *
+         * @param {boolean} top
+         * @param {boolean} headBase
          */
         function generateCap(top, headBase = false) {
             // save the index of the first center vertex
@@ -1022,6 +1027,11 @@ class ArrowBufferGeometry extends THREE.BufferGeometry {
             const vertex = new THREE.Vector3();
 
             let groupCount = 0;
+
+            if (tooShort) {
+                radiusTop *= height / heightTop;
+                heightTop = height;
+            }
 
             const radius = top || headBase ? radiusTop : radiusBottom;
             const sign = top ? 1 : -1;
@@ -1148,6 +1158,7 @@ class ArrowBufferGeometry extends THREE.BufferGeometry {
 
             if (z !== 0) {
                 points[index] += newHeight - oldHeight;
+                // points[index] = Math.max(points[index], 0);
             }
             index++;
         }
@@ -1378,7 +1389,7 @@ function labelAxes(
             }
         },
         // onProgress callback
-        function () { },
+        function () {},
 
         // onError callback
         function (e) {
@@ -1403,12 +1414,12 @@ const gaussLegendre = (fn, a, b, n) => {
     // coefficients of the Legendre polynomial
     const coef = [...Array(M(n) + 1)].map(
         (v, m) =>
-        (v =
-            ((-1) ** m * factorial(2 * n - 2 * m)) /
-            (2 ** n *
-                factorial(m) *
-                factorial(n - m) *
-                factorial(n - 2 * m)))
+            (v =
+                ((-1) ** m * factorial(2 * n - 2 * m)) /
+                (2 ** n *
+                    factorial(m) *
+                    factorial(n - m) *
+                    factorial(n - 2 * m)))
     );
     // the polynomial function
     const f = (x) =>
@@ -1910,9 +1921,9 @@ class RectangularSolidGeometry extends THREE.BufferGeometry {
                 );
                 vec.set(
                     e(a + i * dx + dt2, c(a + i * dx) + j * dy) -
-                    e(a + i * dx - dt2, c(a + i * dx) + j * dy),
+                        e(a + i * dx - dt2, c(a + i * dx) + j * dy),
                     e(a + i * dx, c(a + i * dx) + j * dy + dt2) -
-                    e(a + i * dx, c(a + i * dx) + j * dy - dt2),
+                        e(a + i * dx, c(a + i * dx) + j * dy - dt2),
                     -dt
                 ).normalize();
                 normals.push(vec.x, vec.y, vec.z);
@@ -1946,9 +1957,9 @@ class RectangularSolidGeometry extends THREE.BufferGeometry {
                 );
                 vec.set(
                     f(a + i * dx + dt2, c(a + i * dx) + j * dy) -
-                    f(a + i * dx - dt2, c(a + i * dx) + j * dy),
+                        f(a + i * dx - dt2, c(a + i * dx) + j * dy),
                     f(a + i * dx, c(a + i * dx) + j * dy + dt2) -
-                    f(a + i * dx, c(a + i * dx) + j * dy - dt2),
+                        f(a + i * dx, c(a + i * dx) + j * dy - dt2),
                     -dt
                 )
                     .multiplyScalar(-1)
@@ -2152,9 +2163,9 @@ class CylindricalSolidGeometry extends THREE.BufferGeometry {
                 points.push(r * cos(th), r * sin(th), e(r, th));
                 vec.set(
                     (e(r, th + dt2) - e(r, th - dt2)) * sin(th) -
-                    (e(r + dt2, th) - e(r - dt2, th)) * r * cos(th),
+                        (e(r + dt2, th) - e(r - dt2, th)) * r * cos(th),
                     -(e(r, th + dt2) - e(r, th - dt2)) * cos(th) -
-                    (e(r + dt2, th) - e(r - dt2, th)) * r * sin(th),
+                        (e(r + dt2, th) - e(r - dt2, th)) * r * sin(th),
                     r * dt
                 )
                     .multiplyScalar(-1)
@@ -2188,9 +2199,9 @@ class CylindricalSolidGeometry extends THREE.BufferGeometry {
                 points.push(r * cos(th), r * sin(th), f(r, th));
                 vec.set(
                     (f(r, th + dt2) - f(r, th - dt2)) * sin(th) -
-                    (f(r + dt2, th) - f(r - dt2, th)) * r * cos(th),
+                        (f(r + dt2, th) - f(r - dt2, th)) * r * cos(th),
                     -(f(r, th + dt2) - f(r, th - dt2)) * cos(th) -
-                    (f(r + dt2, th) - f(r - dt2, th)) * r * sin(th),
+                        (f(r + dt2, th) - f(r - dt2, th)) * r * sin(th),
                     r * dt
                 ).normalize();
                 normals.push(vec.x, vec.y, vec.z);
@@ -2419,11 +2430,11 @@ class SphericalSolidGeometry extends THREE.BufferGeometry {
 
                 vec.set(
                     r *
-                    (cos(th) * sin(ph) * (r * sin(ph) - cos(ph) * r_ph) +
-                        sin(th) * r_th),
+                        (cos(th) * sin(ph) * (r * sin(ph) - cos(ph) * r_ph) +
+                            sin(th) * r_th),
                     r *
-                    (sin(ph) * sin(th) * (r * sin(ph) - cos(ph) * r_ph) -
-                        cos(th) * r_th),
+                        (sin(ph) * sin(th) * (r * sin(ph) - cos(ph) * r_ph) -
+                            cos(th) * r_th),
                     r * sin(ph) * (cos(ph) * r + sin(ph) * r_ph)
                 )
                     .multiplyScalar(-1)
@@ -2465,11 +2476,11 @@ class SphericalSolidGeometry extends THREE.BufferGeometry {
                 const r_ph = (f(th, ph + dt2) - f(th, ph - dt2)) / dt;
                 vec.set(
                     r *
-                    (cos(th) * sin(ph) * (r * sin(ph) - cos(ph) * r_ph) +
-                        sin(th) * r_th),
+                        (cos(th) * sin(ph) * (r * sin(ph) - cos(ph) * r_ph) +
+                            sin(th) * r_th),
                     r *
-                    (sin(ph) * sin(th) * (r * sin(ph) - cos(ph) * r_ph) -
-                        cos(th) * r_th),
+                        (sin(ph) * sin(th) * (r * sin(ph) - cos(ph) * r_ph) -
+                            cos(th) * r_th),
                     r * sin(ph) * (cos(ph) * r + sin(ph) * r_ph)
                 ).normalize();
                 normals.push(vec.x, vec.y, vec.z);
@@ -3294,8 +3305,8 @@ const norm2 = (...v) => {
 const scaleExp = (scale) =>
     Math.round(
         100 *
-        Math.pow(10, Math.floor(scale)) *
-        Math.floor(Math.pow(10, scale) / Math.pow(10, Math.floor(scale)))
+            Math.pow(10, Math.floor(scale)) *
+            Math.floor(Math.pow(10, scale) / Math.pow(10, Math.floor(scale)))
     ) / 100;
 
 /**
@@ -3312,6 +3323,17 @@ const filterBang = (func, arr) => {
     }
     arr.length = j;
 };
+
+/**
+ *
+ * @param {number} m min
+ * @param {number} x value
+ * @param {number} M max
+ * @returns {number} value x or the boundary value it's closer to
+ */
+function clamp(m, x, M) {
+    return Math.min(M, Math.max(m, x));
+}
 
 /**
  * Sample roughly evenly spaced points on an implicit surface g(x, y, z) = 0
@@ -3419,8 +3441,7 @@ function sampleImplicitSurface(
                     pz -= (a * vz) / vm;
                 }
 
-                points.push([px, py, pz
-                ]);
+                points.push([px, py, pz]);
             }
         }
     }
@@ -3489,6 +3510,7 @@ export {
     FluxBoxEdgesGeometry,
     ShardsGeometry,
     ShardsEdgesGeometry,
+    clamp,
     nextHue,
     makeHSLColor,
     blockGeometry,

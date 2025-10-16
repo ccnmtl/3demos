@@ -4,13 +4,10 @@
     import { all, create, xor } from 'mathjs';
     import M from '../M.svelte';
     import {
-        ShardsEdgesGeometry,
-        ShardsGeometry,
-        filterBang,
-        gaussLegendre,
         sampleImplicitSurface,
         evolveFlowOnLevel,
         ArrowBufferGeometry,
+        clamp,
     } from '../utils';
     import { mathToJSFunction } from '../objects/mathutils';
     import { onMount, onDestroy, untrack } from 'svelte';
@@ -175,6 +172,7 @@
     let projVisible = $state(false);
     let gradfVisible = $state(true);
     let gradgVisible = $state(true);
+    let clampDown = $state(false);
 
     $effect(() => {
         [gradfVisible, gradgVisible, projVisible];
@@ -337,13 +335,28 @@
     let req = $state();
 
     function go() {
+        const xMin = math.evaluate(currentSurface.params.a);
+        const xMax = math.evaluate(currentSurface.params.b);
+        const yMin = math.evaluate(currentSurface.params.c);
+        const yMax = math.evaluate(currentSurface.params.d);
+        const zMin = math.evaluate(currentSurface.params.e);
+        const zMax = math.evaluate(currentSurface.params.f);
+
         boxes.children.forEach((b) => {
-            const [px, py, pz] = evolveFlowOnLevel(
+            let [px, py, pz] = evolveFlowOnLevel(
                 F,
                 g,
                 [b.position.x, b.position.y, b.position.z],
                 0.002,
             );
+
+            const A = math.evaluate(currentSurface.params.a);
+
+            if (clampDown) {
+                px = clamp(xMin, px, xMax);
+                py = clamp(yMin, py, yMax);
+                pz = clamp(zMin, pz, zMax);
+            }
 
             b.position.set(px, py, pz);
             const [arr, arr2, arr3] = b.children;
@@ -507,6 +520,10 @@
             <label>
                 <span style="color: #aaffaa"> proj </span>
                 <input type="checkbox" bind:checked={projVisible} />
+            </label>
+            <label>
+                <span> clamp </span>
+                <input type="checkbox" bind:checked={clampDown} />
             </label>
         </div>
     {/if}
