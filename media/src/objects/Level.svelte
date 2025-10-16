@@ -20,6 +20,7 @@
 
     import { marchingCubes, ArrowBufferGeometry, checksum } from '../utils.js';
     import { flashDance } from '../sceneUtils';
+    import { mathToJSFunction } from './mathutils';
 
     let {
         uuid,
@@ -121,12 +122,12 @@
     scene.add(mesh);
 
     const updateLevel = function () {
-        loading = true;
-        const gc = math.parse(params.g).compile();
-        updateParams(gc, params).then((data) => {
-            levelWorkerSuccessHandler(data);
-            onRenderObject(plusMesh, minusMesh);
-        });
+        // loading = true;
+        // const gc = math.parse(params.g).compile();
+        // Still blocks but will load scene/axes at load before minitask runs
+        const data = updateParams(params.g, params);
+        levelWorkerSuccessHandler(data);
+        onRenderObject(plusMesh, minusMesh);
     };
 
     /**
@@ -215,6 +216,7 @@
         }
 
         point.position.set(0, 0, 0);
+        frameVisible = false;
 
         tangentVectors({ point });
 
@@ -257,7 +259,7 @@
     let choosingPoint = $state(false);
     const pointMaterial = new THREE.MeshLambertMaterial({ color: 0xffff33 });
     const point = new THREE.Mesh(
-        new THREE.SphereGeometry(0.2 / 8, 16, 16),
+        new THREE.SphereGeometry(0.1 / 8, 16, 16),
         pointMaterial,
     );
 
@@ -274,17 +276,29 @@
         new THREE.BufferGeometry(),
         shardMaterial,
     );
+
+    planeShard.visible = false;
+
     tanFrame.add(planeShard);
 
     let frameVisible = $state(false);
     $effect(() => {
         tanFrame.visible = frameVisible;
     });
+    let planeVisible = $state(false);
+    $effect(() => {
+        planeShard.visible = planeVisible;
+    });
+    let normalVisible = $state(false);
+    $effect(() => {
+        arrows.n.visible = normalVisible;
+    });
 
     scene.add(tanFrame);
 
     const nFrame = function ({
-        f = (x, y, z) => math.evaluate(params.g, { x, y, z }),
+        f = mathToJSFunction(params.g, ['x', 'y', 'z']),
+        //  math.evaluate(params.g, { x, y, z }),
         point = point,
         eps = 1e-4,
     } = {}) {
@@ -421,20 +435,20 @@
                     render();
                     break;
                 case 'y':
-                    if (!planeShard.visible) {
+                    if (!planeVisible) {
                         frameVisible = true;
-                        planeShard.visible = true;
+                        planeVisible = true;
                     } else {
-                        planeShard.visible = false;
+                        planeVisible = false;
                     }
                     render();
                     break;
                 case 'n':
-                    if (!arrows.n.visible) {
+                    if (!normalVisible) {
                         frameVisible = true;
-                        arrows.n.visible = true;
+                        normalVisible = true;
                     } else {
-                        arrows.n.visible = false;
+                        normalVisible = false;
                     }
 
                     render();
@@ -560,7 +574,7 @@
                 />
             </span>
 
-            <span class="box-1">Tangent plane </span>
+            <span class="box-1">Point </span>
             <label class="switch box box-2">
                 <input
                     type="checkbox"
@@ -573,6 +587,28 @@
                 <span class="slider round"></span>
             </label>
             {#if frameVisible}
+                <span class="box-1">Tangent plane </span>
+                <label class="switch box box-2">
+                    <input
+                        type="checkbox"
+                        name="tanPlaneVisible"
+                        id="tanPlaneVisible"
+                        bind:checked={planeVisible}
+                        onchange={render}
+                    />
+                    <span class="slider round"></span>
+                </label>
+                <span class="box-1"> Normal </span>
+                <label class="switch box box-2">
+                    <input
+                        type="checkbox"
+                        name="normalVisibla"
+                        id="normalVisibla"
+                        bind:checked={normalVisible}
+                        onchange={render}
+                    />
+                    <span class="slider round"></span>
+                </label>
                 {#if choosingPoint}
                     <button
                         class="box box-2 btn btn-secondary"

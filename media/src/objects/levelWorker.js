@@ -5,6 +5,8 @@
 
 import { create, all } from 'mathjs';
 
+import { mathToJSFunction } from "./mathutils";
+
 const config = {};
 const math = create(all, config);
 
@@ -16,58 +18,25 @@ const math = create(all, config);
  */
 export function updateParams(gc, params) {
     const { a, b, c, d, e, f, k } = params;
-    let paramErrors = {
-        g: false,
-        k: false
-    };
 
-    return new Promise((resolve, reject) => {
-        setTimeout(() => {
-            const func = (x, y, z) => {
-                try {
-                    return gc.evaluate({x, y, z});
-                } catch (err) {
-                    paramErrors.g = true;
-                    return reject(paramErrors);
-                }
-            }
+    const func = mathToJSFunction(gc, ['x', 'y', 'z']);
 
-            // Test compiled g eval with some basic xyz params, for
-            // validation purposes.
-            try {
-                gc.evaluate({x: -2, y: -2, z: -2});
-            } catch (err) {
-                paramErrors.g = true;
-                return reject(paramErrors);
-            }
-
-            let kE = null;
-            try {
-                kE = math.evaluate(String(k));
-            } catch (err) {
-                paramErrors.k = true;
-                return reject(paramErrors);
-            }
-
-            const { normals, vertices, traceSegments } =
-                  marchingCubesWithTraces({
-                      f: func,
-                      level: kE,
-                      xMin: math.evaluate(String(a)),
-                      xMax: math.evaluate(String(b)),
-                      yMin: math.evaluate(String(c)),
-                      yMax: math.evaluate(String(d)),
-                      zMin: math.evaluate(String(e)),
-                      zMax: math.evaluate(String(f)),
-                      N: 30,
-                  });
-
-            resolve({
-                normals, vertices, xpts: [], ypts: [], zpts: traceSegments
-            });
-        }, 0);
+    const { normals, vertices, traceSegments } = marchingCubesWithTraces({
+        f: func,
+        level: math.evaluate(String(k)),
+        xMin: math.evaluate(String(a)),
+        xMax: math.evaluate(String(b)),
+        yMin: math.evaluate(String(c)),
+        yMax: math.evaluate(String(d)),
+        zMin: math.evaluate(String(e)),
+        zMax: math.evaluate(String(f)),
+        N: 60,
     });
-}
+    return {
+        normals, vertices, xpts: [], ypts: [], zpts: traceSegments
+    };
+};
+
 
 const edgeTable = new Uint16Array([
     0x0, 0x109, 0x203, 0x30a, 0x406, 0x50f, 0x605, 0x70c, 0x80c, 0x905,
@@ -472,10 +441,10 @@ function marchingCubesWithTraces({
     zMax = 1,
     N = 30,
     xN = 10,
-/* eslint-disable */
+    /* eslint-disable */
     yN = 10,
     zN = 10,
-/* eslint-enable */
+    /* eslint-enable */
 } = {}) {
     // const geometry = new THREE.BufferGeometry();
 
@@ -554,8 +523,8 @@ function marchingCubesWithTraces({
                     const pt = pts[index];
 
                     const u = x + pt[0] * dx,
-                          v = y + pt[1] * dy,
-                          w = z + pt[2] * dz;
+                        v = y + pt[1] * dy,
+                        w = z + pt[2] * dz;
 
                     h = Math.max(u * eps, (2 * eps) ** 2);
                     const fx = (f(u + h / 2, v, w) - f(u - h / 2, v, w)) / h;
@@ -564,7 +533,7 @@ function marchingCubesWithTraces({
                     h = Math.max(w * eps, (2 * eps) ** 2);
                     const fz = (f(u, v, w + h / 2) - f(u, v, w - h / 2)) / h;
                     const inverseSquare =
-                          1 / math.sqrt(fx * fx + fy * fy + fz * fz);
+                        1 / math.sqrt(fx * fx + fy * fy + fz * fz);
 
                     vertices.push(u, v, w);
                     normals.push(
