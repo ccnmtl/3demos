@@ -404,6 +404,7 @@
                                         {scene}
                                         render={requestFrameIfNotRequested}
                                         animate={animateIfNotAnimating}
+                                        {selectedPoint}
                                     />
                                 </TabPane>
                                 <TabPane

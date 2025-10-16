@@ -7,7 +7,7 @@
     import SurfaceArea from './stories/SurfaceArea.svelte';
     import FluxIntegral from './stories/FluxIntegral.svelte';
 
-    let { scene, render, animate = () => {} } = $props();
+    let { scene, render, animate = () => {}, selectedPoint } = $props();
 
     /**
      * @type {typeof import('./stories/Blank.svelte').default}
@@ -32,7 +32,7 @@
 </div>
 
 <div class="story-content-box">
-    <CurrentStory {scene} {render} {animate} />
+    <CurrentStory {scene} {render} {animate} {selectedPoint} />
 </div>
 
 <style>

@@ -2,6 +2,7 @@
 
 import * as THREE from 'three';
 import { evaluate_cmap } from './js-colormaps';
+import { boolean } from 'mathjs';
 
 /**
  * Given a URL base and a path, return the two combined.
@@ -135,11 +136,11 @@ const squaresTable = {
 };
 
 const msPositions = [
-        [0, 0],
-        [1, 0],
-        [1, 1],
-        [0, 1],
-    ],
+    [0, 0],
+    [1, 0],
+    [1, 1],
+    [0, 1],
+],
     msDirections = [
         [1, 0],
         [0, 1],
@@ -1008,6 +1009,11 @@ class ArrowBufferGeometry extends THREE.BufferGeometry {
             groupStart += groupCount;
         }
 
+        /**
+         * 
+         * @param {boolean} top 
+         * @param {boolean} headBase 
+         */
         function generateCap(top, headBase = false) {
             // save the index of the first center vertex
             const centerIndexStart = index;
@@ -1372,7 +1378,7 @@ function labelAxes(
             }
         },
         // onProgress callback
-        function () {},
+        function () { },
 
         // onError callback
         function (e) {
@@ -1397,12 +1403,12 @@ const gaussLegendre = (fn, a, b, n) => {
     // coefficients of the Legendre polynomial
     const coef = [...Array(M(n) + 1)].map(
         (v, m) =>
-            (v =
-                ((-1) ** m * factorial(2 * n - 2 * m)) /
-                (2 ** n *
-                    factorial(m) *
-                    factorial(n - m) *
-                    factorial(n - 2 * m)))
+        (v =
+            ((-1) ** m * factorial(2 * n - 2 * m)) /
+            (2 ** n *
+                factorial(m) *
+                factorial(n - m) *
+                factorial(n - 2 * m)))
     );
     // the polynomial function
     const f = (x) =>
@@ -1904,9 +1910,9 @@ class RectangularSolidGeometry extends THREE.BufferGeometry {
                 );
                 vec.set(
                     e(a + i * dx + dt2, c(a + i * dx) + j * dy) -
-                        e(a + i * dx - dt2, c(a + i * dx) + j * dy),
+                    e(a + i * dx - dt2, c(a + i * dx) + j * dy),
                     e(a + i * dx, c(a + i * dx) + j * dy + dt2) -
-                        e(a + i * dx, c(a + i * dx) + j * dy - dt2),
+                    e(a + i * dx, c(a + i * dx) + j * dy - dt2),
                     -dt
                 ).normalize();
                 normals.push(vec.x, vec.y, vec.z);
@@ -1940,9 +1946,9 @@ class RectangularSolidGeometry extends THREE.BufferGeometry {
                 );
                 vec.set(
                     f(a + i * dx + dt2, c(a + i * dx) + j * dy) -
-                        f(a + i * dx - dt2, c(a + i * dx) + j * dy),
+                    f(a + i * dx - dt2, c(a + i * dx) + j * dy),
                     f(a + i * dx, c(a + i * dx) + j * dy + dt2) -
-                        f(a + i * dx, c(a + i * dx) + j * dy - dt2),
+                    f(a + i * dx, c(a + i * dx) + j * dy - dt2),
                     -dt
                 )
                     .multiplyScalar(-1)
@@ -2146,9 +2152,9 @@ class CylindricalSolidGeometry extends THREE.BufferGeometry {
                 points.push(r * cos(th), r * sin(th), e(r, th));
                 vec.set(
                     (e(r, th + dt2) - e(r, th - dt2)) * sin(th) -
-                        (e(r + dt2, th) - e(r - dt2, th)) * r * cos(th),
+                    (e(r + dt2, th) - e(r - dt2, th)) * r * cos(th),
                     -(e(r, th + dt2) - e(r, th - dt2)) * cos(th) -
-                        (e(r + dt2, th) - e(r - dt2, th)) * r * sin(th),
+                    (e(r + dt2, th) - e(r - dt2, th)) * r * sin(th),
                     r * dt
                 )
                     .multiplyScalar(-1)
@@ -2182,9 +2188,9 @@ class CylindricalSolidGeometry extends THREE.BufferGeometry {
                 points.push(r * cos(th), r * sin(th), f(r, th));
                 vec.set(
                     (f(r, th + dt2) - f(r, th - dt2)) * sin(th) -
-                        (f(r + dt2, th) - f(r - dt2, th)) * r * cos(th),
+                    (f(r + dt2, th) - f(r - dt2, th)) * r * cos(th),
                     -(f(r, th + dt2) - f(r, th - dt2)) * cos(th) -
-                        (f(r + dt2, th) - f(r - dt2, th)) * r * sin(th),
+                    (f(r + dt2, th) - f(r - dt2, th)) * r * sin(th),
                     r * dt
                 ).normalize();
                 normals.push(vec.x, vec.y, vec.z);
@@ -2413,11 +2419,11 @@ class SphericalSolidGeometry extends THREE.BufferGeometry {
 
                 vec.set(
                     r *
-                        (cos(th) * sin(ph) * (r * sin(ph) - cos(ph) * r_ph) +
-                            sin(th) * r_th),
+                    (cos(th) * sin(ph) * (r * sin(ph) - cos(ph) * r_ph) +
+                        sin(th) * r_th),
                     r *
-                        (sin(ph) * sin(th) * (r * sin(ph) - cos(ph) * r_ph) -
-                            cos(th) * r_th),
+                    (sin(ph) * sin(th) * (r * sin(ph) - cos(ph) * r_ph) -
+                        cos(th) * r_th),
                     r * sin(ph) * (cos(ph) * r + sin(ph) * r_ph)
                 )
                     .multiplyScalar(-1)
@@ -2459,11 +2465,11 @@ class SphericalSolidGeometry extends THREE.BufferGeometry {
                 const r_ph = (f(th, ph + dt2) - f(th, ph - dt2)) / dt;
                 vec.set(
                     r *
-                        (cos(th) * sin(ph) * (r * sin(ph) - cos(ph) * r_ph) +
-                            sin(th) * r_th),
+                    (cos(th) * sin(ph) * (r * sin(ph) - cos(ph) * r_ph) +
+                        sin(th) * r_th),
                     r *
-                        (sin(ph) * sin(th) * (r * sin(ph) - cos(ph) * r_ph) -
-                            cos(th) * r_th),
+                    (sin(ph) * sin(th) * (r * sin(ph) - cos(ph) * r_ph) -
+                        cos(th) * r_th),
                     r * sin(ph) * (cos(ph) * r + sin(ph) * r_ph)
                 ).normalize();
                 normals.push(vec.x, vec.y, vec.z);
@@ -3288,8 +3294,8 @@ const norm2 = (...v) => {
 const scaleExp = (scale) =>
     Math.round(
         100 *
-            Math.pow(10, Math.floor(scale)) *
-            Math.floor(Math.pow(10, scale) / Math.pow(10, Math.floor(scale)))
+        Math.pow(10, Math.floor(scale)) *
+        Math.floor(Math.pow(10, scale) / Math.pow(10, Math.floor(scale)))
     ) / 100;
 
 /**
@@ -3379,38 +3385,41 @@ function sampleImplicitSurface(
                     py = 0,
                     pz = 0;
 
-                for (let ii = 0; ii <= 1; ii++) {
-                    for (let jj = 0; jj <= 1; jj++) {
-                        for (let kk = 0; kk <= 1; kk++) {
-                            const val = grid[i + ii][j + jj][k + kk];
-                            // const weight = 1 / (Math.abs(val) + 1e-12);
-                            const weight = 1 / 8;
-                            const x = xmin + (i + ii) * dx;
-                            const y = ymin + (j + jj) * dy;
-                            const z = zmin + (k + kk) * dz;
-                            px += weight * x;
-                            py += weight * y;
-                            pz += weight * z;
-                            sumWeights += weight;
-                        }
-                    }
+                // for (let ii = 0; ii <= 1; ii++) {
+                //     for (let jj = 0; jj <= 1; jj++) {
+                //         for (let kk = 0; kk <= 1; kk++) {
+                //             const val = grid[i + ii][j + jj][k + kk];
+                //             // const weight = 1 / (Math.abs(val) + 1e-12);
+                //             const weight = 1 / 8;
+                //             const x = xmin + (i + ii) * dx;
+                //             const y = ymin + (j + jj) * dy;
+                //             const z = zmin + (k + kk) * dz;
+                //             px += weight * x;
+                //             py += weight * y;
+                //             pz += weight * z;
+                //             sumWeights += weight;
+                //         }
+                //     }
+                // }
+
+                px = xmin + (i + 1 / 2) * dx;
+                py = ymin + (j + 1 / 2) * dy;
+                pz = zmin + (k + 1 / 2) * dz;
+
+                for (let ell = 0; ell < 10; ell++) {
+                    const a = g(px, py, pz);
+                    const vx = gx(px, py, pz);
+                    const vy = gy(px, py, pz);
+                    const vz = gz(px, py, pz);
+
+                    const vm = vx * vx + vy * vy + vz * vz;
+
+                    px -= (a * vx) / vm;
+                    py -= (a * vy) / vm;
+                    pz -= (a * vz) / vm;
                 }
 
-                px /= sumWeights;
-                py /= sumWeights;
-                pz /= sumWeights;
-
-                const a = g(px, py, pz);
-                const vx = gx(px, py, pz);
-                const vy = gy(px, py, pz);
-                const vz = gz(px, py, pz);
-
-                const vm = vx * vx + vy * vy + vz * vz;
-
-                points.push([
-                    px - (a * vx) / vm,
-                    py - (a * vy) / vm,
-                    pz - (a * vz) / vm,
+                points.push([px, py, pz
                 ]);
             }
         }
