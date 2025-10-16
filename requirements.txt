@@ -13,7 +13,7 @@ channels==4.3.1
 channels-redis==4.3.0
 charset-normalizer==3.4.0
 constantly==23.10.4
-coverage==7.10.0
+coverage==7.11.0
 cryptography==46.0.1
 sentry-sdk[django]==2.42.0
 ctlsettings==0.4.4
