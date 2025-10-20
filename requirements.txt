@@ -64,6 +64,6 @@ txaio==25.9.2
 typing_extensions==4.15.0
 urllib3==2.5.0
 webdriver-manager==4.0.2
-wrapt==1.17.0
+wrapt==2.0.0
 wsproto==1.2.0
 zope.interface==8.0
