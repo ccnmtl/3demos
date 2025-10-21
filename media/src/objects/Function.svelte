@@ -341,13 +341,6 @@
     $effect(() => (surfaceMesh.visible = graphVisible));
 
     const updateSurface = function () {
-        // const { a, b, c, d } = params;
-        // const A = math.parse(a).evaluate();
-        // const B = math.parse(b).evaluate();
-
-        // const C = math.parse(c);
-        // const D = math.parse(d);
-
         const geometry = new ParametricGeometry(
             (u, v, vec) => {
                 const U = A + (B - A) * u;
@@ -427,7 +420,8 @@
         const dx = (B - A) / lcm(nX, cNum);
         const points = [];
 
-        for (let u = A; u <= B; u += du) {
+        for (let i = 0; i <= rNum; i++) {
+            const u = A + i * du;
             const cU = C(u);
             const dU = D(u);
 
@@ -436,7 +430,8 @@
             // args.y = cU;
 
             points.push(new THREE.Vector3(u, cU, func(u, cU, tVal)));
-            for (let v = cU + dy; v < dU; v += dy) {
+            for (let j = 1; j < lcm(nX, rNum); j++) {
+                const v = cU + j * dy;
                 // args.y = v;
                 points.push(new THREE.Vector3(u, v, func(u, v, tVal)));
                 points.push(new THREE.Vector3(u, v, func(u, v, tVal)));
@@ -449,13 +444,16 @@
         // args.x = A;
         cMin = C(A);
         dMax = D(A);
-        for (let u = A + dx; u <= B; u += dx) {
+        for (let i = 1; i <= lcm(nX, cNum); i++) {
+            const u = A + i * dx;
             // args.x = u;
             cMin = Math.min(cMin, C(u));
             dMax = Math.max(dMax, D(u));
         }
 
-        for (let v = cMin; v <= dMax; v += (dMax - cMin) / cNum) {
+        const dv = (dMax - cMin) / cNum;
+        for (let j = 0; j <= cNum; j++) {
+            const v = cMin + j * dv;
             const zs = marchingSegments(
                 (x) => (C(x) - v) * (v - D(x)),
                 A,
@@ -509,6 +507,7 @@
     };
 
     function integrateSurface(n = 20) {
+        // console.log('integrating...');
         return gaussLegendre(
             (x) => gaussLegendre((y) => func(x, y, tVal), C(x), D(x), n),
             A,
@@ -847,28 +846,6 @@
     boxMesh.add(boxMeshEdges);
 
     const updateBoxes = function () {
-        // const { a, b, c, d } = params;
-        // try {
-        //     [
-        //         math.evaluate(a),
-        //         math.evaluate(b),
-        //         math.evaluate(c),
-        //         math.evaluate(d),
-        //     ];
-        // } catch (e) {
-        //     console.error("Can't show integral boxes on nonconstant bounds", e);
-        //     return;
-        // }
-
-        // const [A, B, C, D] = [
-        //     math.evaluate(a),
-        //     math.evaluate(b),
-        //     math.evaluate(c),
-        //     math.evaluate(d),
-        // ];
-
-        // const t = T0 + tau * (T1 - T0);
-
         if (boxMesh.geometry) {
             boxMesh.geometry.dispose();
             boxMeshEdges.geometry.dispose();
