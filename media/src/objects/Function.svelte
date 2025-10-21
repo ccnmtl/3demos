@@ -36,6 +36,7 @@
         ArrowBufferGeometry,
         blockGeometry,
         checksum,
+        gaussLegendre,
     } from '../utils.js';
 
     import { mathToJSFunction } from './mathutils';
@@ -125,6 +126,8 @@
     });
 
     let minimize = $state(false);
+    let approxVol = $state();
+    let volumeInt = $state();
 
     const colorMaterial = new THREE.MeshPhongMaterial({
         color: 0xffffff,
@@ -218,6 +221,10 @@
     //     return (x, y, t) => z.evaluate({ x, y, t });
     // });
 
+    let A = $derived(math.evaluate(params.a));
+    let B = $derived(math.evaluate(params.b));
+    let C = $derived(mathToJSFunction(params.c, ['x']));
+    let D = $derived(mathToJSFunction(params.d, ['x']));
     let func = $derived(mathToJSFunction(params.z, ['x', 'y', 't']));
 
     const tangentVectors = function () {
@@ -334,18 +341,18 @@
     $effect(() => (surfaceMesh.visible = graphVisible));
 
     const updateSurface = function () {
-        const { a, b, c, d } = params;
-        const A = math.parse(a).evaluate();
-        const B = math.parse(b).evaluate();
+        // const { a, b, c, d } = params;
+        // const A = math.parse(a).evaluate();
+        // const B = math.parse(b).evaluate();
 
-        const C = math.parse(c);
-        const D = math.parse(d);
+        // const C = math.parse(c);
+        // const D = math.parse(d);
 
         const geometry = new ParametricGeometry(
             (u, v, vec) => {
                 const U = A + (B - A) * u;
-                const cU = C.evaluate({ x: U });
-                const dU = D.evaluate({ x: U });
+                const cU = C(U);
+                const dU = D(U);
 
                 const V = (1 - v) * cU + v * dU;
 
@@ -354,7 +361,7 @@
             data.nX,
             data.nX,
         );
-        const meshGeometry = meshLines(params, data.rNum, data.cNum, data.nX);
+        const meshGeometry = meshLines(data.rNum, data.cNum, data.nX);
         if (!meshGeometry) {
             // Geometry calculation failed, there must have been an
             // input error.
@@ -403,24 +410,26 @@
             updateBoxes();
         }
 
+        volumeInt = integrateSurface();
+
         render();
     };
 
-    const meshLines = function (rData, rNum = 10, cNum = 10, nX = 30) {
-        let { a, b, c, d, t0, t1 } = rData;
+    const meshLines = function (rNum = 10, cNum = 10, nX = 50) {
+        // let { a, b, c, d, t0, t1 } = rData;
 
-        const A = math.parse(a).evaluate();
-        const B = math.parse(b).evaluate();
-        const C = math.parse(c).compile();
-        const D = math.parse(d).compile();
+        // const A = math.parse(a).evaluate();
+        // const B = math.parse(b).evaluate();
+        // const C = math.parse(c).compile();
+        // const D = math.parse(d).compile();
 
         const du = (B - A) / rNum;
         const dx = (B - A) / lcm(nX, cNum);
         const points = [];
 
         for (let u = A; u <= B; u += du) {
-            const cU = C.evaluate({ x: u });
-            const dU = D.evaluate({ x: u });
+            const cU = C(u);
+            const dU = D(u);
 
             const dy = (dU - cU) / lcm(nX, rNum);
             // args.x = u;
@@ -438,17 +447,17 @@
 
         // v-Meshes
         // args.x = A;
-        cMin = C.evaluate({ x: A });
-        dMax = D.evaluate({ x: A });
+        cMin = C(A);
+        dMax = D(A);
         for (let u = A + dx; u <= B; u += dx) {
             // args.x = u;
-            cMin = Math.min(cMin, C.evaluate({ x: u }));
-            dMax = Math.max(dMax, D.evaluate({ x: u }));
+            cMin = Math.min(cMin, C(u));
+            dMax = Math.max(dMax, D(u));
         }
 
         for (let v = cMin; v <= dMax; v += (dMax - cMin) / cNum) {
             const zs = marchingSegments(
-                (x) => (C.evaluate({ x: x }) - v) * (v - D.evaluate({ x: x })),
+                (x) => (C(x) - v) * (v - D(x)),
                 A,
                 B,
                 nX,
@@ -457,7 +466,7 @@
             let nextZero = zs.shift();
             for (let u = A; u <= B - dx + tol; u += dx) {
                 // args.x = u;
-                if (C.evaluate({ x: u }) <= v && v <= D.evaluate({ x: u })) {
+                if (C(u) <= v && v <= D(u)) {
                     points.push(new THREE.Vector3(u, v, func(u, v, tVal)));
                     if (nextZero < u + dx) {
                         // args.x = nextZero;
@@ -499,8 +508,21 @@
         return geometry;
     };
 
+    function integrateSurface(n = 20) {
+        return gaussLegendre(
+            (x) => gaussLegendre((y) => func(x, y, tVal), C(x), D(x), n),
+            A,
+            B,
+            n,
+        );
+    }
+
     const evolveSurface = function (t) {
-        boxMeshVisible = false;
+        if (boxMeshVisible) {
+            volumeInt = integrateSurface();
+            updateBoxes();
+        }
+        // boxMeshVisible = false;
 
         // the front and back surfaces share a geometry. The meshlines are separate
         for (let j = 0; j < 3; j += 2) {
@@ -709,28 +731,22 @@
             element.geometry.dispose();
             levelHolder.remove(element);
         }
-        const { a, b, c, d } = params;
+        // const { a, b, c, d } = params;
         // const t0 = math.parse(params.t0).evaluate();
         // const t1 = math.parse(params.t1).evaluate();
         // const t = t0 + tau * (t1 - t0);
-        let C = 0,
-            D = 0,
-            zMin = 0,
+        let yMin = C(A),
+            yMax = D(A);
+        let zMin = 0,
             zMax = 0;
-        const [A, B] = [math.evaluate(a), math.evaluate(b)];
+        // const [A, B] = [math.evaluate(a), math.evaluate(b)];
         for (let i = 0; i <= data.nL; i++) {
-            C = Math.min(
-                C,
-                math.evaluate(c, { x: A + ((B - A) * i) / data.nL }),
-            );
-            D = Math.max(
-                D,
-                math.evaluate(d, { x: A + ((B - A) * i) / data.nL }),
-            );
+            yMin = Math.min(yMin, C(A + ((B - A) * i) / data.nL));
+            yMax = Math.max(yMax, D(A + ((B - A) * i) / data.nL));
             for (let j = 0; j <= data.nL; j++) {
                 const Z = func(
                     A + ((B - A) * i) / data.nL,
-                    C + ((D - C) * j) / data.nL,
+                    yMin + ((yMax - yMin) * j) / data.nL,
                     tVal,
                 );
                 zMin = Math.min(zMin, Z);
@@ -749,8 +765,8 @@
                 },
                 xmin: A,
                 xmax: B,
-                ymin: C,
-                ymax: D,
+                ymin: yMin,
+                ymax: yMax,
                 level: lev,
                 zLevel: 0,
                 nX: 200,
@@ -816,7 +832,12 @@
     boxMesh.material = colorMaterial;
 
     let boxMeshVisible = $state(false);
-    $effect(() => (boxMesh.visible = boxMeshVisible));
+    $effect(() => {
+        boxMesh.visible = boxMeshVisible;
+        untrack(() => {
+            volumeInt = integrateSurface();
+        });
+    });
 
     scene.add(boxMesh);
     const boxMeshEdges = new THREE.LineSegments(
@@ -826,25 +847,25 @@
     boxMesh.add(boxMeshEdges);
 
     const updateBoxes = function () {
-        const { a, b, c, d } = params;
-        try {
-            [
-                math.evaluate(a),
-                math.evaluate(b),
-                math.evaluate(c),
-                math.evaluate(d),
-            ];
-        } catch (e) {
-            console.error("Can't show integral boxes on nonconstant bounds", e);
-            return;
-        }
+        // const { a, b, c, d } = params;
+        // try {
+        //     [
+        //         math.evaluate(a),
+        //         math.evaluate(b),
+        //         math.evaluate(c),
+        //         math.evaluate(d),
+        //     ];
+        // } catch (e) {
+        //     console.error("Can't show integral boxes on nonconstant bounds", e);
+        //     return;
+        // }
 
-        const [A, B, C, D] = [
-            math.evaluate(a),
-            math.evaluate(b),
-            math.evaluate(c),
-            math.evaluate(d),
-        ];
+        // const [A, B, C, D] = [
+        //     math.evaluate(a),
+        //     math.evaluate(b),
+        //     math.evaluate(c),
+        //     math.evaluate(d),
+        // ];
 
         // const t = T0 + tau * (T1 - T0);
 
@@ -865,6 +886,9 @@
             data.s,
             data.t,
         );
+
+        approxVol = boxMesh.geometry.volume;
+
         boxMeshEdges.geometry = new THREE.EdgesGeometry(boxMesh.geometry);
     };
 
@@ -1324,6 +1348,19 @@
                     }}
                     class="box box-2"
                 />
+                <p class="box-all">
+                    <M
+                        s={`\\sum_{i =1}^N\\sum_{j=1}^N f\\,\\Delta A = ${approxVol.toFixed(3)}`}
+                        display
+                    />
+                </p>
+                <p class="box-all">
+                    A more accurate estimation:
+                    <M
+                        s={`\\iint\\limits_{\\mathcal R} f\\,dA \\approx ${volumeInt.toFixed(3)}`}
+                        display
+                    />
+                </p>
             {/if}
         </div>
     </div>
