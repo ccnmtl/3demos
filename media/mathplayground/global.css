@@ -32,6 +32,11 @@ body,
     grid-column-end: 4;
 }
 
+.box-all {
+    grid-column-start: 1;
+    grid-column-end: 4;
+}
+
 .box-3 {
     color: white;
     vertical-align: middle;

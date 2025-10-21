@@ -2,7 +2,10 @@
 
 import * as THREE from 'three';
 import { evaluate_cmap } from './js-colormaps';
-import { boolean } from 'mathjs';
+
+import { create, all } from 'mathjs';
+const config = {};
+const math = create(all, config);
 
 /**
  * Given a URL base and a path, return the two combined.
@@ -136,11 +139,11 @@ const squaresTable = {
 };
 
 const msPositions = [
-    [0, 0],
-    [1, 0],
-    [1, 1],
-    [0, 1],
-],
+        [0, 0],
+        [1, 0],
+        [1, 1],
+        [0, 1],
+    ],
     msDirections = [
         [1, 0],
         [0, 1],
@@ -1010,9 +1013,9 @@ class ArrowBufferGeometry extends THREE.BufferGeometry {
         }
 
         /**
-         * 
-         * @param {boolean} top 
-         * @param {boolean} headBase 
+         *
+         * @param {boolean} top
+         * @param {boolean} headBase
          */
         function generateCap(top, headBase = false) {
             // save the index of the first center vertex
@@ -1378,7 +1381,7 @@ function labelAxes(
             }
         },
         // onProgress callback
-        function () { },
+        function () {},
 
         // onError callback
         function (e) {
@@ -1403,12 +1406,12 @@ const gaussLegendre = (fn, a, b, n) => {
     // coefficients of the Legendre polynomial
     const coef = [...Array(M(n) + 1)].map(
         (v, m) =>
-        (v =
-            ((-1) ** m * factorial(2 * n - 2 * m)) /
-            (2 ** n *
-                factorial(m) *
-                factorial(n - m) *
-                factorial(n - 2 * m)))
+            (v =
+                ((-1) ** m * factorial(2 * n - 2 * m)) /
+                (2 ** n *
+                    factorial(m) *
+                    factorial(n - m) *
+                    factorial(n - 2 * m)))
     );
     // the polynomial function
     const f = (x) =>
@@ -1681,10 +1684,10 @@ class ParametricGeometry extends THREE.BufferGeometry {
  * return a geometry of an approximation of f on the rectangle [a,b] \times [c,d]
        using M\times N subrectangles and sampling at (s,t) (relative coords) in each.
  * @param {function(x: number, y:number): number} f integrand f(x,y)
- * @param {number} a lower x bound
- * @param {number} b upper x bound
- * @param {number} c lower y bound
- * @param {number} d upper y bound 
+ * @param {number|string} a lower x bound
+ * @param {number|string} b upper x bound
+ * @param {number|string|function} c lower y bound
+ * @param {number|string|function} d upper y bound 
  * @param {number} M number of x subdivisions 
  * @param {number} N number of y subdivisions 
  * @param {number} s proportion for x sample point
@@ -1695,15 +1698,76 @@ function blockGeometry(f, a, b, c, d, M = 5, N = 5, s = 0.5, t = 0.5) {
     let points = [];
     let colors = [];
     let normals = [];
-    let dx = (b - a) / N;
-    let dy = (d - c) / M;
+    let volume = 0;
+
+    // define bounds
+    let A, B, C, D;
+
+    switch (typeof a) {
+        case 'number':
+            A = a;
+            break;
+        case 'string':
+            A = math.evaluate(a);
+            break;
+        default:
+            break;
+    }
+    switch (typeof b) {
+        case 'number':
+            B = b;
+            break;
+        case 'string':
+            B = math.evaluate(b);
+            break;
+        default:
+            break;
+    }
+
+    let dx = (B - A) / N;
+
+    switch (typeof c) {
+        case 'number':
+            C = () => c;
+            break;
+        case 'string':
+            const comp = math.parse(c).compile();
+            C = (x) => comp.evaluate({ x });
+            break;
+        case 'function':
+            C = c;
+        default:
+            break;
+    }
+    switch (typeof d) {
+        case 'number':
+            D = () => d;
+            break;
+        case 'string':
+            const comp = math.parse(d).compile();
+            D = (x) => comp.evaluate({ x });
+            break;
+        case 'function':
+            D = d;
+        default:
+            break;
+    }
+
+    let yMin = C(A + s * dx);
+    let yMax = D(A + t * dx);
+    for (let i = 1; i < N; i++) {
+        yMin = Math.min(yMin, C(A + (i + s) * dx));
+        yMax = Math.max(yMax, D(A + (i + t) * dx));
+    }
+    let dy = (yMax - yMin) / M;
     let color = new THREE.Color();
 
     for (let i = 0; i < N; i++) {
-        for (let j = 0; j < M; j++) {
+        const Mi = Math.ceil((D(A + (i + s) * dx) - C(A + (i + s) * dx)) / dy);
+        for (let j = 0; j < Mi; j++) {
             let x, y, z;
-            x = a + i * dx;
-            y = c + j * dy;
+            x = A + i * dx;
+            y = C(x) + j * dy;
             z = f(x + s * dx, y + t * dy);
             const sz = z >= 0 ? 1 : -1;
             let zup, zdown;
@@ -1714,6 +1778,7 @@ function blockGeometry(f, a, b, c, d, M = 5, N = 5, s = 0.5, t = 0.5) {
                 zup = 0;
                 zdown = z;
             }
+            volume += z * dx * dy;
 
             color.setHSL(z < 0 ? 0.05 : 0.6, 0.56, 0.36);
 
@@ -1803,6 +1868,8 @@ function blockGeometry(f, a, b, c, d, M = 5, N = 5, s = 0.5, t = 0.5) {
         'color',
         new THREE.Float32BufferAttribute(colors, 3).onUpload(disposeArray)
     );
+
+    geometry.volume = volume;
 
     return geometry;
 }
@@ -1910,9 +1977,9 @@ class RectangularSolidGeometry extends THREE.BufferGeometry {
                 );
                 vec.set(
                     e(a + i * dx + dt2, c(a + i * dx) + j * dy) -
-                    e(a + i * dx - dt2, c(a + i * dx) + j * dy),
+                        e(a + i * dx - dt2, c(a + i * dx) + j * dy),
                     e(a + i * dx, c(a + i * dx) + j * dy + dt2) -
-                    e(a + i * dx, c(a + i * dx) + j * dy - dt2),
+                        e(a + i * dx, c(a + i * dx) + j * dy - dt2),
                     -dt
                 ).normalize();
                 normals.push(vec.x, vec.y, vec.z);
@@ -1946,9 +2013,9 @@ class RectangularSolidGeometry extends THREE.BufferGeometry {
                 );
                 vec.set(
                     f(a + i * dx + dt2, c(a + i * dx) + j * dy) -
-                    f(a + i * dx - dt2, c(a + i * dx) + j * dy),
+                        f(a + i * dx - dt2, c(a + i * dx) + j * dy),
                     f(a + i * dx, c(a + i * dx) + j * dy + dt2) -
-                    f(a + i * dx, c(a + i * dx) + j * dy - dt2),
+                        f(a + i * dx, c(a + i * dx) + j * dy - dt2),
                     -dt
                 )
                     .multiplyScalar(-1)
@@ -2152,9 +2219,9 @@ class CylindricalSolidGeometry extends THREE.BufferGeometry {
                 points.push(r * cos(th), r * sin(th), e(r, th));
                 vec.set(
                     (e(r, th + dt2) - e(r, th - dt2)) * sin(th) -
-                    (e(r + dt2, th) - e(r - dt2, th)) * r * cos(th),
+                        (e(r + dt2, th) - e(r - dt2, th)) * r * cos(th),
                     -(e(r, th + dt2) - e(r, th - dt2)) * cos(th) -
-                    (e(r + dt2, th) - e(r - dt2, th)) * r * sin(th),
+                        (e(r + dt2, th) - e(r - dt2, th)) * r * sin(th),
                     r * dt
                 )
                     .multiplyScalar(-1)
@@ -2188,9 +2255,9 @@ class CylindricalSolidGeometry extends THREE.BufferGeometry {
                 points.push(r * cos(th), r * sin(th), f(r, th));
                 vec.set(
                     (f(r, th + dt2) - f(r, th - dt2)) * sin(th) -
-                    (f(r + dt2, th) - f(r - dt2, th)) * r * cos(th),
+                        (f(r + dt2, th) - f(r - dt2, th)) * r * cos(th),
                     -(f(r, th + dt2) - f(r, th - dt2)) * cos(th) -
-                    (f(r + dt2, th) - f(r - dt2, th)) * r * sin(th),
+                        (f(r + dt2, th) - f(r - dt2, th)) * r * sin(th),
                     r * dt
                 ).normalize();
                 normals.push(vec.x, vec.y, vec.z);
@@ -2419,11 +2486,11 @@ class SphericalSolidGeometry extends THREE.BufferGeometry {
 
                 vec.set(
                     r *
-                    (cos(th) * sin(ph) * (r * sin(ph) - cos(ph) * r_ph) +
-                        sin(th) * r_th),
+                        (cos(th) * sin(ph) * (r * sin(ph) - cos(ph) * r_ph) +
+                            sin(th) * r_th),
                     r *
-                    (sin(ph) * sin(th) * (r * sin(ph) - cos(ph) * r_ph) -
-                        cos(th) * r_th),
+                        (sin(ph) * sin(th) * (r * sin(ph) - cos(ph) * r_ph) -
+                            cos(th) * r_th),
                     r * sin(ph) * (cos(ph) * r + sin(ph) * r_ph)
                 )
                     .multiplyScalar(-1)
@@ -2465,11 +2532,11 @@ class SphericalSolidGeometry extends THREE.BufferGeometry {
                 const r_ph = (f(th, ph + dt2) - f(th, ph - dt2)) / dt;
                 vec.set(
                     r *
-                    (cos(th) * sin(ph) * (r * sin(ph) - cos(ph) * r_ph) +
-                        sin(th) * r_th),
+                        (cos(th) * sin(ph) * (r * sin(ph) - cos(ph) * r_ph) +
+                            sin(th) * r_th),
                     r *
-                    (sin(ph) * sin(th) * (r * sin(ph) - cos(ph) * r_ph) -
-                        cos(th) * r_th),
+                        (sin(ph) * sin(th) * (r * sin(ph) - cos(ph) * r_ph) -
+                            cos(th) * r_th),
                     r * sin(ph) * (cos(ph) * r + sin(ph) * r_ph)
                 ).normalize();
                 normals.push(vec.x, vec.y, vec.z);
@@ -3294,8 +3361,8 @@ const norm2 = (...v) => {
 const scaleExp = (scale) =>
     Math.round(
         100 *
-        Math.pow(10, Math.floor(scale)) *
-        Math.floor(Math.pow(10, scale) / Math.pow(10, Math.floor(scale)))
+            Math.pow(10, Math.floor(scale)) *
+            Math.floor(Math.pow(10, scale) / Math.pow(10, Math.floor(scale)))
     ) / 100;
 
 /**
@@ -3419,8 +3486,7 @@ function sampleImplicitSurface(
                     pz -= (a * vz) / vm;
                 }
 
-                points.push([px, py, pz
-                ]);
+                points.push([px, py, pz]);
             }
         }
     }
