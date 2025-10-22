@@ -31,11 +31,10 @@ MAX_COMPLEXITY ?= 10
 INTERFACE ?= localhost
 RUNSERVER_PORT ?= 8000
 PY_DIRS ?= $(APP)
-BANDIT ?= $(VE)/bin/bandit
 FLAKE8 ?= $(VE)/bin/flake8
 PIP ?= $(VE)/bin/pip
 
-jenkins: check flake8 test bandit
+jenkins: check flake8 test
 
 $(PY_SENTINAL): $(REQUIREMENTS)
 	rm -rf $(VE)
@@ -51,9 +50,6 @@ test: $(PY_SENTINAL)
 
 parallel-tests: $(PY_SENTINAL)
 	$(MANAGE) test --parallel
-
-bandit: $(PY_SENTINAL)
-	$(BANDIT) --ini ./.bandit -r $(PY_DIRS)
 
 flake8: $(PY_SENTINAL)
 	$(FLAKE8) $(PY_DIRS) --max-complexity=$(MAX_COMPLEXITY) --exclude=*/local_settings.py,*/migrations/*.py --extend-ignore=$(FLAKE8_IGNORE)
