@@ -215,12 +215,6 @@
 
     scene.add(point);
 
-    // Compile main function
-    // let func = $derived.by(() => {
-    //     const z = math.parse(params.z).compile();
-    //     return (x, y, t) => z.evaluate({ x, y, t });
-    // });
-
     let A = $derived(math.evaluate(params.a));
     let B = $derived(math.evaluate(params.b));
     let C = $derived(mathToJSFunction(params.c, ['x']));
@@ -228,12 +222,6 @@
     let func = $derived(mathToJSFunction(params.z, ['x', 'y', 't']));
 
     const tangentVectors = function () {
-        // const arrowParams = {
-        //     radiusTop: gridStep / 10,
-        //     radiusBottom: gridStep / 20,
-        //     heightTop: gridStep / 7,
-        // };
-
         const dx = 0.001;
 
         const x = point.position.x;
@@ -409,13 +397,6 @@
     };
 
     const meshLines = function (rNum = 10, cNum = 10, nX = 50) {
-        // let { a, b, c, d, t0, t1 } = rData;
-
-        // const A = math.parse(a).evaluate();
-        // const B = math.parse(b).evaluate();
-        // const C = math.parse(c).compile();
-        // const D = math.parse(d).compile();
-
         const du = (B - A) / rNum;
         const dx = (B - A) / lcm(nX, cNum);
         const points = [];
@@ -462,8 +443,9 @@
             );
             // args['y'] = v;
             let nextZero = zs.shift();
-            for (let u = A; u <= B - dx + tol; u += dx) {
-                // args.x = u;
+            for (let k = 0; k < lcm(nX, cNum); k++) {
+                const u = A + k * dx;
+
                 if (C(u) <= v && v <= D(u)) {
                     points.push(new THREE.Vector3(u, v, func(u, v, tVal)));
                     if (nextZero < u + dx) {
