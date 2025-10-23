@@ -182,11 +182,11 @@
                     // arrow.scale.set(gridMax, gridMax, gridMax);
                     arrow.position.set(
                         (((i + 1 / 2) * 2) / N - 1) * lim +
-                            0.01 * Math.random(),
+                            0.01 * (Math.random() - 1 / 2),
                         (((j + 1 / 2) * 2) / N - 1) * lim +
-                            0.01 * Math.random(),
+                            0.01 * (Math.random() - 1 / 2),
                         (((k + 1 / 2) * 2) / N - 1) * lim +
-                            0.01 * Math.random(),
+                            0.01 * (Math.random() - 1 / 2),
                     );
                     arrow.initiate(fieldF);
                     // const posr = new THREE.Vector3();
@@ -268,9 +268,9 @@
                         .clone()
                         .add(
                             new THREE.Vector3(
-                                Math.random() * 0.01,
-                                Math.random() * 0.01,
-                                Math.random() * 0.01,
+                                (Math.random() - 1 / 2) * 0.01,
+                                (Math.random() - 1 / 2) * 0.01,
+                                (Math.random() - 1 / 2) * 0.01,
                             ),
                         ),
                 );
