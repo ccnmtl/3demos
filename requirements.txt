@@ -43,7 +43,7 @@ pyOpenSSL==25.3.0
 pyparsing==3.2.3
 PySocks==1.7.1
 python-dateutil==2.9.0.post0
-python-dotenv==1.1.0
+python-dotenv==1.2.1
 redis[hiredis]==7.0.0
 requests==2.32.3
 s3transfer==0.14.0
