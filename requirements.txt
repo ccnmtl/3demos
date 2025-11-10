@@ -65,4 +65,4 @@ urllib3==2.5.0
 webdriver-manager==4.0.2
 wrapt==2.0.0
 wsproto==1.2.0
-zope.interface==8.0
+zope.interface==8.1
