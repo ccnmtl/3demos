@@ -31,6 +31,12 @@
             q: 'z',
             r: '-x',
             nVec: 6,
+            x0: -1,
+            x1: 1,
+            y0: -1,
+            y1: 1,
+            z0: -1,
+            z1: 1,
         }),
         scene,
         render,
@@ -47,6 +53,18 @@
             flowTrails: true,
         },
     } = $props();
+
+    // Catch older links that don't havde domain info
+
+    params = {
+        x0: `${-gridMax}`,
+        x1: `${gridMax}`,
+        y0: `${-gridMax}`,
+        y1: `${gridMax}`,
+        z0: `${-gridMax}`,
+        z1: `${gridMax}`,
+        ...params,
+    };
 
     $effect(() => updateField());
 
@@ -164,13 +182,35 @@
         }
     };
 
-    const initFlowArrows = function (arrows, lim = gridMax, N = params.nVec) {
+    const initFlowArrows = function (arrows, lim, N) {
         const vec = new THREE.Vector3();
         let maxLength = 0;
 
-        for (let i = 0; i < N; i++) {
-            for (let j = 0; j < N; j++) {
-                for (let k = 0; k < N; k++) {
+        let { x0, x1, y0, y1, z0, z1 } = params;
+
+        [x0, x1, y0, y1, z0, z1] = [x0, x1, y0, y1, z0, z1].map((n) =>
+            math.parse(n).evaluate(),
+        );
+
+        const dMax = Math.max(
+            Math.abs(x1 - x0),
+            Math.abs(y1 - y0),
+            Math.abs(z1 - z0),
+        );
+
+        const ds = dMax <= 0 ? 1 : dMax / N;
+        console.log('ds', ds, dMax);
+        console.log(
+            'floors',
+            Math.floor(Math.abs(x1 - x0) / ds),
+            Math.floor(Math.abs(y1 - y0) / ds),
+            Math.floor(Math.abs(z1 - z0) / ds),
+        );
+
+        for (let i = 0; i <= Math.floor(Math.abs(x1 - x0) / ds); i++) {
+            for (let j = 0; j <= Math.floor(Math.abs(y1 - y0) / ds); j++) {
+                for (let k = 0; k <= Math.floor(Math.abs(z1 - z0) / ds); k++) {
+                    // console.log('ijk', i, j, k);
                     const arrow = new FlowArrowMesh(
                         new ArrowBufferGeometry({
                             ...arrowArgs,
@@ -181,12 +221,9 @@
                     );
                     // arrow.scale.set(gridMax, gridMax, gridMax);
                     arrow.position.set(
-                        (((i + 1 / 2) * 2) / N - 1) * lim +
-                            0.01 * Math.random(),
-                        (((j + 1 / 2) * 2) / N - 1) * lim +
-                            0.01 * Math.random(),
-                        (((k + 1 / 2) * 2) / N - 1) * lim +
-                            0.01 * Math.random(),
+                        x0 + i * ds + 0.01 * (Math.random() - 0.5),
+                        y0 + j * ds + 0.01 * (Math.random() - 0.5),
+                        z0 + k * ds + 0.01 * (Math.random() - 0.5),
                     );
                     arrow.initiate(fieldF);
                     // const posr = new THREE.Vector3();
@@ -451,6 +488,30 @@
         />
     {/snippet}
 
+    {#snippet vfRange(nm)}
+        <InputChecker
+            className="form-control form-control-sm box-1"
+            checker={(val) => Number.isFinite(math.parse(val).evaluate())}
+            value={params[`${nm}0`]}
+            name={`${nm}0`}
+            cleared={(val) => {
+                params[`${nm}0`] = val;
+            }}
+        />
+        <span class="box-3"
+            ><M size="sm" s=" \leq {nm.toLowerCase()} \leq " /></span
+        >
+        <InputChecker
+            className="form-control form-control-sm box-4"
+            checker={(val) => Number.isFinite(math.parse(val).evaluate())}
+            value={params[`${nm}1`]}
+            name={`${nm}1`}
+            cleared={(val) => {
+                params[`${nm}1`] = val;
+            }}
+        />
+    {/snippet}
+
     <div hidden={minimize}>
         <div class="threedemos-container container">
             {@render vfComponent('p')}
@@ -506,6 +567,9 @@
                     style="width:85%; padding: 1px 1px;"
                 />
             </span>
+            {@render vfRange('x')}
+            {@render vfRange('y')}
+            {@render vfRange('z')}
         </div>
     </div>
 </div>
