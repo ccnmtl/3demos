@@ -68,7 +68,24 @@
 
     $effect(() => updateField());
 
-    let nCubed = $derived(Math.pow(params.nVec, 3));
+    let x0 = $derived(math.parse(params.x0).evaluate());
+    let x1 = $derived(math.parse(params.x1).evaluate());
+    let y0 = $derived(math.parse(params.y0).evaluate());
+    let y1 = $derived(math.parse(params.y1).evaluate());
+    let z0 = $derived(math.parse(params.z0).evaluate());
+    let z1 = $derived(math.parse(params.z1).evaluate());
+
+    let dMax = $derived(
+        Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0), Math.abs(z1 - z0)),
+    );
+
+    let ds = $derived(dMax <= 0 ? 1 : dMax / params.nVec);
+
+    let Nx = $derived(Math.floor(Math.abs(x1 - x0) / ds));
+    let Ny = $derived(Math.floor(Math.abs(y1 - y0) / ds));
+    let Nz = $derived(Math.floor(Math.abs(z1 - z0) / ds));
+
+    let nCubed = $derived((Nx + 1) * (Ny + 1) * (Nz + 1));
 
     let flowTrails = $state(meta.flowTrails && true);
     // console.log(meta, flowTrails);
@@ -182,34 +199,13 @@
         }
     };
 
-    const initFlowArrows = function (arrows, lim, N) {
+    const initFlowArrows = function (arrows, N) {
         const vec = new THREE.Vector3();
         let maxLength = 0;
 
-        let { x0, x1, y0, y1, z0, z1 } = params;
-
-        [x0, x1, y0, y1, z0, z1] = [x0, x1, y0, y1, z0, z1].map((n) =>
-            math.parse(n).evaluate(),
-        );
-
-        const dMax = Math.max(
-            Math.abs(x1 - x0),
-            Math.abs(y1 - y0),
-            Math.abs(z1 - z0),
-        );
-
-        const ds = dMax <= 0 ? 1 : dMax / N;
-        console.log('ds', ds, dMax);
-        console.log(
-            'floors',
-            Math.floor(Math.abs(x1 - x0) / ds),
-            Math.floor(Math.abs(y1 - y0) / ds),
-            Math.floor(Math.abs(z1 - z0) / ds),
-        );
-
-        for (let i = 0; i <= Math.floor(Math.abs(x1 - x0) / ds); i++) {
-            for (let j = 0; j <= Math.floor(Math.abs(y1 - y0) / ds); j++) {
-                for (let k = 0; k <= Math.floor(Math.abs(z1 - z0) / ds); k++) {
+        for (let i = 0; i <= Nx; i++) {
+            for (let j = 0; j <= Ny; j++) {
+                for (let k = 0; k <= Nz; k++) {
                     // console.log('ijk', i, j, k);
                     const arrow = new FlowArrowMesh(
                         new ArrowBufferGeometry({
@@ -217,7 +213,7 @@
                             height: gridStep / gridMax,
                         }),
                         fieldMaterial,
-                        1.2 * lim,
+                        { x0, x1, y0, y1, z0, z1, ds },
                     );
                     // arrow.scale.set(gridMax, gridMax, gridMax);
                     arrow.position.set(
@@ -297,17 +293,23 @@
             }
 
             if (
-                norm1(pos1) > arrow.lim ||
-                (dt > 1e-6 && pos1.clone().sub(arrow.position).length() < 1e-3)
+                pos1.x < arrow.lim.x0 - ds ||
+                pos1.x > arrow.lim.x1 + ds ||
+                pos1.y < arrow.lim.y0 - ds ||
+                pos1.y > arrow.lim.y1 + ds ||
+                pos1.z < arrow.lim.z0 - ds ||
+                pos1.z > arrow.lim.z1 + ds ||
+                (dt > 1e-6 &&
+                    pos1.clone().sub(arrow.position).length() < 1e-4 * ds)
             ) {
                 arrow.position.copy(
                     arrow.start
                         .clone()
                         .add(
                             new THREE.Vector3(
-                                Math.random() * 0.01,
-                                Math.random() * 0.01,
-                                Math.random() * 0.01,
+                                (1 / 2 - Math.random()) * 0.01 * ds,
+                                (1 / 2 - Math.random()) * 0.01 * ds,
+                                (1 / 2 - Math.random()) * 0.01 * ds,
                             ),
                         ),
                 );
@@ -346,7 +348,7 @@
 
     const rewindArrows = () => {
         freeChildren(flowArrows);
-        maxLength = initFlowArrows(flowArrows, gridMax, params.nVec);
+        maxLength = initFlowArrows(flowArrows, params.nVec);
         updateFlowArrows(flowArrows, fieldF, 0);
         freeTrails();
         render();
@@ -378,7 +380,7 @@
         title = title || `Vector Field ${titleIndex}`;
 
         updateField();
-        maxLength = initFlowArrows(flowArrows, gridMax, params.nVec);
+        maxLength = initFlowArrows(flowArrows, params.nVec);
         updateFlowArrows(flowArrows, fieldF, 0);
         render();
         if (animation) animate();
@@ -410,7 +412,7 @@
             const currentTime = $tickTock;
             last = last || currentTime;
             if (!trails.geometry.attributes.position) {
-                maxLength = initFlowArrows(flowArrows, gridMax, params.nVec);
+                maxLength = initFlowArrows(flowArrows, params.nVec);
             }
             update(currentTime - last);
             last = currentTime;
@@ -528,11 +530,7 @@
                 class="box box-2"
                 oninput={() => {
                     freeChildren(flowArrows);
-                    maxLength = initFlowArrows(
-                        flowArrows,
-                        gridMax,
-                        params.nVec,
-                    );
+                    maxLength = initFlowArrows(flowArrows, params.nVec);
                     updateFlowArrows(flowArrows, fieldF, 0);
                     freeTrails();
                     render();
