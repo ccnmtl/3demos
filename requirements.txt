@@ -37,7 +37,7 @@ packaging==25.0
 pyasn1==0.6.0
 pyasn1-modules==0.4.0
 pycodestyle==2.14.0
-pycparser==2.23
+pycparser==3.0
 pyflakes==3.4.0
 pyOpenSSL==25.3.0
 pyparsing==3.3.1
