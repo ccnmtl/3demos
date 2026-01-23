@@ -29,7 +29,7 @@ h11==0.16.0
 hyperlink==21.0.0
 idna==3.11
 incremental==24.11.0
-jmespath==1.0.1
+jmespath==1.1.0
 mccabe==0.7.0
 msgpack==1.1.0
 outcome==1.3.0
