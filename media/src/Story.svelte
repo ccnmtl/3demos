@@ -6,6 +6,7 @@
     import PathIntegral from './stories/PathIntegral.svelte';
     import SurfaceArea from './stories/SurfaceArea.svelte';
     import FluxIntegral from './stories/FluxIntegral.svelte';
+    import Gauss from './stories/Gauss.svelte';
 
     let { scene, render, animate = () => {}, selectedPoint } = $props();
 
@@ -24,6 +25,7 @@
         <option value={Blank}>Select Story...</option>
         <option value={ArcLength}>Arc Length</option>
         <option value={Linear}>Linearization</option>
+        <option value={Gauss}>Gauss' Theorem</option>
         <option value={Lagrange}>Lagrange</option>
         <option value={PathIntegral}>Path Integrals</option>
         <option value={SurfaceArea}>Surface Area</option>
