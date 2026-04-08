@@ -4,6 +4,7 @@ from ctlsettings.production import init_sentry
 
 project = 'mathplayground'
 s3prefix = 'ctl'
+cloudfront = 'd2o0h5i5y2n00q'
 
 DEBUG = False
 
