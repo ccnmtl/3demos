@@ -4,6 +4,7 @@ from ctlsettings.staging import init_sentry
 
 project = 'mathplayground'
 s3prefix = 'ctl'
+cloudfront = 'dim3um3pezyw3'
 
 # serve static files off S3
 AWS_STORAGE_BUCKET_NAME = s3prefix + "-" + project + "-static-stage"
