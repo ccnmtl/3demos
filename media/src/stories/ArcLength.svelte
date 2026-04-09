@@ -1,7 +1,10 @@
 <script>
     import { onDestroy, untrack } from 'svelte';
     import { create, all } from 'mathjs';
-    import { norm2 } from '../utils';
+    import {
+        norm2,
+        randomUUID,
+    } from '../utils';
     import { demoObjects } from '../states.svelte';
 
     import M from '../M.svelte';
@@ -14,7 +17,7 @@
         return obj;
     });
 
-    const vecId = crypto.randomUUID();
+    const vecId = randomUUID();
 
     onDestroy(() => {
         demoObjects.splice(0, demoObjects.length, ...backupObjects);
@@ -46,7 +49,7 @@
 
     const exampleCurves = [
         {
-            uuid: crypto.randomUUID(),
+            uuid: randomUUID(),
             kind: 'curve',
             title: 'Helix',
             params: {
@@ -62,7 +65,7 @@
             animation: false,
         },
         {
-            uuid: crypto.randomUUID(),
+            uuid: randomUUID(),
             kind: 'curve',
             title: 'Crown',
             params: {
@@ -78,7 +81,7 @@
             animation: false,
         },
         {
-            uuid: crypto.randomUUID(),
+            uuid: randomUUID(),
             kind: 'curve',
             title: 'Twist',
             params: {
