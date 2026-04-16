@@ -9,6 +9,7 @@
         freeChildren,
         scaleExp,
         filterBang,
+        randomUUID,
     } from '../utils';
     import {
         vMin,
@@ -141,7 +142,7 @@
             if (upload.length < 33) {
                 // Check for missing uuid in upload
                 upload = upload.map((item) => {
-                    return { ...item, uuid: item.uuid || crypto.randomUUID() };
+                    return { ...item, uuid: item.uuid || randomUUID() };
                 });
                 filterBang((item) => {
                     return !upload.map((ob) => ob.uuid).includes(item.uuid);

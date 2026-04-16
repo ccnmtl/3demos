@@ -3,7 +3,10 @@
     import * as THREE from 'three';
 
     import { all, create } from 'mathjs';
-    import { ParametricGeometry, filterBang, gaussLegendre } from '../utils';
+    import {
+        ParametricGeometry, filterBang, gaussLegendre,
+        randomUUID
+    } from '../utils';
     import { onDestroy, untrack } from 'svelte';
     import { demoObjects } from '../states.svelte';
     import M from '../M.svelte';
@@ -218,7 +221,7 @@
         });
     });
 
-    const curveId = crypto.randomUUID();
+    const curveId = randomUUID();
 
     const curveData = {
         circle: {

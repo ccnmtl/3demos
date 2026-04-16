@@ -24,6 +24,7 @@
         modFloor,
         scaleExp,
         processSearchEncoding,
+        randomUUID,
     } from './utils';
     import {
         // removeObject,
@@ -97,7 +98,7 @@
         });
         for (const val of Object.values(objectHolder)) {
             demoObjects.push({
-                uuid: crypto.randomUUID(),
+                uuid: randomUUID(),
                 animation: false,
                 ...val,
             });

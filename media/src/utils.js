@@ -1698,9 +1698,9 @@ class ParametricGeometry extends THREE.BufferGeometry {
  * @param {number|string} a lower x bound
  * @param {number|string} b upper x bound
  * @param {number|string|function} c lower y bound
- * @param {number|string|function} d upper y bound 
- * @param {number} M number of x subdivisions 
- * @param {number} N number of y subdivisions 
+ * @param {number|string|function} d upper y bound
+ * @param {number} M number of x subdivisions
+ * @param {number} N number of y subdivisions
  * @param {number} s proportion for x sample point
  * @param {number} t proportion for y sample point
  * @returns BufferGeometry
@@ -3550,6 +3550,24 @@ function evolveFlowOnLevel(
     return [x - (a * gGx) / gGm, y - (a * gGy) / gGm, z - (a * gGz) / gGm];
 }
 
+/**
+ * Wrapper for crypto.randomUUID() in case it is not available.
+ */
+const randomUUID = function() {
+    if (
+        self?.crypto?.randomUUID &&
+            typeof self.crypto.randomUUID === 'function'
+    ) {
+        // "self" just means window in this context
+        return self.crypto.randomUUID()
+    }
+
+    return 'xxxx-xxxx-xxx-xxxx'.replace(/[x]/g, (c) => {
+        const r = Math.floor(Math.random() * 16);
+        return r.toString(16);
+    });
+};
+
 export {
     norm2,
     joinUrl,
@@ -3590,4 +3608,5 @@ export {
     filterBang,
     sampleImplicitSurface,
     evolveFlowOnLevel,
+    randomUUID,
 };

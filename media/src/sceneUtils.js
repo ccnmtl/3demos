@@ -1,4 +1,7 @@
-import { filterBang } from './utils';
+import {
+    filterBang,
+    randomUUID,
+} from './utils';
 
 /**
  * Make a three.js object with the given parameters.
@@ -9,7 +12,7 @@ const makeObject = (
     uuid = null, thing = "box", params = null, objects = [], socket = null
 ) => {
     if (uuid === null) {
-        uuid = crypto.randomUUID();
+        uuid = randomUUID();
     }
 
     const newObject = { uuid: uuid, kind: thing, params: params };
