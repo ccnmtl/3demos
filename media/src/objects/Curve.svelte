@@ -222,8 +222,8 @@
         shininess: 80,
         side: THREE.DoubleSide,
         vertexColors: false,
-        transparent: true,
-        opacity: 0.5,
+        transparent: false,
+        // opacity: 0.5,
     });
 
     // $effect.pre(() => {
@@ -261,8 +261,8 @@
         const path = new ParametricCurve(1, xyz, A, B);
         const geometry = new THREE.TubeGeometry(
             path,
-            1000,
-            gridStep / 20,
+            1*4096,
+            gridStep / 40,
             8,
             false,
         );
@@ -302,8 +302,8 @@
     };
 
     const arrowParams = {
-        radiusTop: gridStep / 8,
-        radiusBottom: gridStep / 16,
+        radiusTop: gridStep / 20,
+        radiusBottom: gridStep / 40,
         heightTop: gridStep / 7,
     };
     const ruColors = { r: 0x992525, v: 0x252599, a: 0xb6b6b6, n: 0x121212 };
@@ -316,7 +316,7 @@
 
     const pointMaterial = new THREE.MeshLambertMaterial({ color: 0xffff33 });
     const point = new THREE.Mesh(
-        new THREE.SphereGeometry(gridStep / 8, 16, 16),
+        new THREE.SphereGeometry(gridStep / 20, 32, 32),
         pointMaterial,
     );
 
@@ -382,9 +382,9 @@
             }
             const geometry = new THREE.TubeGeometry(
                 path,
-                1000,
-                gridStep / 20,
-                8,
+                1*4096,
+                gridStep / 40,
+                16,
                 false,
             );
 

@@ -650,7 +650,7 @@
     // The chat buffer: an array of objects.
     let chatBuffer = $state([]);
     const chatLineCount = 5;
-    const pointGeometry = new THREE.SphereGeometry(0.2 / 8, 16, 16);
+    const pointGeometry = $derived(new THREE.SphereGeometry(gridStep/40, 30, 30));
     const pollMaterial = new THREE.MeshLambertMaterial({
         color: 0xffff33,
         transparent: true,

@@ -238,7 +238,7 @@
 
     $inspect(pts);
 
-    const sphereGeo = new THREE.SphereGeometry(0.01, 14, 14);
+    const sphereGeo = new THREE.SphereGeometry(gridStep / 100, 16, 16);
 
     $effect(() => {
         untrack(() => {

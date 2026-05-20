@@ -69,7 +69,7 @@
         transparent: true,
         opacity: 1.0,
     });
-    const pointGeo = new THREE.SphereGeometry(gridStep / 8, 16, 16);
+    const pointGeo = new THREE.SphereGeometry(gridStep / 12, 32, 32);
     const points = new THREE.Group();
     const point = new THREE.Mesh(pointGeo, pointMaterial);
     point.position.set(1, 1, 1);

@@ -147,7 +147,7 @@
     let choosingPoint = $state(false);
     const pointMaterial = new THREE.MeshLambertMaterial({ color: 0xffff33 });
     const point = new THREE.Mesh(
-        new THREE.SphereGeometry(gridStep / 8, 16, 16),
+        new THREE.SphereGeometry(gridStep / 20, 32, 32),
         pointMaterial,
     );
     point.position.set(1, 1, 1);
@@ -160,8 +160,8 @@
     });
 
     const arrowParams = {
-        radiusTop: gridStep / 10,
-        radiusBottom: gridStep / 20,
+        radiusTop: gridStep / 20,
+        radiusBottom: gridStep / 40,
         heightTop: gridStep / 7,
     };
     const arrows = {
