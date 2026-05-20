@@ -405,6 +405,7 @@
                                         render={requestFrameIfNotRequested}
                                         animate={animateIfNotAnimating}
                                         {selectedPoint}
+                                        {gridStep}
                                     />
                                 </TabPane>
                                 <TabPane

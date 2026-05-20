@@ -15,7 +15,7 @@
     import InputChecker from '../form-components/InputChecker.svelte';
     import PlayButtons from '../form-components/PlayButtons.svelte';
 
-    let { scene, render, selectedPoint = undefined } = $props();
+    let { scene, render, selectedPoint = undefined, gridStep } = $props();
 
     const config = {};
     const math = create(all, config);
@@ -33,7 +33,7 @@
         {
             uuid: 'lag-story-example-001-',
             kind: 'level',
-            title: 'Sphere',
+            title: 'Some Constraint',
             params: {
                 a: '-2',
                 b: '2',
@@ -41,7 +41,7 @@
                 d: '2',
                 e: '-2',
                 f: '2',
-                g: 'x^2 + (z - y / 4 - x / 3)^2 - 1',
+                g: 'x^2 + (z - y / 4 - x / 3)^2 - 1 - x^2 y - y z',
                 k: '0',
             },
             color: '#44CB44',
@@ -124,16 +124,16 @@
         }
     }
 
-    let vfScale = 0.4;
-    let arrowArgs = {
+    let vfScale = $derived(gridStep * 4);
+    let arrowArgs = $derived({
         radiusTop: vfScale / 60,
         radiusBottom: vfScale / 150,
         heightTop: vfScale / 16,
         heightIncludesHead: true,
         height: vfScale / 3,
-    };
+    });
 
-    const arrGeo = new ArrowBufferGeometry(arrowArgs);
+    const arrGeo = $derived(new ArrowBufferGeometry(arrowArgs));
 
     const plusMaterial = new THREE.MeshStandardMaterial({
         color: 0x000000,
@@ -238,7 +238,7 @@
 
     $inspect(pts);
 
-    const sphereGeo = new THREE.SphereGeometry(gridStep / 100, 16, 16);
+    const sphereGeo = $derived(new THREE.SphereGeometry(gridStep / 20, 16, 16));
 
     $effect(() => {
         untrack(() => {

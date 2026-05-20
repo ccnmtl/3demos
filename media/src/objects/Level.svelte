@@ -259,7 +259,7 @@
     let choosingPoint = $state(false);
     const pointMaterial = new THREE.MeshLambertMaterial({ color: 0xffff33 });
     const point = new THREE.Mesh(
-        new THREE.SphereGeometry(gridStep / 40, 32, 32),
+        new THREE.SphereGeometry(gridStep / 20, 32, 32),
         pointMaterial,
     );
 
