@@ -46,7 +46,7 @@ python-dateutil==2.9.0.post0
 python-dotenv==1.2.1
 redis[hiredis]==8.0.0
 requests==2.34.0
-s3transfer==0.18.0
+s3transfer==0.19.0
 websocket-client==1.9.0  # selenium
 selenium==4.45.0
 service-identity==26.1.0
