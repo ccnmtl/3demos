@@ -38,3 +38,24 @@ npm run dev
 Or, make a one-time production build of the applcation with `npm run build`.
 
 Both of these commands will update the compiled JS at `media/mathplayground/build/`.
+
+### Using Docker in Develo0pment
+
+# What's included
+`.dockerignore` - This files is used to ignore anything you don't want to be copied inside the docker image
+`Dockerfile` - The docker image instructions of what to include to build the image.
+`nginx.docker.conf` - The nginx instructions inside docker for reverse proxy to mimic our infrastructure setup, this is copied to the docker image when built
+
+# Versions
+- ubuntu 20.04 base image
+- redis 5.0.7 (which is used in production)
+- node 18.16.0 (which is used in Jenkins during our build process)
+- python 3.8.10
+
+# Running docker
+Run `docker compose -f docker-compose.dev.yml up` to start the containers in your terminal.  These instructions are unique for using it for development purpose because the `volumnes` are mapped to your local directory.  Any changes that is made locally will reflect directly inside the container.
+
+** Currently only working for Django
+** TODO: Fix Svelte hot module re-loading from within docker container
+
+
