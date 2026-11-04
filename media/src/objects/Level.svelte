@@ -18,7 +18,7 @@
 
     import { updateParams } from './levelWorker.js';
 
-    import { marchingCubes, ArrowBufferGeometry, checksum } from '../utils.js';
+    import { marchingCubes, ArrowBufferGeometry } from '../utils.js';
     import { flashDance } from '../sceneUtils';
     import { mathToJSFunction } from './mathutils';
 
@@ -41,7 +41,6 @@
         scene,
         render,
         gridStep,
-        show = true,
         selected,
         selectPoint,
         selectObject,
@@ -491,7 +490,7 @@
             <InputChecker
                 value={params['g']}
                 checker={chickenParms}
-                name={'g'}
+                name="g"
                 {params}
                 cleared={(val) => {
                     params['g'] = val;
@@ -502,7 +501,7 @@
             <InputChecker
                 value={params['k']}
                 checker={(val) => Number.isFinite(math.parse(val).evaluate())}
-                name={'k'}
+                name="k"
                 {params}
                 cleared={(val) => {
                     params['k'] = val;
@@ -517,7 +516,7 @@
                     params.a = newVal;
                 }}
             />
-            <span class="box box-3"><M size="sm" s={`\\leq x \\leq`} /></span>
+            <span class="box box-3"><M size="sm" s="\leq x \leq" /></span>
             <ObjectParamInput
                 type="number"
                 className="form-control form-control-sm box"
@@ -535,7 +534,7 @@
                     params.c = newVal;
                 }}
             />
-            <span class="box box-3"><M size="sm" s={`\\leq y \\leq`} /></span>
+            <span class="box box-3"><M size="sm" s="\leq y \leq" /></span>
             <ObjectParamInput
                 type="number"
                 className="form-control form-control-sm box"
@@ -553,7 +552,7 @@
                     params.e = newVal;
                 }}
             />
-            <span class="box box-3"><M size="sm" s={`\\leq z \\leq`} /></span>
+            <span class="box box-3"><M size="sm" s="\leq z \leq" /></span>
             <ObjectParamInput
                 type="number"
                 className="form-control form-control-sm box"

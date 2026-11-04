@@ -135,7 +135,7 @@
             let upload = [];
             try {
                 upload = JSON.parse(evt.target.result);
-            } catch (SyntaxError) {
+            } catch {
                 alert('Improper JSON formatting');
                 return;
             }
@@ -289,7 +289,7 @@
                 />
             </div>
             <datalist id="cmaps">
-                {#each colorMapNames as cm}
+                {#each colorMapNames as cm (cm)}
                     <option value={cm}>{cm}</option>
                 {/each}
             </datalist>

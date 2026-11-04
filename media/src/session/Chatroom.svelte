@@ -30,7 +30,8 @@
 
         const newMsg = {
             text: currentMsg,
-            timestamp: Date.now()
+            timestamp: Date.now(),
+            id: crypto.randomUUID(),
         };
 
         if (chatBuffer.length >= 5) {
@@ -47,7 +48,7 @@
 
 {#if chatBuffer.length > 0}
     <div class="messagelist border rounded">
-        {#each chatBuffer as chatLine}
+        {#each chatBuffer as chatLine (chatLine.id)}
             <div class="messagelist-item">
                 <i class="bi bi-caret-right-fill"></i>
                 {chatLine.text}

@@ -1,4 +1,4 @@
-import { cmToGLSLUniformFunc, cmToGLSLfunc } from '../js-colormaps';
+import { cmToGLSLUniformFunc } from '../js-colormaps';
 import { parse } from 'mathjs';
 
 

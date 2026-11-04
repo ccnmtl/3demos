@@ -1,7 +1,7 @@
 <script>
     let { s, align = false, display = false, size } = $props();
 
-    let span, span2;
+    let span2;
     /* global MathJax */
 
     const formatMJ = function (formula) {
@@ -26,6 +26,7 @@
             let elem = await MathJax.tex2svgPromise(formatMJ(s), {
                 display,
             });
+            // eslint-disable-next-line svelte/no-dom-manipulating
             span2.replaceChildren(elem);
         }
     });

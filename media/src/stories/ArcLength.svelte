@@ -199,7 +199,7 @@
 <article {hidden}>
     <p>
         Suppose we have a curve <M s="C" /> in space parameterized by a smooth function
-        <M s={`\\mathbf{r}(t)`} /> for <M s={`a \\leq t \\leq b`} /> and we wish
+        <M s={`\\mathbf{r}(t)`} /> for <M s="a \\leq t \\leq b" /> and we wish
         to know how long it is. That is, we want to compute the
         <b>arc length</b> of <M s="C" />.
     </p>
@@ -213,7 +213,7 @@
             id="choose-curve"
             bind:value={exTitle}
         >
-            {#each exampleCurves as { title }}
+            {#each exampleCurves as { uuid, title } (uuid)}
                 <option value={title}>{title}</option>
             {/each}
         </select>
@@ -233,19 +233,19 @@
                 bind:value={nVects}
                 max="40"
                 step="1"
-                oninput={(e) => {
+                oninput={() => {
                     // nVects = math.evaluate(e.target.value);
                     // addCurve(exTitle);
                 }}
             />
         </span>
         of positions along the curve and measuring the distance between them. To
-        wit, we select a partition of <M s={'[a,b]'} />.:
+        wit, we select a partition of <M s="[a,b]" />.:
     </p>
 
     <M
         align
-        s={'t_0 &= a \\\\ t_1 &= a + \\Delta t \\\\ \\vdots  \\\\ t_N &= a + N \\Delta t = b \\\\'}
+        s="t_0 &= a \\ t_1 &= a + \Delta t \\ \vdots  \\ t_N &= a + N \Delta t = b \\"
     />
 
     <p>
@@ -264,9 +264,9 @@
     />
 
     <p>
-        As <M s={'N \\to \\infty, \\Delta t \\to 0'} />, and this approximation
+        As <M s="N \to \infty, \Delta t \to 0" />, and this approximation
         becomes a Riemann sum (after multiplying and dividing by <M
-            s={'\\Delta t'}
+            s="\Delta t"
         />) converging to the exact arc length.
     </p>
     <p>
@@ -274,7 +274,7 @@
             s={` \\sum\\limits_{i = 1}^{N} \\frac{|\\mathbf r(t_i) - \\mathbf r(t_{i - 1})|}{\\Delta t} \\Delta t \\to  `}
         />
         <span class="defin">
-            <M display size="lg" s={" \\int_a^b |\\mathbf r ' (t) |\\,dt "} />
+            <M display size="lg" s=" \int_a^b |\mathbf r ' (t) |\,dt " />
         </span>
         which is the definition of arc length <M s="s" />.
     </p>

@@ -9,11 +9,13 @@
         Hide/Show the MENU.
     </li>
     <li>
+        <!-- eslint-disable-next-line svelte/no-useless-mustaches -->
         <Badge>{`[ / ]`}</Badge>
         Shift selection to the object just before the first or after the last selected
         object.
     </li>
     <li>
+        <!-- eslint-disable-next-line svelte/no-useless-mustaches -->
         <Badge>{`{ / }`}</Badge>
         Add the object just above or below the respective objects to the selection.
     </li>

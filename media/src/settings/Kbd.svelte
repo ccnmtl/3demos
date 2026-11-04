@@ -116,10 +116,10 @@
 <div class="container">
     <h5>General</h5>
 
-    {#each Object.entries(defaultShortcuts) as [k, v]}
+    {#each Object.entries(defaultShortcuts) as [k, v] (k)}
         <div class="kbdContainer">
             <div class="keyEntry">
-                {#each k.split('/') as key}
+                {#each k.split('/') as key (key)}
                     <kbd>{key}</kbd>
                 {/each}
             </div>
@@ -127,13 +127,13 @@
         </div>
     {/each}
     <hr />
-    {#each kbdItems as { name, shortcuts }}
+    {#each kbdItems as { name, shortcuts } (name)}
         <h5>{name}</h5>
 
-        {#each Object.entries(shortcuts) as [k, v]}
+        {#each Object.entries(shortcuts) as [k, v] (k)}
             <div class="kbdContainer">
                 <div class="keyEntry">
-                    {#each k.split('/') as key}
+                    {#each k.split('/') as key (key)}
                         <kbd>{key}</kbd>
                     {/each}
                 </div>

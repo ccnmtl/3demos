@@ -3,8 +3,6 @@
      * Main 3Demos control panel, to the left of the scene.
      */
     import { onMount } from 'svelte';
-    import { slide } from 'svelte/transition';
-    import { quintOut } from 'svelte/easing';
     // import { flip } from 'svelte/animate';
 
     import { TabContent, TabPane } from '@sveltestrap/sveltestrap';
@@ -33,9 +31,6 @@
     import Vector from './objects/Vector.svelte';
     import Point from './objects/Point.svelte';
     import Solid from './objects/Solid.svelte';
-
-    // Can hold the component type
-    let SceneObjectKind;
 
     import { evaluate_cmap } from './js-colormaps';
     import { colorMap } from './stores';
@@ -556,7 +551,7 @@
                                     {#each demoObjects as dobj (dobj.uuid)}
                                         {@const KindComp =
                                             kindToComponent[dobj.kind]}
-                                        <!-- 
+                                        <!--
                                         <div
                                             transition:slide={{
                                                 delay: 0,
@@ -798,7 +793,7 @@
 
 <!-- end .demos-panel -->
 
-<!-- 
+<!--
 <div
     class="panel-button panel-hider bg-info bg-opacity-25 border border-info border-start-0 rounded-end-circle"
     title={showPanel ? 'Hide panel' : 'Show panel'}

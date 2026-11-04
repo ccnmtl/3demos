@@ -57,7 +57,6 @@
     // The demoObjects array store is the declarative data that the scene is based on.
     // import { demoObjects } from './stores.js';
     import { demoObjects } from './states.svelte';
-    import { planckTemperatureDependencies } from 'mathjs';
 
     let gridMax = $state(1);
     let gridStep = $state(1 / 10);
@@ -144,8 +143,6 @@
 
     let controls, controls2;
     let renderer;
-
-    let orthoCamera = $state(false);
 
     let currentCamera = $state(camera);
     // svelte-ignore non_reactive_update

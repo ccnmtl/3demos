@@ -134,7 +134,7 @@
                         </tr>
                     </thead>
                     <tbody class="table-group-divider">
-                        {#each polls as poll}
+                        {#each polls as poll (poll)}
                             <tr>
                                 <th scope="row">{poll.id}</th>
                                 <td>{poll.prompt}</td>

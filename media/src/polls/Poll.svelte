@@ -100,7 +100,7 @@
                     {/if}
 
                     {#if currentPoll.choices}
-                        {#each currentPoll.choices as choice}
+                        {#each currentPoll.choices as choice (choice)}
                             <div class="form-check">
                                 <label class="form-check-label">
                                     <input

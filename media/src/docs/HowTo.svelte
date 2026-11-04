@@ -30,7 +30,7 @@
             aria-label="Select documentation section"
             bind:value={currentOption}
         >
-            {#each options as { title, comp }}
+            {#each options as { title, comp } (title)}
                 <option value={comp}>{title}</option>
             {/each}
         </select>

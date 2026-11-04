@@ -34,7 +34,7 @@
 <div class="container colorbar" bind:this={container}>
     <canvas id="colorbar" bind:this={canvas}></canvas>
     <div class="colorBarTextContainer" bind:this={labels}>
-        {#each [0, 1, 2, 3, 4] as x}
+        {#each [0, 1, 2, 3, 4] as x (x)}
             <span class="colorBarText" style="left: {(100 * x) / 4}%">
                 {(Math.round((vMin + (x / 4) * vRange) * 100) / 100).toString()}
             </span>

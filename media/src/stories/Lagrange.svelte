@@ -1,7 +1,7 @@
 <script>
     import * as THREE from 'three';
 
-    import { all, create, xor } from 'mathjs';
+    import { all, create } from 'mathjs';
     import M from '../M.svelte';
     import {
         sampleImplicitSurface,
@@ -19,8 +19,6 @@
 
     const config = {};
     const math = create(all, config);
-
-    let sampleParam = $state(0);
 
     let backupObjects = $state(
         demoObjects.map((obj) => {
@@ -47,12 +45,6 @@
             color: '#44CB44',
         },
     ]);
-
-    const whiteLineMaterial = new THREE.LineBasicMaterial({
-        color: 0xffffff,
-        linewidth: 2,
-        depthTest: true,
-    });
 
     let currentSurface = $state(
         backupObjects.find((o) => o.kind === 'level') ?? standardExamples[0],
@@ -117,7 +109,7 @@
         }
     };
 
-    function processMouseMove(e) {
+    function processMouseMove() {
         if (selectedPoint && selectedPoint.visible) {
             const { x, y, z } = selectedPoint.position;
             targetInfo = `f(${x.toFixed(3)}, ${y.toFixed(3)}, ${z.toFixed(3)}) = ${f(x, y, z).toFixed(4)}`;
@@ -192,7 +184,6 @@
     let minOrMax = $state(-1);
 
     let nBoxes = $state(5);
-    let boxing = false;
 
     let x0 = $derived(math.parse(currentSurface.params.a).evaluate());
     let x1 = $derived(math.parse(currentSurface.params.b).evaluate());
@@ -236,7 +227,7 @@
         ),
     );
 
-    $inspect(pts);
+    // $inspect(pts);
 
     const sphereGeo = $derived(new THREE.SphereGeometry(gridStep / 20, 16, 16));
 
@@ -350,8 +341,6 @@
                 0.002,
             );
 
-            const A = math.evaluate(currentSurface.params.a);
-
             if (clampDown) {
                 px = clamp(xMin, px, xMax);
                 py = clamp(yMin, py, yMax);
@@ -429,10 +418,10 @@
         </p>
     </div>
     <div class="container">
-        <M s={'f(x,y,z) = \\,'} /><InputChecker
+        <M s="f(x,y,z) = \\," /><InputChecker
             value={desideratumString}
             checker={chickenParms}
-            name={'target'}
+            name="target"
             params={currentSurface.params}
             cleared={(val) => {
                 desideratumString = val;
@@ -441,16 +430,16 @@
     </div>
     <p>subject to the constraint</p>
     <div class="container">
-        <M s={'g(x,y,z) = \\,'} />
+        <M s="g(x,y,z) = \\," />
         <InputChecker
             value={currentSurface.params.g}
             checker={chickenParms}
-            name={'target'}
+            name="target"
             params={currentSurface.params}
             cleared={(val) => {
                 currentSurface.params.g = val;
             }}
-        /><M s={'\\,= 0'} />
+        /><M s="\\,= 0" />
     </div>
     <hr />
     <div>
@@ -474,7 +463,7 @@
     {#if boxesVisible}
         <div class="container between">
             <label>
-                <span><M s={'n = \\;'} /></span>
+                <span><M s="n = \\;" /></span>
                 <input
                     type="range"
                     name=""
@@ -513,7 +502,7 @@
                 <input type="checkbox" bind:checked={gradfVisible} />
             </label>
             <label>
-                <span style="color: #ffaaaa"> <M s={'\\nabla g'} /> </span>
+                <span style="color: #ffaaaa"> <M s="\nabla g" /> </span>
 
                 <input type="checkbox" bind:checked={gradgVisible} />
             </label>
