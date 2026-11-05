@@ -2,10 +2,10 @@ name: build-and-test
 on: [push]
 jobs:
   js:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     strategy:
       matrix:
-        node-version: [24.x]
+        node-version: [26.x]
     name: Node ${{ matrix.node }} run
     steps:
       - uses: actions/checkout@v7
@@ -23,7 +23,7 @@ jobs:
         run: npm test
   django:
     name: Django tests
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     services:
       redis:
         image: redis
@@ -37,7 +37,7 @@ jobs:
     strategy:
       matrix:
         python-version: ["3.12"]
-        node-version: [24.x]
+        node-version: [26.x]
     steps:
       - uses: actions/checkout@v7
       - name: Set up Python ${{ matrix.python-version }}
