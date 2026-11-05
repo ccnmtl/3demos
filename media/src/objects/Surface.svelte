@@ -27,11 +27,7 @@
     import {
         ArrowBufferGeometry,
         lcm,
-        colorBufferVertices,
         marchingSegments,
-        vMaxMin,
-        blueUpRedDown,
-        checksum,
         ParametricGeometry,
     } from '../utils.js';
 
@@ -88,12 +84,12 @@
     // let compiledDensity;
     // let densityFunc = () => 1;
 
-    const colorMaterial = new THREE.MeshPhongMaterial({
-        color: 0xffffff,
-        shininess: 70,
-        side: THREE.DoubleSide,
-        vertexColors: true,
-    });
+    // const colorMaterial = new THREE.MeshPhongMaterial({
+    //     color: 0xffffff,
+    //     shininess: 70,
+    //     side: THREE.DoubleSide,
+    //     vertexColors: true,
+    // });
 
     const shaderMaterial = new THREE.ShaderMaterial({
         vertexShader: plainVertexShader,
@@ -210,7 +206,7 @@
         // console.log('parm compile');
 
         // React on changes here.
-        const { a, b, c, d, x, y, z } = params;
+        // const { a, b, c, d, x, y, z } = params;
 
         untrack(updateSurface);
     });
@@ -947,7 +943,6 @@
     window.addEventListener('keyup', onKeyUp, false);
 </script>
 
-<!-- svelte-ignore a11y_no_static_element_interactions -->
 <div class="boxItem" class:selected bind:this={boxItemElement}>
     <ObjHeader
         bind:minimize
@@ -961,7 +956,7 @@
     </ObjHeader>
     <div hidden={minimize}>
         <div class="threedemos-container container">
-            {#each ['x', 'y', 'z'] as name}
+            {#each ['x', 'y', 'z'] as name (name)}
                 <span class="box-1"><M size="sm" s="{name}(u,v) = " /></span>
                 <InputChecker
                     value={params[name]}
@@ -974,10 +969,10 @@
                 />
             {/each}
 
-            {#each ['a', 'b'] as name}
+            {#each ['a', 'b'] as name (name)}
                 {#if name === 'b'}
                     <span class="box box-3">
-                        <M size="sm" s={'\\leq u \\leq '} />
+                        <M size="sm" s="\leq u \leq " />
                     </span>
                 {/if}
                 <InputChecker
@@ -994,10 +989,10 @@
                 />
             {/each}
 
-            {#each ['c', 'd'] as name}
+            {#each ['c', 'd'] as name (name)}
                 {#if name === 'd'}
                     <span class="box box-3"
-                        ><M size="sm" s={'\\leq v \\leq '} /></span
+                        ><M size="sm" s="\leq v \leq " /></span
                     >
                 {/if}
                 <InputChecker
@@ -1027,10 +1022,10 @@
             {/each}
 
             {#if isDynamic || isRhoDynamic}
-                {#each ['t0', 't1'] as name}
+                {#each ['t0', 't1'] as name (name)}
                     {#if name === 't1'}
                         <span class="box box-3"
-                            ><M size="sm" s={'\\leq t \\leq '} /></span
+                            ><M size="sm" s="\leq t \leq " /></span
                         >
                     {/if}
                     <InputChecker
@@ -1116,7 +1111,7 @@
             </label>
 
             {#if chooseDensity}
-                <span class="box-1"><M size="sm" s={'\\mu(x,y,z) = '} /></span>
+                <span class="box-1"><M size="sm" s="\mu(x,y,z) = " /></span>
                 <InputChecker
                     value={params.mu}
                     checker={(val) => {
@@ -1137,7 +1132,7 @@
                         }
                         return Number.isFinite(parsedVal);
                     }}
-                    name={'f'}
+                    name="f"
                     {params}
                     cleared={(val) => {
                         params.mu = val;

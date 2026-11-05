@@ -22,7 +22,7 @@ const joinUrl = function (base, path) {
 
     try {
         url = new URL(path, base);
-    } catch (e) {
+    } catch {
         url = new URL(
             base.substring(1) + path.substring(1),
             window.location.origin
@@ -1736,17 +1736,19 @@ function blockGeometry(f, a, b, c, d, M = 5, N = 5, s = 0.5, t = 0.5) {
     }
 
     let dx = (B - A) / N;
+    let comp;
 
     switch (typeof c) {
         case 'number':
             C = () => c;
             break;
         case 'string':
-            const comp = math.parse(c).compile();
+            comp = math.parse(c).compile();
             C = (x) => comp.evaluate({ x });
             break;
         case 'function':
             C = c;
+            break;
         default:
             break;
     }
@@ -1755,11 +1757,12 @@ function blockGeometry(f, a, b, c, d, M = 5, N = 5, s = 0.5, t = 0.5) {
             D = () => d;
             break;
         case 'string':
-            const comp = math.parse(d).compile();
+            comp = math.parse(d).compile();
             D = (x) => comp.evaluate({ x });
             break;
         case 'function':
             D = d;
+            break;
         default:
             break;
     }
@@ -3469,7 +3472,6 @@ function sampleImplicitSurface(
                 if (minVal * maxVal > 0) continue; // No sign change → skip
 
                 // Find approximate intersection point (weighted average)
-                let sumWeights = 0;
                 let px = 0,
                     py = 0,
                     pz = 0;
@@ -3562,7 +3564,7 @@ const randomUUID = function() {
         return self.crypto.randomUUID()
     }
 
-    return 'xxxx-xxxx-xxx-xxxx'.replace(/[x]/g, (c) => {
+    return 'xxxx-xxxx-xxx-xxxx'.replace(/[x]/g, () => {
         const r = Math.floor(Math.random() * 16);
         return r.toString(16);
     });

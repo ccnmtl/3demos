@@ -16,7 +16,7 @@
             <i class="fa fa-square"></i>
         </strong>
         <a
-            href={'#'}
+            href="#"
             class="link-light"
             title="Select object"
             onclick={(e) => {

@@ -1,6 +1,4 @@
 <script>
-    import { curveLinearClosed } from 'd3';
-
     /**
      * A svelte component for parameter inputs.
      * Input value is checked on change against the parameters. If validated (via a user-supplied checker), dispatch a cleared function, else alert the user with error message.

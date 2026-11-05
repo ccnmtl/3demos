@@ -17,7 +17,6 @@
     import PlayButtons from '../form-components/PlayButtons.svelte';
     import M from '../M.svelte';
     import ObjHeader from './ObjHeader.svelte';
-    import { checksum } from '../utils.js';
     import { flashDance } from '../sceneUtils';
     import InputChecker from '../form-components/InputChecker.svelte';
     import Nametag from './Nametag.svelte';
@@ -261,7 +260,6 @@
     });
 </script>
 
-<!-- svelte-ignore a11y_no_static_element_interactions -->
 <div class="boxItem" class:selected bind:this={boxItemElement} hidden={!show}>
     <ObjHeader
         bind:minimize
@@ -272,11 +270,11 @@
         onSelect={(e) => selectObject(uuid, !e.shiftKey)}
     >
         <Nametag bind:title />
-        <M size="sm" s={`\\langle p_1, p_2, p_3 \\rangle`} />
+        <M size="sm" s="\langle p_1, p_2, p_3 \rangle" />
     </ObjHeader>
     <div hidden={minimize}>
         <div class="threedemos-container container">
-            {#each ['a', 'b', 'c'] as name}
+            {#each ['a', 'b', 'c'] as name (name)}
                 <span class="box-1"
                     ><M size="sm" s={varNames[name] + ' = '} /></span
                 >
@@ -293,10 +291,10 @@
 
             {#if isDynamic}
                 <!-- <div class="dynamic-container" transition:slide|global> -->
-                {#each ['t0', 't1'] as name}
+                {#each ['t0', 't1'] as name (name)}
                     {#if name === 't1'}
                         <span class="box box-3"
-                            ><M size="sm" s={'\\leq t \\leq '} /></span
+                            ><M size="sm" s="\leq t \leq " /></span
                         >
                     {/if}
                     <InputChecker
@@ -350,7 +348,7 @@
                     name="n0"
                 />
                 <span class="box box-3">
-                    <M size="sm" s={'\\leq n \\leq '} />
+                    <M size="sm" s="\leq n \leq " />
                 </span>
                 <input
                     class="form-control form-control-sm box-4"

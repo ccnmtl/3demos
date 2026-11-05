@@ -41,7 +41,7 @@
         <span class="edit-hover">
             {title}&nbsp;
             <a
-                href={'#'}
+                href="#"
                 onclick={(e) => {
                     e.preventDefault();
                     edit = true;

@@ -100,8 +100,10 @@
 
             const oldChart = d3container.querySelector('svg');
             if (oldChart) {
+                // eslint-disable-next-line svelte/no-dom-manipulating
                 d3container.replaceChild(chart, oldChart);
             } else {
+                // eslint-disable-next-line svelte/no-dom-manipulating
                 d3container.appendChild(chart);
             }
         } else {
@@ -204,7 +206,7 @@
                     }}
                 >
                     <strong>{response.kind}</strong>
-                    {#each Object.entries(response.params) as [param, data]}
+                    {#each Object.entries(response.params) as [param, data] (param)}
                         , {param} = {data}
                     {/each}
                 </button>

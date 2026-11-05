@@ -1,10 +1,10 @@
 <script>
     import Badge from './Badge.svelte';
     // import M from '../M.svelte';
-    import { derived } from 'svelte/store';
 
     let N = $state(2);
 
+    // eslint-disable-next-line no-unused-vars
     let s = $derived.by(() => {
         let out = '\\sin x = x + ';
         for (let i = 1; i < N; i++) {

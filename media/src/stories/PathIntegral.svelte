@@ -311,9 +311,9 @@
 <div>
     <p>
         Let <M s="C" /> be a path in <M s={'\\mathbb{R}^n'} /> parametrized by <M
-            s={'\\vec r(t)'}
+            s="\vec r(t)"
         /> for
-        <M s={`a \\leq t \\leq b`} />.
+        <M s="a \leq t \leq b" />.
     </p>
     <div id="path-selection" class="selectables">
         <button

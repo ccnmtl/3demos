@@ -3,7 +3,7 @@
 </script>
 
 <script>
-    import { onMount, onDestroy, untrack } from 'svelte';
+    import { onDestroy, untrack } from 'svelte';
     import Nametag from './Nametag.svelte';
     import * as THREE from 'three';
     import { create, all } from 'mathjs';
@@ -14,15 +14,12 @@
     import {
         ArrowBufferGeometry,
         ParametricCurve,
-        checksum,
     } from '../utils.js';
     import { flashDance } from '../sceneUtils';
     import InputChecker from '../form-components/InputChecker.svelte';
 
     import { tickTock } from '../stores';
     import PlayButtons from '../form-components/PlayButtons.svelte';
-    import Panel from '../Panel.svelte';
-    import PathIntegral from '../stories/PathIntegral.svelte';
 
     const config = {};
     const math = create(all, config);
@@ -614,7 +611,7 @@
     </ObjHeader>
     <div hidden={minimize}>
         <div class="threedemos-container container">
-            {#each ['x', 'y', 'z'] as name}
+            {#each ['x', 'y', 'z'] as name (name)}
                 <span class="box-1"><M size="sm" s="{name}(t) =" /></span>
                 <InputChecker
                     value={params[name]}
@@ -698,7 +695,7 @@
             />
 
             {#if isDynamic}
-                {#each ['a0', 'a1'] as name}
+                {#each ['a0', 'a1'] as name (name)}
                     {#if name === 'a1'}
                         <span class="box box-3"
                             ><M size="sm" s="\\leq a \\leq " /></span
@@ -755,7 +752,7 @@
                 </label>
                 {#if vizOptions.frame}
                     <label
-                        ><M size={'sm'} s="\\mathbf r" />
+                        ><M size="sm" s="\\mathbf r" />
                         <input
                             type="checkbox"
                             name="framePos"
@@ -764,7 +761,7 @@
                         />
                     </label>
                     <label>
-                        <M size={'sm'} s={"\\mathbf r'"} />
+                        <M size="sm" s="\mathbf r'" />
                         <input
                             type="checkbox"
                             name="frameVel"
@@ -772,7 +769,7 @@
                         />
                     </label>
                     <label
-                        ><M size="sm" s={"\\mathbf r''"} />
+                        ><M size="sm" s="\mathbf r''" />
                         <input
                             type="checkbox"
                             name="frameAcc"

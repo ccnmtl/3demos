@@ -1,10 +1,7 @@
 import {
   parse,
   simplifyConstant,
-  OperatorNode,
   FunctionNode,
-  SymbolNode,
-  ConditionalNode,
 } from 'mathjs';
 
 const allowedMathFns = new Set([
@@ -31,7 +28,7 @@ const constantMap = {
 
 /**
  * Checks if a math.js AST contains a ConditionalNode
- * @param {*} node 
+ * @param {*} node
  * @returns boolean
  */
 function containsConditional(node) {
@@ -85,6 +82,8 @@ function mathToJSFunction(expression, variableNames = null) {
   // Compile AST to JS expression string
   const jsExpr = ast.toString({
     handler: (node, options) => {
+      let fnName, jsFn;
+
       switch (node.type) {
         case 'OperatorNode':
           if (node.fn === 'pow') {
@@ -98,7 +97,7 @@ function mathToJSFunction(expression, variableNames = null) {
           break;
 
         case 'FunctionNode':
-          const fnName = node.fn.name;
+          fnName = node.fn.name;
           if (fnName === 'mod') {
             const [a, b] = node.args;
             return `(((${a.toString(options)} % ${b.toString(options)}) + ${b.toString(options)}) % ${b.toString(options)})`;
@@ -107,7 +106,7 @@ function mathToJSFunction(expression, variableNames = null) {
           if (!allowedMathFns.has(fnName)) {
             throw new Error(`Unsupported function: ${fnName}`);
           }
-          const jsFn = fnName === 'atan2' ? 'Math.atan2' : `Math.${fnName}`;
+          jsFn = fnName === 'atan2' ? 'Math.atan2' : `Math.${fnName}`;
           return `${jsFn}(${node.args.map(arg => arg.toString(options)).join(', ')})`;
 
         case 'ConstantNode':

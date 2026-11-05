@@ -35,7 +35,6 @@
         marchingSquares,
         ArrowBufferGeometry,
         blockGeometry,
-        checksum,
         gaussLegendre,
     } from '../utils.js';
 
@@ -59,12 +58,12 @@
         scene,
         render,
         gridStep,
-        show = true,
         showLevelCurves = false,
         animation = $bindable(false),
         selected,
         selectPoint,
         selectObject,
+        setTarget,
         animate,
         camera,
         onClose = () => {},
@@ -321,7 +320,6 @@
     // }
 
     let cMin, dMax; // make these globals as useful for tangents.
-    const tol = 1e-12; //tolerance for comparisons
 
     let surfaceMesh = new THREE.Object3D();
 
@@ -949,12 +947,7 @@
                     activateLevelElevator();
                     break;
                 case 'c':
-                    controls.target.set(
-                        point.position.x,
-                        point.position.y,
-                        point.position.z,
-                    );
-                    render();
+                    setTarget(point);
                     break;
                 case 'Backspace':
                     graphVisible = !graphVisible;
@@ -1039,7 +1032,6 @@
     />
 {/snippet}
 
-<!-- svelte-ignore a11y_no_static_element_interactions -->
 <div class="boxItem" class:selected bind:this={boxItemElement}>
     <ObjHeader
         bind:minimize
@@ -1059,7 +1051,7 @@
             <InputChecker
                 value={params['z']}
                 checker={chickenParms}
-                name={'z'}
+                name="z"
                 {params}
                 cleared={(val) => {
                     params['z'] = val;
@@ -1069,14 +1061,14 @@
 
             {@render intervalEndPtInput('a', '1')}
             <span class="box box-3">
-                <M size="sm" s={'\\leq x \\leq '} />
+                <M size="sm" s="\leq x \leq " />
             </span>
             {@render intervalEndPtInput('b', '4')}
 
-            {#each ['c', 'd'] as name}
+            {#each ['c', 'd'] as name (name)}
                 {#if name === 'd'}
                     <span class="box box-3">
-                        <M size="sm" s={'\\leq y \\leq '} />
+                        <M size="sm" s="\leq y \leq " />
                     </span>
                 {/if}
                 <InputChecker
@@ -1153,7 +1145,7 @@
             {#if isDynamic}
                 {@render intervalEndPtInput('t0', '1')}
                 <span class="box box-3">
-                    <M size="sm" s={'\\leq t \\leq '} />
+                    <M size="sm" s="\leq t \leq " />
                 </span>
                 {@render intervalEndPtInput('t1', '4')}
 

@@ -6,13 +6,12 @@
     import {
         ShardsEdgesGeometry,
         ShardsGeometry,
-        filterBang,
+        // filterBang,
         gaussLegendre,
     } from '../utils';
     import { mathToJSFunction } from '../objects/mathutils';
     import { onMount, onDestroy, untrack } from 'svelte';
     import { demoObjects } from '../states.svelte';
-    import { derived } from 'svelte/store';
     // import { createEventDispatcher } from 'svelte';
 
     // const dispatch = createEventDispatcher();
@@ -192,7 +191,7 @@
             20,
         ),
     );
-    $inspect(totalArea);
+    // $inspect(totalArea);
 
     let approxArea = $derived(geo?.area ?? '');
 
@@ -249,24 +248,24 @@
             align
             s={`\\mathbf r_u\\,\\Delta u &=
             \\left\\langle \\frac{\\partial x}{\\partial u}, \\frac{\\partial y}{\\partial u}, \\frac{\\partial z}{\\partial u} \\right\\rangle\\Delta u \\\\ \\mathbf
-            r_v\\,\\Delta v &= \\left\\langle \\frac{\\partial x}{\\partial v}, \\frac{\\partial y}{\\partial v}, \\frac{\\partial z}{\\partial v} 
-            \\right\\rangle\\Delta v \\\\ 
+            r_v\\,\\Delta v &= \\left\\langle \\frac{\\partial x}{\\partial v}, \\frac{\\partial y}{\\partial v}, \\frac{\\partial z}{\\partial v}
+            \\right\\rangle\\Delta v \\\\
             `}
         />
     </p>
 
     <div class="row">
         <div class="col-auto">
-            <M s={'\\Omega:'} />
+            <M s="\Omega:" />
             <select
                 class="demos-obj-select m-2 bg-primary text-light"
                 bind:value={currentSurface}
             >
-                {#each backupObjects.filter((o) => o.kind === 'surface' && o.uuid.slice(0, 10) !== 'flux-story') as obj}
+                {#each backupObjects.filter((o) => o.kind === 'surface' && o.uuid.slice(0, 10) !== 'flux-story') as obj (obj.uuid)}
                     <option value={obj}>{obj.title}</option>
                 {/each}
                 <option disabled>──────────</option>
-                {#each standardExamples as obj}
+                {#each standardExamples as obj (obj.uuid)}
                     <option value={obj}>{obj.title}</option>
                 {/each}
             </select>
@@ -301,7 +300,7 @@
 
     <div class="row my-3">
         <div class="col-auto">
-            <span class=""><M s={`n `} /></span>
+            <span class=""><M s="n " /></span>
             <span class=""
                 ><input
                     type="range"

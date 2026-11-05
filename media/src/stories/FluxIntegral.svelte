@@ -5,7 +5,6 @@
     import { all, create } from 'mathjs';
     import M from '../M.svelte';
     import {
-        filterBang,
         FluxBoxEdgesGeometry,
         FluxBoxGeometry,
         gaussLegendre,
@@ -493,39 +492,39 @@
 
     <p>
         Let <M s={`\\mathbf r: D\\to \\Omega \\subset \\mathbb{R}^3`} /> be a parametric
-        surface oriented with normal <M s={`\\mathbf N`} /> and <M
-            s={`\\mathbf F`}
-        /> a vector field continuous on <M s={`\\Omega`} />.
+        surface oriented with normal <M s="\mathbf N" /> and <M
+            s="\mathbf F"
+        /> a vector field continuous on <M s="\Omega" />.
     </p>
 
     <div class="row">
         <div class="col-auto">
-            <M s={'\\mathbf F:'} />
+            <M s="\mathbf F:" />
             <select
                 class="demos-obj-select m-2 bg-primary border-primary
                 text-light"
                 bind:value={currentField}
             >
-                {#each backupObjects.filter((o) => o.kind === 'field' && o.uuid.slice(0, 10) !== 'flux-story') as obj}
+                {#each backupObjects.filter((o) => o.kind === 'field' && o.uuid.slice(0, 10) !== 'flux-story') as obj (obj.uuid)}
                     <option value={obj}>{obj.title}</option>
                 {/each}
                 <option disabled>──────────</option>
-                {#each exampleFields as obj}
+                {#each exampleFields as obj (obj.uuid)}
                     <option value={obj}>{obj.title}</option>
                 {/each}
             </select>
         </div>
         <div class="col-auto">
-            <M s={'\\Omega:'} />
+            <M s="\Omega:" />
             <select
                 class="demos-obj-select m-2 bg-primary text-light"
                 bind:value={currentSurface}
             >
-                {#each backupObjects.filter((o) => o.kind === 'surface' && o.uuid.slice(0, 10) !== 'flux-story') as obj}
+                {#each backupObjects.filter((o) => o.kind === 'surface' && o.uuid.slice(0, 10) !== 'flux-story') as obj (obj.uuid)}
                     <option value={obj}>{obj.title}</option>
                 {/each}
                 <option disabled>──────────</option>
-                {#each exampleSurfaces as obj}
+                {#each exampleSurfaces as obj (obj.uuid)}
                     <option value={obj}>{obj.title}</option>
                 {/each}
             </select>
@@ -546,11 +545,11 @@
 
     <p>
         Then the <b>flux</b>
-        <M s={'\\Phi'} /> of the vector field through the surface is given by
+        <M s="\Phi" /> of the vector field through the surface is given by
 
         <M
             align
-            s={'\\Phi &= \\iint_\\Omega \\mathbf F\\cdot\\,d\\mathbf S = \\iint_\\Omega \\mathbf F\\cdot\\mathbf N\\,dS \\\\ &= \\iint_D \\mathbf F(\\mathbf r(u,v)) \\cdot \\mathbf r_u \\times \\mathbf r_v\\,dS.'}
+            s="\Phi &= \iint_\Omega \mathbf F\cdot\,d\mathbf S = \iint_\Omega \mathbf F\cdot\mathbf N\,dS \\ &= \iint_D \mathbf F(\mathbf r(u,v)) \cdot \mathbf r_u \times \mathbf r_v\,dS."
         />
     </p>
 
@@ -558,7 +557,7 @@
         That integrand is a <em>triple product</em> which can be visualized as
         the volume of a parallelopiped with two tangent vectors to the surface
         and the vector field itself being the third edge. To see this, we chop
-        the domain <M s="D" /> into <M s={`n \times n`} /> rectangles and draw the
+        the domain <M s="D" /> into <M s="n \times n" /> rectangles and draw the
         parallelopipeds to approximate the flux.
     </p>
 
@@ -578,7 +577,7 @@
 
     <div class="row my-3">
         <div class="col-auto">
-            <span class=""><M s={'n = '} /></span>
+            <span class=""><M s="n = " /></span>
             <span class=""
                 ><input
                     type="range"
@@ -635,12 +634,12 @@
     </p>
 
     <p>
-        Imagine <M s={'\\mathbf F'} /> as the velocity field of some fluid. The we
-        can interpret <M s={'\\Phi'} /> as the net volume flowing per unit time through
+        Imagine <M s="\mathbf F" /> as the velocity field of some fluid. The we
+        can interpret <M s="\Phi" /> as the net volume flowing per unit time through
         the surface in the direction of its orientation. By scaling the vector field
         in time, we can "see" this volume flowing through the surface.
         <strong>Warning</strong>
-        the quantity <M s={'\\Phi'} /> is computed as a static computation. This
+        the quantity <M s="\Phi" /> is computed as a static computation. This
         is meant only to help see where positive/negative contributions come from.
     </p>
 

@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { rk4, norm1 } from '../utils.js';
+import { rk4 } from '../utils.js';
 
 export default class FlowArrowMesh extends THREE.Mesh {
     constructor(

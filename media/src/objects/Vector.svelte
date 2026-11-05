@@ -30,7 +30,7 @@
     import M from '../M.svelte';
     import ObjHeader from './ObjHeader.svelte';
     import Nametag from './Nametag.svelte';
-    import { ArrowBufferGeometry, checksum } from '../utils.js';
+    import { ArrowBufferGeometry } from '../utils.js';
     import { flashDance } from '../sceneUtils';
     import InputChecker from '../form-components/InputChecker.svelte';
 
@@ -319,11 +319,11 @@
         onSelect={(e) => selectObject(uuid, !e.shiftKey)}
     >
         <Nametag bind:title />
-        <M size="sm" s={'\\langle v_1, v_2, v_3 \\rangle'} />
+        <M size="sm" s="\langle v_1, v_2, v_3 \rangle" />
     </ObjHeader>
     <div hidden={minimize}>
         <div class="threedemos-container container">
-            {#each ['a', 'b', 'c', 'x', 'y', 'z'] as name}
+            {#each ['a', 'b', 'c', 'x', 'y', 'z'] as name (name)}
                 {#if name === 'x'}
                     <span class="box-1">
                         Plot at position <M size="sm" s="(p_1, p_2, p_3)" />:
@@ -344,10 +344,10 @@
             {/each}
 
             {#if isDynamic}
-                {#each ['t0', 't1'] as name}
+                {#each ['t0', 't1'] as name (name)}
                     {#if name === 't1'}
                         <span class="box box-3"
-                            ><M size="sm" s={'\\leq t \\leq '} /></span
+                            ><M size="sm" s="\leq t \leq " /></span
                         >
                     {/if}
                     <InputChecker
@@ -401,7 +401,7 @@
                     name="n0"
                 />
                 <span class="box box-3"
-                    ><M size="sm" s={'\\leq n \\leq '} /></span
+                    ><M size="sm" s="\leq n \leq " /></span
                 >
                 <input
                     class="form-control form-control-sm box-4"

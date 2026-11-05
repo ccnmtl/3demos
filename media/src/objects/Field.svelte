@@ -5,12 +5,12 @@
 <script>
     import { onMount, onDestroy, untrack } from 'svelte';
     import * as THREE from 'three';
-    import { create, all, e, xgcd } from 'mathjs';
+    import { create, all } from 'mathjs';
 
     import M from '../M.svelte';
     import ObjHeader from './ObjHeader.svelte';
     import Nametag from './Nametag.svelte';
-    import { ArrowBufferGeometry, rk4, norm1, checksum } from '../utils.js';
+    import { ArrowBufferGeometry, rk4 } from '../utils.js';
     import { flashDance } from '../sceneUtils';
     import { tickTock } from '../stores';
     // import ObjectParamInput from '../form-components/ObjectParamInput.svelte';
@@ -199,7 +199,7 @@
         }
     };
 
-    const initFlowArrows = function (arrows, N) {
+    const initFlowArrows = function (arrows) {
         const vec = new THREE.Vector3();
         let maxLength = 0;
 
@@ -462,7 +462,6 @@
     window.addEventListener('keydown', onKeyDown, false);
 </script>
 
-<!-- svelte-ignore a11y_no_static_element_interactions -->
 <div class="boxItem" class:selected bind:this={boxItemElement}>
     <ObjHeader
         bind:minimize

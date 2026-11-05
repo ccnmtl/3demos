@@ -17,9 +17,6 @@
     const math = create(all, config);
 
     import {
-        colorBufferVertices,
-        vMaxMin,
-        blueUpRedDown,
         // checksum,
         RectangularSolidGeometry,
         CylindricalSolidGeometry,
@@ -30,7 +27,6 @@
     import {
         plainVertexShader,
         heatmapFragmentShader,
-        plainRedFrag,
     } from './shaders';
 
     import InputChecker from '../form-components/InputChecker.svelte';
@@ -112,37 +108,37 @@
 
     // export let myId;
 
-    const colorMaterial = new THREE.MeshPhongMaterial({
-        color: 0xffffff,
-        shininess: 70,
-        side: THREE.DoubleSide,
-        vertexColors: true,
-        transparent: false,
-    });
+    // const colorMaterial = new THREE.MeshPhongMaterial({
+    //     color: 0xffffff,
+    //     shininess: 70,
+    //     side: THREE.DoubleSide,
+    //     vertexColors: true,
+    //     transparent: false,
+    // });
 
-    const colorMeBadd = (mesh, f) => {
-        const [vMaxLocal, vMinLocal] = vMaxMin(mesh, f);
-        $vMin = Math.min($vMin, vMinLocal);
-        $vMax = Math.max($vMax, vMaxLocal);
-        if ($vMax == $vMin) {
-            if ($vMax == 0) {
-                $vMax = 1;
-                $vMin = -1;
-            } else {
-                $vMax = (4 / 3) * Math.abs($vMax);
-                $vMin = (-4 / 3) * Math.abs($vMin);
-            }
-        }
+    // const colorMeBadd = (mesh, f) => {
+    //     const [vMaxLocal, vMinLocal] = vMaxMin(mesh, f);
+    //     $vMin = Math.min($vMin, vMinLocal);
+    //     $vMax = Math.max($vMax, vMaxLocal);
+    //     if ($vMax == $vMin) {
+    //         if ($vMax == 0) {
+    //             $vMax = 1;
+    //             $vMin = -1;
+    //         } else {
+    //             $vMax = (4 / 3) * Math.abs($vMax);
+    //             $vMin = (-4 / 3) * Math.abs($vMin);
+    //         }
+    //     }
 
-        colorBufferVertices(mesh, (x, y, z) => {
-            const value = f(x, y, z);
-            return blueUpRedDown(
-                (2 * (value - $vMin)) / ($vMax - $vMin) - 1,
-                0.8,
-                $densityColormap,
-            );
-        });
-    };
+    //     colorBufferVertices(mesh, (x, y, z) => {
+    //         const value = f(x, y, z);
+    //         return blueUpRedDown(
+    //             (2 * (value - $vMin)) / ($vMax - $vMin) - 1,
+    //             0.8,
+    //             $densityColormap,
+    //         );
+    //     });
+    // };
 
     $effect(() => {
         console.log('shader effex');
@@ -380,7 +376,6 @@
     render();
 </script>
 
-<!-- svelte-ignore a11y_no_static_element_interactions -->
 <div class="boxItem" class:selected bind:this={boxItemElement}>
     <ObjHeader
         bind:minimize
@@ -401,7 +396,7 @@
                 <option value="spher">Spherical</option>
             </select>
 
-            {#each ['a', 'b'] as name}
+            {#each ['a', 'b'] as name (name)}
                 {#if name === 'b'}
                     <span class="box box-3">
                         <M
@@ -426,7 +421,7 @@
                 />
             {/each}
 
-            {#each ['c', 'd'] as name}
+            {#each ['c', 'd'] as name (name)}
                 {#if name === 'd'}
                     <span class="box box-3"
                         ><M
@@ -469,7 +464,7 @@
                 />
             {/each}
 
-            {#each ['e', 'f'] as name}
+            {#each ['e', 'f'] as name (name)}
                 {#if name === 'f'}
                     <span class="box box-3"
                         ><M
@@ -532,7 +527,7 @@
                         }
                         return Number.isFinite(parsedVal);
                     }}
-                    name={'mu'}
+                    name="mu"
                     {params}
                     cleared={(val) => {
                         params.mu = val;
