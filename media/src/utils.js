@@ -903,13 +903,35 @@ class ArrowBufferGeometry extends THREE.BufferGeometry {
         // helper variables
 
         let index = 0;
-        const tooShort = height < heightTop;
+        height = Math.max(0, height);
+        const tooShort = heightIncludesHead && height < heightTop;
+        if (tooShort) {
+            // Shrink the head proportionally; no tube remains.
+            const scale = height / heightTop;
+            radiusTop *= scale;
+            radiusBottom *= scale;
+            heightTop = height;
+        }
         const indexArray = [];
         const tubeHeight = heightIncludesHead
             ? tooShort
                 ? 0
                 : height - heightTop
             : height;
+        // A zero-length arrow has nothing to draw; emit an empty geometry.
+        if (height === 0 || heightTop <= 0) {
+            this.setIndex([]);
+            this.setAttribute(
+                'position',
+                new THREE.Float32BufferAttribute([], 3)
+            );
+            this.setAttribute(
+                'normal',
+                new THREE.Float32BufferAttribute([], 3)
+            );
+            this.setAttribute('uv', new THREE.Float32BufferAttribute([], 2));
+            return;
+        }
         let groupStart = 0;
 
         // generate geometry
@@ -1031,11 +1053,6 @@ class ArrowBufferGeometry extends THREE.BufferGeometry {
 
             let groupCount = 0;
 
-            if (tooShort) {
-                radiusTop *= height / heightTop;
-                heightTop = height;
-            }
-
             const radius = top || headBase ? radiusTop : radiusBottom;
             const sign = top ? 1 : -1;
 
@@ -1150,44 +1167,15 @@ class ArrowBufferGeometry extends THREE.BufferGeometry {
     }
 
     adjustHeight(newHeight) {
-        const points = this.attributes.position.array;
-        const oldHeight = points[56];
-
-        let index = 0;
-        for (let i = 0; i < points.length / 3; i++) {
-            index++;
-            index++;
-            const z = points[index];
-
-            if (z !== 0) {
-                points[index] += newHeight - oldHeight;
-                // points[index] = Math.max(points[index], 0);
-            }
-            index++;
-        }
-        this.parameters.height = newHeight;
-        this.attributes.position.needsUpdate = true;
+        // Rebuild so short/zero-length arrows keep a proportional head.
+        const fresh = new ArrowBufferGeometry({
+            ...this.parameters,
+            height: newHeight,
+        });
+        this.copy(fresh);
+        this.parameters = fresh.parameters;
+        fresh.dispose();
     }
-}
-
-function adjustArrowHeight(geometry, newHeight) {
-    const points = geometry.attributes.position.array;
-    const oldHeight = points[56];
-
-    let index = 0;
-    for (let i = 0; i < points.length / 3; i++) {
-        index++;
-        index++;
-        const z = points[index];
-
-        if (z !== 0) {
-            points[index] += newHeight - oldHeight;
-        }
-        index++;
-    }
-
-    geometry.parameters.height = newHeight;
-    geometry.attributes.position.needsUpdate = true;
 }
 
 function drawGrid({
@@ -3588,7 +3576,6 @@ export {
     lcm,
     disposeArray,
     freeChildren,
-    adjustArrowHeight,
     ParametricGeometry,
     RectangularSolidGeometry,
     CylindricalSolidGeometry,
